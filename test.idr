@@ -23,8 +23,8 @@ instance ZeroPlus Nat where
 instance {- ZeroPlus Nat => -} dataTypes.Group Nat where
     Plus_assoc x y z = ?Mplus_assoc_nat -- Will use the lemma plusAssociative
     Plus_neutral x = (?Mplus_neutral_nat_1, ?Mplus_neutral_nat_2)
-    --Plus_inverse x = ?Mplus_inverse
-    Plus_inverse x = (?MV ** (?Mplus_inverse_nat_1, ?Mplus_inverse_nat_2))
+    Plus_inverse x = ?Mplus_inverse
+    --Plus_inverse x = (?MV ** (?Mplus_inverse_nat_1, ?Mplus_inverse_nat_2))
     
 instance CommutativeGroup Nat where
     Plus_comm x y = ?Mplus_comm_nat
@@ -71,3 +71,24 @@ print_transform (val**(exp,pr)) = print_ExprR show exp -- WHY IMPOSSIBLE TO NAME
 -- And now, the expression developped, printed
 test_e1_dev_print : String
 --test_e1_dev_print = print_transform (develop test_e1)
+
+
+test.Mplus_assoc_nat = proof {
+  intros;
+  compute;
+  mrefine sym;
+  mrefine plusAssociative;
+}
+
+test.Mplus_neutral_nat_1 = proof {
+  intros;
+  compute;
+  rewrite (plusZeroRightNeutral x);
+  trivial;
+}
+
+test.Mplus_neutral_nat_2 = proof {
+  intros;
+  mrefine plusZeroRightNeutral;
+}
+

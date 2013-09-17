@@ -15,7 +15,7 @@ class ZeroPlus g where
 class ZeroPlus g => Group g where
     Plus_assoc : (c1:g) -> (c2:g) -> (c3:g) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
     Plus_neutral : (c:g) -> ((Plus Zero c = Plus c Zero), (Plus c Zero = c))
-    Plus_inverse : (c1:g) -> (c2 ** ((Plus c1 c2 = Plus c2 c1), (Plus c2 c1 = Zero)))
+    Plus_inverse : (c1:g) -> (c2 ** ((Plus c1 c2 = Plus c2 c1), (Plus c2 c1 = the g Zero))) -- "the g Zero" used to make clear that we talk about Zero in g and not the one in CommutativeRing (last defined first tried ?)
 --%logging 0
 
 -- An abstract commutative group
