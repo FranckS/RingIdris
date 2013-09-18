@@ -13,9 +13,11 @@
 
 module Main
 
+import tools
 import dataTypes
 import reduceForCR
-import test
+import testNat
+import testZZ
 
 
 -- Will be written a bit later

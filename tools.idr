@@ -1,7 +1,7 @@
 -- Edwin Brady, Franck Slama
 -- University of St Andrews
--- File ring_dep_tools.idr
--- Tools needed for the implementation of the ring tactic for Idris
+-- File tools.idr
+-- Various tools needed for the implementation of the ring tactic for Idris
 -------------------------------------------------------------------
 
 module tools
@@ -31,3 +31,11 @@ And_assoc2 False True True = refl
 And_assoc2 False True False = refl
 And_assoc2 False False True = refl
 And_assoc2 False False False = refl
+
+-- To add in the depository for Idris
+total plusAssociativeZ : (left : ZZ) -> (centre : ZZ) -> (right : ZZ) ->
+  left + (centre + right) = (left + centre) + right
+plusAssociativeZ (Pos n) (Pos m) = ?MplusAssociativeZ_1
+plusAssociativeZ (Pos n) (NegS m) = ?MplusAssociativeZ_2
+plusAssociativeZ (NegS n) (Pos m) = ?MplusAssociativeZ_3
+plusAssociativeZ (NegS n) (NegS m) = ?MplusAssociativeZ_4
