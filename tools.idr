@@ -6,6 +6,9 @@
 
 module tools
 
+import Data.ZZ
+import globalDef
+
 And_True_neutral : (b:Bool) -> (True && b = b)
 And_True_neutral _ = refl
 
@@ -32,10 +35,33 @@ And_assoc2 False True False = refl
 And_assoc2 False False True = refl
 And_assoc2 False False False = refl
 
+aux1 : O = plus O O
+
 -- To add in the depository for Idris
 total plusAssociativeZ : (left : ZZ) -> (centre : ZZ) -> (right : ZZ) ->
   left + (centre + right) = (left + centre) + right
-plusAssociativeZ (Pos n) (Pos m) = ?MplusAssociativeZ_1
-plusAssociativeZ (Pos n) (NegS m) = ?MplusAssociativeZ_2
-plusAssociativeZ (NegS n) (Pos m) = ?MplusAssociativeZ_3
-plusAssociativeZ (NegS n) (NegS m) = ?MplusAssociativeZ_4
+plusAssociativeZ (Pos u) (Pos v) (Pos w) = let P:((plus u (plus v w))=(plus (plus u v) w)) = (plusAssociative u v w) in ?MplusAssociativeZ_1
+plusAssociativeZ (Pos u) (Pos v) (NegS w) = ?MplusAssociativeZ_2
+plusAssociativeZ (Pos u) (NegS v) (Pos w) = ?MplusAssociativeZ_3
+plusAssociativeZ (Pos u) (NegS v) (NegS w) = ?MplusAssociativeZ_4
+-- 
+plusAssociativeZ (NegS u) (Pos v) (Pos w) = ?MplusAssociativeZ_5
+plusAssociativeZ (NegS u) (Pos v) (NegS w) = ?MplusAssociativeZ_6
+plusAssociativeZ (NegS u) (NegS v) (Pos w) = ?MplusAssociativeZ_7
+plusAssociativeZ (NegS u) (NegS v) (NegS w) = ?MplusAssociativeZ_8
+
+
+minusNatZNeutralZ : (x:Nat) -> (minusNatZ x (S x) = Pos O)
+minusNatZNeutralZ O = ?A
+
+
+tools.MplusAssociativeZ_1 = proof {
+  intros;
+  compute;
+  rewrite P;
+  trivial;
+}
+
+
+
+

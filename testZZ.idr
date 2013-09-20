@@ -9,6 +9,7 @@ module testZZ
 import Prelude.Vect
 import Data.ZZ
 import globalDef
+import tools
 import dataTypes
 import reduceForCR
 
@@ -22,8 +23,13 @@ instance ZeroPlus ZZ where
 instance {- ZeroPlus Nat => -} dataTypes.Group ZZ where
     Plus_assoc x y z = ?Mplus_assoc_ZZ -- Will use the lemma plusAssociative
     Plus_neutral x = (?Mplus_neutral_ZZ_1, ?Mplus_neutral_ZZ_2)
-    Plus_inverse x = ?Mplus_inverse_ZZ
-    --Plus_inverse x = (?MV ** (?Mplus_inverse_nat_1, ?Mplus_inverse_nat_2))
+    
+    Plus_inverse (Pos O) = ((Pos O) ** (?Mplus_inverse_ZZ_1, ?Mplus_inverse_ZZ_2)) -- PB HERE : What is this weird problem that prevent from reducing (plus O O) to O ???? 
+    Plus_inverse (Pos (S x)) = ((NegS x) **(?Mplus_inverse_ZZ_3, ?Mplus_inverse_ZZ_4)) 
+    Plus_inverse (NegS O) = ((Pos (S O)) ** (?Mplus_inverse_ZZ_5, ?Mplus_inverse_ZZ_6)) -- Because (negS O) denotes -1, and -(-1) = +1
+    Plus_inverse (NegS (S x)) = ((Pos (S (S x))) ** (?Mplus_inverse_ZZ_7, ?Mplus_inverse_ZZ_8))
+    
+    --Plus_inverse x = (?MV ** (?Mplus_inverse_ZZ_1, ?Mplus_inverse_ZZ_2))
     
 instance CommutativeGroup ZZ where
     Plus_comm x y = ?Mplus_comm_nat
@@ -71,3 +77,45 @@ print_transform (val**(exp,pr)) = print_ExprR show exp -- WHY IMPOSSIBLE TO NAME
 -- And now, the expression developped, printed
 test_e1_dev_print : String
 --test_e1_dev_print = print_transform (develop test_e1)
+
+
+
+
+
+testZZ.Mplus_assoc_ZZ = proof {
+  intros;
+  compute;
+  mrefine sym;
+  mrefine plusAssociativeZ;
+}
+
+testZZ.Mplus_neutral_ZZ_1 = proof {
+  intros;
+  compute;
+  mrefine sym;
+  mrefine plusCommutativeZ;
+}
+
+testZZ.Mplus_neutral_ZZ_2 = proof {
+  intros;
+  compute;
+  mrefine plusZeroRightNeutralZ;
+}
+
+testZZ.Mplus_inverse_ZZ_1 = proof {
+  intros;
+  compute;
+  trivial;
+}
+
+
+
+
+
+
+
+
+
+
+
+

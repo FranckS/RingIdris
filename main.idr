@@ -42,14 +42,3 @@ main = putStrLn "coucou!"
 
 
 
-
-
-
-
-
-
-
-
-
-
-
