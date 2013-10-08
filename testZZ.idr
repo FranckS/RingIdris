@@ -12,7 +12,7 @@ import globalDef
 import tools
 import dataTypes
 import reduceForCR
-
+{-
 
 -- A simple test for the typeclass hierarchy
 instance ZeroPlus ZZ where
@@ -109,7 +109,7 @@ testZZ.Mplus_inverse_ZZ_1 = proof {
 }
 
 
-
+-}
 
 
 

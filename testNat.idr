@@ -12,6 +12,8 @@ import globalDef
 import dataTypes
 import reduceForCR
 
+{-
+
 -- WARNING : NAT IS NOT A GROUP (NO INVERSE !)
 -- See if I can change my algorithm for doing normalisation for Nat too.
 
@@ -92,3 +94,5 @@ testNat.Mplus_neutral_nat_2 = proof {
   intros;
   mrefine plusZeroRightNeutral;
 }
+
+-}

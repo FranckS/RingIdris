@@ -6,38 +6,86 @@
 
 module dataTypes
 
-class ZeroPlus g where
-    Zero : g
-    Plus : g -> g -> g
+-- For technical reason : because in Idris this is not yet possible to talk about
+-- a field which is introduced in the current typeclass, we need to define some
+-- operators in other structures
+class ZeroC c where
+    Zero : c
+class NegMinus c where
+    Neg : c -> c
+    Minus : c -> c -> c 
+    
+-- Real stuff starts here   
+
+class Set c where
+    -- We just requires a (weak) decidable equality over the elements of the "set"
+    set_eq : (x:c) -> (y:c) -> Maybe (x=y)
+    
+Set_getSet_eq : (Set c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+Set_getSet_eq x = set_eq
+    
+class Set c => Magma c where
+    Plus : c -> c -> c
+
+Magma_getSet : (Magma c) -> (Set c)
+Magma_getSet x = (%instance)
+
+Magma_getSet_eq : (Magma c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+Magma_getSet_eq x = Set_getSet_eq (Magma_getSet x)
+
+class Magma c => SemiGroup c where
+    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
+
+class (SemiGroup c, ZeroC c) => Monoid c where
+    Plus_neutral : (c1:c) -> ((Plus Zero c1 = Plus c1 Zero), (Plus c1 Zero = c1))    
 
 -- An abstract group
 --%logging 1    
-class ZeroPlus g => Group g where
-    Plus_assoc : (c1:g) -> (c2:g) -> (c3:g) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
-    Plus_neutral : (c:g) -> ((Plus Zero c = Plus c Zero), (Plus c Zero = c))
-    Plus_inverse : (c1:g) -> (c2 ** ((Plus c1 c2 = Plus c2 c1), (Plus c2 c1 = the g Zero))) -- "the g Zero" used to make clear that we talk about Zero in g and not the one in CommutativeRing (last defined first tried ?)
+class (dataTypes.Monoid c, NegMinus c) => dataTypes.Group c where
+    Minus_simpl : (c1:c) -> (c2:c) -> Minus c1 c2 = Plus c1 (Neg c2) --Minus should not be primitive and should be simplifiable
+    -- The most important stuff for a group is the following :
+    Plus_inverse : (c1:c) -> ((Plus c1 (Neg c1) = Plus (Neg c1) c1), (Plus (Neg c1) c1 = the c Zero)) -- "the c Zero" used to make clear that we talk about Zero in c and not the one in CommutativeRing (last defined first tried ?)
 --%logging 0
 
 -- An abstract commutative group
-class dataTypes.Group g => CommutativeGroup g where
-    Plus_comm : (c1:g) -> (c2:g) -> (Plus c1 c2 = Plus c2 c1)
+class dataTypes.Group c => CommutativeGroup c where
+    Plus_comm : (c1:c) -> (c2:c) -> (Plus c1 c2 = Plus c2 c1)
     
 class OneMult c where
     One : c
     Mult : c -> c -> c
 
 -- An abstract ring    
-class (CommutativeGroup r, OneMult r) => Ring r where
-    Mult_assoc : (c1:r) -> (c2:r) -> (c3:r) -> Mult (Mult c1 c2) c3 = Mult c1 (Mult c2 c3)
-    Mult_dist : (c1:r) -> (c2:r) -> (c3:r) -> Mult c1 (Plus c2 c3) = Plus (Mult c1 c2) (Mult c1 c3)
-    Mult_dist_2 : (c1:r) -> (c2:r) -> (c3:r) -> Mult (Plus c1 c2) c3 = Plus (Mult c1 c3) (Mult c2 c3) -- Needed because we don't have commutativity of * in a ring
-    Mult_neutral : (c:r) -> ((Mult c One = Mult One c), (Mult One c = c))
+class (CommutativeGroup c, OneMult c) => Ring c where
+    Mult_assoc : (c1:c) -> (c2:c) -> (c3:c) -> Mult (Mult c1 c2) c3 = Mult c1 (Mult c2 c3)
+    Mult_dist : (c1:c) -> (c2:c) -> (c3:c) -> Mult c1 (Plus c2 c3) = Plus (Mult c1 c2) (Mult c1 c3)
+    Mult_dist_2 : (c1:c) -> (c2:c) -> (c3:c) -> Mult (Plus c1 c2) c3 = Plus (Mult c1 c3) (Mult c2 c3) -- Needed because we don't have commutativity of * in a ring
+    Mult_neutral : (c1:c) -> ((Mult c1 One = Mult One c1), (Mult One c1 = c1))
 
 -- An abstract commutative ring    
-class dataTypes.Ring r => CommutativeRing r where
-    Mult_comm : (c1:r) -> (c2:r) -> (Mult c1 c2 = Mult c2 c1)
+class dataTypes.Ring c => CommutativeRing c where
+    Mult_comm : (c1:c) -> (c2:c) -> (Mult c1 c2 = Mult c2 c1)
     
 using (g : Vect n c)
+
+-- Reflected terms in a magma
+    data ExprMa : Magma c -> (Vect n c) -> c -> Type where
+        ConstMa : (p : Magma c) -> (c1:c) -> ExprMa p g c1
+        PlusMa : {p : Magma c} -> {c1:c} -> {c2:c} -> ExprMa p g c1 -> ExprMa p g c2 -> ExprMa p g (Plus c1 c2)
+        VarMa : (p : Magma c) -> (i:Fin n) -> ExprMa p g (index i g)
+
+-- Reflected terms in semigroup
+    data ExprSG : SemiGroup c -> (Vect n c) -> c -> Type where
+        ConstSG : (p : SemiGroup c) -> (c1:c) -> ExprSG p g c1
+        PlusSG : {p : SemiGroup c} -> {c1:c} -> {c2:c} -> ExprSG p g c1 -> ExprSG p g c2 -> ExprSG p g (Plus c1 c2)
+        VarSG : (p : SemiGroup c) -> (i:Fin n) -> ExprSG p g (index i g)
+
+-- Reflected terms in a monoid
+    data ExprMo : dataTypes.Monoid c -> (Vect n c) -> c -> Type where
+        ConstMo : (p : dataTypes.Monoid c) -> (c1:c) -> ExprMo p g c1
+        PlusMo : {p : dataTypes.Monoid c} -> {c1:c} -> {c2:c} -> ExprMo p g c1 -> ExprMo p g c2 -> ExprMo p g (Plus c1 c2)
+        VarMo : (p : dataTypes.Monoid c) -> (i:Fin n) -> ExprMo p g (index i g)
+
 -- Reflected terms in a group  
     data ExprG :  dataTypes.Group c -> (Vect n c) -> c -> Type where
         ConstG : (p : dataTypes.Group c) -> (c1:c) -> ExprG p g c1

@@ -55,6 +55,15 @@ minusNatZNeutralZ : (x:Nat) -> (minusNatZ x (S x) = Pos O)
 minusNatZNeutralZ O = ?A
 
 
+--class Relation s where
+    --rel : s -> s -> Type
+
+--class Relation s => Setoid s where
+  --  refl : (x:s) -> rel x x
+    --sym : (x:s) -> (y:s) -> (rel x y) -> (rel y x)
+    --trans : (x:s) -> (y:s) -> (z:s) -> (rel x y) -> (rel y z) -> (rel x z)
+
+
 tools.MplusAssociativeZ_1 = proof {
   intros;
   compute;
