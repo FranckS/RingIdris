@@ -1,0 +1,196 @@
+%-----------------------------------------------------------------------------
+%
+%			Edwin's and Franck Paper !
+%  uses the template for sigplanconf LaTeX Class
+%
+%-----------------------------------------------------------------------------
+
+
+\documentclass{sigplanconf}
+
+% The following \documentclass options may be useful:
+
+% preprint      Remove this option only once the paper is in final form.
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% authoryear    To obtain author/year citation style instead of numeric.
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\newcommand{\cL}{{\cal L}}
+
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{PLPV ’14, Co-located with POPL 2014}{January 21, 2014, San Diego, CA, USA.}
+\copyrightyear{2013} 
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm} 
+\preprintfooter{My paper for PLPV’14}
+\doi{nnnnnnn.nnnnnnn}
+
+% Uncomment one of the following two, if you are not going for the 
+% traditional copyright transfer agreement.
+
+%\exclusivelicense                % ACM gets exclusive license to publish, 
+                                  % you retain copyright
+
+%\permissiontopublish             % ACM gets nonexclusive license to publish
+                                  % (paid open-access papers, 
+                                  % short abstracts)
+
+\titlebanner{banner above paper title}        % These are ignored unless
+\preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{Using dependent types for writting correct by construction tactics}
+\subtitle{An exemple for a solver over algebraics structures}
+
+\authorinfo{Edwin Brady\and Franck Slama}
+           {University of St Andrews, United-Kingdom}
+           {ecb10@st-andrews.ac.uk \and fs39@st-andrews.ac.uk}
+\bibliographystyle{abbrvnat}
+
+\maketitle
+
+\input{./content/abstract.tex}
+
+\section{Introduction}
+\nocite{*}
+
+As soon as we start to work with numbers on a proof assistant, we are facing the need to prove that a certain term is equal to another. Of course, they are usually not syntactically equal -this case would be trivial-, but they are equal according to a set of properties. These properties are either obtained by implementation (the implementation of + for relatives numbers is symmetric for exemple), or by axioms if we are working with an abstract structure.
+These proofs of equality are usually done by hand, and are made with a potentially long serie of rewriting, using the available properties that we have. For example, if $x$ and $y$ are relatives numbers, and if we want to show that :
+$(x + y) * z = (z * x) = (y * z)$, we can first use the fact the symmetry of $*$, saying that
+for all a b, a * b = b * c
+With the use of this property, we can rewrite the left part into the term z * (x + y).
+If now we use the distributivity of * on +, which says that :
+$\forall a b c, a * (b+c) = a*b + a*c$,
+we now obtain the term x*z + y*z for the left side.
+If we use again the symmetry of * on the subterm (x*z), the left side of the equality becomes : z*x + y*z, which is what we want.
+
+This kind of proofs therefore consists of a potentially long serie of rewriting, every rewriting step using one property of the theory. Without some specific automation, this serie of rewriting is done by the user of the proof assistant. This is time consuming, and a little change in the left or the right hand side of the equality can invalidate completely the proof. The reusability of this kind of proofs is indeed very low, since they are performing rewritings for a very specific term. In this paper, we describe a certified implementation of a solver for algebraics structures, for the Idris language. Idris is a relatively new purely functional programming language with full dependent types. Idris also supports tactic based proofs. 
+
+For our goal, we focus on some specific theories, which are the folowing algebraics structures : magmas, semi-group, monoid, group, abelian group, ring and commutative ring.
+For these structures, this is effectively possible to decide if a given equality is true, and to produce the proof of the equality. This result comes directly from the fact that there exist a normal form for every element of these structures. The general idea is therefore to normalize both side of the equality, and then to compare them using the usual syntactical Leibniz's equality.
+This approach was followed by [paper Coq ring] for implementing a ring solver for the Coq proof assistant.
+Our contribution mainly consits of two parts :
+	- We follow a "correct by construction" approach for implementing the reduction procedures, instead of implementing a normalization procudure, and proving afterwards that this function effectively computes a normal form. For achieving this goal, we are extensively using dependent types in order to capture the interesting properties that matters. 
+	- We try to be as general generic as possible, and re-use as much as possible the code of normalization from the strucures below in the upper structures. For exemple developping an expression by using the axiom of distribituvty works exactly the same in a commutative ring and in a ring.
+
+\section{A brief overview of Idris}
+
+
+Idris is a purely functional programming language fairly recent. Its main purpose is to bring formal certification into the scope of programming : instead of Coq or Isabelle, Idris is not designed to be a proof asssiant, but as a real programming language easily usable by non-logicians. One of its more interesting features -and the one that enables to effectively manipulate logical statments and proofs in the language- is its full and effective support for dependent types. Especially, Idris has a particularly efficient dependent pattern maching, which is something mandatory for writting code correct by construction.
+
+\subsection{Defining inductive types and functions in Idris}
+
+Idris is all influenced by haskell in its syntax.
+The definition of an inductive type is done using the keyword 'data', followed by the name of the datatype, its type, and the list of constructors.
+For exemple, one can define the natural numbers like that in Idris :
+
+\begin{lstlisting}[caption=inductive datatype, captionpos=b, label=lst1:haskell2]
+{-
+
+member :: Eq a => a -> [a] -> Bool
+
+-} 
+
+data MyNat : Type where
+	O : MyNat
+	S : MyNat -> MyNat
+\end{lstlisting}
+
+The definition of a function has exactly the same syntax as Haskell, except the use of ":" for specifying the type of the function, instead of "::", reserved for list concatenation. The first reason is that the symbol ":" has been used in type theory since a lot longer than "::" in Haskell. The second is that everything has a type, but everything is not a list, so it makes more sence to use the shorter for something that appears regularly.
+Here is for exemple the definition of a plus function :
+
+\begin{lstlisting}[caption=recursive function, captionpos=b, label=lst2:haskell2]
+myplus : MyNat -> MyNat -> MyNat
+myplus O y = y
+myplus (S px) y = S (myplus px y) 
+\end{lstlisting}
+
+\subsection{dependent types}
+Idris supports dependent types. This mainly means two things :
+- inductive datatypes can be indexed over values
+- the type of a function can be such has the type of its codomain dependend on the value of one of its argument.
+
+We will illustrate both with the usual exemple on vector. vector are a list with embedded size : the size is now a part of the datatype.
+
+
+Because the size is now a part of the datatype, it is now possible to 
+
+
+\section{Normalization and polynomials in normal form}
+% Ici on donne l'idée générale. Nom de la section peut etre à revoir
+Lots of text.
+
+More text.
+
+\section{Datatypes}
+
+Lots of text.
+
+\subsection{Hierarchy of algebraic theorys}
+
+Lots of text.
+
+The exemple with Nat is a monoid
+
+More text.
+
+\subsection{Reflection in an abstract syntax}
+
+Lots of text.
+
+More text. 
+
+\section{Normalization procedures}
+
+\subsection{Normalization for terms in a magma}
+
+\subsection{Normalization for terms in a semi-group}
+
+\subsection{Normalization for terms in a monoid}
+
+\subsection{Normalization for terms in a group}
+
+\subsection{Normalization for terms in a ring}
+
+\subsection{Normalization for terms in a commutative ring}
+
+\section{Coating}
+%enrobage
+
+\section{Metaification}
+
+\section{Conclusion}
+
+
+
+\acks
+
+Acknowledgments, if needed.
+
+% We recommend abbrvnat bibliography style.
+
+
+\bibliography{biblio}
+
+\appendix
+\section{Appendix Title}
+
+This is the text of the appendix, if you need one.
+
+\end{document}
+
+%                       Revision History
+%                       -------- -------
+%  Date         Person  Ver.    Change
+%  ----         ------  ----    ------
+
+%  2013.06.29   TU      0.1--4  comments on permission/copyright notices
+
