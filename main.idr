@@ -16,10 +16,12 @@ module Main
 import tools
 import dataTypes
 import magma_reduce
-import commRing_reduce
-import testNat
-import testZZ
+import semiGroup_reduce
+--import commRing_reduce
+--import testNat
+--import testZZ
 import magma_test
+import semiGroup_test
 
 
 -- Will be written a bit later
@@ -36,6 +38,17 @@ main = putStrLn "coucou!"
 
 
 ---------- Proofs ----------
+
+
+
+
+
+
+
+
+
+
+
 
 
 

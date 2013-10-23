@@ -11,6 +11,10 @@ $\forall a b c, a * (b+c) = a*b + a*c$,
 we now obtain the term $x*z + y*z$ for the left side.
 If we use again the symmetry of $*$ on the subterm $(x*z)$, the left side of the equality becomes : $z*x + y*z$, which is what we want.
 
+
+
+
+
 Thus, this kind of proofs consists of a potentially long sequence of rewriting, every rewriting step using one property of the theory. Without some specific automation, this sequence of rewriting is done by the user of the proof assistant. This is time consuming, and a little change in the left or the right hand side of the equality can invalidate completely the proof. The re-usability of this kind of proofs is indeed very low, since they are performing rewritings for a very specific term. In this paper, we describe a certified implementation of an automatic solver for equalities on algebraic structures, for the Idris language. Idris is a relatively new purely functional and dependently typed programming language with full dependent types. Idris also supports tactic based proofs. 
 
 For our goal, we focus on some specific theories, which are the following algebraic structures : magmas, semi-group, monoid, group, Abelian group, ring and commutative ring.

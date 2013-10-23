@@ -8,6 +8,7 @@ module tools
 
 import Data.ZZ
 import globalDef
+import dataTypes
 
 And_True_neutral : (b:Bool) -> (True && b = b)
 And_True_neutral _ = refl
@@ -51,6 +52,15 @@ plusAssociativeZ (NegS u) (NegS v) (Pos w) = ?MplusAssociativeZ_7
 plusAssociativeZ (NegS u) (NegS v) (NegS w) = ?MplusAssociativeZ_8
 
 
+
+plusSym_4v : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 = Plus (Plus c1 c2) (Plus c3 c4))
+plusSym_4v = ?MplusSym_4v
+
+plusAux : (C : Type) -> (SemiGroup C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x=x') -> (Plus x y = Plus x' y)
+
+plusSym_4v' : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 = Plus (Plus (Plus c1 c2) c3) c4)
+plusSym_4v' = ?MplusSym_4v'
+
 minusNatZNeutralZ : (x:Nat) -> (minusNatZ x (S x) = Pos O)
 minusNatZNeutralZ O = ?A
 
@@ -63,6 +73,7 @@ minusNatZNeutralZ O = ?A
     --sym : (x:s) -> (y:s) -> (rel x y) -> (rel y x)
     --trans : (x:s) -> (y:s) -> (z:s) -> (rel x y) -> (rel y z) -> (rel x z)
 
+---------- Proofs ----------  
 
 tools.MplusAssociativeZ_1 = proof {
   intros;
@@ -71,6 +82,21 @@ tools.MplusAssociativeZ_1 = proof {
   trivial;
 }
 
+tools.MplusSym_4v = proof {
+  intros;
+  mrefine Plus_assoc;
+}
 
+tools.MplusSym_4v' = proof {
+  intros;
+  mrefine plusAux;
+  rewrite (Plus_assoc  c1 c2 c3);
+  trivial;
+}
 
+tools.plusAux = proof {
+  intros;
+  rewrite prEqual;
+  trivial;
+}
 

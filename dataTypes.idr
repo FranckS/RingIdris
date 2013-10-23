@@ -36,6 +36,12 @@ Magma_getSet_eq x = Set_getSet_eq (Magma_getSet x)
 class Magma c => SemiGroup c where
     Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
 
+SemiGroup_getSet : (SemiGroup c) -> (Set c)
+SemiGroup_getSet x = (%instance)
+
+SemiGroup_getSet_eq : (SemiGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+SemiGroup_getSet_eq x = Set_getSet_eq (SemiGroup_getSet x)
+
 class (SemiGroup c, ZeroC c) => Monoid c where
     Plus_neutral : (c1:c) -> ((Plus Zero c1 = Plus c1 Zero), (Plus c1 Zero = c1))    
 
@@ -125,6 +131,16 @@ using (g : Vect n c)
         VarCR : (p:CommutativeRing c) -> (i:Fin n) -> ExprCR p g (index i g)
 
 -- Functions of conversion
+semiGroup_to_magma_class : (SemiGroup c) -> (Magma c)
+semiGroup_to_magma_class p = (%instance)
+
+semiGroup_to_magma : {p:SemiGroup c} -> {g:Vect n c} -> {c1:c} -> ExprSG p g c1 -> ExprMa (semiGroup_to_magma_class p) g c1
+semiGroup_to_magma (ConstSG p cst) = ConstMa (semiGroup_to_magma_class p) cst
+semiGroup_to_magma (PlusSG e1 e2) = PlusMa (semiGroup_to_magma e1) (semiGroup_to_magma e2)
+semiGroup_to_magma (VarSG p i) = VarMa (semiGroup_to_magma_class p) i
+
+magma_to_semiGroup : (p:SemiGroup c) -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) g c1 -> ExprSG p g c1
+
 
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
 cr_to_r_class p = %instance -- finds the instance automatically from p
@@ -141,3 +157,7 @@ r_to_cr p (ConstR _ cst) = ConstCR p cst
 r_to_cr p (PlusR e1 e2) = PlusCR (r_to_cr p e1) (r_to_cr p e2)
 r_to_cr p (MultR e1 e2) = MultCR (r_to_cr p e1) (r_to_cr p e2)
 r_to_cr p (VarR _ i) = VarCR p i
+
+
+
+
