@@ -86,6 +86,11 @@ using (g : Vect n c)
         PlusSG : {p : SemiGroup c} -> {c1:c} -> {c2:c} -> ExprSG p g c1 -> ExprSG p g c2 -> ExprSG p g (Plus c1 c2)
         VarSG : (p : SemiGroup c) -> (i:Fin n) -> ExprSG p g (index i g)
 
+    print_ExprSG : {p:SemiGroup c} -> {r1:c} -> (c -> String) -> ExprSG p g r1 -> String
+    print_ExprSG c_print (ConstSG p const) = c_print const
+    print_ExprSG c_print (PlusSG e1 e2) = "(" ++ (print_ExprSG c_print e1) ++ ") + (" ++ (print_ExprSG c_print e2) ++ ")"
+    print_ExprSG c_print (VarSG p i) = "Var " ++ (show (cast i))
+
 -- Reflected terms in a monoid
     data ExprMo : dataTypes.Monoid c -> (Vect n c) -> c -> Type where
         ConstMo : (p : dataTypes.Monoid c) -> (c1:c) -> ExprMo p g c1
@@ -140,6 +145,9 @@ semiGroup_to_magma (PlusSG e1 e2) = PlusMa (semiGroup_to_magma e1) (semiGroup_to
 semiGroup_to_magma (VarSG p i) = VarMa (semiGroup_to_magma_class p) i
 
 magma_to_semiGroup : (p:SemiGroup c) -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) g c1 -> ExprSG p g c1
+magma_to_semiGroup p (ConstMa _ cst) = ConstSG p cst
+magma_to_semiGroup p (PlusMa e1 e2) = PlusSG (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
+magma_to_semiGroup p (VarMa _ i) = VarSG p i
 
 
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
