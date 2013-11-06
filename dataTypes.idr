@@ -21,29 +21,36 @@ class Set c where
     -- We just requires a (weak) decidable equality over the elements of the "set"
     set_eq : (x:c) -> (y:c) -> Maybe (x=y)
     
-Set_getSet_eq : (Set c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
-Set_getSet_eq x = set_eq
+set_get_setEq : (Set c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+set_get_setEq x = set_eq
     
 class Set c => Magma c where
     Plus : c -> c -> c
 
-Magma_getSet : (Magma c) -> (Set c)
-Magma_getSet x = (%instance)
+magma_getSet : (Magma c) -> (Set c)
+magma_getSet x = (%instance)
 
-Magma_getSet_eq : (Magma c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
-Magma_getSet_eq x = Set_getSet_eq (Magma_getSet x)
+magma_get_setEq : (Magma c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+magma_get_setEq x = set_get_setEq (magma_getSet x)
 
 class Magma c => SemiGroup c where
     Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
 
-SemiGroup_getSet : (SemiGroup c) -> (Set c)
-SemiGroup_getSet x = (%instance)
+semiGroup_getSet : (SemiGroup c) -> (Set c)
+semiGroup_getSet x = (%instance)
 
-SemiGroup_getSet_eq : (SemiGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
-SemiGroup_getSet_eq x = Set_getSet_eq (SemiGroup_getSet x)
+semiGroup_get_setEq : (SemiGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+semiGroup_get_setEq x = set_get_setEq (semiGroup_getSet x)
 
 class (SemiGroup c, ZeroC c) => Monoid c where
-    Plus_neutral : (c1:c) -> ((Plus Zero c1 = Plus c1 Zero), (Plus c1 Zero = c1))    
+    Plus_neutral_1 : (c1:c) -> (Plus Zero c1 = c1)    
+    Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
+
+monoid_getSet : (dataTypes.Monoid c) -> (Set c)
+monoid_getSet x = (%instance)
+
+monoid_get_setEq : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+monoid_get_setEq x = set_get_setEq (monoid_getSet x)
 
 -- An abstract group
 --%logging 1    

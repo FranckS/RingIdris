@@ -21,7 +21,7 @@ exprSG_eq p (PlusSG x y) (PlusSG x' y') with (exprSG_eq p x x', exprSG_eq p y y'
 exprSG_eq p (VarSG p i) (VarSG p j) with (decEq i j)
   exprSG_eq p (VarSG p i) (VarSG p i) | (Yes refl) = Just refl
   exprSG_eq p (VarSG p i) (VarSG p j) | _ = Nothing
-exprSG_eq p (ConstSG p const1) (ConstSG p const2) with ((SemiGroup_getSet_eq p) const1 const2)
+exprSG_eq p (ConstSG p const1) (ConstSG p const2) with ((semiGroup_get_setEq p) const1 const2)
     exprSG_eq p (ConstSG p const1) (ConstSG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
     exprSG_eq p (ConstSG p const1) (ConstSG p const2) | _ = Nothing
 exprSG_eq p _ _  = Nothing
