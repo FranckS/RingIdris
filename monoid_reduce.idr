@@ -1,7 +1,7 @@
 -- Edwin Brady, Franck SlaMo
 -- University of St Andrews
 -- File monoid_reduce.idr
--- NorMolize an expression reflecting an element in a monoid
+-- Normalize an expression reflecting an element in a monoid
 -------------------------------------------------------------------
 
 module monoid_reduce
@@ -26,23 +26,24 @@ exprMo_eq p (ConstMo p const1) (ConstMo p const2) with ((monoid_get_setEq p) con
     exprMo_eq p (ConstMo p const1) (ConstMo p const2) | _ = Nothing
 exprMo_eq p _ _  = Nothing
 
---%logging 2
+
 elimZero : (c:Type) -> (p:dataTypes.Monoid c) -> {g:Vect n c} -> {c1:c} -> (ExprMo p g c1) -> (c2 ** (ExprMo p g c2, c1=c2))
 elimZero c p (ConstMo p const) = (_ ** (ConstMo p const, refl))
-elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) with (monoid_get_setEq p Zero const1) 
-    elimZero c p (PlusMo (ConstMo p Zero) (VarMo p v)) | (Just refl) = (_ ** (VarMo p v, ?MelimZero1))
-    --elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | _ = (_ ** (PlusMo (ConstMo p const1) (VarMo p v), refl)) 
---%logging 0    
-{-      
-elimZero c p (PlusMo (VarMo p v) (ConstMo p const2)) with (monoid_get_setEq p const2 (the c Zero)) 
-    elimZero c p (PlusMo (VarMo p v) (ConstMo p (the c Zero))) | (Just refl) = (_ ** (VarMo p v, ?MelimZero2))
+-- elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) = ?foo --with (monoid_get_setEq p Zero const1) 
+elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) with (monoid_get_setEq p Zero const1)
+--  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | with_pat = ?elimZero_rhs
+--  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | (Just prf) = ?elimZero_rhs_2
+    elimZero c p (PlusMo (ConstMo p dataTypes.Zero) (VarMo p v)) | (Just refl) = (_ ** (VarMo p v, ?MelimZero1))
+    elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | _ = (_ ** (PlusMo (ConstMo p const1) (VarMo p v), refl)) 
+elimZero c p (PlusMo (VarMo p v) (ConstMo p const2)) with (monoid_get_setEq p Zero const2) 
+    elimZero c p (PlusMo (VarMo p v) (ConstMo p dataTypes.Zero)) | (Just refl) = (_ ** (VarMo p v, ?MelimZero2))
     elimZero c p (PlusMo (VarMo p v) (ConstMo p const2)) | _ = (_ ** (PlusMo (VarMo p v) (ConstMo p const2), refl))
 elimZero c p (PlusMo e1 e2) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = (elimZero c p e1) in
     let (r_ih2 ** (e_ih2, p_ih2)) = (elimZero c p e2) in
     ((Plus r_ih1 r_ih2) ** (PlusMo e_ih1 e_ih2, ?MelimZero3))  
 elimZero c p (VarMo p v) = (_ ** (VarMo p v, refl))
--}
+
 
 
 
