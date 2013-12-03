@@ -30,7 +30,7 @@ exprMa_eq p (PlusMa x y) (PlusMa x' y') with (exprMa_eq p x x', exprMa_eq p y y'
 exprMa_eq p (VarMa p i) (VarMa p j) with (decEq i j)
   exprMa_eq p (VarMa p i) (VarMa p i) | (Yes refl) = Just refl
   exprMa_eq p (VarMa p i) (VarMa p j) | _ = Nothing
-exprMa_eq p (ConstMa p const1) (ConstMa p const2) with ((magma_get_setEq p) const1 const2)
+exprMa_eq p (ConstMa p const1) (ConstMa p const2) with ((magma_eq_as_elem_of_set p) const1 const2)
     exprMa_eq p (ConstMa p const1) (ConstMa p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
     exprMa_eq p (ConstMa p const1) (ConstMa p const2) | _ = Nothing
 

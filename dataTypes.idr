@@ -20,37 +20,16 @@ class NegMinus c where
 class Set c where
     -- We just requires a (weak) decidable equality over the elements of the "set"
     set_eq : (x:c) -> (y:c) -> Maybe (x=y)
-    
-set_get_setEq : (Set c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
-set_get_setEq x = set_eq
-    
+        
 class Set c => Magma c where
     Plus : c -> c -> c
-
-magma_getSet : (Magma c) -> (Set c)
-magma_getSet x = (%instance)
-
-magma_get_setEq : (Magma c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
-magma_get_setEq x = set_get_setEq (magma_getSet x)
 
 class Magma c => SemiGroup c where
     Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
 
-semiGroup_getSet : (SemiGroup c) -> (Set c)
-semiGroup_getSet x = (%instance)
-
-semiGroup_get_setEq : (SemiGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
-semiGroup_get_setEq x = set_get_setEq (semiGroup_getSet x)
-
 class (SemiGroup c, ZeroC c) => Monoid c where
     Plus_neutral_1 : (c1:c) -> (Plus Zero c1 = c1)    
     Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
-
-monoid_getSet : (dataTypes.Monoid c) -> (Set c)
-monoid_getSet x = (%instance)
-
-monoid_get_setEq : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
-monoid_get_setEq x = set_get_setEq (monoid_getSet x)
 
 -- An abstract group
 --%logging 1    
@@ -142,7 +121,28 @@ using (g : Vect n c)
         MultCR : {p:CommutativeRing c} -> {c1:c} -> {c2:c} -> ExprCR p g c1 -> ExprCR p g c2 -> ExprCR p g (Mult c1 c2)
         VarCR : (p:CommutativeRing c) -> (i:Fin n) -> ExprCR p g (index i g)
 
--- Functions of conversion
+------------------------------
+-- Functions of conversion ---
+------------------------------
+-- Magma -> Set
+magma_to_set_class : (Magma c) -> (Set c)
+magma_to_set_class x = (%instance)
+
+-- Monoid -> SemiGroup
+monoid_to_semiGroup_class : (dataTypes.Monoid c) -> (SemiGroup c)
+monoid_to_semiGroup_class p = (%instance)
+
+monoid_to_semiGroup : {p:dataTypes.Monoid c} -> {g:Vect n c} -> {c1:c} -> ExprMo p g c1 -> ExprSG (monoid_to_semiGroup_class p) g c1
+monoid_to_semiGroup (ConstMo p cst) = ConstSG (monoid_to_semiGroup_class p) cst
+monoid_to_semiGroup (PlusMo e1 e2) = PlusSG (monoid_to_semiGroup e1) (monoid_to_semiGroup e2)
+monoid_to_semiGroup (VarMo p i) = VarSG (monoid_to_semiGroup_class p) i
+
+semiGroup_to_monoid : (p:dataTypes.Monoid c) -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) g c1 -> ExprMo p g c1
+semiGroup_to_monoid p (ConstSG _ cst) = ConstMo p cst
+semiGroup_to_monoid p (PlusSG e1 e2) = PlusMo (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
+semiGroup_to_monoid p (VarSG _ i) = VarMo p i
+
+-- SemiGroup -> Magma
 semiGroup_to_magma_class : (SemiGroup c) -> (Magma c)
 semiGroup_to_magma_class p = (%instance)
 
@@ -156,7 +156,7 @@ magma_to_semiGroup p (ConstMa _ cst) = ConstSG p cst
 magma_to_semiGroup p (PlusMa e1 e2) = PlusSG (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
 magma_to_semiGroup p (VarMa _ i) = VarSG p i
 
-
+-- CommutativeRing -> Ring
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
 cr_to_r_class p = %instance -- finds the instance automatically from p
 
@@ -166,13 +166,33 @@ cr_to_r (PlusCR e1 e2) = PlusR (cr_to_r e1) (cr_to_r e2)
 cr_to_r (MultCR e1 e2) = MultR (cr_to_r e1) (cr_to_r e2)
 cr_to_r (VarCR p i) = VarR (cr_to_r_class p) i
 
-
 r_to_cr : (p:CommutativeRing c) -> {g:Vect n c} -> {c1:c} -> ExprR (cr_to_r_class p) g c1 -> ExprCR p g c1
 r_to_cr p (ConstR _ cst) = ConstCR p cst
 r_to_cr p (PlusR e1 e2) = PlusCR (r_to_cr p e1) (r_to_cr p e2)
 r_to_cr p (MultR e1 e2) = MultCR (r_to_cr p e1) (r_to_cr p e2)
 r_to_cr p (VarR _ i) = VarCR p i
 
+-- -----------------------------------
+-- Get equality as elements of set ---
+--------------------------------------
+set_eq_as_elem_of_set : (Set c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+set_eq_as_elem_of_set x = set_eq
 
+-- Magma
+magma_eq_as_elem_of_set : (Magma c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+magma_eq_as_elem_of_set x = set_eq_as_elem_of_set (magma_to_set_class x)
 
+-- Semi group
+semiGroup_to_set : (SemiGroup c) -> (Set c)
+semiGroup_to_set x = (%instance)
+
+semiGroup_eq_as_elem_of_set : (SemiGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+semiGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (semiGroup_to_set x)
+
+-- Monoid
+monoid_to_set : (dataTypes.Monoid c) -> (Set c)
+monoid_to_set x = (%instance)
+
+monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
 
