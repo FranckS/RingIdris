@@ -18,11 +18,13 @@ import dataTypes
 import magma_reduce
 import semiGroup_reduce
 import monoid_reduce
+import group_reduce
 --import commRing_reduce
 --import testNat
 --import testZZ
 import magma_test
 import semiGroup_test
+import monoid_test
 
 
 -- Will be written a bit later
@@ -39,6 +41,15 @@ main = putStrLn "coucou!"
 
 
 ---------- Proofs ----------
+
+
+
+
+
+
+
+
+
 
 
 

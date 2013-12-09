@@ -50,6 +50,19 @@ monoidReduce p g e =
     let (r_SGred ** (e_SGred,  p_SGred)) = semiGroupReduce (monoid_to_semiGroup_class p) g (monoid_to_semiGroup e) in
         let (r_elim ** (e_elim, p_elim)) = elimZero _ p (semiGroup_to_monoid p e_SGred) in
             (_ ** (e_elim, ?MmonoidReduce1))
+            
+buildProofMonoid : (p:dataTypes.Monoid c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprMo p g c1) -> (ExprMo p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+buildProofMonoid p e1 e2 lp rp with (exprMo_eq p e1 e2)
+    buildProofMonoid p e1 e1 lp rp | Just refl = ?MbuildProofMonoid
+    buildProofMonoid p e1 e2 lp rp | Nothing = Nothing
+
+
+monoidDecideEq : (p:dataTypes.Monoid c) -> (g:Vect n c) -> (ExprMo p g x) -> (ExprMo p g y) -> Maybe (x = y)
+-- e1 is the left side, e2 is the right side
+monoidDecideEq p g e1 e2 = 
+    let (r_e1 ** (e_e1, p_e1)) = monoidReduce p g e1 in
+    let (r_e2 ** (e_e2, p_e2)) = monoidReduce p g e2 in
+    buildProofMonoid p e_e1 e_e2 p_e1 p_e2            
 
 
 ---------- Proofs ----------
@@ -74,7 +87,22 @@ monoid_reduce.MelimZero3 = proof
   rewrite p_ih2
   trivial  
 
+monoid_reduce.MbuildProofMonoid = proof
+  intros
+  rewrite lp
+  rewrite (sym lp)
+  rewrite (sym rp)
+  mrefine Just
+  trivial
 
+  
+  
 
-
-
+  
+  
+  
+  
+  
+  
+  
+  

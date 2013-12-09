@@ -86,8 +86,9 @@ using (g : Vect n c)
 -- Reflected terms in a group  
     data ExprG :  dataTypes.Group c -> (Vect n c) -> c -> Type where
         ConstG : (p : dataTypes.Group c) -> (c1:c) -> ExprG p g c1
-        --ZeroG : ExprG p g Zero
         PlusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Plus c1 c2)
+        MinusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
+        NegG : {p : dataTypes.Group c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
         VarG : (p : dataTypes.Group c) -> (i:Fin n) -> ExprG p g (index i g)
  
 -- Reflected terms in a commutative group       
@@ -195,4 +196,12 @@ monoid_to_set x = (%instance)
 
 monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
 monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
+
+-- Group
+group_to_set : (dataTypes.Group c) -> (Set c)
+group_to_set x = (%instance)
+
+group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
+
 
