@@ -43,23 +43,43 @@ elimMinus c p (NegG e1) =
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus c p e1) in
     (_ ** (e_ih1, ?Melim3))
     
+{-    
+assoc_plusInverse : (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+assoc_plusInverse p g (ConstSG p const) = (_ ** (ConstSG p const, refl))
+assoc_plusInverse p g (VarSG p v) = (_ ** (VarSG p v, refl))
+assoc p g (PlusSG (PlusSG e1 (ConstSG p c1)) (PlusSG (ConstSG p c2) e2)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = (assoc p g e2) in 
+    let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma {p} {g} (PlusSG (ConstSG p c1) (ConstSG p c2))) in
+    let e_3' = magma_to_semiGroup p e_3 in
+    (_ ** ((PlusSG (PlusSG e_ih1 e_3') e_ih2), ?Massoc1))
+-- (x + c1) + c2 -> x + (res c1+c2)
+assoc p g (PlusSG (PlusSG e1 (ConstSG p c1)) (ConstSG p c2)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
+    let (r_2 ** (e_2, p_2)) = magmaReduce (semiGroup_to_magma {p} {g} (PlusSG (ConstSG p c1) (ConstSG p c2))) in
+    let e_2' = magma_to_semiGroup p e_2 in
+    (_ ** ((PlusSG e_ih1 e_2'), ?Massoc2))
+-- c1 + (c2 + x) -> (res c1 +c c2) + x                                 
+assoc p g (PlusSG (ConstSG p c1) (PlusSG (ConstSG p c2) e1)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
+    let (r_2 ** (e_2, p_2)) = magmaReduce (semiGroup_to_magma {p} {g} (PlusSG (ConstSG p c1) (ConstSG p c2))) in
+    let e_2' = magma_to_semiGroup p e_2 in
+    (_ ** ((PlusSG e_2' e_ih1), ?Massoc3))                                        
+                                                    
+assoc p g (PlusSG e1 e2) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = (assoc p g e2) in 
+    let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma {p} {g} e1) in
+    let (r_4 ** (e_4, p_4)) = magmaReduce (semiGroup_to_magma {p} {g} e2) in
+    let e_3' = magma_to_semiGroup p e_3 in
+    let e_4' = magma_to_semiGroup p e_4 in
+        case (exprSG_eq p (PlusSG e1 e2) (PlusSG e_3' e_4')) of
+        Just _ => (_ ** ((PlusSG  e_3' e_4'), ?Massoc4)) -- Fixed point reached
+        Bothing => let (r_final ** (e_final, p_final)) = assoc p g (PlusSG e_3' e_4') in -- Need to continue
+                    (_ ** (e_final, ?Massoc5))
+
+ -}                    
     
-{-
-elimZero c p (PlusG (VarMo p v) (ConstG p const2)) with (monoid_eq_as_elem_of_set p Zero const2) 
-    elimZero c p (PlusG (VarMo p v) (ConstG p dataTypes.Zero)) | (Just refl) = (_ ** (VarMo p v, ?MelimZero2))
-    elimZero c p (PlusG (VarMo p v) (ConstG p const2)) | _ = (_ ** (PlusG (VarMo p v) (ConstG p const2), refl))
-elimZero c p (PlusG e1 e2) = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = (elimZero c p e1) in
-    let (r_ih2 ** (e_ih2, p_ih2)) = (elimZero c p e2) in
-      ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimZero3))  
-elimZero c p (VarMo p v) = (_ ** (VarMo p v, refl))
-
--}
-
-
-
-
-
 
 
 

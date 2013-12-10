@@ -6,6 +6,7 @@
 
 module dataTypes
 
+
 -- For technical reason : because in Idris this is not yet possible to talk about
 -- a field which is introduced in the current typeclass, we need to define some
 -- operators in other structures
@@ -31,12 +32,16 @@ class (SemiGroup c, ZeroC c) => Monoid c where
     Plus_neutral_1 : (c1:c) -> (Plus Zero c1 = c1)    
     Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
 
+-- We define the fact to have a symmetric as a notion in a monoid. And this will define the property of being a group
+hasSymmetric : (c:Type) -> (p:dataTypes.Monoid c) -> c -> c -> Type
+hasSymmetric c p a b = (Plus a b = Zero, Plus b a = the c Zero)    
+    
 -- An abstract group
 --%logging 1    
 class (dataTypes.Monoid c, NegMinus c) => dataTypes.Group c where
     Minus_simpl : (c1:c) -> (c2:c) -> Minus c1 c2 = Plus c1 (Neg c2) --Minus should not be primitive and should be simplifiable
     -- The most important stuff for a group is the following :
-    Plus_inverse : (c1:c) -> ((Plus c1 (Neg c1) = Plus (Neg c1) c1), (Plus (Neg c1) c1 = the c Zero)) -- "the c Zero" used to make clear that we talk about Zero in c and not the one in CommutativeRing (last defined first tried ?)
+    Plus_inverse : (c1:c) -> hasSymmetric c (%instance) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
 --%logging 0
 
 -- An abstract commutative group
@@ -129,6 +134,20 @@ using (g : Vect n c)
 magma_to_set_class : (Magma c) -> (Set c)
 magma_to_set_class x = (%instance)
 
+-- SemiGroup -> Magma
+semiGroup_to_magma_class : (SemiGroup c) -> (Magma c)
+semiGroup_to_magma_class p = (%instance)
+
+semiGroup_to_magma : {p:SemiGroup c} -> {g:Vect n c} -> {c1:c} -> ExprSG p g c1 -> ExprMa (semiGroup_to_magma_class p) g c1
+semiGroup_to_magma (ConstSG p cst) = ConstMa (semiGroup_to_magma_class p) cst
+semiGroup_to_magma (PlusSG e1 e2) = PlusMa (semiGroup_to_magma e1) (semiGroup_to_magma e2)
+semiGroup_to_magma (VarSG p i) = VarMa (semiGroup_to_magma_class p) i
+
+magma_to_semiGroup : (p:SemiGroup c) -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) g c1 -> ExprSG p g c1
+magma_to_semiGroup p (ConstMa _ cst) = ConstSG p cst
+magma_to_semiGroup p (PlusMa e1 e2) = PlusSG (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
+magma_to_semiGroup p (VarMa _ i) = VarSG p i
+
 -- Monoid -> SemiGroup
 monoid_to_semiGroup_class : (dataTypes.Monoid c) -> (SemiGroup c)
 monoid_to_semiGroup_class p = (%instance)
@@ -143,19 +162,18 @@ semiGroup_to_monoid p (ConstSG _ cst) = ConstMo p cst
 semiGroup_to_monoid p (PlusSG e1 e2) = PlusMo (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
 semiGroup_to_monoid p (VarSG _ i) = VarMo p i
 
--- SemiGroup -> Magma
-semiGroup_to_magma_class : (SemiGroup c) -> (Magma c)
-semiGroup_to_magma_class p = (%instance)
+-- Group -> Monoid
+group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
+group_to_monoid_class p = (%instance)
 
-semiGroup_to_magma : {p:SemiGroup c} -> {g:Vect n c} -> {c1:c} -> ExprSG p g c1 -> ExprMa (semiGroup_to_magma_class p) g c1
-semiGroup_to_magma (ConstSG p cst) = ConstMa (semiGroup_to_magma_class p) cst
-semiGroup_to_magma (PlusSG e1 e2) = PlusMa (semiGroup_to_magma e1) (semiGroup_to_magma e2)
-semiGroup_to_magma (VarSG p i) = VarMa (semiGroup_to_magma_class p) i
+{- Should not be needed (and if needed, what to do for Minus and Neg ?)
+group_to_monoid : {p:dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> ExprGr p g c1 -> ExprMo (group_to_monoid_class p) g c1
+group_to_monoid (ConstG p cst) = ConstMo (group_to_monoid_class p) cst
+group_to_monoid (PlusG e1 e2) = PlusMo (group_to_monoid e1) (group_to_monoid e2)
+group_to_monoid (VarG p i) = VarMo (group_to_monoid_class p) i
+group_to_monoid 
+-}
 
-magma_to_semiGroup : (p:SemiGroup c) -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) g c1 -> ExprSG p g c1
-magma_to_semiGroup p (ConstMa _ cst) = ConstSG p cst
-magma_to_semiGroup p (PlusMa e1 e2) = PlusSG (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
-magma_to_semiGroup p (VarMa _ i) = VarSG p i
 
 -- CommutativeRing -> Ring
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
