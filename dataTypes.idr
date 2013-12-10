@@ -166,13 +166,13 @@ semiGroup_to_monoid p (VarSG _ i) = VarMo p i
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
 group_to_monoid_class p = (%instance)
 
-{- Should not be needed (and if needed, what to do for Minus and Neg ?)
-group_to_monoid : {p:dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> ExprGr p g c1 -> ExprMo (group_to_monoid_class p) g c1
-group_to_monoid (ConstG p cst) = ConstMo (group_to_monoid_class p) cst
-group_to_monoid (PlusG e1 e2) = PlusMo (group_to_monoid e1) (group_to_monoid e2)
-group_to_monoid (VarG p i) = VarMo (group_to_monoid_class p) i
-group_to_monoid 
--}
+
+partial_group_to_monoid : {p:dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> ExprG p g c1 -> ExprMo (group_to_monoid_class p) g c1
+partial_group_to_monoid (ConstG p cst) = ConstMo (group_to_monoid_class p) cst
+partial_group_to_monoid (PlusG e1 e2) = PlusMo (partial_group_to_monoid e1) (partial_group_to_monoid e2)
+partial_group_to_monoid (VarG p i) = VarMo (group_to_monoid_class p) i
+-- No case for Neg and Minus !
+
 
 
 -- CommutativeRing -> Ring

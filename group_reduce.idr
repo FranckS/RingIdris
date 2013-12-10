@@ -42,44 +42,54 @@ elimMinus c p (MinusG e1 e2) =
 elimMinus c p (NegG e1) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus c p e1) in
     (_ ** (NegG e_ih1, ?MelimMinus3))
-    
-{-    
-assoc_plusInverse : (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
-assoc_plusInverse p g (ConstSG p const) = (_ ** (ConstSG p const, refl))
-assoc_plusInverse p g (VarSG p v) = (_ ** (VarSG p v, refl))
-assoc p g (PlusSG (PlusSG e1 (ConstSG p c1)) (PlusSG (ConstSG p c2) e2)) = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
-    let (r_ih2 ** (e_ih2, p_ih2)) = (assoc p g e2) in 
-    let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma {p} {g} (PlusSG (ConstSG p c1) (ConstSG p c2))) in
-    let e_3' = magma_to_semiGroup p e_3 in
-    (_ ** ((PlusSG (PlusSG e_ih1 e_3') e_ih2), ?Massoc1))
--- (x + c1) + c2 -> x + (res c1+c2)
-assoc p g (PlusSG (PlusSG e1 (ConstSG p c1)) (ConstSG p c2)) = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
-    let (r_2 ** (e_2, p_2)) = magmaReduce (semiGroup_to_magma {p} {g} (PlusSG (ConstSG p c1) (ConstSG p c2))) in
-    let e_2' = magma_to_semiGroup p e_2 in
-    (_ ** ((PlusSG e_ih1 e_2'), ?Massoc2))
--- c1 + (c2 + x) -> (res c1 +c c2) + x                                 
-assoc p g (PlusSG (ConstSG p c1) (PlusSG (ConstSG p c2) e1)) = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
-    let (r_2 ** (e_2, p_2)) = magmaReduce (semiGroup_to_magma {p} {g} (PlusSG (ConstSG p c1) (ConstSG p c2))) in
-    let e_2' = magma_to_semiGroup p e_2 in
-    (_ ** ((PlusSG e_2' e_ih1), ?Massoc3))                                        
-                                                    
-assoc p g (PlusSG e1 e2) = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
-    let (r_ih2 ** (e_ih2, p_ih2)) = (assoc p g e2) in 
-    let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma {p} {g} e1) in
-    let (r_4 ** (e_4, p_4)) = magmaReduce (semiGroup_to_magma {p} {g} e2) in
-    let e_3' = magma_to_semiGroup p e_3 in
-    let e_4' = magma_to_semiGroup p e_4 in
-        case (exprSG_eq p (PlusSG e1 e2) (PlusSG e_3' e_4')) of
-        Just _ => (_ ** ((PlusSG  e_3' e_4'), ?Massoc4)) -- Fixed point reached
-        Bothing => let (r_final ** (e_final, p_final)) = assoc p g (PlusSG e_3' e_4') in -- Need to continue
-                    (_ ** (e_final, ?Massoc5))
 
- -}                    
-    
+  
+elimDoubleNeg : (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+elimDoubleNeg p g (NegG (NegG e1)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p g e1 in
+        (_ ** (e_ih1, ?MelimDoubleNeg_1))
+elimDoubleNeg n p e1 = 
+    (_ ** (e1, refl))
+
+
+exprG_simpl_eq  : (p:dataTypes.Group c) -> (g:Vect n c) -> (c1:c) -> (c2:c) -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> (Maybe (e1=e2))
+exprG_simpl_eq p g c1 c2 e1 e2 = 
+    let (c1' ** (e1', p1')) = elimMinus _ p e1 in
+    let (c2' ** (e2', p2')) = elimMinus _ p e2 in
+        let (c1'' ** (e1'', p1'')) = elimDoubleNeg p g e1' in
+        let (c2'' ** (e2'', p2'')) = elimDoubleNeg p g e2' in
+            let (c1''' ** (e1''', p1''')) = monoidReduce (group_to_monoid_class p) g (partial_group_to_monoid e1'') in
+            let (c2''' ** (e2''', p2''')) = monoidReduce (group_to_monoid_class p) g (partial_group_to_monoid e2'') in
+                let test = exprMo_eq (group_to_monoid_class p) e1''' e2''' in
+                    -- Suis-je sur que c'est tout ce qu'il y a à faire ici ?
+                    ?MexprG_simpl_eq
+            
+
+--------------------------------------------
+-- Simplify (+e) + (-e) at *one* level of +
+--------------------------------------------
+elim_plusInverse : (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+elim_plusInverse p g (ConstG p const) = (_ ** (ConstG p const, refl))
+elim_plusInverse p g (VarG p v) = (_ ** (VarG p v, refl))
+-- Reminder : e1 and e2 can't be a Neg themselves, because you are suppose to call elimDoubleNeg before calling this function...
+elim_plusInverse p g (PlusG (NegG e1) (NegG e2)) = (_ ** ((PlusG (NegG e1) (NegG e2)), refl))
+-- If e2 is not a Neg !
+elim_plusInverse p g (PlusG (NegG e1) e2) with (exprG_simpl_eq p g _ _ e1 e2) -- compare les versions simplifiees de e1 et de e2
+    elim_plusInverse p g (PlusG (NegG e1) e1) | (Just refl) = (_ ** ((ConstG _ Zero), ?Melim_plusInverse_1))
+    elim_plusInverse p g (PlusG (NegG e1) e2) | _ = (_ ** ((PlusG (NegG e1) e2), refl))
+-- If e1 is not a Neg !
+elim_plusInverse p g (PlusG e1 (NegG e2)) with (exprG_simpl_eq p g _ _ e1 e2) -- compare les versions simplifiees de e1 et de e2
+    elim_plusInverse p g (PlusG e1 (NegG e1)) | (Just refl) = (_ ** ((ConstG _ Zero), ?Melim_plusInverse_2))
+    elim_plusInverse p g (PlusG e1 (NegG e2)) | _ = (_ ** ((PlusG e1 (NegG e2)), refl))
+-- If e1 and e2 are not Neg 
+elim_plusInverse p g (PlusG e1 e2) = (_ ** ((PlusG e1 e2), refl))
+elim_plusInverse p g e = (_ ** (e, refl))
+                        
+
+--------------------------------------------------------------------------
+-- To do : Simplify (+e) + (-e) with associativity (at two levels of +) !
+--------------------------------------------------------------------------
+        
     
 ---------- Proofs ----------
 group_reduce.MelimMinus1 = proof
