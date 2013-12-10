@@ -41,7 +41,7 @@ elimMinus c p (MinusG e1 e2) =
     ((Plus r_ih1 (Neg r_ih2)) ** (PlusG e_ih1 (NegG e_ih2), ?MelimMinus2)) 
 elimMinus c p (NegG e1) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus c p e1) in
-    (_ ** (e_ih1, ?Melim3))
+    (_ ** (NegG e_ih1, ?MelimMinus3))
     
 {-    
 assoc_plusInverse : (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
@@ -80,8 +80,49 @@ assoc p g (PlusSG e1 e2) =
 
  -}                    
     
+    
+---------- Proofs ----------
+group_reduce.MelimMinus1 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  trivial
 
-
+group_reduce.MelimMinus2 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  mrefine Minus_simpl
+  
+group_reduce.MelimMinus3 = proof
+  intros
+  rewrite p_ih1 
+  trivial
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 
 

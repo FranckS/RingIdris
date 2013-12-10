@@ -13,7 +13,7 @@ import dataTypes
 left : {A:Type} -> {B:Type} -> (A,B)  -> A
 left (x,y) = x
 
-right : {A:Type} -> {B:Type} -> (A,B)  -> B
+right : {A:Type} -> {B:Type} -> (A,B) -> B
 right (x,y) = y
 
 {-
@@ -28,15 +28,20 @@ group_unicity_symmetric p a b c p1 p2 = let a = aux in ?MGroup_unicity_1
 	
 
 hasSymmetric_sym : {C:Type} -> (p:dataTypes.Group C) -> (a:C) -> (b:C) -> (hasSymmetric C (group_to_monoid_class p) a b) -> (hasSymmetric C (group_to_monoid_class p) b a)
-hasSymmetric_sym = ?MX
-
+hasSymmetric_sym = ?MhasSymmetric_sym
 
 plus_inverse_2 : {C:Type} -> (p:dataTypes.Group C) -> (c1:C) -> hasSymmetric C (%instance) (Neg c1) c1 -- Every element 'Neg x' has a symmetric which is x
 plus_inverse_2 p c1 = ?Mplus_inverse_2	
 
---group_doubleNeg : {C:Type} -> (p:dataTypes.Group C) -> (a:C) -> (Neg (Neg 
 
+group_doubleNeg : (C:Type) -> (p:dataTypes.Group C) -> (a:C) -> ((Neg (Neg a)) = a) 
+group_doubleNeg C p a = let a = aux in let b = aux2 in ?Mgroup_doubleNeg1
+  where aux : hasSymmetric C (group_to_monoid_class p) (Neg a) a
+	aux = ?Mgroup_doubleNeg_2
+	aux2 : hasSymmetric C (group_to_monoid_class p) (Neg a) (Neg (Neg a))
+	aux2 = ?Mgroup_doubleNeg_3
 
+{-
 And_True_neutral : (b:Bool) -> (True && b = b)
 And_True_neutral _ = refl
 
@@ -64,6 +69,8 @@ And_assoc2 False False True = refl
 And_assoc2 False False False = refl
 
 aux1 : O = plus O O
+
+-}
 
 -- To add in the depository for Idris
 {-
@@ -127,6 +134,14 @@ tools.MGroup_unicity_1 = proof
   intro
   rewrite a1
   trivial
+
+tools.MhasSymmetric_sym = proof
+  intro
+  intro
+  intro
+  intro
+  intro H
+  exact (right H, left H)  
   
 tools.MGroup_unicity_2 = proof
   intros
@@ -137,6 +152,17 @@ tools.Mplus_inverse_2 = proof
   mrefine hasSymmetric_sym
   mrefine Plus_inverse  
 
+tools.Mgroup_doubleNeg1 = proof
+  intros
+  exact (sym (group_unicity_symmetric p (Neg a) a (Neg (Neg a)) a1 b))
+  
+tools.Mgroup_doubleNeg_2 = proof
+  intros
+  exact (right(Plus_inverse a), left(Plus_inverse a))
+  
+tools.Mgroup_doubleNeg_3 = proof
+  intros
+  exact (left (Plus_inverse (Neg a)), right(Plus_inverse (Neg a)))  
 
 tools.MplusSym_4v = proof {
   intros;
@@ -156,9 +182,9 @@ tools.plusAux = proof {
   trivial;
 }
 
-
+{-
 tools.aux1 = proof {
   compute;
   trivial;
 }
-
+-}
