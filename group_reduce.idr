@@ -62,7 +62,9 @@ exprG_simpl_eq p g c1 c2 e1 e2 =
             let (c2''' ** (e2''', p2''')) = monoidReduce (group_to_monoid_class p) g (partial_group_to_monoid e2'') in
                 let test = exprMo_eq (group_to_monoid_class p) e1''' e2''' in
                     -- Suis-je sur que c'est tout ce qu'il y a à faire ici ?
-                    ?MexprG_simpl_eq
+                    case test of
+                        Just pr => ?M1
+                        Nothing => ?M2
             
 
 --------------------------------------------
@@ -108,6 +110,23 @@ group_reduce.MelimMinus3 = proof
   intros
   rewrite p_ih1 
   trivial
+  
+group_reduce.MelimDoubleNeg_1 = proof
+  intros
+  rewrite p_ih1
+  mrefine group_doubleNeg
+
+group_reduce.Melim_plusInverse_1 = proof
+  intros
+  rewrite (sym(right(Plus_inverse c2)))
+  trivial
+  
+group_reduce.Melim_plusInverse_2 = proof
+  intros
+  rewrite (sym(left(Plus_inverse c2)))
+  trivial  
+
+
   
   
   
