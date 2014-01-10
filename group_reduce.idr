@@ -91,7 +91,20 @@ elim_plusInverse p g e = (_ ** (e, refl))
 --------------------------------------------------------------------------
 -- To do : Simplify (+e) + (-e) with associativity (at two levels of +) !
 --------------------------------------------------------------------------
-        
+plusInverse_assoc : (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) with (exprG_eq p e1 e2)
+    plusInverse_assoc p g (PlusG e1 (PlusG (NegG e1) e3)) | (Just refl) = (_ ** (e3, ?MplusInverse_assoc_1))
+    plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) | _ = (_ ** ((PlusG e1 (PlusG (NegG e2) e3)), refl))
+plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) with (exprG_eq p e1 e2)
+    plusInverse_assoc p g (PlusG (NegG e1) (PlusG e1 e3)) | (Just refl) = (_ ** (e3, ?MplusInverse_assoc_2))
+    plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) | _ = (_ ** ((PlusG (NegG e1) (PlusG e2 e3)), refl))
+plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) with (exprG_eq p e2 e3)
+    plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e2)) | (Just refl) = (_ ** (e1, ?MplusInverse_assoc_3))
+    plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) | _ = (_ ** ((PlusG (PlusG e1 e2) (NegG e3)), refl))
+plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) with (exprG_eq p e2 e3)
+    plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e2) | (Just refl) = (_ ** (e1, ?MplusInverse_assoc_4))
+    plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) | _ = (_ ** ((PlusG (PlusG e1 (NegG e2)) e3), refl))
+    
     
 ---------- Proofs ----------
 group_reduce.MelimMinus1 = proof
@@ -126,9 +139,29 @@ group_reduce.Melim_plusInverse_2 = proof
   rewrite (sym(left(Plus_inverse c2)))
   trivial  
 
+group_reduce.MplusInverse_assoc_1 = proof
+  intros
+  rewrite (Plus_assoc c3 (Neg c3) c2)
+  rewrite (sym(left(Plus_inverse c3)))
+  mrefine Plus_neutral_1
 
+group_reduce.MplusInverse_assoc_2 = proof
+  intros
+  rewrite (Plus_assoc (Neg c2) c2 c3)
+  rewrite (sym(right(Plus_inverse c2)))
+  mrefine Plus_neutral_1  
+
+group_reduce.MplusInverse_assoc_3 = proof
+  intros
+  rewrite (sym(Plus_assoc c1 c3 (Neg c3)))
+  rewrite (sym(left(Plus_inverse c3)))
+  mrefine Plus_neutral_2
   
-  
+group_reduce.MplusInverse_assoc_4 = proof
+  intros
+  rewrite (sym(Plus_assoc c1 (Neg c2) c2))
+  rewrite (sym(right(Plus_inverse c2)))
+  mrefine Plus_neutral_2
   
   
   
