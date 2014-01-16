@@ -188,3 +188,5 @@ tools.aux1 = proof {
   trivial;
 }
 -}
+
+

@@ -44,3 +44,5 @@ compare_test2_test3 x = magmaDecideEq (%instance) (test2 x) (test3 x)
 
 test2_equal_test3 : (x:Nat) -> ((2 + 3) + x = 5 + x)
 test2_equal_test3 = \x => let (Just pr) = magmaDecideEq (%instance) (test2 x) (test3 x) in pr --A second "non regression test", unfortunately not using the type checker (need to compute this term and to see if it crashs or not)
+
+

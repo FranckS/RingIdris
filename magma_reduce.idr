@@ -67,3 +67,4 @@ magma_reduce.MmagmaReduce1 = proof {
   rewrite p_ih2;
   trivial;
 }
+

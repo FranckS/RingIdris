@@ -10,3 +10,4 @@ module globalDef
 -- I will see later if I change everything to Z.
 O : Nat
 O = Z
+

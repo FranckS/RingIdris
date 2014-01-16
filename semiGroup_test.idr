@@ -75,3 +75,5 @@ test_5'_norm_print x y = print_ExprSG show (test5'_norm x y)
 secondTest : (x:Nat) -> (y:Nat) -> (((x + (1+1)) + (2 + y)) = (x + (4 + y)))
 secondTest x y = let (Just ok) = semiGroupDecideEq (%instance) [x, y] (test4' x y) (test5' x y) in ok
 
+
+
