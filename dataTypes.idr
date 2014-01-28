@@ -162,10 +162,9 @@ semiGroup_to_monoid p (ConstSG _ cst) = ConstMo p cst
 semiGroup_to_monoid p (PlusSG e1 e2) = PlusMo (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
 semiGroup_to_monoid p (VarSG _ i) = VarMo p i
 
--- Group -> Monoid
+-- Group -> Monoid (needed for tools.idr, for unicity of symmetric)
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
 group_to_monoid_class p = (%instance)
-
 
 partial_group_to_monoid : {p:dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> ExprG p g c1 -> ExprMo (group_to_monoid_class p) g c1
 partial_group_to_monoid (ConstG p cst) = ConstMo (group_to_monoid_class p) cst

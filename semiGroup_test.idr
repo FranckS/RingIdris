@@ -50,11 +50,12 @@ test x = let (Just ok) = compare_test1'_test3' x in ok
 get_r : {pr: SemiGroup c} -> {r1:c} -> (r ** (ExprSG pr [x, y] r, r1=r)) -> c
 get_r (r ** (e, p)) = r
 
-pre_get_e : {pr: SemiGroup c} -> {r1:c} -> (r:c) -> (r ** (ExprSG pr [x, y] r, r1=r)) -> ExprSG pr [x, y] r
-pre_get_e r (r ** (e', p')) = e'
+pre_get_e : {pr: SemiGroup c} -> {r1:c} -> (r ** (ExprSG pr [x, y] r, r1=r)) -> ExprSG pr [x, y] r
+pre_get_e (r ** (e, p)) = e
 
 get_e : {pr: SemiGroup c} -> {r1:c} -> (big:(r ** (ExprSG pr [x, y] r, r1=r))) -> ExprSG pr [x, y] (get_r big)
-get_e big = pre_get_e (get_r big) big
+get_e (r ** (e, p)) = e
+
 
 -- Result of normalization for test4'
 test4'_norm : (x:Nat) -> (y:Nat) -> (ExprSG (%instance) [x, y] (get_r (semiGroupReduce (%instance) [x, y] (test4' x y))))
@@ -74,6 +75,11 @@ test_5'_norm_print x y = print_ExprSG show (test5'_norm x y)
 -- Result of the automatic equality solver for test4' and test5'
 secondTest : (x:Nat) -> (y:Nat) -> (((x + (1+1)) + (2 + y)) = (x + (4 + y)))
 secondTest x y = let (Just ok) = semiGroupDecideEq (%instance) [x, y] (test4' x y) (test5' x y) in ok
+
+
+
+
+
 
 
 
