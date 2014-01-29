@@ -128,17 +128,16 @@ plusInverse_assoc p g (PlusG e1 e2) =
 
       
       
-data Monoid_from_Group : Type -> Type where
-  Addition : {c:Type} -> (r1:Monoid_from_Group c) -> (r2:Monoid_from_Group c) -> Monoid_from_Group c
-  Negation : {c:Type} -> (r:c) -> Monoid_from_Group c
-  Normal : {c:Type} -> (r:c) -> Monoid_from_Group c
+data SignedTerm : Type -> Type where
+  Negation : {c:Type} -> (r:c) -> SignedTerm c
+  Normal : {c:Type} -> (r:c) -> SignedTerm c
 
-
+{-
 total
 newPlus : {c:Type} -> {p:dataTypes.Group c} -> (r1:Monoid_from_Group c) -> (r2:Monoid_from_Group c) -> (Monoid_from_Group c)
 newPlus (Normal e1) (Normal e2) = Normal (Plus e1 e2)	
 newPlus x y = Addition x y
-
+-}
 
 {-
 newPlus_assoc : {c:Type} -> {p:dataTypes.Group c} -> (r1:Monoid_from_Group c) -> (r2:Monoid_from_Group c) -> (r3:Monoid_from_Group c) -> 
@@ -156,6 +155,73 @@ newPlus_assoc r1 r2 r3 = let
 
 -}
 
+--group_to_monoid_value : {c:Type} -> (p:dataTypes.Group c) -> (c1:c) -> (Monoid_from_Group c)
+
+
+-- To be completed with additional conditions
+signedTerm_is_a_monoid : (c:Type) -> dataTypes.Monoid (SignedTerm c)
+-- proof...
+
+toSignedTerm : {c:Type} -> (r:c) -> SignedTerm c
+toSignedTerm r = Normal r --Just an encoding
+
+toSignedTerm_vector : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (Vect n (SignedTerm c))
+toSignedTerm_vector Nil = Nil
+toSignedTerm_vector (h::t) = (toSignedTerm h)::(toSignedTerm_vector t)
+
+{-
+group_get_r : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat}-> {g:Vect n c} -> {r:c} -> (ExprG p g r) -> c
+group_get_r (ConstG p r) = r
+group_get_r (PlusG e1 e2) = 
+  let r1 = group_get_r e1 in
+  let r2 = group_get_r e2 in
+    (Plus r1 r2)
+group_get_r (MinusG e1 e2) = 
+  let r1 = group_get_r e1 in
+  let r2 = group_get_r e2 in
+    (Minus c1 c2)
+group_get_r (NegG e) = 
+  let r = group_get_r e in 
+    (Neg r)
+group_get_r (VarG p i) = (index i g)
+-}
+
+--pseudo total function : the element in the group should have been simplified before calling this function (no minus, and neg only to constant and variables)
+total_group_to_monoid : (c:Type) -> {p:dataTypes.Group c} -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> 
+			  (c1' ** (ExprMo {c=SignedTerm c} {n} (signedTerm_is_a_monoid c) (toSignedTerm_vector g) c1'))
+total_group_to_monoid c g (ConstG p cst) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (Normal cst)))
+total_group_to_monoid c g (PlusG e1 e2) = 
+  let (r_ih1 ** e_ih1) = total_group_to_monoid c g e1 in
+  let (r_ih2 ** e_ih2) = total_group_to_monoid c g e2 in
+    (_ ** (PlusMo e_ih1 e_ih2))
+-- total_group_to_monoid c (MinusG e1 e2) can't happen
+total_group_to_monoid c g (NegG (ConstG p r)) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (Negation r)))
+total_group_to_monoid c g (NegG (VarG p i)) = (_ ** (VarMo (signedTerm_is_a_monoid c) i))
+-- Can't be a NegG of something else at this stage
+total_group_to_monoid c g (VarG p i) = (_ ** (VarMo -- PB HERE : Same encoding for the neg of a variable and for a variable
+
+
+toUnsignedTerm : {c:Type} -> (r:SignedTerm c) -> c
+toUnsignedTerm (Normal r) = r
+-- toUnsignedTerm (Neg r) should never happen
+
+
+toUnsignedTerm_vector : {c:Type} -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> (Vect n c)
+toUnsignedTerm_vector Nil = Nil
+toUnsignedTerm_vector (h::t) = (toUnsignedTerm h)::(toUnsignedTerm_vector t)
+
+
+monoid_to_group_recode : (c:Type) -> {pm : dataTypes.Monoid (SignedTerm c)} -> (pg:dataTypes.Group c) -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> {c1:SignedTerm c} -> (ExprMo pm g c1) ->
+			    (c1' ** (ExprG pg (toUnsignedTerm_vector g) c1'))
+monoid_to_group_recode c pg g (ConstMo p (Normal cst)) = (_ ** (ConstG pg cst))
+monoid_to_group_recode c pg g (ConstMo p (Negation cst)) = (_ ** (NegG (ConstG pg cst)))
+monoid_to_group_recode c pg g (PlusMo e1 e2) = 
+  let (r_ih1 ** e_ih1) = monoid_to_group_recode c pg g e1 in
+  let (r_ih2 ** e_ih2) = monoid_to_group_recode c pg g e2 in
+    (_ ** (PlusG e_ih1 e_ih2))
+monoid_to_group_recode c pg g (
+
+
 groupReduce : {c:Type} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 groupReduce p g e = 
   let (r_1 ** (e_1, p_1)) = elimMinus p e in
@@ -165,11 +231,12 @@ groupReduce p g e =
 		  -- IMPORTANT : At this stage, we only have negation on variables and constants.
 		  -- Thus, we can continue the reduction by calling the reduction for a monoid on another set, which encodes the minus :
 		  -- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
-		  let (r_5 ** (e_5, p_5)) = monoidReduce (group_to_monoid_class p) g (partial_group_to_monoid e_4) in
-		      ?MM
+		  let (r_4' ** e_4') = (total_group_to_monoid _ _ e_4) in
+		      --let (r_5 ** e_5) = monoidReduce (signedTerm_is_a_monoid _) (toSignedTerm_vector g) e_4' in
+		      ?MM {-
 		      --let (r_6 ** (e_6, p_6)) = 
 		      --(r_ih3 ** (e_ih3, ?MGroupReduce_1))
-    
+		      -}    
     
 ---------- Proofs ----------
 group_reduce.MelimMinus1 = proof
