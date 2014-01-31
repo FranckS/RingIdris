@@ -20,16 +20,16 @@ magmaReduce (PlusMa e1 e2) =
     let (r_ih1 ** (e_ih1, p_ih1)) = (magmaReduce e1) in
     let (r_ih2 ** (e_ih2, p_ih2)) = (magmaReduce e2) in
     ((Plus r_ih1 r_ih2) ** (PlusMa e_ih1 e_ih2, ?MmagmaReduce1))                    
-magmaReduce (VarMa p v) = (_ ** (VarMa p v, refl))
+magmaReduce (VarMa p v b) = (_ ** (VarMa p v b, refl))
 
 
 exprMa_eq : (p:Magma c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p g c1) -> (e2:ExprMa p g c2) -> (Maybe (e1=e2))
 exprMa_eq p (PlusMa x y) (PlusMa x' y') with (exprMa_eq p x x', exprMa_eq p y y')
   exprMa_eq p (PlusMa x y) (PlusMa x y) | (Just refl, Just refl) = Just refl
   exprMa_eq p (PlusMa x y) (PlusMa x' y') | _ = Nothing
-exprMa_eq p (VarMa p i) (VarMa p j) with (decEq i j)
-  exprMa_eq p (VarMa p i) (VarMa p i) | (Yes refl) = Just refl
-  exprMa_eq p (VarMa p i) (VarMa p j) | _ = Nothing
+exprMa_eq p (VarMa p i b1) (VarMa p j b2) with (decEq i j, decEq b1 b2)
+  exprMa_eq p (VarMa p i b1) (VarMa p i b1) | (Yes refl, Yes refl) = Just refl
+  exprMa_eq p (VarMa p i b1) (VarMa p j b2) | _ = Nothing
 exprMa_eq p (ConstMa p const1) (ConstMa p const2) with ((magma_eq_as_elem_of_set p) const1 const2)
     exprMa_eq p (ConstMa p const1) (ConstMa p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
     exprMa_eq p (ConstMa p const1) (ConstMa p const2) | _ = Nothing

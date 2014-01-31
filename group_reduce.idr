@@ -18,9 +18,9 @@ exprG_eq : (p:dataTypes.Group c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:
 exprG_eq p (PlusG x y) (PlusG x' y') with (exprG_eq p x x', exprG_eq p y y')
   exprG_eq p (PlusG x y) (PlusG x y) | (Just refl, Just refl) = Just refl
   exprG_eq p (PlusG x y) (PlusG x' y') | _ = Nothing
-exprG_eq p (VarG p i) (VarG p j) with (decEq i j)
-  exprG_eq p (VarG p i) (VarG p i) | (Yes refl) = Just refl
-  exprG_eq p (VarG p i) (VarG p j) | _ = Nothing
+exprG_eq p (VarG p i b1) (VarG p j b2) with (decEq i j, decEq b1 b2)
+  exprG_eq p (VarG p i b1) (VarG p i b1) | (Yes refl, Yes refl) = Just refl
+  exprG_eq p (VarG p i b1) (VarG p j b2) | _ = Nothing
 exprG_eq p (ConstG p const1) (ConstG p const2) with ((group_eq_as_elem_of_set p) const1 const2)
     exprG_eq p (ConstG p const1) (ConstG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
     exprG_eq p (ConstG p const1) (ConstG p const2) | _ = Nothing
@@ -35,7 +35,7 @@ elimMinus p (PlusG e1 e2) =
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p e2) in
     ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimMinus1))
-elimMinus p (VarG p v) = (_ ** (VarG p v, refl))    
+elimMinus p (VarG p v b) = (_ ** (VarG p v b, refl))    
 elimMinus p (MinusG e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p e2) in
@@ -88,7 +88,7 @@ exprG_simpl_eq p g c1 c2 e1 e2 =
 --------------------------------------------
 elim_plusInverse : {c:Type} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 elim_plusInverse p g (ConstG p const) = (_ ** (ConstG p const, refl))
-elim_plusInverse p g (VarG p v) = (_ ** (VarG p v, refl))
+elim_plusInverse p g (VarG p v b) = (_ ** (VarG p v b, refl))
 -- Reminder : e1 and e2 can't be a Neg themselves, because you are suppose to call elimDoubleNeg before calling this function...
 elim_plusInverse p g (PlusG (NegG e1) (NegG e2)) = (_ ** ((PlusG (NegG e1) (NegG e2)), refl))
 -- If e2 is not a Neg !
@@ -130,7 +130,6 @@ plusInverse_assoc p g (PlusG e1 e2) =
       
 data SignedTerm : Type -> Type where
   NegationOfUnsigned : {c:Type} -> (r:c) -> SignedTerm c
-  NegationOfVariable : {c:Type} -> {n:Nat} -> (i:Fin n) -> SignedTerm c
   Unsigned : {c:Type} -> (r:c) -> SignedTerm c
 
 {-
@@ -197,14 +196,14 @@ total_group_to_monoid c g (PlusG e1 e2) =
     (_ ** (PlusMo e_ih1 e_ih2))
 -- total_group_to_monoid c (MinusG e1 e2) can't happen
 total_group_to_monoid c g (NegG (ConstG p r)) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (NegationOfUnsigned r)))
-total_group_to_monoid c g (NegG (VarG p i)) = (_ ** (VarMo (signedTerm_is_a_monoid c) i))
+total_group_to_monoid c g (NegG (VarG p i b)) = (_ ** (VarMo (signedTerm_is_a_monoid c) i (not b))) -- We encode the negation *in* the variable 
 -- Can't be a NegG of something else at this stage
---total_group_to_monoid c g (VarG p i) = (_ ** (VarMo -- PB HERE : Same encoding for the neg of a variable and for a variable
+total_group_to_monoid c g (VarG p i b) = (_ ** (VarMo (signedTerm_is_a_monoid c) i b))
 
 
 toUnsignedTerm : {c:Type} -> (r:SignedTerm c) -> c
 toUnsignedTerm (Unsigned r) = r
--- toUnsignedTerm (Neg r) should never happen
+-- toUnsignedTerm (NegationOfUnsigned r) should never happen
 
 
 toUnsignedTerm_vector : {c:Type} -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> (Vect n c)
@@ -220,7 +219,8 @@ monoid_to_group_recode c pg g (PlusMo e1 e2) =
   let (r_ih1 ** e_ih1) = monoid_to_group_recode c pg g e1 in
   let (r_ih2 ** e_ih2) = monoid_to_group_recode c pg g e2 in
     (_ ** (PlusG e_ih1 e_ih2))
---monoid_to_group_recode c pg g (
+monoid_to_group_recode c pg g (VarMo p i True) = (_ ** (VarG pg i True))
+monoid_to_group_recode c pg g (VarMo p i False) = (_ ** (NegG (VarG pg i True)))
 
 
 groupReduce : {c:Type} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))

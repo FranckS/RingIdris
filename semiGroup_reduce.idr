@@ -18,9 +18,9 @@ exprSG_eq : (p:SemiGroup c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprS
 exprSG_eq p (PlusSG x y) (PlusSG x' y') with (exprSG_eq p x x', exprSG_eq p y y')
   exprSG_eq p (PlusSG x y) (PlusSG x y) | (Just refl, Just refl) = Just refl
   exprSG_eq p (PlusSG x y) (PlusSG x' y') | _ = Nothing
-exprSG_eq p (VarSG p i) (VarSG p j) with (decEq i j)
-  exprSG_eq p (VarSG p i) (VarSG p i) | (Yes refl) = Just refl
-  exprSG_eq p (VarSG p i) (VarSG p j) | _ = Nothing
+exprSG_eq p (VarSG p i b1) (VarSG p j b2) with (decEq i j, decEq b1 b2)
+  exprSG_eq p (VarSG p i b1) (VarSG p i b1) | (Yes refl, Yes refl) = Just refl
+  exprSG_eq p (VarSG p i b1) (VarSG p j b2) | _ = Nothing
 exprSG_eq p (ConstSG p const1) (ConstSG p const2) with ((semiGroup_eq_as_elem_of_set p) const1 const2)
     exprSG_eq p (ConstSG p const1) (ConstSG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
     exprSG_eq p (ConstSG p const1) (ConstSG p const2) | _ = Nothing
@@ -31,7 +31,7 @@ exprSG_eq p _ _  = Nothing
 -- No longer total due to fixed point to reach (non structural recursivity) (see last line of function)
 assoc : (p:SemiGroup c) -> (g:Vect n c) -> {c1:c} -> (ExprSG p g c1) -> (c2 ** (ExprSG p g c2, c1=c2))
 assoc p g (ConstSG p const) = (_ ** (ConstSG p const, refl))
-assoc p g (VarSG p v) = (_ ** (VarSG p v, refl))
+assoc p g (VarSG p v b) = (_ ** (VarSG p v b, refl))
 -- (x + c1) + (c2 + y) -> (x + (res c1+c2)) + y
 assoc p g (PlusSG (PlusSG e1 (ConstSG p c1)) (PlusSG (ConstSG p c2) e2)) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
@@ -68,7 +68,7 @@ assoc p g (PlusSG e1 e2) =
 total
 addAfter : (p:SemiGroup c) -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (ExprSG p g c1) -> (ExprSG p g c2) -> (c3 ** (ExprSG p g c3, c3=Plus c1 c2))  
 addAfter p g (ConstSG p c1) e = (_ ** (PlusSG (ConstSG p c1) e, refl)) 
-addAfter p g (VarSG p v) e = (_ ** (PlusSG (VarSG p v) e, refl))
+addAfter p g (VarSG p v b) e = (_ ** (PlusSG (VarSG p v b) e, refl))
 addAfter p g (PlusSG e11 e12) e2 = let (r_ih1 ** (e_ih1, p_ih1)) = addAfter p g e12 e2
                                     in (_ ** (PlusSG e11 e_ih1, ?MaddAfter1))
 
@@ -77,29 +77,29 @@ addAfter p g (PlusSG e11 e12) e2 = let (r_ih1 ** (e_ih1, p_ih1)) = addAfter p g 
 -- can't be assert as total (non structural recursion)
 shuffleRight : (p:SemiGroup c) -> (g:Vect n c) -> {c1:c} -> (ExprSG p g c1) -> (c2 ** (ExprSG p g c2, c1=c2))  
 shuffleRight p g (ConstSG p c) = (_ ** (ConstSG p c, refl))
-shuffleRight p g (VarSG p v) = (_  ** (VarSG p v, refl))
+shuffleRight p g (VarSG p v b) = (_  ** (VarSG p v b, refl))
 
 shuffleRight p g (PlusSG (ConstSG p c1) (ConstSG p c2)) = (_ ** (PlusSG (ConstSG p c1) (ConstSG p c2), refl))
-shuffleRight p g (PlusSG (ConstSG p c1) (VarSG p v)) = (_ ** (PlusSG (ConstSG p c1) (VarSG p v), refl))
+shuffleRight p g (PlusSG (ConstSG p c1) (VarSG p v b)) = (_ ** (PlusSG (ConstSG p c1) (VarSG p v b), refl))
 shuffleRight p g (PlusSG (ConstSG p c1) (PlusSG e21 e22)) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p g (PlusSG e21 e22) in
     (_ ** (PlusSG (ConstSG p c1) e_ih1, ?MshuffleRight1))
     -- Previously : PlusSG (ConstSG c1) (addAfter (shuffleRight p21) (shuffleRight p22)) 
 
-shuffleRight p g (PlusSG (VarSG p v1) (ConstSG p c2)) = (_ ** (PlusSG (VarSG p v1) (ConstSG p c2), refl))
-shuffleRight p g (PlusSG (VarSG p v1) (VarSG p v2)) = (_ ** (PlusSG (VarSG p v1) (VarSG p v2), refl))
-shuffleRight p g (PlusSG (VarSG p v1) (PlusSG e21 e22)) = 
+shuffleRight p g (PlusSG (VarSG p v1 b1) (ConstSG p c2)) = (_ ** (PlusSG (VarSG p v1 b1) (ConstSG p c2), refl))
+shuffleRight p g (PlusSG (VarSG p v1 b1) (VarSG p v2 b2)) = (_ ** (PlusSG (VarSG p v1 b1) (VarSG p v2 b2), refl))
+shuffleRight p g (PlusSG (VarSG p v1 b1) (PlusSG e21 e22)) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p g (PlusSG e21 e22) in
-    (_ ** (PlusSG (VarSG p v1) e_ih1, ?MshuffleRight2))
+    (_ ** (PlusSG (VarSG p v1 b1) e_ih1, ?MshuffleRight2))
     -- PlusSG (VarSG v1) (addAfter (shuffleRight p21) (shuffleRight p22)) -- ok with me
     
 shuffleRight p g (PlusSG (PlusSG e11 e12) (ConstSG p c2)) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p g (PlusSG e11 e12) in
     let (r_2 ** (e_2, p_2)) = addAfter p g e_ih1 (ConstSG p c2) in
     (_ ** (e_2, ?MshuffleRight3))                                
-shuffleRight p g (PlusSG (PlusSG e11 e12) (VarSG p v2)) = 
+shuffleRight p g (PlusSG (PlusSG e11 e12) (VarSG p v2 b2)) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p g (PlusSG e11 e12) in
-    let (r_2 ** (e_2, p_2)) = addAfter p g e_ih1 (VarSG p v2) in
+    let (r_2 ** (e_2, p_2)) = addAfter p g e_ih1 (VarSG p v2 b2) in
     (_ ** (e_2, ?MshuffleRight4))
 shuffleRight p g (PlusSG (PlusSG e11 e12) (PlusSG e21 e22)) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p g (PlusSG e11 e12) in
