@@ -187,18 +187,18 @@ group_get_r (VarG p i) = (index i g)
 -}
 
 --pseudo total function : the element in the group should have been simplified before calling this function (no minus, and neg only to constant and variables)
-total_group_to_monoid : (c:Type) -> {p:dataTypes.Group c} -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> 
+code_group_to_monoid : (c:Type) -> {p:dataTypes.Group c} -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> 
 			  (c1' ** (ExprMo {c=SignedTerm c} {n} (signedTerm_is_a_monoid c) (toSignedTerm_vector g) c1'))
-total_group_to_monoid c g (ConstG p cst) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (Unsigned cst)))
-total_group_to_monoid c g (PlusG e1 e2) = 
-  let (r_ih1 ** e_ih1) = total_group_to_monoid c g e1 in
-  let (r_ih2 ** e_ih2) = total_group_to_monoid c g e2 in
+code_group_to_monoid c g (ConstG p cst) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (Unsigned cst)))
+code_group_to_monoid c g (PlusG e1 e2) = 
+  let (r_ih1 ** e_ih1) = code_group_to_monoid c g e1 in
+  let (r_ih2 ** e_ih2) = code_group_to_monoid c g e2 in
     (_ ** (PlusMo e_ih1 e_ih2))
 -- total_group_to_monoid c (MinusG e1 e2) can't happen
-total_group_to_monoid c g (NegG (ConstG p r)) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (NegationOfUnsigned r)))
-total_group_to_monoid c g (NegG (VarG p i b)) = (_ ** (VarMo (signedTerm_is_a_monoid c) i (not b))) -- We encode the negation *in* the variable 
+code_group_to_monoid c g (NegG (ConstG p r)) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (NegationOfUnsigned r)))
+code_group_to_monoid c g (NegG (VarG p i b)) = (_ ** (VarMo (signedTerm_is_a_monoid c) i (not b))) -- We encode the negation *in* the variable 
 -- Can't be a NegG of something else at this stage
-total_group_to_monoid c g (VarG p i b) = (_ ** (VarMo (signedTerm_is_a_monoid c) i b))
+code_group_to_monoid c g (VarG p i b) = (_ ** (VarMo (signedTerm_is_a_monoid c) i b))
 
 
 toUnsignedTerm : {c:Type} -> (r:SignedTerm c) -> c
@@ -211,33 +211,69 @@ toUnsignedTerm_vector Nil = Nil
 toUnsignedTerm_vector (h::t) = (toUnsignedTerm h)::(toUnsignedTerm_vector t)
 
 
-monoid_to_group_recode : (c:Type) -> {pm : dataTypes.Monoid (SignedTerm c)} -> (pg:dataTypes.Group c) -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> {c1:SignedTerm c} -> (ExprMo pm g c1) ->
+decode_monoid_to_group : (c:Type) -> {pm : dataTypes.Monoid (SignedTerm c)} -> (pg:dataTypes.Group c) -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> {c1:SignedTerm c} -> (ExprMo pm g c1) ->
 			    (c1' ** (ExprG pg (toUnsignedTerm_vector g) c1'))
-monoid_to_group_recode c pg g (ConstMo p (Unsigned cst)) = (_ ** (ConstG pg cst))
-monoid_to_group_recode c pg g (ConstMo p (NegationOfUnsigned cst)) = (_ ** (NegG (ConstG pg cst)))
-monoid_to_group_recode c pg g (PlusMo e1 e2) = 
-  let (r_ih1 ** e_ih1) = monoid_to_group_recode c pg g e1 in
-  let (r_ih2 ** e_ih2) = monoid_to_group_recode c pg g e2 in
+decode_monoid_to_group c pg g (ConstMo p (Unsigned cst)) = (_ ** (ConstG pg cst))
+decode_monoid_to_group c pg g (ConstMo p (NegationOfUnsigned cst)) = (_ ** (NegG (ConstG pg cst)))
+decode_monoid_to_group c pg g (PlusMo e1 e2) = 
+  let (r_ih1 ** e_ih1) = decode_monoid_to_group c pg g e1 in
+  let (r_ih2 ** e_ih2) = decode_monoid_to_group c pg g e2 in
     (_ ** (PlusG e_ih1 e_ih2))
-monoid_to_group_recode c pg g (VarMo p i True) = (_ ** (VarG pg i True))
-monoid_to_group_recode c pg g (VarMo p i False) = (_ ** (NegG (VarG pg i True)))
+decode_monoid_to_group c pg g (VarMo p i True) = (_ ** (VarG pg i True))
+decode_monoid_to_group c pg g (VarMo p i False) = (_ ** (NegG (VarG pg i True)))
+
+toUnsignedTerm_toSignedTerm_id : {c:Type} -> (r:c) -> (toUnsignedTerm (toSignedTerm r) = r)
+toUnsignedTerm_toSignedTerm_id r = refl
 
 
-groupReduce : {c:Type} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
-groupReduce p g e = 
+-- auxiliary result
+toUnsignedTerm_of_Nil : {c:Type} -> (toUnsignedTerm_vector {c=c} (Prelude.Vect.Nil {a=SignedTerm c}) = Prelude.Vect.Nil {a=c})
+toUnsignedTerm_of_Nil = ?MtoUnsignedTerm_of_Nil_1
+
+
+toUnsignedTerm_toSignedTerm_vector_id : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (toUnsignedTerm_vector (toSignedTerm_vector g) = g)
+toUnsignedTerm_toSignedTerm_vector_id Nil = ?MtoUnsignedTerm_toSignedTerm_id_1
+
+
+
+code_decode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (ExprG p g r1) -> (r2 ** (ExprG p g r2, r1=r2))
+code_decode c p g e =
+  let (r_2 ** e_2) = code_group_to_monoid c g e in
+    let (r_3 ** e_3) = decode_monoid_to_group c p (toSignedTerm_vector g) e_2 in
+      ?Mcode_decode_1 -- Just returns (r_3 ** e_3) but uses the fact that the "gs" are compatible, because of the lemma toUnsignedTerm_toSignedTerm_vector_id 
+        
+  
+  
+{-
+code_decode_id : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (e:ExprG p g r1) -> (code_decode c p g 
+code_decode_id c p g (ConstG p cst) = 
+code_decode_id c p g (PlusG e1 e2) = 
+code_decode_id c p g (NegG (Const
+-}
+
+sameExpr : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> (r1:c) -> (ExprG p (toUnsignedTerm_vector (toSignedTerm_vector g)) r1) -> ExprG p g r1
+
+
+code_reduceM_andDecode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (ExprG p g r1) -> (r2 ** (ExprG p g r2, r1=r2))
+code_reduceM_andDecode c p g e = 
+    let (r_2 ** e_2) = (code_group_to_monoid _ _ e) in
+	let (r_3 ** (e_3, p_3)) = monoidReduce (signedTerm_is_a_monoid _) (toSignedTerm_vector g) e_2 in
+	    let (r_4 ** e_4) = decode_monoid_to_group c p (toSignedTerm_vector g) e_3 in
+	      (r_4 ** (e_4, ?Mcode_reduceM_andDecode_1))
+	      
+
+groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+groupReduce c p g e = 
   let (r_1 ** (e_1, p_1)) = elimMinus p e in
-      let (r_2 ** (e_2, p_2)) = propagateNeg p e_1 in
-	  let (r_3 ** (e_3, p_3)) = elimDoubleNeg p e_2 in
-	      let (r_4 ** (e_4, p_4)) = plusInverse_assoc p g e_3 in
-		  -- IMPORTANT : At this stage, we only have negation on variables and constants.
-		  -- Thus, we can continue the reduction by calling the reduction for a monoid on another set, which encodes the minus :
-		  -- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
-		  let (r_4' ** e_4') = (total_group_to_monoid _ _ e_4) in
-		      --let (r_5 ** e_5) = monoidReduce (signedTerm_is_a_monoid _) (toSignedTerm_vector g) e_4' in
-		      ?MM {-
-		      --let (r_6 ** (e_6, p_6)) = 
-		      --(r_ih3 ** (e_ih3, ?MGroupReduce_1))
-		      -}    
+    let (r_2 ** (e_2, p_2)) = propagateNeg p e_1 in
+      let (r_3 ** (e_3, p_3)) = elimDoubleNeg p e_2 in
+	let (r_4 ** (e_4, p_4)) = plusInverse_assoc p g e_3 in
+	  -- IMPORTANT : At this stage, we only have negation on variables and constants.
+	  -- Thus, we can continue the reduction by calling the reduction for a monoid on another set, which encodes the minus :
+	  -- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
+	  let (r_5 ** (e_5, p_5)) = code_reduceM_andDecode c p g e_4 in
+	    (r_5 ** (e_5, ?MgroupReduce_1))
+			      
     
 ---------- Proofs ----------
 group_reduce.MelimMinus1 = proof
@@ -296,11 +332,25 @@ group_reduce.MplusInverse_assoc_4 = proof
   rewrite (sym(right(Plus_inverse c2)))
   mrefine Plus_neutral_2
   
+group_reduce.MtoUnsignedTerm_toSignedTerm_id_1 = proof
+  intro
+  exact toUnsignedTerm_of_Nil 
   
+{-  
+group_reduce.Mcode_decode_1 = proof
+  intros
+  rewrite toUnsignedTerm_toSignedTerm_vector_id g
+  exact (r_3 ** e_3)  
+  -}  
   
-  
-  
-  
+group_reduce.MgroupReduce_1 = proof
+  intros
+  rewrite p_5
+  rewrite p_4
+  rewrite p_3
+  rewrite p_2
+  rewrite p_1
+  exact refl  
   
   
   
