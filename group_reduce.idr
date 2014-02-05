@@ -52,6 +52,13 @@ propagateNeg p (NegG (PlusG e1 e2)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p (NegG e1)) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p (NegG e2)) in
     ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MpropagateNeg_1))
+propagateNeg p (NegG e) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg p e in
+      (Neg r_ih1 ** (NegG e_ih1, ?MpropagateNeg_2))
+propagateNeg p (PlusG e1 e2) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p e1) in
+  let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p e2) in
+    ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MpropagateNeg_3))
 propagateNeg p e =
   (_ ** (e, refl)) 
   
@@ -59,11 +66,14 @@ propagateNeg p e =
 elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 elimDoubleNeg p (NegG (NegG e1)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p e1 in
-        (_ ** (e_ih1, ?MelimDoubleNeg_1))
+    (_ ** (e_ih1, ?MelimDoubleNeg_1))
+elimDoubleNeg p (NegG e) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p e in
+    ((Neg r_ih1) ** (NegG e_ih1, ?MelimDoubleNeg_2))
 elimDoubleNeg p (PlusG e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimDoubleNeg p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg p e2) in
-    ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimDoubleNeg_2))        
+    ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimDoubleNeg_3))        
 elimDoubleNeg p e1 = 
     (_ ** (e1, refl))
 
