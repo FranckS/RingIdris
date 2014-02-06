@@ -233,7 +233,7 @@ decode_monoid_to_group c pg g (VarMo p i True) = (_ ** (VarG pg i True))
 decode_monoid_to_group c pg g (VarMo p i False) = (_ ** (NegG (VarG pg i True)))
 
 toUnsignedTerm_toSignedTerm_id : {c:Type} -> (r:c) -> (toUnsignedTerm (toSignedTerm r) = r)
-toUnsignedTerm_toSignedTerm_id r = refl
+toUnsignedTerm_toSignedTerm_id r = ?MtoUnsignedTerm_toSignedTerm_id_1
 
 
 -- auxiliary result
@@ -241,19 +241,16 @@ toUnsignedTerm_of_Nil : {c:Type} -> (toUnsignedTerm_vector {c=c} (Prelude.Vect.N
 toUnsignedTerm_of_Nil = ?MtoUnsignedTerm_of_Nil_1
 
 
+aux : {c:Type} -> {n:Nat} -> {h:c} -> {t:Vect n c} -> toUnsignedTerm_vector (Unsigned h :: (toSignedTerm_vector t)) = (toUnsignedTerm (Unsigned h)) :: (toUnsignedTerm_vector (toSignedTerm_vector t))
+aux = ?Maux
+
 toUnsignedTerm_toSignedTerm_vector_id : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (toUnsignedTerm_vector (toSignedTerm_vector g) = g)
-toUnsignedTerm_toSignedTerm_vector_id Nil = ?MtoUnsignedTerm_toSignedTerm_id_1
+toUnsignedTerm_toSignedTerm_vector_id Nil = ?MtoUnsignedTerm_toSignedTerm_vector_id_1
+toUnsignedTerm_toSignedTerm_vector_id (h::t) = 
+    let p_aux = toUnsignedTerm_toSignedTerm_vector_id t in
+        ?MtoUnsignedTerm_toSignedTerm_vector_id
+        -- Will use aux and the induction hypothesis to produce the goal
 
-
-
-code_decode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (ExprG p g r1) -> (r2 ** (ExprG p g r2, r1=r2))
-code_decode c p g e =
-  let (r_2 ** e_2) = code_group_to_monoid c g e in
-    let (r_3 ** e_3) = decode_monoid_to_group c p (toSignedTerm_vector g) e_2 in
-      ?Mcode_decode_1 -- Just returns (r_3 ** e_3) but uses the fact that the "gs" are compatible, because of the lemma toUnsignedTerm_toSignedTerm_vector_id 
-        
-  
-  
 {-
 code_decode_id : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (e:ExprG p g r1) -> (code_decode c p g 
 code_decode_id c p g (ConstG p cst) = 
@@ -262,15 +259,28 @@ code_decode_id c p g (NegG (Const
 -}
 
 sameExpr : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> (r1:c) -> (ExprG p (toUnsignedTerm_vector (toSignedTerm_vector g)) r1) -> ExprG p g r1
+sameExpr c p g r1 e = ?MsameExpr_1
+
+
+code_decode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (ExprG p g r1) -> (r2 ** (ExprG p g r2, r1=r2))
+code_decode c p g e =
+  let (r_2 ** e_2) = code_group_to_monoid c g e in
+    let (r_3 ** e_3) = decode_monoid_to_group c p (toSignedTerm_vector g) e_2 in
+      --?Mcode_decode_1 -- Just returns (r_3 ** e_3) but uses the fact that the "gs" are compatible, because of the lemma toUnsignedTerm_toSignedTerm_vector_id 
+        (r_3 ** ((sameExpr _ _ _ _ e_3), ?Mcode_decode_1))
+
+
+convert : {c:Type} -> {p:dataTypes.Monoid c} -> {g:Vect n c} -> (r1:c) -> (r2:c) -> (r1_eq_e2:r1=r2) -> (ExprMo p g r1) -> (ExprMo p g r2)
+convert r1 r2 r1_eq_e2 e = ?Mconvert_1
 
 
 code_reduceM_andDecode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (ExprG p g r1) -> (r2 ** (ExprG p g r2, r1=r2))
 code_reduceM_andDecode c p g e = 
     let (r_2 ** e_2) = (code_group_to_monoid _ _ e) in
 	let (r_3 ** (e_3, p_3)) = monoidReduce (signedTerm_is_a_monoid _) (toSignedTerm_vector g) e_2 in
-	    let (r_4 ** e_4) = decode_monoid_to_group c p (toSignedTerm_vector g) e_3 in
-	      (r_4 ** (e_4, ?Mcode_reduceM_andDecode_1))
-	      
+	    let (r_4 ** e_4) = decode_monoid_to_group c p _ (convert r_3 r_2 (sym p_3) e_3) in
+                (r_4 ** ((sameExpr _ _ _ _ e_4), ?Mcode_reduceM_andDecode_1))
+
 
 groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 groupReduce c p g e = 
@@ -341,17 +351,37 @@ group_reduce.MplusInverse_assoc_4 = proof
   rewrite (sym(Plus_assoc c1 (Neg c2) c2))
   rewrite (sym(right(Plus_inverse c2)))
   mrefine Plus_neutral_2
-  
+
+{-  
 group_reduce.MtoUnsignedTerm_toSignedTerm_id_1 = proof
   intro
   exact toUnsignedTerm_of_Nil 
+-}  
   
 {-  
 group_reduce.Mcode_decode_1 = proof
   intros
   rewrite toUnsignedTerm_toSignedTerm_vector_id g
   exact (r_3 ** e_3)  
-  -}  
+  -}
+  
+group_reduce.MtoUnsignedTerm_toSignedTerm_id_1 = proof
+  intros
+  mrefine toUnsignedTerm_toSignedTerm_id    
+
+group_reduce.MtoUnsignedTerm_toSignedTerm_vector_id_1 = proof
+  intros
+  mrefine toUnsignedTerm_of_Nil 
+
+group_reduce.MsameExpr_1 = proof
+  intros
+  rewrite (toUnsignedTerm_toSignedTerm_vector_id g)
+  exact e
+
+group_reduce.Mconvert_1 = proof
+  intros
+  rewrite r1_eq_e2 
+  exact e
   
 group_reduce.MgroupReduce_1 = proof
   intros
