@@ -14,6 +14,7 @@
 module Main
 
 import tools
+import mathsResults
 import dataTypes
 import magma_reduce
 import semiGroup_reduce
@@ -41,6 +42,42 @@ main = putStrLn "coucou!"
 
 
 ---------- Proofs ----------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -45,13 +45,13 @@ elimMinus p (NegG e1) =
     (_ ** (NegG e_ih1, ?MelimMinus3))
   
   
--- Ex : -(a+b) becomes (-a) + (-b)
+-- Ex : -(a+b) becomes (-b) + (-a)
 -- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
 propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 propagateNeg p (NegG (PlusG e1 e2)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p (NegG e1)) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p (NegG e2)) in
-    ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MpropagateNeg_1))
+    ((Plus r_ih2 r_ih1) ** (PlusG e_ih2 e_ih1, ?MpropagateNeg_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
 propagateNeg p (NegG e) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg p e in
       (Neg r_ih1 ** (NegG e_ih1, ?MpropagateNeg_2))
@@ -77,7 +77,8 @@ elimDoubleNeg p (PlusG e1 e2) =
 elimDoubleNeg p e1 = 
     (_ ** (e1, refl))
 
-    
+
+-- TO BE DELETED SOON : will be replaced by Group_reduce. Only kept for typeching at the moment     
 exprG_simpl_eq  : {c:Type} -> (p:dataTypes.Group c) -> (g:Vect n c) -> (c1:c) -> (c2:c) -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> (Maybe (e1=e2))
 exprG_simpl_eq p g c1 c2 e1 e2 = 
     let (c1' ** (e1', p1')) = elimMinus p e1 in
@@ -132,9 +133,9 @@ plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) with (exprG_eq p e2 e3)
     plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e2) | (Just refl) = (_ ** (e1, ?MplusInverse_assoc_4))
     plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) | _ = (_ ** ((PlusG (PlusG e1 (NegG e2)) e3), refl))
 plusInverse_assoc p g (PlusG e1 e2) =
-  let (r_ih1 ** (e_ih1, p_ih1)) = (plusInverse_assoc p g e1) in
-  let (r_ih2 ** (e_ih2, p_ih2)) = (plusInverse_assoc p g e2) in
-      ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MplusInverse_assoc_5))
+	let (r_ih1 ** (e_ih1, p_ih1)) = (plusInverse_assoc p g e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (plusInverse_assoc p g e2) in
+		((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MplusInverse_assoc_5))
 
       
       
@@ -168,7 +169,7 @@ newPlus_assoc r1 r2 r3 = let
 --group_to_monoid_value : {c:Type} -> (p:dataTypes.Group c) -> (c1:c) -> (Monoid_from_Group c)
 
 
--- To be completed with additional conditions
+-- To be completed with additional conditions, and with the correct operations
 signedTerm_is_a_monoid : (c:Type) -> dataTypes.Monoid (SignedTerm c)
 -- proof...
 
@@ -201,9 +202,9 @@ code_group_to_monoid : (c:Type) -> {p:dataTypes.Group c} -> {n:Nat} -> (g:Vect n
 			  (c1' ** (ExprMo {c=SignedTerm c} {n} (signedTerm_is_a_monoid c) (toSignedTerm_vector g) c1'))
 code_group_to_monoid c g (ConstG p cst) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (Unsigned cst)))
 code_group_to_monoid c g (PlusG e1 e2) = 
-  let (r_ih1 ** e_ih1) = code_group_to_monoid c g e1 in
-  let (r_ih2 ** e_ih2) = code_group_to_monoid c g e2 in
-    (_ ** (PlusMo e_ih1 e_ih2))
+	let (r_ih1 ** e_ih1) = code_group_to_monoid c g e1 in
+	let (r_ih2 ** e_ih2) = code_group_to_monoid c g e2 in
+		(_ ** (PlusMo e_ih1 e_ih2))
 -- total_group_to_monoid c (MinusG e1 e2) can't happen
 code_group_to_monoid c g (NegG (ConstG p r)) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (NegationOfUnsigned r)))
 code_group_to_monoid c g (NegG (VarG p i b)) = (_ ** (VarMo (signedTerm_is_a_monoid c) i (not b))) -- We encode the negation *in* the variable 
@@ -213,7 +214,8 @@ code_group_to_monoid c g (VarG p i b) = (_ ** (VarMo (signedTerm_is_a_monoid c) 
 
 toUnsignedTerm : {c:Type} -> (r:SignedTerm c) -> c
 toUnsignedTerm (Unsigned r) = r
--- toUnsignedTerm (NegationOfUnsigned r) should never happen
+-- toUnsignedTerm (NegationOfUnsigned r) should never happen but we need it for totality
+toUnsignedTerm (NegationOfUnsigned r) = r -- Am I sure that it won't be a problem ?
 
 
 toUnsignedTerm_vector : {c:Type} -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> (Vect n c)
@@ -226,30 +228,35 @@ decode_monoid_to_group : (c:Type) -> {pm : dataTypes.Monoid (SignedTerm c)} -> (
 decode_monoid_to_group c pg g (ConstMo p (Unsigned cst)) = (_ ** (ConstG pg cst))
 decode_monoid_to_group c pg g (ConstMo p (NegationOfUnsigned cst)) = (_ ** (NegG (ConstG pg cst)))
 decode_monoid_to_group c pg g (PlusMo e1 e2) = 
-  let (r_ih1 ** e_ih1) = decode_monoid_to_group c pg g e1 in
-  let (r_ih2 ** e_ih2) = decode_monoid_to_group c pg g e2 in
-    (_ ** (PlusG e_ih1 e_ih2))
+	let (r_ih1 ** e_ih1) = decode_monoid_to_group c pg g e1 in
+	let (r_ih2 ** e_ih2) = decode_monoid_to_group c pg g e2 in
+		(_ ** (PlusG e_ih1 e_ih2))
 decode_monoid_to_group c pg g (VarMo p i True) = (_ ** (VarG pg i True))
 decode_monoid_to_group c pg g (VarMo p i False) = (_ ** (NegG (VarG pg i True)))
 
 toUnsignedTerm_toSignedTerm_id : {c:Type} -> (r:c) -> (toUnsignedTerm (toSignedTerm r) = r)
-toUnsignedTerm_toSignedTerm_id r = ?MtoUnsignedTerm_toSignedTerm_id_1
+toUnsignedTerm_toSignedTerm_id r = refl
 
 
+{-
 -- auxiliary result
 toUnsignedTerm_of_Nil : {c:Type} -> (toUnsignedTerm_vector {c=c} (Prelude.Vect.Nil {a=SignedTerm c}) = Prelude.Vect.Nil {a=c})
 toUnsignedTerm_of_Nil = ?MtoUnsignedTerm_of_Nil_1
+-}
 
 
+{-
 aux : {c:Type} -> {n:Nat} -> {h:c} -> {t:Vect n c} -> toUnsignedTerm_vector (Unsigned h :: (toSignedTerm_vector t)) = (toUnsignedTerm (Unsigned h)) :: (toUnsignedTerm_vector (toSignedTerm_vector t))
 aux = ?Maux
+-}
+
 
 toUnsignedTerm_toSignedTerm_vector_id : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (toUnsignedTerm_vector (toSignedTerm_vector g) = g)
 toUnsignedTerm_toSignedTerm_vector_id Nil = ?MtoUnsignedTerm_toSignedTerm_vector_id_1
 toUnsignedTerm_toSignedTerm_vector_id (h::t) = 
     let p_aux = toUnsignedTerm_toSignedTerm_vector_id t in
-        ?MtoUnsignedTerm_toSignedTerm_vector_id
-        -- Will use aux and the induction hypothesis to produce the goal
+        ?MtoUnsignedTerm_toSignedTerm_vector_id_2
+
 
 {-
 code_decode_id : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (e:ExprG p g r1) -> (code_decode c p g 
@@ -278,21 +285,21 @@ code_reduceM_andDecode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r
 code_reduceM_andDecode c p g e = 
     let (r_2 ** e_2) = (code_group_to_monoid _ _ e) in
 	let (r_3 ** (e_3, p_3)) = monoidReduce (signedTerm_is_a_monoid _) (toSignedTerm_vector g) e_2 in
-	    let (r_4 ** e_4) = decode_monoid_to_group c p _ (convert r_3 r_2 (sym p_3) e_3) in
-                (r_4 ** ((sameExpr _ _ _ _ e_4), ?Mcode_reduceM_andDecode_1))
+	let (r_4 ** e_4) = decode_monoid_to_group c p _ (convert r_3 r_2 (sym p_3) e_3) in
+		(r_4 ** ((sameExpr _ _ _ _ e_4), ?Mcode_reduceM_andDecode_1))
 
 
 groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 groupReduce c p g e = 
-  let (r_1 ** (e_1, p_1)) = elimMinus p e in
-    let (r_2 ** (e_2, p_2)) = propagateNeg p e_1 in
-      let (r_3 ** (e_3, p_3)) = elimDoubleNeg p e_2 in
+	let (r_1 ** (e_1, p_1)) = elimMinus p e in
+	let (r_2 ** (e_2, p_2)) = propagateNeg p e_1 in
+	let (r_3 ** (e_3, p_3)) = elimDoubleNeg p e_2 in
 	let (r_4 ** (e_4, p_4)) = plusInverse_assoc p g e_3 in
 	  -- IMPORTANT : At this stage, we only have negation on variables and constants.
 	  -- Thus, we can continue the reduction by calling the reduction for a monoid on another set, which encodes the minus :
 	  -- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
-	  let (r_5 ** (e_5, p_5)) = code_reduceM_andDecode c p g e_4 in
-	    (r_5 ** (e_5, ?MgroupReduce_1))
+	let (r_5 ** (e_5, p_5)) = code_reduceM_andDecode c p g e_4 in
+		(r_5 ** (e_5, ?MgroupReduce_1))
 			      
     
 ---------- Proofs ----------
@@ -313,10 +320,38 @@ group_reduce.MelimMinus3 = proof
   rewrite p_ih1 
   trivial
   
+group_reduce.MpropagateNeg_1 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  mrefine push_negation
+  
+group_reduce.MpropagateNeg_2 = proof
+  intros
+  rewrite p_ih1 
+  mrefine refl
+  
+group_reduce.MpropagateNeg_3 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  mrefine refl  
+   
 group_reduce.MelimDoubleNeg_1 = proof
   intros
   rewrite p_ih1
   mrefine group_doubleNeg
+  
+group_reduce.MelimDoubleNeg_2 = proof
+  intros
+  rewrite p_ih1
+  mrefine refl
+  
+group_reduce.MelimDoubleNeg_3 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  mrefine refl  
 
 group_reduce.Melim_plusInverse_1 = proof
   intros
@@ -352,6 +387,12 @@ group_reduce.MplusInverse_assoc_4 = proof
   rewrite (sym(right(Plus_inverse c2)))
   mrefine Plus_neutral_2
 
+group_reduce.MplusInverse_assoc_5 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  mrefine refl  
+  
 {-  
 group_reduce.MtoUnsignedTerm_toSignedTerm_id_1 = proof
   intro
@@ -365,13 +406,20 @@ group_reduce.Mcode_decode_1 = proof
   exact (r_3 ** e_3)  
   -}
   
-group_reduce.MtoUnsignedTerm_toSignedTerm_id_1 = proof
-  intros
-  mrefine toUnsignedTerm_toSignedTerm_id    
-
 group_reduce.MtoUnsignedTerm_toSignedTerm_vector_id_1 = proof
   intros
-  mrefine toUnsignedTerm_of_Nil 
+  mrefine refl
+  
+{-  
+group_reduce.MtoUnsignedTerm_of_Nil_1 = proof
+  intros
+  mrefine refl  
+-}  
+  
+group_reduce.MtoUnsignedTerm_toSignedTerm_vector_id_2 = proof
+  intros
+  rewrite p_aux
+  mrefine refl  
 
 group_reduce.MsameExpr_1 = proof
   intros
