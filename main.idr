@@ -28,8 +28,7 @@ import semiGroup_test
 import monoid_test
 
 
--- Will be written a bit later
---reduceForG : {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+
 
 --reduceForCG : {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, c1=c2))
 
@@ -42,6 +41,11 @@ main = putStrLn "coucou!"
 
 
 ---------- Proofs ----------
+
+
+
+
+
 
 
 
