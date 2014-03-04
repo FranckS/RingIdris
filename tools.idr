@@ -10,9 +10,9 @@ import Data.ZZ
 import globalDef
 import dataTypes
 
--- -------------------------------
--- A) TOOLS AND LEMMAS FOR PAIRS
--- -------------------------------
+-- --------------------------------------------------
+-- A) TOOLS AND LEMMAS FOR PAIRS AND DEPENDENT PAIRS
+-- --------------------------------------------------
 
 left : {A:Type} -> {B:Type} -> (A,B)  -> A
 left (x,y) = x
@@ -20,9 +20,21 @@ left (x,y) = x
 right : {A:Type} -> {B:Type} -> (A,B) -> B
 right (x,y) = y
 
+leftDep : {A:Type} -> {B:A->Type} -> (x : Exists A B) -> A
+leftDep (a ** b) = a
+
+rightDep : {A:Type} -> {B:A->Type} -> (x:Exists A B) -> B (leftDep x)
+rightDep (a ** b) = b
+
 {-
 : (c1:c) -> ((Plus c1 (Neg c1) = Plus (Neg c1) c1), (Plus (Neg c1) c1 = the c Zero)) -- "the c Zero" used to make clear that we talk about Zero in c and not the one in CommutativeRing (last defined first tried ?)
 -}
+
+
+f_equal : {A:Type} -> {B:Type} -> (f:A->B) -> (x:A) -> (y:A) -> (x=y) -> (f x = f y)
+f_equal f x y p = ?Mf_equal
+
+
 
 -- -------------------------------
 -- B) TOOLS AND LEMMAS FOR GROUPS
@@ -161,6 +173,11 @@ plusSym_4v' = ?MplusSym_4v'
     --trans : (x:s) -> (y:s) -> (z:s) -> (rel x y) -> (rel y z) -> (rel x z)
 
 ---------- Proofs ----------  
+tools.Mf_equal = proof
+  intros
+  rewrite p
+  exact refl
+  
 {-
 tools.MplusAssociativeZ_1 = proof {
   intros;

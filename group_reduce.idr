@@ -89,9 +89,72 @@ elimDoubleNeg p e1 =
 
 
                      
-data SignedTerm : Type -> Type where
-  NegationOfUnsigned : {c:Type} -> (r:c) -> SignedTerm c
-  Unsigned : {c:Type} -> (r:c) -> SignedTerm c
+data SignedTerm : (c:Type) -> (dataTypes.Group c) -> Type where
+  NegationOfUnsigned : {c:Type} -> (p:dataTypes.Group c) -> (r:c) -> SignedTerm c p
+  Unsigned : {c:Type} -> (p:dataTypes.Group c) -> (r:c) -> SignedTerm c p
+  PlusSymb : {c:Type} -> (p:dataTypes.Group c) -> (er1:SignedTerm c p) -> (er2:SignedTerm c p) -> SignedTerm c p
+
+instance Set (SignedTerm c p) where
+	set_eq x y = ?WAITING
+	
+instance Magma (SignedTerm c p) where
+	Plus (Unsigned _ r1) (Unsigned _ r2) = Unsigned p (Plus r1 r2)
+	Plus (Unsigned _ r1) (NegationOfUnsigned _ r2) = PlusSymb p (Unsigned _ r1) (NegationOfUnsigned _ r2)
+	Plus (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) er3) = PlusSymb _ (Unsigned _ (Plus r1 r2)) er3
+	Plus (Unsigned _ r1) (PlusSymb _ er2 er3) = PlusSymb _ (Unsigned _ r1) (PlusSymb _ er2 er3)
+	--Plus (Unsigned _ r1) (PlusSymb _ er2 b2 er3 b3) = PlusSymb _ (PlusSymb _ (Unsigned _ r1) True er2 b2) True er3 b3
+	
+	Plus (NegationOfUnsigned _ r1) (Unsigned _ r2) = PlusSymb p (NegationOfUnsigned _ r1) (Unsigned _ r2)
+	Plus (NegationOfUnsigned _ r1) (NegationOfUnsigned _ r2) = PlusSymb _ (NegationOfUnsigned _ r1) (NegationOfUnsigned _ r2)
+	Plus (NegationOfUnsigned _ r1) (PlusSymb _ er2 er3) = PlusSymb _ (NegationOfUnsigned _ r1) (PlusSymb _ er2 er3)
+	
+	Plus (PlusSymb _ er1 (Unsigned _ r2)) (Unsigned _ r3) = PlusSymb _ er1 (Unsigned _ (Plus r2 r3))
+	Plus (PlusSymb _ er1 (Unsigned _ r2)) er3 = PlusSymb _ er1 (PlusSymb _ (Unsigned _ r2) er3) -- AJOUTE
+	
+	Plus (PlusSymb _ er1 er2) er3 = PlusSymb _ er1 (PlusSymb _ er2 er3)
+	--Plus (PlusSymb _ er1 b1 er2 b2) er3 = PlusSymb _ (PlusSymb _ er1 b1 er2 b2) True er3 True
+	
+instance SemiGroup (SignedTerm c p) where
+	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (Unsigned _ r3) = ?M_SG_SignedTerm_1
+	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (NegationOfUnsigned _ r3) = ?M_SG_SignedTerm_2
+	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (PlusSymb _ (Unsigned _ r3) er4) = 
+		let aux:((dataTypes.Plus (dataTypes.Plus r1 r2) r3) = (dataTypes.Plus r1 (dataTypes.Plus r2 r3))) = Plus_assoc r1 r2 r3 in
+			?M_SG_SignedTerm_3
+	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (PlusSymb _ (NegationOfUnsigned _ r3) er4) = ?M_SG_SignedTerm_4
+	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (PlusSymb _ (PlusSymb _ er3 er4) er6) = ?M_SG_SignedTerm_5
+			
+	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (Unsigned _ r3) = ?M_SG_SignedTerm_6
+	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (NegationOfUnsigned _ r3) = ?M_SG_SignedTerm_7
+	-- Need to split the argument of the PlusSymbol here, and I don't know why
+	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (PlusSymb _ (Unsigned _ r3) er4) = ?M_SG_SignedTerm_8
+	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (PlusSymb _ (NegationOfUnsigned _ r3) er4) = ?M_SG_SignedTerm_9
+	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (PlusSymb _ (PlusSymb _ er3 er4) er5) = ?M_SG_SignedTerm_10
+	
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) (Unsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_1
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) (NegationOfUnsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_2
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) (PlusSymb _ er3 er4)) (Unsigned _ r5) = ?M_SG_SignedTerm_11_3
+	
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (NegationOfUnsigned _ r2) (Unsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_4
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (NegationOfUnsigned _ r2) (NegationOfUnsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_5
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (NegationOfUnsigned _ r2) (PlusSymb _ er3 er4)) (Unsigned _ r5) = ?M_SG_SignedTerm_11_6
+	
+	
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ er2 er3) (NegationOfUnsigned _ r4) = ?M_SG_SignedTerm_12
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ er2 er3) (PlusSymb _ (NegationOfUnsigned _ r4) er5) = ?M_SG_SignedTerm_13
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ er2 er3) (PlusSymb _ (Unsigned _ r4) er5) = ?M_SG_SignedTerm_14
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ er2 er3) (PlusSymb _ (PlusSymb _ er4 er5) er6) = ?M_SG_SignedTerm_15
+	
+	
+instance ZeroC (SignedTerm c p) where
+	Zero = Unsigned p (the c Zero)
+
+--instance dataTypes.Monoid (SignedTerm c p) where
+	--Plus_neutral_1 (Unsigned _ r1) = ?STILLWAITING2
+	--Plus_neutral_2 s1 = ?STILLWAITING3
+
+
+
+--instance ... => dataTypes.Monoid (SignedTerm c) where  
 
 {-
 total
@@ -120,15 +183,27 @@ newPlus_assoc r1 r2 r3 = let
 
 
 -- To be completed with additional conditions, and with the correct operations
-signedTerm_is_a_monoid : (c:Type) -> dataTypes.Monoid (SignedTerm c)
+signedTerm_is_a_monoid : (c:Type) -> (p:dataTypes.Group	c) -> dataTypes.Monoid (SignedTerm c p)
 -- proof...
 
-toSignedTerm : {c:Type} -> (r:c) -> SignedTerm c
-toSignedTerm r = Unsigned r --Just an encoding
+toSignedTerm : {c:Type} -> (p:dataTypes.Group c) -> (r:c) -> SignedTerm c p
+toSignedTerm p r = Unsigned p r --Just an encoding
 
-toSignedTerm_vector : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (Vect n (SignedTerm c))
-toSignedTerm_vector Nil = Nil
-toSignedTerm_vector (h::t) = (toSignedTerm h)::(toSignedTerm_vector t)
+
+toUnsignedTerm : {c:Type} -> (p:dataTypes.Group c) -> (r:SignedTerm c p) -> c
+toUnsignedTerm p (Unsigned _ r) = r
+-- toUnsignedTerm (NegationOfUnsigned r) should never happen but we need it for totality
+toUnsignedTerm p (NegationOfUnsigned _ r) = r -- Am I sure that it won't be a problem ?
+
+
+toSignedTerm_vector : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> (Vect n (SignedTerm c p))
+toSignedTerm_vector p Nil = Nil
+toSignedTerm_vector p (h::t) = (toSignedTerm p h)::(toSignedTerm_vector p t)
+
+
+toUnsignedTerm_vector : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n (SignedTerm c p)) -> (Vect n c)
+toUnsignedTerm_vector p Nil = Nil
+toUnsignedTerm_vector p (h::t) = (toUnsignedTerm p h)::(toUnsignedTerm_vector p t)
 
 {-
 group_get_r : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat}-> {g:Vect n c} -> {r:c} -> (ExprG p g r) -> c
@@ -147,34 +222,35 @@ group_get_r (NegG e) =
 group_get_r (VarG p i) = (index i g)
 -}
 
+toUnsignedTerm_plus : {c:Type} -> (p:dataTypes.Group c) -> (p':dataTypes.Magma (SignedTerm c p)) -> (r1 : SignedTerm c p) -> (r2 : SignedTerm c p) -> (Plus (toUnsignedTerm p r1) (toUnsignedTerm p r2) = toUnsignedTerm p (Plus r1 r2))
+--toUnsignedTerm_plus p p' (Unsigned r1') (Unsigned r2') = Il faut que Plus (Unsigned r1) (Unsigned r2) = Unsigned (r1 + r2)
+--toUnsignedTerm_plus p p' (Unsigned r1') (NegationOfUnsigned r2') = Il faut que Plus (Unsigned r1) (NegationOfUnsigned r2) = 
+
 --pseudo total function : the element in the group should have been simplified before calling this function (no minus, and neg only to constant and variables)
-code_group_to_monoid : (c:Type) -> {p:dataTypes.Group c} -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> 
-			  (c1' ** (ExprMo {c=SignedTerm c} {n} (signedTerm_is_a_monoid c) (toSignedTerm_vector g) c1'))
-code_group_to_monoid c g (ConstG p cst) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (Unsigned cst)))
+code_group_to_monoid : (c:Type) -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> 
+			  (c1' ** ((ExprMo {c=SignedTerm c p} {n} (signedTerm_is_a_monoid c p) (toSignedTerm_vector p g) c1'), (c1=toUnsignedTerm p c1')))
+code_group_to_monoid c p g (ConstG p cst) = (_ ** ((ConstMo (signedTerm_is_a_monoid c p) (Unsigned p cst)), ?MMMMMMrefl))
+{-
 code_group_to_monoid c g (PlusG e1 e2) = 
-	let (r_ih1 ** e_ih1) = code_group_to_monoid c g e1 in
-	let (r_ih2 ** e_ih2) = code_group_to_monoid c g e2 in
-		(_ ** (PlusMo e_ih1 e_ih2))
+	let (r_ih1 ** (e_ih1, p_ih1)) = code_group_to_monoid c g e1 in
+	let (r_ih2 ** (e_ih2, p_ih2)) = code_group_to_monoid c g e2 in
+	(_ ** ((PlusMo e_ih1 e_ih2), ?Mcode_group_to_monoid_1))
 -- total_group_to_monoid c (MinusG e1 e2) can't happen
-code_group_to_monoid c g (NegG (ConstG p r)) = (_ ** (ConstMo (signedTerm_is_a_monoid c) (NegationOfUnsigned r)))
-code_group_to_monoid c g (NegG (VarG p i b)) = (_ ** (VarMo (signedTerm_is_a_monoid c) i (not b))) -- We encode the negation *in* the variable 
+code_group_to_monoid c g (NegG (ConstG p r)) = (_ ** ((ConstMo (signedTerm_is_a_monoid c) (NegationOfUnsigned r)), ?Mcode_group_to_monoid_2))
+code_group_to_monoid c g (NegG (VarG p i b)) = (_ ** ((VarMo (signedTerm_is_a_monoid c) i (not b)), ?Mcode_group_to_monoid_3)) -- We encode the negation *in* the variable 
 -- Can't be a NegG of something else at this stage
-code_group_to_monoid c g (VarG p i b) = (_ ** (VarMo (signedTerm_is_a_monoid c) i b))
+code_group_to_monoid c g (VarG p i b) = (_ ** ((VarMo (signedTerm_is_a_monoid c) i b), ?Mcode_group_to_monoid_4))
+-}
 
 
-toUnsignedTerm : {c:Type} -> (r:SignedTerm c) -> c
-toUnsignedTerm (Unsigned r) = r
--- toUnsignedTerm (NegationOfUnsigned r) should never happen but we need it for totality
-toUnsignedTerm (NegationOfUnsigned r) = r -- Am I sure that it won't be a problem ?
 
 
-toUnsignedTerm_vector : {c:Type} -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> (Vect n c)
-toUnsignedTerm_vector Nil = Nil
-toUnsignedTerm_vector (h::t) = (toUnsignedTerm h)::(toUnsignedTerm_vector t)
 
 
-decode_monoid_to_group : (c:Type) -> {pm : dataTypes.Monoid (SignedTerm c)} -> (pg:dataTypes.Group c) -> {n:Nat} -> (g:Vect n (SignedTerm c)) -> {c1:SignedTerm c} -> (ExprMo pm g c1) ->
-			    (c1' ** (ExprG pg (toUnsignedTerm_vector g) c1'))
+
+decode_monoid_to_group : (c:Type) -> (pg:dataTypes.Group c) -> {pm : dataTypes.Monoid (SignedTerm c pg)} -> {n:Nat} -> (g:Vect n (SignedTerm c pg)) -> {c1:SignedTerm c pg} -> (ExprMo pm g c1) ->
+			    (c1' ** ((ExprG pg (toUnsignedTerm_vector pg g) c1'), c1=c1'))
+{-
 decode_monoid_to_group c pg g (ConstMo p (Unsigned cst)) = (_ ** (ConstG pg cst))
 decode_monoid_to_group c pg g (ConstMo p (NegationOfUnsigned cst)) = (_ ** (NegG (ConstG pg cst)))
 decode_monoid_to_group c pg g (PlusMo e1 e2) = 
@@ -186,7 +262,7 @@ decode_monoid_to_group c pg g (VarMo p i False) = (_ ** (NegG (VarG pg i True)))
 
 toUnsignedTerm_toSignedTerm_id : {c:Type} -> (r:c) -> (toUnsignedTerm (toSignedTerm r) = r)
 toUnsignedTerm_toSignedTerm_id r = refl
-
+-}
 
 {-
 -- auxiliary result
@@ -201,11 +277,11 @@ aux = ?Maux
 -}
 
 
-toUnsignedTerm_toSignedTerm_vector_id : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (toUnsignedTerm_vector (toSignedTerm_vector g) = g)
-toUnsignedTerm_toSignedTerm_vector_id Nil = ?MtoUnsignedTerm_toSignedTerm_vector_id_1
-toUnsignedTerm_toSignedTerm_vector_id (h::t) = 
-    let p_aux = toUnsignedTerm_toSignedTerm_vector_id t in
-        ?MtoUnsignedTerm_toSignedTerm_vector_id_2
+toUnsignedTerm_toSignedTerm_vector_id : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> (toUnsignedTerm_vector p (toSignedTerm_vector p g) = g)
+toUnsignedTerm_toSignedTerm_vector_id p Nil = ?MtoUnsignedTerm_toSignedTerm_vector_id_1_WAITING
+toUnsignedTerm_toSignedTerm_vector_id p (h::t) = 
+	let p_aux = toUnsignedTerm_toSignedTerm_vector_id p t in
+        ?MtoUnsignedTerm_toSignedTerm_vector_id_2_WAITING
 
 
 {-
@@ -215,16 +291,25 @@ code_decode_id c p g (PlusG e1 e2) =
 code_decode_id c p g (NegG (Const
 -}
 
-sameExpr : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> (r1:c) -> (ExprG p (toUnsignedTerm_vector (toSignedTerm_vector g)) r1) -> ExprG p g r1
+sameExpr : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> (r1:c) -> (ExprG p (toUnsignedTerm_vector p (toSignedTerm_vector p g)) r1) -> ExprG p g r1
 sameExpr c p g r1 e = ?MsameExpr_1
 
 
 code_decode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (ExprG p g r1) -> (r2 ** (ExprG p g r2, r1=r2))
 code_decode c p g e =
-  let (r_2 ** e_2) = code_group_to_monoid c g e in
-    let (r_3 ** e_3) = decode_monoid_to_group c p (toSignedTerm_vector g) e_2 in
+	let (r_2 ** (e_2, p_2)) = code_group_to_monoid c p g e in
+	 let (r_3 ** (e_3, p_3)) = decode_monoid_to_group c p (toSignedTerm_vector p g) e_2 in
       --?Mcode_decode_1 -- Just returns (r_3 ** e_3) but uses the fact that the "gs" are compatible, because of the lemma toUnsignedTerm_toSignedTerm_vector_id 
         (r_3 ** ((sameExpr _ _ _ _ e_3), ?Mcode_decode_1))
+
+
+-- pas sur que ca soit utile        
+code_decode_expr_eq : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (e:ExprG p g r1) -> (left (rightDep (code_decode c p g e)) = e)        
+code_decode_expr_eq c p g (ConstG p cst) = ?MXXX
+--code_decode_expr_eq c p g (PlusG e1 e2) = 
+--code_decode_expr_eq c p g (NegG (ConstG p r)) = 
+--code_decode_expr_eq c p g (NegG (VarG p i b)) = 
+--code_decode_expr_eq c p g (VarG p i b) = 
 
 
 convert : {c:Type} -> {p:dataTypes.Monoid c} -> {g:Vect n c} -> (r1:c) -> (r2:c) -> (r1_eq_e2:r1=r2) -> (ExprMo p g r1) -> (ExprMo p g r2)
@@ -233,10 +318,10 @@ convert r1 r2 r1_eq_e2 e = ?Mconvert_1
 
 code_reduceM_andDecode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {r1:c} -> (ExprG p g r1) -> (r2 ** (ExprG p g r2, r1=r2))
 code_reduceM_andDecode c p g e = 
-    let (r_2 ** e_2) = (code_group_to_monoid _ _ e) in
-	let (r_3 ** (e_3, p_3)) = monoidReduce (signedTerm_is_a_monoid _) (toSignedTerm_vector g) e_2 in
-	let (r_4 ** e_4) = decode_monoid_to_group c p _ (convert r_3 r_2 (sym p_3) e_3) in
-		(r_4 ** ((sameExpr _ _ _ _ e_4), ?Mcode_reduceM_andDecode_1))
+	let (r_2 ** (e_2, p_2)) = (code_group_to_monoid _ p _ e) in
+	let (r_3 ** (e_3, p_3)) = monoidReduce (signedTerm_is_a_monoid _ p) (toSignedTerm_vector p g) e_2 in 
+	let (r_4 ** (e_4, p_4)) = decode_monoid_to_group c p _ (convert r_3 r_2 (sym p_3) e_3) in
+		(r_4 ** ((sameExpr _ p _ _ e_4), ?Mcode_reduceM_andDecode_1))
 
 		
 mutual
@@ -547,7 +632,7 @@ group_reduce.MtoUnsignedTerm_toSignedTerm_vector_id_2 = proof
 
 group_reduce.MsameExpr_1 = proof
   intros
-  rewrite (toUnsignedTerm_toSignedTerm_vector_id g)
+  rewrite (toUnsignedTerm_toSignedTerm_vector_id p g)
   exact e
 
 group_reduce.Mconvert_1 = proof
@@ -571,25 +656,67 @@ group_reduce.MbuildProofGroup = proof
   rewrite (sym rp)
   exact (Just refl)  
   
+
+group_reduce.M_SG_SignedTerm_1 = proof
+  intros
+  mrefine f_equal
+  mrefine c
+  mrefine Plus_assoc 
+ 
+group_reduce.M_SG_SignedTerm_2 = proof
+  intros
+  mrefine refl 
+   
+group_reduce.M_SG_SignedTerm_3 = proof
+  intros
+  rewrite aux
+  mrefine refl  
+
+group_reduce.M_SG_SignedTerm_4 = proof
+  intros
+  mrefine refl
   
+group_reduce.M_SG_SignedTerm_5 = proof
+  intros
+  mrefine refl
   
+group_reduce.M_SG_SignedTerm_6 = proof
+  intros
+  mrefine refl
   
+group_reduce.M_SG_SignedTerm_7 = proof
+  intros
+  mrefine refl  
   
+group_reduce.M_SG_SignedTerm_8 = proof
+  intros
+  mrefine refl  
   
+group_reduce.M_SG_SignedTerm_9 = proof
+  intros
+  mrefine refl  
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+group_reduce.M_SG_SignedTerm_10 = proof
+  intros
+  mrefine refl  
+
+group_reduce.M_SG_SignedTerm_11 = proof
+  intros
+  mrefine refl  
+
+group_reduce.M_SG_SignedTerm_11_2 = proof
+  intros
+  mrefine refl  
+ 
+group_reduce.M_SG_SignedTerm_11_3 = proof
+  intros
+  mrefine refl
+
+
+
+
+
+
 
 
 
