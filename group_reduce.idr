@@ -111,10 +111,11 @@ instance Magma (SignedTerm c p) where
 	Plus (PlusSymb _ er1 (Unsigned _ r2)) (Unsigned _ r3) = PlusSymb _ er1 (Unsigned _ (Plus r2 r3))
 	Plus (PlusSymb _ er1 (Unsigned _ r2)) er3 = PlusSymb _ er1 (PlusSymb _ (Unsigned _ r2) er3) -- AJOUTE
 	
-	Plus (PlusSymb _ er1 er2) er3 = PlusSymb _ er1 (PlusSymb _ er2 er3)
+	Plus (PlusSymb _ er1 er2) er3 = PlusSymb _ er1 (Plus er2 er3) -- Rec call ?
 	--Plus (PlusSymb _ er1 b1 er2 b2) er3 = PlusSymb _ (PlusSymb _ er1 b1 er2 b2) True er3 True
 	
 instance SemiGroup (SignedTerm c p) where
+	-- ------------
 	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (Unsigned _ r3) = ?M_SG_SignedTerm_1
 	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (NegationOfUnsigned _ r3) = ?M_SG_SignedTerm_2
 	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (PlusSymb _ (Unsigned _ r3) er4) = 
@@ -122,21 +123,27 @@ instance SemiGroup (SignedTerm c p) where
 			?M_SG_SignedTerm_3
 	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (PlusSymb _ (NegationOfUnsigned _ r3) er4) = ?M_SG_SignedTerm_4
 	Plus_assoc (Unsigned _ r1) (Unsigned _ r2) (PlusSymb _ (PlusSymb _ er3 er4) er6) = ?M_SG_SignedTerm_5
-			
+	-- ------------		
 	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (Unsigned _ r3) = ?M_SG_SignedTerm_6
 	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (NegationOfUnsigned _ r3) = ?M_SG_SignedTerm_7
-	-- Need to split the argument of the PlusSymbol here, and I don't know why
+	-- Need to split the argument of the PlusSymbol here, because on the def of Plus (above), different case are apply when there is a PlusSymb.
 	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (PlusSymb _ (Unsigned _ r3) er4) = ?M_SG_SignedTerm_8
 	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (PlusSymb _ (NegationOfUnsigned _ r3) er4) = ?M_SG_SignedTerm_9
 	Plus_assoc (Unsigned _ r1) (NegationOfUnsigned _ r2) (PlusSymb _ (PlusSymb _ er3 er4) er5) = ?M_SG_SignedTerm_10
+	-- -------------
 	
 	Plus_assoc (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) (Unsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_1
+	--Plus_assoc (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) er3) (Unsigned _ r4) = ?M_SG_SignedTerm_11_2
 	Plus_assoc (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) (NegationOfUnsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_2
 	Plus_assoc (Unsigned _ r1) (PlusSymb _ (Unsigned _ r2) (PlusSymb _ er3 er4)) (Unsigned _ r5) = ?M_SG_SignedTerm_11_3
 	
 	Plus_assoc (Unsigned _ r1) (PlusSymb _ (NegationOfUnsigned _ r2) (Unsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_4
 	Plus_assoc (Unsigned _ r1) (PlusSymb _ (NegationOfUnsigned _ r2) (NegationOfUnsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_5
 	Plus_assoc (Unsigned _ r1) (PlusSymb _ (NegationOfUnsigned _ r2) (PlusSymb _ er3 er4)) (Unsigned _ r5) = ?M_SG_SignedTerm_11_6
+	
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (PlusSymb _ er2 er3) (Unsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_7
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (PlusSymb _ er2 er3) (NegationOfUnsigned _ r3)) (Unsigned _ r4) = ?M_SG_SignedTerm_11_8
+	Plus_assoc (Unsigned _ r1) (PlusSymb _ (PlusSymb _ er2 er3) (PlusSymb _ er4 er5)) (Unsigned _ r6) = ?M_SG_SignedTerm_11_9
 	
 	
 	Plus_assoc (Unsigned _ r1) (PlusSymb _ er2 er3) (NegationOfUnsigned _ r4) = ?M_SG_SignedTerm_12
@@ -712,14 +719,29 @@ group_reduce.M_SG_SignedTerm_11_3 = proof
   intros
   mrefine refl
 
+group_reduce.M_SG_SignedTerm_11_4 = proof
+  intros
+  mrefine refl
 
+group_reduce.M_SG_SignedTerm_11_5 = proof
+  intros
+  mrefine refl
 
+group_reduce.M_SG_SignedTerm_11_6 = proof
+  intros
+  mrefine refl  
+  
+group_reduce.M_SG_SignedTerm_11_7 = proof
+  intros
+  mrefine refl
 
+group_reduce.M_SG_SignedTerm_11_8 = proof
+  intros
+  mrefine refl
 
-
-
-
-
+group_reduce.M_SG_SignedTerm_11_9 = proof
+  intros
+  mrefine refl
 
 
 
