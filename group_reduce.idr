@@ -87,6 +87,44 @@ elimDoubleNeg p e1 =
     (_ ** (e1, refl))
     
 
+countNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> Nat
+countNeg p (ConstG p c1) = 0
+countNeg p (PlusG e1 e2) = (countNeg p e1) + (countNeg p e2)
+countNeg p (MinusG e1 e2) = (countNeg p e1) + (countNeg p e2)
+countNeg p (NegG e) = 1 + (countNeg p e) 
+countNeg p (VarG p i b) = 0
+
+
+-- Constructs the extension of the context, using the expression "e". This extension is formed with all the Neg of something that appear in the expression "e"
+construct_contextExtension : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (countNeg p e) c)
+construct_contextExtension c p g (ConstG p c1) = Nil
+construct_contextExtension c p g (PlusG e1 e2) = (construct_contextExtension c p g e1) ++ (construct_contextExtension c p g e2)
+construct_contextExtension c p g (MinusG e1 e2) = (construct_contextExtension c p g e1) ++ (construct_contextExtension c p g e2)
+construct_contextExtension c p g (NegG e) = let x : c = ?M_HOW_TO_ADD_A_VARIABLE_CORRESPONDING_TO_NEG_OF_E in
+                                                x :: (construct_contextExtension c p g e)
+construct_contextExtension c p g (VarG p i b) = Nil
+
+
+-- Construct the extension and adds it to the current context
+transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
+transfoContext c p g e = g ++ (construct_contextExtension c p g e)
+
+-- g2 is the context on which you want to have the result indexed
+pre_encode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (e:ExprG p g c1) -> (g2:Vect m c) -> (c2 ** (ExprMo (group_to_monoid_class p) g2 c2, c1=c2))
+pre_encode p (ConstG p c1) g2 = (c1 ** (ConstMo (group_to_monoid_class p) c1, refl))
+pre_encode p (PlusG e1 e2) g2 = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = pre_encode p e1 g2 in
+    let (r_ih2 ** (e_ih2, p_ih2)) = pre_encode p e2 g2 in
+        (_ ** (PlusMo e_ih1 e_ih2, ?M_pre_encode_1))
+-- Not total : Nothing for (MinusG e1 e2) since they should have been removed at this time 
+--pre_encode p (NegG e) g2 = (_ ** (VarMo (group_to_monoid_class p) fZ False, ?M_pre_encode_2))
+pre_encode p (VarG p i b) = (_ ** (VarMo (group_to_monoid_class p) i b, ?M_pre_encode_3))
+
+
+--encode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) (transfoContext c p g e) c2, c1=c2))
+--encode c p g e = (_ ** (pre_encode p e (transfoContext c p g e), ?M_encode_1))
+
+
 code_reduceM_andDecode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 code_reduceM_andDecode p e = (_ ** (e, refl)) 
                                               
