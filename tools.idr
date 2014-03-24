@@ -65,7 +65,7 @@ group_doubleNeg C p a = let a = aux in let b = aux2 in ?Mgroup_doubleNeg1
 	aux2 = ?Mgroup_doubleNeg_3
 
 -- ----------------------------------------------------------------------------
--- B.2/ This part is to obtain the lemma "push_negation" : -(a+b) = (-a) + (-b)
+-- B.2/ This part is to obtain the lemma "push_negation" : -(a+b) = (-b) + (-a)
 -- ----------------------------------------------------------------------------
 {-
 adding_preserves_equality_left : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (x=y) -> (Plus z x = Plus z y)
@@ -86,19 +86,16 @@ move_other_side x y z H =
 		?Mmove_other_side_3
 
 
-push_negation : (C:Type) -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (Neg (Plus x y) = Plus (Neg y) (Neg x))
-push_negation C x y = 
+push_negation : (C:Type) -> (dataTypes.Group C) -> (x:C) -> (y:C) -> (Neg (Plus x y) = Plus (Neg y) (Neg x))
+push_negation C p x y = 
 	let aux : (Plus (Neg (Plus x y)) (Plus x y) = Zero) = right (Plus_inverse (Plus x y)) in
 	let aux2 : (Plus (Neg (Plus x y)) (Plus x y) = Plus (Plus (Neg (Plus x y)) x) y) = sym (Plus_assoc (Neg (Plus x y)) x y) in
 	let aux3 : (Plus (Plus (Neg (Plus x y)) x) y = the C Zero) = ?Mpush_negation_1 in
 	let aux4 : ((Plus (Neg (Plus x y)) x) = Plus Zero (Neg y)) = move_other_side _ _ _ aux3 in
 	let aux5 : (Plus Zero (Neg y) = Neg y) = Plus_neutral_1 _ in
 	let aux6 : ((Plus (Neg (Plus x y)) x) = Neg y) = ?Mpush_negation_2 in
-	let aux7 : (Neg (Plus x y) = Plus (Neg y) (Neg x)) = move_other_side _ _ _ aux6 in
-		?Mpush_negation_3
-
-
-      
+	let aux7 : (Neg (Plus x y) = Plus (Neg y) (Neg x)) = move_other_side (Neg (Plus x y)) x (Neg y) aux6 in
+            ?Mpush_negation_3
 	      
 {-
 And_True_neutral : (b:Bool) -> (True && b = b)

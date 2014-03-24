@@ -56,21 +56,24 @@ pre_get_e (r ** (e, p)) = e
 get_e : {pr: SemiGroup c} -> {r1:c} -> (big:(r ** (ExprSG pr [x, y] r, r1=r))) -> ExprSG pr [x, y] (get_r big)
 get_e (r ** (e, p)) = e
 
-
+{-
 -- Result of normalization for test4'
 test4'_norm : (x:Nat) -> (y:Nat) -> (ExprSG (%instance) [x, y] (get_r (semiGroupReduce (%instance) [x, y] (test4' x y))))
-test4'_norm x y = get_e (semiGroupReduce (%instance) [x, y] (test4' x y))
+--test4'_norm x y = get_e (semiGroupReduce (%instance) [x, y] (test4' x y))
 
 test_4'_norm_print : (x:Nat) -> (y:Nat) -> String
 test_4'_norm_print x y = print_ExprSG show (test4'_norm x y)
+-}
 
-
+{-
 -- Result of normalization for test5'
 test5'_norm : (x:Nat) -> (y:Nat) -> (ExprSG (%instance) [x, y] (get_r (semiGroupReduce (%instance) [x, y] (test5' x y))))
 test5'_norm x y = get_e (semiGroupReduce (%instance) [x, y] (test5' x y))
 
 test_5'_norm_print : (x:Nat) -> (y:Nat) -> String -- Question : how to normalize without having to instanciate the variable ? That's not nice, and not needed.
 test_5'_norm_print x y = print_ExprSG show (test5'_norm x y)
+
+-}
 
 -- Result of the automatic equality solver for test4' and test5'
 secondTest : (x:Nat) -> (y:Nat) -> (((x + (1+1)) + (2 + y)) = (x + (4 + y)))

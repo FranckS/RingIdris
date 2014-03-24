@@ -53,10 +53,9 @@ bad_push_negation_IMPLIES_commutativeGroup C p Hbad =
 
 
 ---------- Proofs ---------- 
-
 mathsResults.Mbad_swap_1 = proof
   intros
-  exact (push_negation C x y)
+  exact (push_negation C p x y)
   
 mathsResults.Mbad_swap_2 = proof
   intros
