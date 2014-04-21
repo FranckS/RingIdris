@@ -105,20 +105,25 @@ construct_contextExtension c p g (NegG e) = let x : c = ?M_HOW_TO_ADD_A_VARIABLE
 construct_contextExtension c p g (VarG p i b) = Nil
 
 
+-- convert i from an element toFin n to an element of Fin m, provided that m is greater or equal than n
+convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> Fin m
+convertFin i m = ?M_CONVERT_FIN
+
 -- Construct the extension and adds it to the current context
 transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
 transfoContext c p g e = g ++ (construct_contextExtension c p g e)
 
 -- g2 is the context on which you want to have the result indexed
-pre_encode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (e:ExprG p g c1) -> (g2:Vect m c) -> (c2 ** (ExprMo (group_to_monoid_class p) g2 c2, c1=c2))
-pre_encode p (ConstG p c1) g2 = (c1 ** (ConstMo (group_to_monoid_class p) c1, refl))
-pre_encode p (PlusG e1 e2) g2 = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = pre_encode p e1 g2 in
-    let (r_ih2 ** (e_ih2, p_ih2)) = pre_encode p e2 g2 in
-        (_ ** (PlusMo e_ih1 e_ih2, ?M_pre_encode_1))
--- Not total : Nothing for (MinusG e1 e2) since they should have been removed at this time 
---pre_encode p (NegG e) g2 = (_ ** (VarMo (group_to_monoid_class p) fZ False, ?M_pre_encode_2))
-pre_encode p (VarG p i b) = (_ ** (VarMo (group_to_monoid_class p) i b, ?M_pre_encode_3))
+-- j is the next fresh variable (of type Fin m, where m is the size of the new context)
+pre_encode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (e:ExprG p g c1) -> (pm:Nat) -> (g2:Vect (S pm) c) -> (j:Fin (S pm)) -> (c2 ** ((ExprMo (group_to_monoid_class p) g2 c2, c1=c2), Fin (S pm)))
+pre_encode p (ConstG p c1) pm g2 j = (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), j)) --j hasn't changed
+pre_encode p (PlusG e1 e2) pm g2 j = 
+    let (r_ih1 ** ((e_ih1, p_ih1), j_ih1)) = pre_encode p e1 pm g2 j in
+    let (r_ih2 ** ((e_ih2, p_ih2), j_ih2)) = pre_encode p e2 pm g2 j_ih1 in -- note the use of j_ih1 in the second call
+        (_ ** ((PlusMo e_ih1 e_ih2, ?M_pre_encode_1), j_ih2)) --j has potentially changed
+-- Not total : Nothing for (MinusG e1 e2) since they should have been removed at this time
+pre_encode p (NegG e) pm g2 (fS pj) = (_ ** ((VarMo (group_to_monoid_class p) (pj) False, ?M_pre_encode_2), pj)) -- j has changed
+pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) (convertFin i (S pm)) b, ?M_pre_encode_3), j)) -- j hasn't changed
 
 
 --encode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) (transfoContext c p g e) c2, c1=c2))
