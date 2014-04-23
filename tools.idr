@@ -10,6 +10,9 @@ import Data.ZZ
 import globalDef
 import dataTypes
 
+
+%default total
+
 -- --------------------------------------------------
 -- A) TOOLS AND LEMMAS FOR PAIRS AND DEPENDENT PAIRS
 -- --------------------------------------------------
@@ -168,6 +171,43 @@ plusSym_4v' = ?MplusSym_4v'
   --  refl : (x:s) -> rel x x
     --sym : (x:s) -> (y:s) -> (rel x y) -> (rel y x)
     --trans : (x:s) -> (y:s) -> (z:s) -> (rel x y) -> (rel y z) -> (rel x z)
+    
+
+-- -----------------------------------
+-- C) ARITH TOOLS
+-- -----------------------------------
+lower_value : (x:Nat) -> (y:Nat) -> (LTE x y) -> LTE x (S y)
+lower_value Z Z lteZero = lteZero
+lower_value (S px) Z lteZero impossible
+lower_value (S px) (S py) (lteSucc p) = lteSucc (lower_value _ _ p)
+lower_value Z (S py) p = lteZero
+
+
+greater_than_succ : (x:Nat) -> (y:Nat) -> (GTE x (S y)) -> (GTE x y)
+greater_than_succ (S px) Z (lteSucc p) = lteZero
+greater_than_succ (S px) (S py) (lteSucc p) = lower_value (S py) px p
+                                                
+
+S_both_side : (x:Nat) -> (y:Nat) -> (x=y) -> (S x = S y)
+S_both_side x y P = ?M_S_both_side_1
+
+using (A:Type, B:Type)
+    data or : A -> B -> Type where
+        Left : A -> or A B
+        Right : B -> or A B
+
+LTE_0_one_case : (n:Nat) -> (LTE n Z) -> (n=Z)
+LTE_0_one_case Z lteZero = refl
+LTE_0_one_case (S pn) (lteSucc p) impossible
+    
+-- (1 >= n) -> (n=0) or (n=1)     
+GTE_1_two_cases : (n:Nat) -> (GTE (S Z) n) -> or (n=Z) (n=(S Z))
+-- case 1>=0 (which is 0<=1 by def of >=)
+GTE_1_two_cases Z (lteZero {right=S Z}) = Left refl
+GTE_1_two_cases (S pn) (lteSucc n) = let pn_is_zero : (pn=Z) = ?M_GTE_1_two_cases_1 in
+                                        ?M_GTE_1_two_cases_2
+                    
+
 
 ---------- Proofs ----------  
 tools.Mf_equal = proof
@@ -295,6 +335,28 @@ tools.aux1 = proof {
   trivial;
 }
 -}
+
+-- Part C : Arith tools
+
+tools.M_S_both_side_1 = proof
+  intros
+  rewrite P
+  mrefine refl
+  
+tools.M_GTE_1_two_cases_1 = proof
+  intro pn, p
+  mrefine LTE_0_one_case 
+  mrefine p
+  
+tools.M_GTE_1_two_cases_2 = proof
+  intros
+  mrefine Right
+  mrefine S_both_side
+  mrefine pn_is_zero 
+
+
+
+
 
 
 

@@ -96,22 +96,49 @@ countNeg p (VarG p i b) = 0
 
 
 -- Constructs the extension of the context, using the expression "e". This extension is formed with all the Neg of something that appear in the expression "e"
-construct_contextExtension : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (countNeg p e) c)
-construct_contextExtension c p g (ConstG p c1) = Nil
-construct_contextExtension c p g (PlusG e1 e2) = (construct_contextExtension c p g e1) ++ (construct_contextExtension c p g e2)
-construct_contextExtension c p g (MinusG e1 e2) = (construct_contextExtension c p g e1) ++ (construct_contextExtension c p g e2)
-construct_contextExtension c p g (NegG e) = let x : c = ?M_HOW_TO_ADD_A_VARIABLE_CORRESPONDING_TO_NEG_OF_E in
-                                                x :: (construct_contextExtension c p g e)
-construct_contextExtension c p g (VarG p i b) = Nil
+construct_contextExtension : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> (c1:c) -> (e:ExprG p g c1) -> (Vect (countNeg p e) c)
+construct_contextExtension c p g c1 (ConstG p c1) = Nil
+construct_contextExtension c p g (Plus c1 c2) (PlusG e1 e2) = (construct_contextExtension c p g _ e1) ++ (construct_contextExtension c p g _ e2)
+construct_contextExtension c p g (Minus c1 c2) (MinusG e1 e2) = (construct_contextExtension c p g _ e1) ++ (construct_contextExtension c p g _ e2)
+construct_contextExtension c p g (Neg c1) (NegG e) = let x : c = Neg c1 in
+                                                        x :: (construct_contextExtension c p g _ e)
+construct_contextExtension c p g (index i g) (VarG p i b) = Nil
 
 
 -- convert i from an element toFin n to an element of Fin m, provided that m is greater or equal than n
-convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> Fin m
-convertFin i m = ?M_CONVERT_FIN
+total
+convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
+-- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
+convertFin {n=Z} (fZ) m (lteZero) impossible
+convertFin {n=Z} (fS x) m _ impossible
+-- case n= Sk, which includes two cases
+  -- case fZ
+convertFin {n=S k} (fZ {k=k}) m p = fZ {k=m}
+  -- case fS x, where x is an element of Fin k
+convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = ?MconvertFin_1 in
+                                     let x_conv : Fin (S pm) = convertFin x pm m_gte_k in
+                                        fS x_conv
+-- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
+-- there is only one element to convert : fZ {k=0}. But we're having an fS, and not an fZ...
+convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
+    convertFin {n=S k} (fS x) Z p | (Yes refl, Yes refl) impossible
+    convertFin {n=S k} (fS x) Z p | (Yes refl, No p2) impossible
+    convertFin {n=S k} (fS x) Z p | (No p1, Yes refl) impossible
+    convertFin {n=S k} (fS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
+                                                        case k_is_zero_or_one of
+                                                        Left k_is_zero => ?M_convertFin_2
+                                                        Right k_is_one => ?M_convertFin_3
+
+testconversion1 : Fin 6
+testconversion1 = convertFin {n=3} (fZ {k=2}) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+
+testconversion2 : Fin 6
+testconversion2 = convertFin {n=3} (fS (fZ {k=1})) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+
 
 -- Construct the extension and adds it to the current context
 transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
-transfoContext c p g e = g ++ (construct_contextExtension c p g e)
+transfoContext c p g e = g ++ (construct_contextExtension c p g _ e)
 
 -- g2 is the context on which you want to have the result indexed
 -- j is the next fresh variable (of type Fin m, where m is the size of the new context)
@@ -122,8 +149,8 @@ pre_encode p (PlusG e1 e2) pm g2 j =
     let (r_ih2 ** ((e_ih2, p_ih2), j_ih2)) = pre_encode p e2 pm g2 j_ih1 in -- note the use of j_ih1 in the second call
         (_ ** ((PlusMo e_ih1 e_ih2, ?M_pre_encode_1), j_ih2)) --j has potentially changed
 -- Not total : Nothing for (MinusG e1 e2) since they should have been removed at this time
-pre_encode p (NegG e) pm g2 (fS pj) = (_ ** ((VarMo (group_to_monoid_class p) (pj) False, ?M_pre_encode_2), pj)) -- j has changed
-pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) (convertFin i (S pm)) b, ?M_pre_encode_3), j)) -- j hasn't changed
+--pre_encode p (NegG e) pm g2 (fS pj) = (_ ** ((VarMo (group_to_monoid_class p) (pj) False, ?M_pre_encode_2), pj)) -- j has changed
+--pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) (convertFin i (S pm)) b, ?M_pre_encode_3), j)) -- j hasn't changed
 
 
 --encode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) (transfoContext c p g e) c2, c1=c2))
@@ -430,9 +457,14 @@ group_reduce.MbuildProofGroup = proof
   exact (Just refl)  
   
 
+group_reduce.M_convertFin_2 = proof
+  intros
+  mrefine FalseElim
+  mrefine p1
+  mrefine k_is_zero
 
-
-
-
-
-
+group_reduce.M_convertFin_3 = proof
+  intros
+  mrefine FalseElim
+  mrefine p2
+  mrefine k_is_one
