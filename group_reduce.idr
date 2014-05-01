@@ -105,36 +105,69 @@ construct_contextExtension c p g (Neg c1) (NegG e) = let x : c = Neg c1 in
 construct_contextExtension c p g (index i g) (VarG p i b) = Nil
 
 
--- convert i from an element toFin n to an element of Fin m, provided that m is greater or equal than n
+-- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
 total
-convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
+pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
 -- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
-convertFin {n=Z} (fZ) m (lteZero) impossible
-convertFin {n=Z} (fS x) m _ impossible
+pre_convertFin {n=Z} (fZ) m (lteZero) impossible
+pre_convertFin {n=Z} (fS x) m _ impossible
 -- case n= Sk, which includes two cases
   -- case fZ
-convertFin {n=S k} (fZ {k=k}) m p = fZ {k=m}
+pre_convertFin {n=S k} (fZ {k=k}) m p = fZ {k=m}
   -- case fS x, where x is an element of Fin k
-convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = ?MconvertFin_1 in
-                                     let x_conv : Fin (S pm) = convertFin x pm m_gte_k in
-                                        fS x_conv
+pre_convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = ?Mpre_convertFin_1 in
+                                          let x_conv : Fin (S pm) = pre_convertFin x pm m_gte_k in
+                                            fS x_conv
 -- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
 -- there is only one element to convert : fZ {k=0}. But we're having an fS, and not an fZ...
-convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
-    convertFin {n=S k} (fS x) Z p | (Yes refl, Yes refl) impossible
-    convertFin {n=S k} (fS x) Z p | (Yes refl, No p2) impossible
-    convertFin {n=S k} (fS x) Z p | (No p1, Yes refl) impossible
-    convertFin {n=S k} (fS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
-                                                        case k_is_zero_or_one of
-                                                        Left k_is_zero => ?M_convertFin_2
-                                                        Right k_is_one => ?M_convertFin_3
+pre_convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
+    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, Yes refl) impossible
+    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, No p2) impossible
+    pre_convertFin {n=S k} (fS x) Z p | (No p1, Yes refl) impossible
+    pre_convertFin {n=S k} (fS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
+                                                            case k_is_zero_or_one of
+                                                            Left k_is_zero => ?Mpre_convertFin_2
+                                                            Right k_is_one => ?Mpre_convertFin_3
+
+-- We know that we can use pre_convertFin because (n+x) is the successor of something (ie, can't be zero), because n
+-- can't be zero
+convertFin : (n:Nat) -> (i:Fin n) -> (x:Nat) -> Fin (n+x)
+-- n can't be zero
+convertFin Z fZ x impossible
+convertFin Z (fS pi) x impossible
+convertFin (S pn) i x = let proofGTE : (GTE (S(pn+x)) (S pn)) = ?MconvertFin_1 in
+                        pre_convertFin i (pn+x) proofGTE
+
+{-
+convertFin n i x with (decEq (n+x) Z)
+    convertFin n i x | (Yes refl) => ?MconvertFin_casZero
+    convertFin n i x | (No p1) => 
+            
+                    let n_plus_x_gte_n : GTE (n+x) n = ?MconvertFin_1 in
+                    pre_convertFin i (n+x) n_plus_x_gte_n
+-}
+
 
 testconversion1 : Fin 6
-testconversion1 = convertFin {n=3} (fZ {k=2}) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+testconversion1 = pre_convertFin {n=3} (fZ {k=2}) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+-- test ok
 
 testconversion2 : Fin 6
-testconversion2 = convertFin {n=3} (fS (fZ {k=1})) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+testconversion2 = pre_convertFin {n=3} (fS (fZ {k=1})) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+-- test ok
 
+-- Computes the next element of a given element in a set of n element. If the
+-- current element is already the last one of the set, we return it back.
+nextElement : (n:Nat) -> (i:Fin n) -> Fin n
+-- n can't be zero
+nextElement Z fZ impossible
+nextElement Z (fS pi) impossible
+-- case where this is a fZ, and we've not yet reached the final element of the set
+nextElement (S (S ppn)) (fZ {k=S ppn}) = fS (fZ {k=ppn})
+-- case where this is a fZ, and we've reached the final element of the set. We give back the same fZ. This enables to always loop on the last element of a set if we ask for the next element.
+nextElement (S Z) (fZ {k=Z}) = fZ {k=Z}
+-- case where this is a (fS pi).
+nextElement (S pn) (fS {k=pn} pi) = fS (nextElement pn pi)
 
 -- Construct the extension and adds it to the current context
 transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
@@ -149,8 +182,9 @@ pre_encode p (PlusG e1 e2) pm g2 j =
     let (r_ih2 ** ((e_ih2, p_ih2), j_ih2)) = pre_encode p e2 pm g2 j_ih1 in -- note the use of j_ih1 in the second call
         (_ ** ((PlusMo e_ih1 e_ih2, ?M_pre_encode_1), j_ih2)) --j has potentially changed
 -- Not total : Nothing for (MinusG e1 e2) since they should have been removed at this time
---pre_encode p (NegG e) pm g2 (fS pj) = (_ ** ((VarMo (group_to_monoid_class p) (pj) False, ?M_pre_encode_2), pj)) -- j has changed
+pre_encode p (NegG e) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) j False, ?M_pre_encode_2), nextElement _ j)) -- j has changed
 --pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) (convertFin i (S pm)) b, ?M_pre_encode_3), j)) -- j hasn't changed
+--pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) i b, ?M_pre_encode_3), j))
 
 
 --encode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) (transfoContext c p g e) c2, c1=c2))
@@ -457,14 +491,22 @@ group_reduce.MbuildProofGroup = proof
   exact (Just refl)  
   
 
-group_reduce.M_convertFin_2 = proof
+group_reduce.Mpre_convertFin_2 = proof
   intros
   mrefine FalseElim
   mrefine p1
   mrefine k_is_zero
 
-group_reduce.M_convertFin_3 = proof
+group_reduce.Mpre_convertFin_3 = proof
   intros
   mrefine FalseElim
   mrefine p2
   mrefine k_is_one
+
+
+group_reduce.MconvertFin_1 = proof
+  intros
+  mrefine GTE_S
+  mrefine GTE_plus
+  
+ 

@@ -207,7 +207,22 @@ GTE_1_two_cases Z (lteZero {right=S Z}) = Left refl
 GTE_1_two_cases (S pn) (lteSucc n) = let pn_is_zero : (pn=Z) = ?M_GTE_1_two_cases_1 in
                                         ?M_GTE_1_two_cases_2
                     
+GTE_S : (a:Nat) -> (b:Nat) -> (GTE a b) -> (GTE (S a) (S b))
+GTE_S a b p = lteSucc p 
 
+LTE_same : (a:Nat) -> LTE a a
+LTE_same Z = lteZero
+LTE_same (S pa) = lteSucc (LTE_same pa)
+
+a_plus_zero : (a:Nat) -> (a+Z = a)
+a_plus_zero Z = refl
+a_plus_zero (S pa) = S_both_side _ _ (a_plus_zero pa)
+
+GTE_plus : (a:Nat) -> (b:Nat) -> GTE (a+b) a
+GTE_plus a Z = let a_plus_zero_is_a : (a+Z = a) = a_plus_zero a in
+                -- this is just (LTE_same a) but with a rewriting for the goal
+                ?MGTE_plus_1
+GTE_plus a (S pb) = ?MGTE_plus_2
 
 ---------- Proofs ----------  
 tools.Mf_equal = proof
@@ -356,6 +371,10 @@ tools.M_GTE_1_two_cases_2 = proof
 
 
 
+tools.MGTE_plus_1 = proof
+  intros
+  rewrite (sym a_plus_zero_is_a)
+  mrefine LTE_same
 
 
 
