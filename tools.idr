@@ -191,15 +191,18 @@ greater_than_succ (S px) (S py) (lteSucc p) = lower_value (S py) px p
 S_both_side : (x:Nat) -> (y:Nat) -> (x=y) -> (S x = S y)
 S_both_side x y P = ?M_S_both_side_1
 
+
 using (A:Type, B:Type)
     data or : A -> B -> Type where
         Left : A -> or A B
         Right : B -> or A B
 
+        
 LTE_0_one_case : (n:Nat) -> (LTE n Z) -> (n=Z)
 LTE_0_one_case Z lteZero = refl
 LTE_0_one_case (S pn) (lteSucc p) impossible
-    
+
+
 -- (1 >= n) -> (n=0) or (n=1)     
 GTE_1_two_cases : (n:Nat) -> (GTE (S Z) n) -> or (n=Z) (n=(S Z))
 -- case 1>=0 (which is 0<=1 by def of >=)
@@ -210,19 +213,37 @@ GTE_1_two_cases (S pn) (lteSucc n) = let pn_is_zero : (pn=Z) = ?M_GTE_1_two_case
 GTE_S : (a:Nat) -> (b:Nat) -> (GTE a b) -> (GTE (S a) (S b))
 GTE_S a b p = lteSucc p 
 
+
 LTE_same : (a:Nat) -> LTE a a
 LTE_same Z = lteZero
 LTE_same (S pa) = lteSucc (LTE_same pa)
+
 
 a_plus_zero : (a:Nat) -> (a+Z = a)
 a_plus_zero Z = refl
 a_plus_zero (S pa) = S_both_side _ _ (a_plus_zero pa)
 
+
 GTE_plus : (a:Nat) -> (b:Nat) -> GTE (a+b) a
+-- Proof by induction on a
 GTE_plus a Z = let a_plus_zero_is_a : (a+Z = a) = a_plus_zero a in
                 -- this is just (LTE_same a) but with a rewriting for the goal
                 ?MGTE_plus_1
-GTE_plus a (S pb) = ?MGTE_plus_2
+GTE_plus Z (S pb) = lteZero
+GTE_plus (S pa) (S pb) = lteSucc (GTE_plus pa (S pb))
+
+
+GTE_deleteSucc : (a:Nat) -> (b:Nat) -> (GTE (S a) (S b)) -> GTE a b
+-- This proof is just a case analysis and not a proof by induction (there's no recursive call)
+GTE_deleteSucc Z Z p = lteZero
+--impossible but can't tag it as it : GTE_deleteSucc Z (S Z) lteZero = ?M1
+GTE_deleteSucc Z (S (S ppb)) (lteSucc lteZero) impossible
+GTE_deleteSucc Z (S (S ppb)) (lteSucc (lteSucc p)) impossible
+GTE_deleteSucc Z (S pb) (lteSucc lteZero) impossible
+GTE_deleteSucc (S pa) Z p = lteZero
+--impossible but can't be tag as it : GTE_deleteSucc (S pa) (S pb) lteZero = ?M1
+GTE_deleteSucc (S pa) (S pb) (lteSucc p) = p
+
 
 ---------- Proofs ----------  
 tools.Mf_equal = proof

@@ -115,9 +115,9 @@ pre_convertFin {n=Z} (fS x) m _ impossible
   -- case fZ
 pre_convertFin {n=S k} (fZ {k=k}) m p = fZ {k=m}
   -- case fS x, where x is an element of Fin k
-pre_convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = ?Mpre_convertFin_1 in
-                                          let x_conv : Fin (S pm) = pre_convertFin x pm m_gte_k in
-                                            fS x_conv
+pre_convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = GTE_deleteSucc _ _ p in
+											 let x_conv : Fin (S pm) = pre_convertFin x pm m_gte_k in
+												fS x_conv
 -- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
 -- there is only one element to convert : fZ {k=0}. But we're having an fS, and not an fZ...
 pre_convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
@@ -126,11 +126,11 @@ pre_convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
     pre_convertFin {n=S k} (fS x) Z p | (No p1, Yes refl) impossible
     pre_convertFin {n=S k} (fS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
                                                             case k_is_zero_or_one of
-                                                            Left k_is_zero => ?Mpre_convertFin_2
-                                                            Right k_is_one => ?Mpre_convertFin_3
+                                                            Left k_is_zero => ?Mpre_convertFin_1
+                                                            Right k_is_one => ?Mpre_convertFin_2
 
 -- We know that we can use pre_convertFin because (n+x) is the successor of something (ie, can't be zero), because n
--- can't be zero
+-- can't be zero (otherwise we would have an inhabitant of Fin 0)
 convertFin : (n:Nat) -> (i:Fin n) -> (x:Nat) -> Fin (n+x)
 -- n can't be zero
 convertFin Z fZ x impossible
@@ -172,6 +172,8 @@ nextElement (S pn) (fS {k=pn} pi) = fS (nextElement pn pi)
 -- Construct the extension and adds it to the current context
 transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
 transfoContext c p g e = g ++ (construct_contextExtension c p g _ e)
+
+
 
 -- g2 is the context on which you want to have the result indexed
 -- j is the next fresh variable (of type Fin m, where m is the size of the new context)
@@ -490,23 +492,28 @@ group_reduce.MbuildProofGroup = proof
   rewrite (sym rp)
   exact (Just refl)  
   
-
-group_reduce.Mpre_convertFin_2 = proof
+  
+group_reduce.Mpre_convertFin_1 = proof
   intros
   mrefine FalseElim
   mrefine p1
   mrefine k_is_zero
 
-group_reduce.Mpre_convertFin_3 = proof
+group_reduce.Mpre_convertFin_2 = proof
   intros
   mrefine FalseElim
   mrefine p2
   mrefine k_is_one
 
-
 group_reduce.MconvertFin_1 = proof
   intros
   mrefine GTE_S
   mrefine GTE_plus
+
+group_reduce.M_pre_encode_1 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  exact refl
   
  
