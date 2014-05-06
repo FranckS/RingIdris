@@ -169,13 +169,20 @@ nextElement (S Z) (fZ {k=Z}) = fZ {k=Z}
 -- case where this is a (fS pi).
 nextElement (S pn) (fS {k=pn} pi) = fS (nextElement pn pi)
 
+
+lastElement : (pn:Nat) -> Fin (S pn)
+lastElement Z = fZ
+lastElement (S ppn) = fS (lastElement ppn)
+
+
+
 -- Construct the extension and adds it to the current context
 transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
 transfoContext c p g e = g ++ (construct_contextExtension c p g _ e)
 
 
 
-
+{-
 addSpace : {A:Type} -> (n:Nat) -> (v:Vect n A) -> (m:Nat) -> (a:A) -> (Vect (n+m) A)
 addSpace n v Z _ =  let auxP : (n + Z = n) = a_plus_zero n in 
 						--that's just v but with a rewriting of the goal
@@ -188,22 +195,54 @@ allocate : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> {c1:c
 allocate p g e = addSpace _ g (countNeg p e) Zero
 
 
+pre_encode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (g' : Vect (n+countNeg p e) c) -> (i:Fin (n+countNeg p e)) -> (g2 ** (c2 ** (ExprMo {n=n + countNeg p e} (group_to_monoid_class p) g2 c2, c1=c2)))
+pre_encode p n g (ConstG p c1) g' i = (g' ** (c1 ** (ConstMo (group_to_monoid_class p) c1, refl)))
+--pre_encode p n g (PlusG e1 e2 ) = 
+    
 
-{-
 
-encode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (n2 ** (g2 ** (c2 ** (ExprMo {n=n2} (group_to_monoid_class p) g2 c2, c1=c2))))
-encode p n g (ConstG p c1) = (n ** (g ** (c1 ** (ConstMo (group_to_monoid_class p) c1, refl)))) --j hasn't changed
-encode p n g (PlusG e1 e2) = 
-	let (n_ih1 ** (g_ih1 ** (c2_ih1 ** (e_ih1, p_ih1)))) = encode p n g e1 in 
-	 let (n_ih2 ** (g_ih2 ** (c2_ih2 ** (e_ih2, p_ih2)))) = encode p n g e2 in 
-		 ?MXXXX
-	  --(n_ih2 ** (g_ih2 ** (c2_ih2 ** ((PlusMo e_ih1 e_ih2, ?M_encode), j_ih2))))
+encode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (g2 ** (c2 ** (ExprMo {n=n + countNeg p e} (group_to_monoid_class p) g2 c2, c1=c2)))
+encode p n g e = 
+    let g' : Vect (n+countNeg p e) _ = allocate p g e in 
+        case n of
+        Z => case countNeg p e of
+                Z => ?MXXX
+                S pred_nb_neg => let i' : Fin (n+countNeg p e) = 
+        pre_encode p n g e g' (-- Just lastElement (countNeg p e) but with a rewriting of the goal (because n is zero here)
+        S pn => 
+        -- (lastElement n) is the last element of Fin(n). We convert it to a Fin(n+countNeg p e), and we require the next element of this set to get the first fresh variable available
+        pre_encode p n g e g' (convertFin (S pn) (lastElement pn) (countNeg p e))
+
 -}
-	  
 
+using (c:Type, n:Nat, m:Nat)
+    data SubSet : Vect n c -> Vect m c -> Type where
+        SubSet_same : (g:Vect n c) -> SubSet g g
+        SubSet_add : (c1:c) -> (g:Vect n c) -> SubSet g (c1::g)
+
+SubSet_trans : {g1:Vect n c} -> {g2:Vect m c} -> {g3 : Vect k c} -> (SubSet g1 g2) -> (SubSet g2 g3) -> (SubSet g1 g3)
+
+
+weakenMo : {c:Type} -> {p:dataTypes.Monoid c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c} -> (e:ExprMo p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (SubSet g1 g2) -> ExprMo p g2 c1
+
+weakenG : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c} -> (e:ExprG p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (SubSet g1 g2) -> ExprG p g2 c1
+
+--weaken_correct : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g1:Vect n c) -> {c1:c} -> (e:ExprG p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (weaken p g1 e g2 = e)
+
+
+
+encode : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (n2 ** (g2 ** (c2 ** ((ExprMo {n=n2} (group_to_monoid_class p) g2 c2, c1=c2), SubSet g g2))))
+encode g (ConstG p c1) = (_ ** (g ** (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), SubSet_same _))))
+encode g (PlusG e1 e2) = 
+	let (n_ih1 ** (g_ih1 ** (c2_ih1 ** ((e_ih1, p_ih1), prSubSet_ih1)))) = encode g e1 in 
+	 let (n_ih2 ** (g_ih2 ** (c2_ih2 ** ((e_ih2, p_ih2), prSubSet_ih2)))) = encode g_ih1 (weakenG e2 g_ih1 prSubSet_ih1) in 
+		-- ?MXXXX
+	  (n_ih2 ** (g_ih2 ** (_** (((PlusMo (weakenMo e_ih1 g_ih2 ?MYYYYY) e_ih2, ?M_encode), ?MMZZZ)))))
+	  
+{-
 -- g2 is the context on which you want to have the result indexed
 -- j is the next fresh variable (of type Fin m, where m is the size of the new context)
-pre_encode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (e:ExprG p g c1) -> (pm:Nat) -> (g2:Vect (S pm) c) -> (j:Fin (S pm)) -> (c2 ** ((ExprMo (group_to_monoid_class p) g2 c2, c1=c2), Fin (S pm)))
+pre_encode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (e:ExprG p g c1) -> (pm:Nat) -> (g2:Vect (S pm) c) -> (j:Fin (S pm)) -> (c2 ** ((ExprMo (group_to_monoid_class p) g2 c2), Fin (S pm)))
 pre_encode p (ConstG p c1) pm g2 j = (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), j)) --j hasn't changed
 pre_encode p (PlusG e1 e2) pm g2 j = 
     let (r_ih1 ** ((e_ih1, p_ih1), j_ih1)) = pre_encode p e1 pm g2 j in
@@ -215,8 +254,13 @@ pre_encode p (NegG e) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) j False,
 --pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) i b, ?M_pre_encode_3), j))
 
 
---encode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) (transfoContext c p g e) c2, c1=c2))
---encode c p g e = (_ ** (pre_encode p e (transfoContext c p g e), ?M_encode_1))
+lemma transfo_context_ok : .....
+
+encode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) (transfoContext c p g e) c2, c1=c2))
+encode c p g e = let g2 : ... =(transfoContext c p g e) in
+                (_ ** (pre_encode p e (transfoContext c p g e), soemthing complicated that uses lemma transfo_context_ok))
+-}
+
 
 
 code_reduceM_andDecode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
@@ -536,12 +580,13 @@ group_reduce.MconvertFin_1 = proof
   mrefine GTE_S
   mrefine GTE_plus
 
+{-
 group_reduce.M_pre_encode_1 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl
-  
+-}  
  
 group_reduce.MaddSpace_1 = proof
   intros
@@ -552,5 +597,10 @@ group_reduce.MaddSpace_2 = proof
   intros
   rewrite auxP
   exact (a :: (addSpace n v pm a))  
+  
+
+group_reduce.MMZZZ = proof
+  intros
+  exact (SubSet_trans prSubSet_ih1 prSubSet_ih2)  
  
  
