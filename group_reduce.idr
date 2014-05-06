@@ -175,6 +175,32 @@ transfoContext c p g e = g ++ (construct_contextExtension c p g _ e)
 
 
 
+
+addSpace : {A:Type} -> (n:Nat) -> (v:Vect n A) -> (m:Nat) -> (a:A) -> (Vect (n+m) A)
+addSpace n v Z _ =  let auxP : (n + Z = n) = a_plus_zero n in 
+						--that's just v but with a rewriting of the goal
+						?MaddSpace_1
+addSpace n v (S pm) a = let auxP : (S(n+pm) = n + (S pm)) = plus_succ_right n pm in
+							-- That's just a :: (addSpace _ v pm a) but with a rewriting of the goal 
+							?MaddSpace_2
+
+allocate : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n + countNeg p e) c)
+allocate p g e = addSpace _ g (countNeg p e) Zero
+
+
+
+{-
+
+encode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (n2 ** (g2 ** (c2 ** (ExprMo {n=n2} (group_to_monoid_class p) g2 c2, c1=c2))))
+encode p n g (ConstG p c1) = (n ** (g ** (c1 ** (ConstMo (group_to_monoid_class p) c1, refl)))) --j hasn't changed
+encode p n g (PlusG e1 e2) = 
+	let (n_ih1 ** (g_ih1 ** (c2_ih1 ** (e_ih1, p_ih1)))) = encode p n g e1 in 
+	 let (n_ih2 ** (g_ih2 ** (c2_ih2 ** (e_ih2, p_ih2)))) = encode p n g e2 in 
+		 ?MXXXX
+	  --(n_ih2 ** (g_ih2 ** (c2_ih2 ** ((PlusMo e_ih1 e_ih2, ?M_encode), j_ih2))))
+-}
+	  
+
 -- g2 is the context on which you want to have the result indexed
 -- j is the next fresh variable (of type Fin m, where m is the size of the new context)
 pre_encode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (e:ExprG p g c1) -> (pm:Nat) -> (g2:Vect (S pm) c) -> (j:Fin (S pm)) -> (c2 ** ((ExprMo (group_to_monoid_class p) g2 c2, c1=c2), Fin (S pm)))
@@ -516,4 +542,15 @@ group_reduce.M_pre_encode_1 = proof
   rewrite p_ih2
   exact refl
   
+ 
+group_reduce.MaddSpace_1 = proof
+  intros
+  rewrite (sym auxP)
+  exact v
+  
+group_reduce.MaddSpace_2 = proof
+  intros
+  rewrite auxP
+  exact (a :: (addSpace n v pm a))  
+ 
  

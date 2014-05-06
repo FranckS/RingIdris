@@ -224,6 +224,11 @@ a_plus_zero Z = refl
 a_plus_zero (S pa) = S_both_side _ _ (a_plus_zero pa)
 
 
+plus_succ_right : (a:Nat) -> (b:Nat) -> (S(a+b) = a + (S b))
+plus_succ_right Z b = refl
+plus_succ_right (S pa) b = let auxP : (S(pa + b) = pa + (S b)) = plus_succ_right pa b in ?Mplus_succ_right_1
+
+
 GTE_plus : (a:Nat) -> (b:Nat) -> GTE (a+b) a
 -- Proof by induction on a
 GTE_plus a Z = let a_plus_zero_is_a : (a+Z = a) = a_plus_zero a in
@@ -390,7 +395,10 @@ tools.M_GTE_1_two_cases_2 = proof
   mrefine S_both_side
   mrefine pn_is_zero 
 
-
+tools.Mplus_succ_right_1 = proof
+  intros
+  rewrite auxP
+  exact refl
 
 tools.MGTE_plus_1 = proof
   intros

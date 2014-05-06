@@ -24,22 +24,22 @@ instance dataTypes.Monoid Nat where
     Plus_neutral_2 Z = ?M_Nat_Monoid_2
     Plus_neutral_2 (S pc) = let px = Plus_neutral_2 pc in ?M_Nat_Monoid_3
 
-a : (x:Nat) -> ExprMo (%instance) [x] (2 + (0 + x)) 
-a x = PlusMo (ConstMo _ 2) (PlusMo (ConstMo _ 0) (VarMo _ fZ True))
+aaa : (x:Nat) -> ExprMo (%instance) [x] (2 + (0 + x)) 
+aaa x = PlusMo (ConstMo _ 2) (PlusMo (ConstMo _ 0) (VarMo _ fZ True))
 
-b : (x:Nat) -> ExprMo (%instance) [x] (2 + x)
-b x = PlusMo (ConstMo _ 2) (VarMo _ fZ True)
+bbb : (x:Nat) -> ExprMo (%instance) [x] (2 + x)
+bbb x = PlusMo (ConstMo _ 2) (VarMo _ fZ True)
 
 
 -- Normalisation of 2 + (0 + x) that should give 2 + x, since now we are working on a monoid
-compare_a_b : (x:Nat) -> Maybe (2 + (0 + x) = 2 + x)
-compare_a_b x = monoidDecideEq (%instance) [x] (a x) (b x) 
+compare_aaa_bbb : (x:Nat) -> Maybe (2 + (0 + x) = 2 + x)
+compare_aaa_bbb x = monoidDecideEq (%instance) [x] (aaa x) (bbb x) 
 
 -- Later, we will have a real tactic "Monoid" which can fail. At this point, we will
 -- not have a missing case for "Nothing", which enables now to manipulate some false proof
 -- (which causes a crash only when you apply then to a specific value for x)
-proof_a_b : (x:Nat) -> (2 + (0 + x) = 2 + x)
-proof_a_b x = let (Just ok) = compare_a_b x in ok
+proof_aaa_bbb : (x:Nat) -> (2 + (0 + x) = 2 + x)
+proof_aaa_bbb x = let (Just ok) = compare_aaa_bbb x in ok
 
 ---------- Proofs ----------
 monoid_test.M_Nat_Monoid_1 = proof
