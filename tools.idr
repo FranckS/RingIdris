@@ -250,6 +250,94 @@ GTE_deleteSucc (S pa) Z p = lteZero
 GTE_deleteSucc (S pa) (S pb) (lteSucc p) = p
 
 
+plus_one_equals_succ : (n:Nat) -> (n+1 = S n)
+plus_one_equals_succ Z = refl
+plus_one_equals_succ (S pn) = let p_ihn : (pn + 1 = S pn) = plus_one_equals_succ pn in ?Mplus_one_equals_succ_1
+
+-- -----------------------------------
+-- D) FIN TOOLS
+-- -----------------------------------
+
+-- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
+total
+pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
+-- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
+pre_convertFin {n=Z} (fZ) m (lteZero) impossible
+pre_convertFin {n=Z} (fS x) m _ impossible
+-- case n= Sk, which includes two cases
+  -- case fZ
+pre_convertFin {n=S k} (fZ {k=k}) m p = fZ {k=m}
+  -- case fS x, where x is an element of Fin k
+pre_convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = GTE_deleteSucc _ _ p in
+											 let x_conv : Fin (S pm) = pre_convertFin x pm m_gte_k in
+												fS x_conv
+-- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
+-- there is only one element to convert : fZ {k=0}. But we're having an fS, and not an fZ...
+pre_convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
+    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, Yes refl) impossible
+    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, No p2) impossible
+    pre_convertFin {n=S k} (fS x) Z p | (No p1, Yes refl) impossible
+    pre_convertFin {n=S k} (fS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
+                                                            case k_is_zero_or_one of
+                                                            Left k_is_zero => ?Mpre_convertFin_1
+                                                            Right k_is_one => ?Mpre_convertFin_2
+
+-- We know that we can use pre_convertFin because (n+x) is the successor of something (ie, can't be zero), because n
+-- can't be zero (otherwise we would have an inhabitant of Fin 0)
+convertFin : (n:Nat) -> (i:Fin n) -> (x:Nat) -> Fin (n+x)
+-- n can't be zero
+convertFin Z fZ x impossible
+convertFin Z (fS pi) x impossible
+convertFin (S pn) i x = let proofGTE : (GTE (S(pn+x)) (S pn)) = ?MconvertFin_1 in
+                        pre_convertFin i (pn+x) proofGTE
+
+{-
+convertFin n i x with (decEq (n+x) Z)
+    convertFin n i x | (Yes refl) => ?MconvertFin_casZero
+    convertFin n i x | (No p1) => 
+            
+                    let n_plus_x_gte_n : GTE (n+x) n = ?MconvertFin_1 in
+                    pre_convertFin i (n+x) n_plus_x_gte_n
+-}
+
+
+testconversion1 : Fin 6
+testconversion1 = pre_convertFin {n=3} (fZ {k=2}) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+-- test ok
+
+testconversion2 : Fin 6
+testconversion2 = pre_convertFin {n=3} (fS (fZ {k=1})) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+-- test ok
+
+-- Computes the next element of a given element in a set of n element. If the
+-- current element is already the last one of the set, we return it back.
+nextElement : (n:Nat) -> (i:Fin n) -> Fin n
+-- n can't be zero
+nextElement Z fZ impossible
+nextElement Z (fS pi) impossible
+-- case where this is a fZ, and we've not yet reached the final element of the set
+nextElement (S (S ppn)) (fZ {k=S ppn}) = fS (fZ {k=ppn})
+-- case where this is a fZ, and we've reached the final element of the set. We give back the same fZ. This enables to always loop on the last element of a set if we ask for the next element.
+nextElement (S Z) (fZ {k=Z}) = fZ {k=Z}
+-- case where this is a (fS pi).
+nextElement (S pn) (fS {k=pn} pi) = fS (nextElement pn pi)
+
+
+lastElement : (pn:Nat) -> Fin (S pn)
+lastElement Z = fZ
+lastElement (S ppn) = fS (lastElement ppn)
+
+lastElement' : (pn:Nat) -> Fin(pn+1)
+lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_succ pn in
+                    -- This is just a call to the other function lastElement with the argument pn, but with a rewriting of the goal
+                    ?MlastElement'_1
+
+-- -----------------------------------
+-- E) VECTOR TOOLS
+-- -----------------------------------
+
+
+
 ---------- Proofs ----------  
 tools.Mf_equal = proof
   intros
@@ -405,7 +493,32 @@ tools.MGTE_plus_1 = proof
   rewrite (sym a_plus_zero_is_a)
   mrefine LTE_same
 
+tools.Mplus_one_equals_succ_1 = proof
+  intros
+  rewrite p_ihn 
+  exact refl
 
+-- Part D : Fin tools
 
+tools.Mpre_convertFin_1 = proof
+  intros
+  mrefine FalseElim
+  mrefine p1
+  mrefine k_is_zero
 
+tools.Mpre_convertFin_2 = proof
+  intros
+  mrefine FalseElim
+  mrefine p2
+  mrefine k_is_one
 
+tools.MconvertFin_1 = proof
+  intros
+  mrefine GTE_S
+  mrefine GTE_plus
+
+tools.MlastElement'_1 = proof
+  intros
+  rewrite pn_plus_1_equals_Spn 
+  rewrite (sym pn_plus_1_equals_Spn)
+  exact (lastElement pn)

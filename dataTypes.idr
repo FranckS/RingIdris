@@ -7,6 +7,10 @@
 module dataTypes
 
 
+index_reverse : {a:Type} -> {n:Nat} -> (Fin n) -> (Vect n a) -> a
+index_reverse j g = index j (reverse g)
+
+
 -- For technical reason : because in Idris this is not yet possible to talk about
 -- a field which is introduced in the current typeclass, we need to define some
 -- operators in other structures
@@ -69,13 +73,13 @@ using (g : Vect n c)
     data ExprMa : Magma c -> (Vect n c) -> c -> Type where
         ConstMa : (p : Magma c) -> (c1:c) -> ExprMa p g c1
         PlusMa : {p : Magma c} -> {c1:c} -> {c2:c} -> ExprMa p g c1 -> ExprMa p g c2 -> ExprMa p g (Plus c1 c2)
-        VarMa : (p : Magma c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprMa p g (index i g)
+        VarMa : (p : Magma c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprMa p g (index_reverse i g)
 
 -- Reflected terms in semigroup
     data ExprSG : SemiGroup c -> (Vect n c) -> c -> Type where
         ConstSG : (p : SemiGroup c) -> (c1:c) -> ExprSG p g c1
         PlusSG : {p : SemiGroup c} -> {c1:c} -> {c2:c} -> ExprSG p g c1 -> ExprSG p g c2 -> ExprSG p g (Plus c1 c2)
-        VarSG : (p : SemiGroup c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprSG p g (index i g)
+        VarSG : (p : SemiGroup c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprSG p g (index_reverse i g)
 
     print_ExprSG : {p:SemiGroup c} -> {r1:c} -> (c -> String) -> ExprSG p g r1 -> String
     print_ExprSG c_print (ConstSG p const) = c_print const
@@ -86,7 +90,7 @@ using (g : Vect n c)
     data ExprMo : dataTypes.Monoid c -> (Vect n c) -> c -> Type where
         ConstMo : (p : dataTypes.Monoid c) -> (c1:c) -> ExprMo p g c1
         PlusMo : {p : dataTypes.Monoid c} -> {c1:c} -> {c2:c} -> ExprMo p g c1 -> ExprMo p g c2 -> ExprMo p g (Plus c1 c2)
-        VarMo : (p : dataTypes.Monoid c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprMo p g (index i g)
+        VarMo : (p : dataTypes.Monoid c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprMo p g (index_reverse i g)
 
 -- Reflected terms in a group  
     data ExprG :  dataTypes.Group c -> (Vect n c) -> c -> Type where
@@ -94,14 +98,14 @@ using (g : Vect n c)
         PlusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Plus c1 c2)
         MinusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
         NegG : {p : dataTypes.Group c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
-        VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (index i g)
+        VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (index_reverse i g)
  
 -- Reflected terms in a commutative group       
     data ExprCG : CommutativeGroup c -> (Vect n c) -> c -> Type where
         ConstCG : (p:CommutativeGroup c) -> (c1:c) -> ExprCG p g c1
         --ZeroCG : ExprCG p g Zero
         PlusCG : {p : CommutativeGroup c} -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Plus c1 c2)
-        VarCG : (p : CommutativeGroup c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprCG p g (index i g)
+        VarCG : (p : CommutativeGroup c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprCG p g (index_reverse i g)
           
 -- Reflected terms in a ring       
     data ExprR : dataTypes.Ring c -> (Vect n c) -> c -> Type where
@@ -110,7 +114,7 @@ using (g : Vect n c)
         --OneR : ExprR p g One
         PlusR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Plus c1 c2)
         MultR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
-        VarR : (p:dataTypes.Ring c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprR p g (index i g)
+        VarR : (p:dataTypes.Ring c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprR p g (index_reverse i g)
 
     print_ExprR : {p:dataTypes.Ring c} -> {r1:c} -> (c -> String) -> ExprR p g r1 -> String
     print_ExprR c_print (ConstR p const) = c_print const
@@ -125,7 +129,7 @@ using (g : Vect n c)
         --OneCR : ExprCR p g One
         PlusCR : {p:CommutativeRing c} -> {c1:c} -> {c2:c} -> ExprCR p g c1 -> ExprCR p g c2 -> ExprCR p g (Plus c1 c2)
         MultCR : {p:CommutativeRing c} -> {c1:c} -> {c2:c} -> ExprCR p g c1 -> ExprCR p g c2 -> ExprCR p g (Mult c1 c2)
-        VarCR : (p:CommutativeRing c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprCR p g (index i g)
+        VarCR : (p:CommutativeRing c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprCR p g (index_reverse i g)
 
 ------------------------------
 -- Functions of conversion ---

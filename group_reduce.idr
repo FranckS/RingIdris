@@ -9,7 +9,7 @@ module group_reduce
 import Decidable.Equality
 import dataTypes
 import tools
-
+import Prelude.Vect
 
 --%default total
 
@@ -94,7 +94,7 @@ countNeg p (MinusG e1 e2) = (countNeg p e1) + (countNeg p e2)
 countNeg p (NegG e) = 1 + (countNeg p e) 
 countNeg p (VarG p i b) = 0
 
-
+{-
 -- Constructs the extension of the context, using the expression "e". This extension is formed with all the Neg of something that appear in the expression "e"
 construct_contextExtension : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> (c1:c) -> (e:ExprG p g c1) -> (Vect (countNeg p e) c)
 construct_contextExtension c p g c1 (ConstG p c1) = Nil
@@ -103,83 +103,15 @@ construct_contextExtension c p g (Minus c1 c2) (MinusG e1 e2) = (construct_conte
 construct_contextExtension c p g (Neg c1) (NegG e) = let x : c = Neg c1 in
                                                         x :: (construct_contextExtension c p g _ e)
 construct_contextExtension c p g (index i g) (VarG p i b) = Nil
-
-
--- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
-total
-pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
--- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
-pre_convertFin {n=Z} (fZ) m (lteZero) impossible
-pre_convertFin {n=Z} (fS x) m _ impossible
--- case n= Sk, which includes two cases
-  -- case fZ
-pre_convertFin {n=S k} (fZ {k=k}) m p = fZ {k=m}
-  -- case fS x, where x is an element of Fin k
-pre_convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = GTE_deleteSucc _ _ p in
-											 let x_conv : Fin (S pm) = pre_convertFin x pm m_gte_k in
-												fS x_conv
--- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
--- there is only one element to convert : fZ {k=0}. But we're having an fS, and not an fZ...
-pre_convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
-    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, Yes refl) impossible
-    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, No p2) impossible
-    pre_convertFin {n=S k} (fS x) Z p | (No p1, Yes refl) impossible
-    pre_convertFin {n=S k} (fS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
-                                                            case k_is_zero_or_one of
-                                                            Left k_is_zero => ?Mpre_convertFin_1
-                                                            Right k_is_one => ?Mpre_convertFin_2
-
--- We know that we can use pre_convertFin because (n+x) is the successor of something (ie, can't be zero), because n
--- can't be zero (otherwise we would have an inhabitant of Fin 0)
-convertFin : (n:Nat) -> (i:Fin n) -> (x:Nat) -> Fin (n+x)
--- n can't be zero
-convertFin Z fZ x impossible
-convertFin Z (fS pi) x impossible
-convertFin (S pn) i x = let proofGTE : (GTE (S(pn+x)) (S pn)) = ?MconvertFin_1 in
-                        pre_convertFin i (pn+x) proofGTE
-
-{-
-convertFin n i x with (decEq (n+x) Z)
-    convertFin n i x | (Yes refl) => ?MconvertFin_casZero
-    convertFin n i x | (No p1) => 
-            
-                    let n_plus_x_gte_n : GTE (n+x) n = ?MconvertFin_1 in
-                    pre_convertFin i (n+x) n_plus_x_gte_n
 -}
 
 
-testconversion1 : Fin 6
-testconversion1 = pre_convertFin {n=3} (fZ {k=2}) 5 (lteSucc (lteSucc (lteSucc lteZero)))
--- test ok
 
-testconversion2 : Fin 6
-testconversion2 = pre_convertFin {n=3} (fS (fZ {k=1})) 5 (lteSucc (lteSucc (lteSucc lteZero)))
--- test ok
-
--- Computes the next element of a given element in a set of n element. If the
--- current element is already the last one of the set, we return it back.
-nextElement : (n:Nat) -> (i:Fin n) -> Fin n
--- n can't be zero
-nextElement Z fZ impossible
-nextElement Z (fS pi) impossible
--- case where this is a fZ, and we've not yet reached the final element of the set
-nextElement (S (S ppn)) (fZ {k=S ppn}) = fS (fZ {k=ppn})
--- case where this is a fZ, and we've reached the final element of the set. We give back the same fZ. This enables to always loop on the last element of a set if we ask for the next element.
-nextElement (S Z) (fZ {k=Z}) = fZ {k=Z}
--- case where this is a (fS pi).
-nextElement (S pn) (fS {k=pn} pi) = fS (nextElement pn pi)
-
-
-lastElement : (pn:Nat) -> Fin (S pn)
-lastElement Z = fZ
-lastElement (S ppn) = fS (lastElement ppn)
-
-
-
+{-
 -- Construct the extension and adds it to the current context
 transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
 transfoContext c p g e = g ++ (construct_contextExtension c p g _ e)
-
+-}
 
 
 {-
@@ -218,9 +150,42 @@ encode p n g e =
 using (c:Type, n:Nat, m:Nat)
     data SubSet : Vect n c -> Vect m c -> Type where
         SubSet_same : (g:Vect n c) -> SubSet g g
-        SubSet_add : (c1:c) -> (g:Vect n c) -> SubSet g (c1::g)
+        SubSet_add : (c1:c) -> (g1:Vect n c) -> (g2:Vect k c) -> (SubSet g1 g2) -> SubSet g1 (c1 :: g2)
 
+
+-- SubSet_add_right : (g1:Vect n c) -> (g2:Vect m c) -> (h:c) -> (SubSet g1 g2) -> (SubSet g1 (h::g2))
+
+
+
+--Nil_SubSet_of_anything : (g1:Vect n c) -> (SubSet Nil g1)
+--Nil_SubSet_of_anything Nil = SubSet_same Nil
+--Nil_SubSet_of_anything (h::t) = let p_ihn : SubSet Nil t = Nil_SubSet_of_anything t in (SubSet_add_right Nil t h p_ihn)
+
+
+--total
+{-
+SubSet_wkn : (g1:Vect n c) -> (g2:Vect m c) -> (c1:c) -> (SubSet g1 g2) -> (SubSet g1 (c1::g2))
+SubSet_wkn Nil Nil c1 p = SubSet_add c1 Nil
+SubSet_wkn Nil (h2::Nil) c1 (SubSet_add h2 Nil) = ?MZ
+-}
+
+{-
+SubSet_wkn Nil Nil c1 p = SubSet_add c1 Nil
+SubSet_wkn Nil (h2::t2) c1 (SubSet_same _) impossible
+SubSet_wkn _ (h2::t2) c1 (SubSet_add h2 t2) = let paux : SubSet t2 (h2::t2) = SubSet_add h2 t2 in ?MZ
+                                                -- SubSet_wkn t2 (h2::t2) c1 paux
+SubSet_wkn (h1::t1) Nil c1 (SubSet_same _) impossible
+SubSet_wkn (h1::t1) Nil c1 (SubSet_add _ _) impossible
+-}
+
+--total
 SubSet_trans : {g1:Vect n c} -> {g2:Vect m c} -> {g3 : Vect k c} -> (SubSet g1 g2) -> (SubSet g2 g3) -> (SubSet g1 g3)
+SubSet_trans (SubSet_same g1) (SubSet_same _) = SubSet_same g1
+-- SubSet_trans (SubSet_same g1) (SubSet_add c1 _ _ p) = SubSet_add c1 g1 g1 (SubSet_same g1)
+-- SubSet_trans (SubSet_add c1 g1 g1 p) (SubSet_same _) = SubSet_add c1 g1 g1 (SubSet_same g1)
+-- SubSet_trans (SubSet_add c1 g1 g1 p1) (SubSet_add c2 _ _ p2) = let paux = SubSet_wkn g1 g1 c1 (SubSet_same g1) in
+                                                                        SubSet_wkn g1 (c1::g1) c2 paux
+
 
 
 weakenMo : {c:Type} -> {p:dataTypes.Monoid c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c} -> (e:ExprMo p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (SubSet g1 g2) -> ExprMo p g2 c1
@@ -231,13 +196,15 @@ weakenG : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c
 
 
 
-encode : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (n2 ** (g2 ** (c2 ** ((ExprMo {n=n2} (group_to_monoid_class p) g2 c2, c1=c2), SubSet g g2))))
-encode g (ConstG p c1) = (_ ** (g ** (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), SubSet_same _))))
-encode g (PlusG e1 e2) = 
-	let (n_ih1 ** (g_ih1 ** (c2_ih1 ** ((e_ih1, p_ih1), prSubSet_ih1)))) = encode g e1 in 
-	 let (n_ih2 ** (g_ih2 ** (c2_ih2 ** ((e_ih2, p_ih2), prSubSet_ih2)))) = encode g_ih1 (weakenG e2 g_ih1 prSubSet_ih1) in 
-		-- ?MXXXX
-	  (n_ih2 ** (g_ih2 ** (_** (((PlusMo (weakenMo e_ih1 g_ih2 ?MYYYYY) e_ih2, ?M_encode), ?MMZZZ)))))
+encode : {c:Type} -> {p:dataTypes.Group c} -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (n2 ** (g2 ** (c2 ** ((ExprMo {n=n2} (group_to_monoid_class p) g2 c2, c1=c2), SubSet g g2))))
+encode n g (ConstG p c1) = (_ ** (g ** (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), SubSet_same _))))
+encode n g (PlusG e1 e2) = 
+	let (n_ih1 ** (g_ih1 ** (c2_ih1 ** ((e_ih1, p_ih1), prSubSet_ih1)))) = encode n g e1 in 
+        let (n_ih2 ** (g_ih2 ** (c2_ih2 ** ((e_ih2, p_ih2), prSubSet_ih2)))) = encode n_ih1 g_ih1 (weakenG e2 g_ih1 prSubSet_ih1) in 
+	  (n_ih2 ** (g_ih2 ** (_** (((PlusMo (weakenMo e_ih1 g_ih2 prSubSet_ih2) e_ih2, ?Mencode_1), ?Mencode_2)))))
+encode n g (NegG {p=p} {c1=c1} e) = ((S n) ** (((Neg c1)::g) ** (_ ** (((VarMo (group_to_monoid_class p) (lastElement n) False), ?Mencode_3), SubSet_add (Neg c1) g g (SubSet_same g)))))
+encode n g (VarG p i b) = (n ** (g **(_ ** (((VarMo (group_to_monoid_class p) i b), refl), (SubSet_same g)))))
+
 	  
 {-
 -- g2 is the context on which you want to have the result indexed
@@ -561,24 +528,6 @@ group_reduce.MbuildProofGroup = proof
   rewrite (sym lp)
   rewrite (sym rp)
   exact (Just refl)  
-  
-  
-group_reduce.Mpre_convertFin_1 = proof
-  intros
-  mrefine FalseElim
-  mrefine p1
-  mrefine k_is_zero
-
-group_reduce.Mpre_convertFin_2 = proof
-  intros
-  mrefine FalseElim
-  mrefine p2
-  mrefine k_is_one
-
-group_reduce.MconvertFin_1 = proof
-  intros
-  mrefine GTE_S
-  mrefine GTE_plus
 
 {-
 group_reduce.M_pre_encode_1 = proof
@@ -587,6 +536,8 @@ group_reduce.M_pre_encode_1 = proof
   rewrite p_ih2
   exact refl
 -}  
+
+{-
  
 group_reduce.MaddSpace_1 = proof
   intros
@@ -597,10 +548,29 @@ group_reduce.MaddSpace_2 = proof
   intros
   rewrite auxP
   exact (a :: (addSpace n v pm a))  
-  
+-}  
 
-group_reduce.MMZZZ = proof
+{-
+group_reduce.MSubSet_trans_1 = proof
   intros
-  exact (SubSet_trans prSubSet_ih1 prSubSet_ih2)  
- 
- 
+  mrefine SubSet_wkn
+  exact c1
+  exact (SubSet_add c2 _)
+-}
+
+group_reduce.Mencode_1 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  exact refl
+
+group_reduce.Mencode_2 = proof
+  intros
+  exact (SubSet_trans _ _ _ prSubSet_ih1 prSubSet_ih2)  
+
+
+
+
+
+
+
