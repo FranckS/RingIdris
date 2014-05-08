@@ -153,39 +153,20 @@ using (c:Type, n:Nat, m:Nat)
         SubSet_add : (c1:c) -> (g1:Vect n c) -> (g2:Vect k c) -> (SubSet g1 g2) -> SubSet g1 (c1 :: g2)
 
 
--- SubSet_add_right : (g1:Vect n c) -> (g2:Vect m c) -> (h:c) -> (SubSet g1 g2) -> (SubSet g1 (h::g2))
+total
+SubSet_wkn : (g1:Vect n c) -> (g2:Vect m c) -> (c1:c) -> (SubSet (c1::g1) g2) -> (SubSet g1 g2)
+SubSet_wkn g1 _ c1 (SubSet_same _) = SubSet_add c1 g1 g1 (SubSet_same g1)
+SubSet_wkn g1 (h2::t2) c1 (SubSet_add h2 g1 t2 c1_cons_g1_in_t2) = SubSet_add h2 g1 t2 (SubSet_wkn g1 t2 c1 c1_cons_g1_in_t2)
 
 
-
---Nil_SubSet_of_anything : (g1:Vect n c) -> (SubSet Nil g1)
---Nil_SubSet_of_anything Nil = SubSet_same Nil
---Nil_SubSet_of_anything (h::t) = let p_ihn : SubSet Nil t = Nil_SubSet_of_anything t in (SubSet_add_right Nil t h p_ihn)
-
-
---total
-{-
-SubSet_wkn : (g1:Vect n c) -> (g2:Vect m c) -> (c1:c) -> (SubSet g1 g2) -> (SubSet g1 (c1::g2))
-SubSet_wkn Nil Nil c1 p = SubSet_add c1 Nil
-SubSet_wkn Nil (h2::Nil) c1 (SubSet_add h2 Nil) = ?MZ
--}
-
-{-
-SubSet_wkn Nil Nil c1 p = SubSet_add c1 Nil
-SubSet_wkn Nil (h2::t2) c1 (SubSet_same _) impossible
-SubSet_wkn _ (h2::t2) c1 (SubSet_add h2 t2) = let paux : SubSet t2 (h2::t2) = SubSet_add h2 t2 in ?MZ
-                                                -- SubSet_wkn t2 (h2::t2) c1 paux
-SubSet_wkn (h1::t1) Nil c1 (SubSet_same _) impossible
-SubSet_wkn (h1::t1) Nil c1 (SubSet_add _ _) impossible
--}
-
---total
-SubSet_trans : {g1:Vect n c} -> {g2:Vect m c} -> {g3 : Vect k c} -> (SubSet g1 g2) -> (SubSet g2 g3) -> (SubSet g1 g3)
-SubSet_trans (SubSet_same g1) (SubSet_same _) = SubSet_same g1
--- SubSet_trans (SubSet_same g1) (SubSet_add c1 _ _ p) = SubSet_add c1 g1 g1 (SubSet_same g1)
--- SubSet_trans (SubSet_add c1 g1 g1 p) (SubSet_same _) = SubSet_add c1 g1 g1 (SubSet_same g1)
--- SubSet_trans (SubSet_add c1 g1 g1 p1) (SubSet_add c2 _ _ p2) = let paux = SubSet_wkn g1 g1 c1 (SubSet_same g1) in
-                                                                        SubSet_wkn g1 (c1::g1) c2 paux
-
+total
+SubSet_trans : (g1:Vect n c) -> (g2:Vect m c) -> (g3 : Vect k c) -> (SubSet g1 g2) -> (SubSet g2 g3) -> (SubSet g1 g3)
+SubSet_trans g1 _ _ (SubSet_same g1) (SubSet_same _) = SubSet_same g1
+SubSet_trans g1 _ (h3::t3) (SubSet_same g1) (SubSet_add h3 g1 t3 g1_in_t3) = SubSet_add h3 g1 t3 g1_in_t3
+SubSet_trans g1 (h2::t2) _ (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_same _) = SubSet_add h2 g1 t2 g1_in_t2
+SubSet_trans g1 (h2::t2) (h3::t3) (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_add h3 _ t3 h2_cons_t2_in_t3) = 
+    let t2_in_t3 : SubSet t2 t3 = SubSet_wkn t2 t3 h2 h2_cons_t2_in_t3 in 
+        SubSet_add h3 g1 t3 (SubSet_trans g1 t2 t3 g1_in_t2 t2_in_t3)
 
 
 weakenMo : {c:Type} -> {p:dataTypes.Monoid c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c} -> (e:ExprMo p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (SubSet g1 g2) -> ExprMo p g2 c1
@@ -206,27 +187,6 @@ encode n g (NegG {p=p} {c1=c1} e) = ((S n) ** (((Neg c1)::g) ** (_ ** (((VarMo (
 encode n g (VarG p i b) = (n ** (g **(_ ** (((VarMo (group_to_monoid_class p) i b), refl), (SubSet_same g)))))
 
 	  
-{-
--- g2 is the context on which you want to have the result indexed
--- j is the next fresh variable (of type Fin m, where m is the size of the new context)
-pre_encode : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (e:ExprG p g c1) -> (pm:Nat) -> (g2:Vect (S pm) c) -> (j:Fin (S pm)) -> (c2 ** ((ExprMo (group_to_monoid_class p) g2 c2), Fin (S pm)))
-pre_encode p (ConstG p c1) pm g2 j = (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), j)) --j hasn't changed
-pre_encode p (PlusG e1 e2) pm g2 j = 
-    let (r_ih1 ** ((e_ih1, p_ih1), j_ih1)) = pre_encode p e1 pm g2 j in
-    let (r_ih2 ** ((e_ih2, p_ih2), j_ih2)) = pre_encode p e2 pm g2 j_ih1 in -- note the use of j_ih1 in the second call
-        (_ ** ((PlusMo e_ih1 e_ih2, ?M_pre_encode_1), j_ih2)) --j has potentially changed
--- Not total : Nothing for (MinusG e1 e2) since they should have been removed at this time
-pre_encode p (NegG e) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) j False, ?M_pre_encode_2), nextElement _ j)) -- j has changed
---pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) (convertFin i (S pm)) b, ?M_pre_encode_3), j)) -- j hasn't changed
---pre_encode p (VarG p i b) pm g2 j = (_ ** ((VarMo (group_to_monoid_class p) i b, ?M_pre_encode_3), j))
-
-
-lemma transfo_context_ok : .....
-
-encode : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) (transfoContext c p g e) c2, c1=c2))
-encode c p g e = let g2 : ... =(transfoContext c p g e) in
-                (_ ** (pre_encode p e (transfoContext c p g e), soemthing complicated that uses lemma transfo_context_ok))
--}
 
 
 
@@ -527,36 +487,7 @@ group_reduce.MbuildProofGroup = proof
   intros
   rewrite (sym lp)
   rewrite (sym rp)
-  exact (Just refl)  
-
-{-
-group_reduce.M_pre_encode_1 = proof
-  intros
-  rewrite p_ih1
-  rewrite p_ih2
-  exact refl
--}  
-
-{-
- 
-group_reduce.MaddSpace_1 = proof
-  intros
-  rewrite (sym auxP)
-  exact v
-  
-group_reduce.MaddSpace_2 = proof
-  intros
-  rewrite auxP
-  exact (a :: (addSpace n v pm a))  
--}  
-
-{-
-group_reduce.MSubSet_trans_1 = proof
-  intros
-  mrefine SubSet_wkn
-  exact c1
-  exact (SubSet_add c2 _)
--}
+  exact (Just refl)   
 
 group_reduce.Mencode_1 = proof
   intros
@@ -568,6 +499,12 @@ group_reduce.Mencode_2 = proof
   intros
   exact (SubSet_trans _ _ _ prSubSet_ih1 prSubSet_ih2)  
 
+group_reduce.Mencode_3 = proof
+  intros
+  mrefine lastElement_of_reverse_is_first 
+  exact n
+  exact c
+  exact (Neg c1 :: g)
 
 
 
