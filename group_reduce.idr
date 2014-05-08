@@ -86,66 +86,19 @@ elimDoubleNeg p (PlusG e1 e2) =
 elimDoubleNeg p e1 = 
     (_ ** (e1, refl))
     
-
+------------------------------------------------------------------------ 
+-- --------- Part concerning the encoding from Group to Monoid ---------
+------------------------------------------------------------------------   
+    
+{-
 countNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> Nat
 countNeg p (ConstG p c1) = 0
 countNeg p (PlusG e1 e2) = (countNeg p e1) + (countNeg p e2)
 countNeg p (MinusG e1 e2) = (countNeg p e1) + (countNeg p e2)
 countNeg p (NegG e) = 1 + (countNeg p e) 
 countNeg p (VarG p i b) = 0
-
-{-
--- Constructs the extension of the context, using the expression "e". This extension is formed with all the Neg of something that appear in the expression "e"
-construct_contextExtension : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> (c1:c) -> (e:ExprG p g c1) -> (Vect (countNeg p e) c)
-construct_contextExtension c p g c1 (ConstG p c1) = Nil
-construct_contextExtension c p g (Plus c1 c2) (PlusG e1 e2) = (construct_contextExtension c p g _ e1) ++ (construct_contextExtension c p g _ e2)
-construct_contextExtension c p g (Minus c1 c2) (MinusG e1 e2) = (construct_contextExtension c p g _ e1) ++ (construct_contextExtension c p g _ e2)
-construct_contextExtension c p g (Neg c1) (NegG e) = let x : c = Neg c1 in
-                                                        x :: (construct_contextExtension c p g _ e)
-construct_contextExtension c p g (index i g) (VarG p i b) = Nil
 -}
 
-
-
-{-
--- Construct the extension and adds it to the current context
-transfoContext : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n+countNeg p e) c)
-transfoContext c p g e = g ++ (construct_contextExtension c p g _ e)
--}
-
-
-{-
-addSpace : {A:Type} -> (n:Nat) -> (v:Vect n A) -> (m:Nat) -> (a:A) -> (Vect (n+m) A)
-addSpace n v Z _ =  let auxP : (n + Z = n) = a_plus_zero n in 
-						--that's just v but with a rewriting of the goal
-						?MaddSpace_1
-addSpace n v (S pm) a = let auxP : (S(n+pm) = n + (S pm)) = plus_succ_right n pm in
-							-- That's just a :: (addSpace _ v pm a) but with a rewriting of the goal 
-							?MaddSpace_2
-
-allocate : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (Vect (n + countNeg p e) c)
-allocate p g e = addSpace _ g (countNeg p e) Zero
-
-
-pre_encode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (g' : Vect (n+countNeg p e) c) -> (i:Fin (n+countNeg p e)) -> (g2 ** (c2 ** (ExprMo {n=n + countNeg p e} (group_to_monoid_class p) g2 c2, c1=c2)))
-pre_encode p n g (ConstG p c1) g' i = (g' ** (c1 ** (ConstMo (group_to_monoid_class p) c1, refl)))
---pre_encode p n g (PlusG e1 e2 ) = 
-    
-
-
-encode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (g2 ** (c2 ** (ExprMo {n=n + countNeg p e} (group_to_monoid_class p) g2 c2, c1=c2)))
-encode p n g e = 
-    let g' : Vect (n+countNeg p e) _ = allocate p g e in 
-        case n of
-        Z => case countNeg p e of
-                Z => ?MXXX
-                S pred_nb_neg => let i' : Fin (n+countNeg p e) = 
-        pre_encode p n g e g' (-- Just lastElement (countNeg p e) but with a rewriting of the goal (because n is zero here)
-        S pn => 
-        -- (lastElement n) is the last element of Fin(n). We convert it to a Fin(n+countNeg p e), and we require the next element of this set to get the first fresh variable available
-        pre_encode p n g e g' (convertFin (S pn) (lastElement pn) (countNeg p e))
-
--}
 
 using (c:Type, n:Nat, m:Nat)
     data SubSet : Vect n c -> Vect m c -> Type where
