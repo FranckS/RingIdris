@@ -98,7 +98,7 @@ using (g : Vect n c)
         PlusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Plus c1 c2)
         MinusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
         NegG : {p : dataTypes.Group c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
-        VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (index_reverse i g)
+        VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (if positiveEncoding then index_reverse i g else Neg(index_reverse i g))
  
 -- Reflected terms in a commutative group       
     data ExprCG : CommutativeGroup c -> (Vect n c) -> c -> Type where
@@ -170,12 +170,13 @@ semiGroup_to_monoid p (VarSG _ i b) = VarMo p i b
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
 group_to_monoid_class p = (%instance)
 
+{-
 partial_group_to_monoid : {p:dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> ExprG p g c1 -> ExprMo (group_to_monoid_class p) g c1
 partial_group_to_monoid (ConstG p cst) = ConstMo (group_to_monoid_class p) cst
 partial_group_to_monoid (PlusG e1 e2) = PlusMo (partial_group_to_monoid e1) (partial_group_to_monoid e2)
 partial_group_to_monoid (VarG p i b) = VarMo (group_to_monoid_class p) i b
 -- No case for Neg and Minus !
-
+-}
 
 
 -- CommutativeRing -> Ring

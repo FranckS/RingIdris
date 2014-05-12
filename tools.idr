@@ -13,9 +13,9 @@ import dataTypes
 
 %default total
 
--- --------------------------------------------------
--- A) TOOLS AND LEMMAS FOR PAIRS AND DEPENDENT PAIRS
--- --------------------------------------------------
+-- -------------------------------------------------------------
+-- A) TOOLS AND LEMMAS FOR PAIRS, DEPENDENT PAIRS AND FUNCTIONS
+-- -------------------------------------------------------------
 
 left : {A:Type} -> {B:Type} -> (A,B)  -> A
 left (x,y) = x
@@ -291,14 +291,6 @@ convertFin Z (fS pi) x impossible
 convertFin (S pn) i x = let proofGTE : (GTE (S(pn+x)) (S pn)) = ?MconvertFin_1 in
                         pre_convertFin i (pn+x) proofGTE
 
-{-
-convertFin n i x with (decEq (n+x) Z)
-    convertFin n i x | (Yes refl) => ?MconvertFin_casZero
-    convertFin n i x | (No p1) => 
-            
-                    let n_plus_x_gte_n : GTE (n+x) n = ?MconvertFin_1 in
-                    pre_convertFin i (n+x) n_plus_x_gte_n
--}
 
 
 testconversion1 : Fin 6
@@ -340,11 +332,17 @@ lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastE
 
 
 ---------- Proofs ----------  
+-- Part A) : Pairs, dependent pairs, and functions
+
 tools.Mf_equal = proof
   intros
   rewrite p
   exact refl
-  
+
+-- Part B) : Groups
+
+-- B.1/ This subpart is to obtain the lemma "group_doubleNeg" : - (-a) = a
+
 {-
 tools.MplusAssociativeZ_1 = proof {
   intros;
@@ -370,6 +368,10 @@ tools.MGroup_unicity_1 = proof
   rewrite a1
   trivial
 
+tools.MGroup_unicity_2 = proof
+  intros
+  mrefine Plus_assoc  
+  
 tools.MhasSymmetric_sym = proof
   intro
   intro
@@ -378,10 +380,6 @@ tools.MhasSymmetric_sym = proof
   intro H
   exact (right H, left H)  
   
-tools.MGroup_unicity_2 = proof
-  intros
-  mrefine Plus_assoc
-
 tools.Mplus_inverse_2 = proof
   intros
   mrefine hasSymmetric_sym
@@ -398,6 +396,8 @@ tools.Mgroup_doubleNeg_2 = proof
 tools.Mgroup_doubleNeg_3 = proof
   intros
   exact (left (Plus_inverse (Neg a)), right(Plus_inverse (Neg a)))  
+
+-- B.2/ This part is to obtain the lemma "push_negation" : -(a+b) = (-b) + (-a)
   
 tools.Madding_preserves_equality_1 = proof
   intros
@@ -523,3 +523,9 @@ tools.MlastElement'_1 = proof
   rewrite pn_plus_1_equals_Spn 
   rewrite (sym pn_plus_1_equals_Spn)
   exact (lastElement pn)
+  
+-- Part E : Vector tools
+
+
+
+
