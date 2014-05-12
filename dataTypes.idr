@@ -98,7 +98,7 @@ using (g : Vect n c)
         PlusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Plus c1 c2)
         MinusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
         NegG : {p : dataTypes.Group c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
-        VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (if positiveEncoding then index_reverse i g else Neg(index_reverse i g))
+        VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (index_reverse i g)
  
 -- Reflected terms in a commutative group       
     data ExprCG : CommutativeGroup c -> (Vect n c) -> c -> Type where

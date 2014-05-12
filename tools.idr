@@ -327,7 +327,8 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
 -- -----------------------------------
 -- E) VECTOR TOOLS
 -- -----------------------------------
-lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastElement pn) (reverse g)))
+postulate -- Will be proven later
+    lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastElement pn) (reverse g)))
 
 
 
