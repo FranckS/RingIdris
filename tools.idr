@@ -132,8 +132,8 @@ aux1 : O = plus O O
 -}
 
 -- To add in the depository for Idris
-{-
-total plusAssociativeZ : (left : ZZ) -> (centre : ZZ) -> (right : ZZ) ->
+%assert_total
+plusAssociativeZ : (left : ZZ) -> (centre : ZZ) -> (right : ZZ) ->
   left + (centre + right) = (left + centre) + right
 plusAssociativeZ (Pos u) (Pos v) (Pos w) = let P:((plus u (plus v w))=(plus (plus u v) w)) = (plusAssociative u v w) in ?MplusAssociativeZ_1
 plusAssociativeZ (Pos u) (Pos v) (NegS w) = ?MplusAssociativeZ_2
@@ -144,7 +144,7 @@ plusAssociativeZ (NegS u) (Pos v) (Pos w) = ?MplusAssociativeZ_5
 plusAssociativeZ (NegS u) (Pos v) (NegS w) = ?MplusAssociativeZ_6
 plusAssociativeZ (NegS u) (NegS v) (Pos w) = ?MplusAssociativeZ_7
 plusAssociativeZ (NegS u) (NegS v) (NegS w) = ?MplusAssociativeZ_8
--}
+
 
 
 -- -----------------------------------
@@ -344,14 +344,14 @@ tools.Mf_equal = proof
 
 -- B.1/ This subpart is to obtain the lemma "group_doubleNeg" : - (-a) = a
 
-{-
+
 tools.MplusAssociativeZ_1 = proof {
   intros;
   compute;
   rewrite P;
   trivial;
 }
--}
+
 
 tools.MGroup_unicity_1 = proof
   intro

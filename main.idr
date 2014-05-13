@@ -26,6 +26,7 @@ import group_reduce
 import magma_test
 import semiGroup_test
 import monoid_test
+import group_test
 
 
 
@@ -41,6 +42,12 @@ main = putStrLn "coucou!"
 
 
 ---------- Proofs ----------
+
+
+
+
+
+
 
 
 
