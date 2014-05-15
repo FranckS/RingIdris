@@ -10,22 +10,51 @@ import Decidable.Equality
 import dataTypes
 import tools
 import Prelude.Vect
+import Decidable.Equality
 
 --%default total
 
+-- Two remarks : 
+-- 	1) The two vectors may have different size
+-- 	2) The result is a Maybe, instead of Dec (a proof is only provided if they are equal)
 total
-exprG_eq : (p:dataTypes.Group c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> (Maybe (e1=e2))
-exprG_eq p (PlusG x y) (PlusG x' y') with (exprG_eq p x x', exprG_eq p y y')
-  exprG_eq p (PlusG x y) (PlusG x y) | (Just refl, Just refl) = Just refl
-  exprG_eq p (PlusG x y) (PlusG x' y') | _ = Nothing
-exprG_eq p (VarG p i b1) (VarG p j b2) with (decEq i j, decEq b1 b2)
-  exprG_eq p (VarG p i b1) (VarG p i b1) | (Yes refl, Yes refl) = Just refl
-  exprG_eq p (VarG p i b1) (VarG p j b2) | _ = Nothing
-exprG_eq p (ConstG p const1) (ConstG p const2) with ((group_eq_as_elem_of_set p) const1 const2)
-    exprG_eq p (ConstG p const1) (ConstG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
-    exprG_eq p (ConstG p const1) (ConstG p const2) | _ = Nothing
-exprG_eq p _ _  = Nothing
+vect_eq : {a:Type} -> (a_eq : (a1:a)->(a2:a)->Maybe(a1=a2)) -> (n:Nat) -> (m:Nat) -> (g1:Vect n a) -> (g2:Vect m a) -> Maybe (g1=g2)
+vect_eq a_eq _ _ Nil Nil = Just refl
+vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) with (decEq pn pm)
+	vect_eq a_eq (S pn) (S pn) (h1::t1) (h2::t2) | (Yes refl) with (a_eq h1 h2, vect_eq a_eq pn pn t1 t2)
+		vect_eq a_eq _ _ (h1::t1) (h1::t1) | (Yes refl) | (Just refl, Just refl) = Just refl
+		vect_eq a_eq _ _ (h1::t1) _ | (Yes refl) | _ = Nothing
+	vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) | (No _) = Nothing
+vect_eq a_eq _ _ _ _ = Nothing
 
+
+total
+pre_exprG_eq : (p:dataTypes.Group c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> (Maybe (e1=e2))
+pre_exprG_eq p (PlusG x y) (PlusG x' y') with (pre_exprG_eq p x x', pre_exprG_eq p y y')
+	pre_exprG_eq p (PlusG x y) (PlusG x y) | (Just refl, Just refl) = Just refl
+	pre_exprG_eq p (PlusG x y) (PlusG x' y') | _ = Nothing
+pre_exprG_eq p (VarG p i b1) (VarG p j b2) with (decEq i j, decEq b1 b2)
+	pre_exprG_eq p (VarG p i b1) (VarG p i b1) | (Yes refl, Yes refl) = Just refl
+	pre_exprG_eq p (VarG p i b1) (VarG p j b2) | _ = Nothing
+pre_exprG_eq p (ConstG p const1) (ConstG p const2) with ((group_eq_as_elem_of_set p) const1 const2)
+	pre_exprG_eq p (ConstG p const1) (ConstG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+	pre_exprG_eq p (ConstG p const1) (ConstG p const2) | _ = Nothing
+pre_exprG_eq p (NegG e1) (NegG e2) with (pre_exprG_eq p e1 e2)
+	pre_exprG_eq p (NegG e1) (NegG e1) | (Just refl) = Just refl
+	pre_exprG_eq p (NegG e1) (NegG e2) | _ = Nothing
+pre_exprG_eq p (MinusG x y) (MinusG x' y') with (pre_exprG_eq p x x', pre_exprG_eq p y y')
+	pre_exprG_eq p (MinusG x y) (MinusG x y) | (Just refl, Just refl) = Just refl
+	pre_exprG_eq p (MinusG x y) (MinusG x' y') | _ = Nothing	
+pre_exprG_eq p _ _  = Nothing	
+	
+
+total
+exprG_eq : (p:dataTypes.Group c) -> (n:Nat) -> (m:Nat) -> (g1:Vect n c) -> (g2:Vect m c) -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g1 c1) -> (e2:ExprG p g2 c2) -> (Maybe (e1=e2))
+exprG_eq p n m g1 g2 e1 e2 with (vect_eq set_eq _ _ g1 g2)
+	exprG_eq p n n g1 g1 e1 e2 | (Just refl) = pre_exprG_eq p e1 e2 -- I am very surprised that Idris is able to see than m is n. And if not, it complains, and that's weird because the default equality is supposed to be JMeq
+	exprG_eq p n m g1 g2 e1 e2 | _ = Nothing
+
+	
 
 total
 elimMinus : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
@@ -44,6 +73,7 @@ elimMinus p (NegG e1) =
     (_ ** (NegG e_ih1, ?MelimMinus3))
   
   
+
 -- Ex : -(a+b) becomes (-b) + (-a)
 -- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
 propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
@@ -66,12 +96,13 @@ propagateNeg p e =
 propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 propagateNeg_fix p e = 
 	let (r_1 ** (e_1, p_1)) = propagateNeg p e in
-		case exprG_eq p e e_1 of -- Look for syntactical equality (ie, if we have fone some simplification in the last passe)!
+		case exprG_eq p _ _ _ _ e e_1 of -- Look for syntactical equality (ie, if we have fone some simplification in the last passe)!
 			Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
 			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg_fix p e_1 in -- We do another passe
 							(r_ih1 ** (e_ih1, ?MpropagateNeg_fix_1))
   
-      
+
+total
 elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
 elimDoubleNeg p (NegG (NegG e1)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p e1 in
@@ -85,6 +116,7 @@ elimDoubleNeg p (PlusG e1 e2) =
     ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimDoubleNeg_3))        
 elimDoubleNeg p e1 = 
     (_ ** (e1, refl))
+     
     
 ------------------------------------------------------------------------ 
 -- --------- Part concerning the encoding from Group to Monoid ---------
@@ -98,6 +130,7 @@ countNeg p (MinusG e1 e2) = (countNeg p e1) + (countNeg p e2)
 countNeg p (NegG e) = 1 + (countNeg p e) 
 countNeg p (VarG p i b) = 0
 -}
+
 
 
 using (c:Type, n:Nat, m:Nat)
@@ -123,7 +156,7 @@ SubSet_trans g1 (h2::t2) (h3::t3) (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_add h3 
 
 
 weakenMo : {c:Type} -> {p:dataTypes.Monoid c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c} -> (e:ExprMo p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (SubSet g1 g2) -> ExprMo p g2 c1
-weakenMo (ConstG p c1) 
+--weakenMo (ConstG p c1) 
 
 
 
@@ -144,7 +177,9 @@ encode n g (PlusG e1 e2) =
       	let (n_ih2 ** (g_ih2 ** (c2_ih2 ** ((e_ih2, p_ih2), prSubSet_ih2)))) = encode n_ih1 g_ih1 (weakenG e2 g_ih1 prSubSet_ih1) in 
 	  (n_ih2 ** (g_ih2 ** (_** (((PlusMo (weakenMo e_ih1 g_ih2 prSubSet_ih2) e_ih2, ?Mencode_1), ?Mencode_2)))))
 encode n g (VarG p i b) = (n ** (g ** (_ ** (((VarMo (group_to_monoid_class p) i b), refl), (SubSet_same g)))))
--- For the neg of something (which can only be a variable or a constant), we put a fake variable
+-- For the (NegG e) (where e can only be a variable or a constant), we put a fake variable
+-- Note that we don't bother to know if the Neg was a Neg of a variable or of a constant. Since we do not have any more stuff to do after calling the monoid solver, we can lose this information
+-- This is still seomthing safe because the constant that we add in the context is effectively the negation of the value denoted by the (Neg e)
 encode n g (NegG {p=p} {c1=c1} e) = ((S n) ** (((Neg c1)::g) ** (_ ** (((VarMo (group_to_monoid_class p) (lastElement n) False), ?Mencode_3), SubSet_add (Neg c1) g g (SubSet_same g)))))
 
 
@@ -264,8 +299,9 @@ mutual
 		(_ ** (e, refl))
 
 
+
 	groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (n2 ** (g2 ** (c2 ** (ExprG {n=n2}p g2 c2, c1=c2))))
-	groupReduce c p g e = 
+	groupReduce c p g e =
 		let (r_1 ** (e_1, p_1)) = elimMinus p e in
 		let (r_2 ** (e_2, p_2)) = propagateNeg_fix p e_1 in
 		let (r_3 ** (e_3, p_3)) = elimDoubleNeg p e_2 in
@@ -276,21 +312,22 @@ mutual
 		-- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
 		let (n_6 ** (g_6 ** (r_6 ** (e_6, p_6)))) = code_reduceM_andDecode p e_5 in
 			(n_6 ** (g_6 ** (r_6 ** (e_6, ?MgroupReduce_1))))
-     
+		
 
-	buildProofGroup : (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p g c1) -> (ExprG p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
-	buildProofGroup p e1 e2 lp rp with (exprG_eq p e1 e2)
+	buildProofGroup : (p:dataTypes.Group c) -> {g1:Vect n c} -> {g2:Vect m c} -> {x : c} -> {y : c} -> (ExprG p g1 c1) -> (ExprG p g2 c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+	buildProofGroup p e1 e2 lp rp with (exprG_eq p _ _ _ _ e1 e2)
 		buildProofGroup p e1 e1 lp rp | Just refl = ?MbuildProofGroup
 		buildProofGroup p e1 e2 lp rp | Nothing = Nothing
 
-    
+		
 	groupDecideEq : (p:dataTypes.Group c) -> (g:Vect n c) -> (ExprG p g x) -> (ExprG p g y) -> Maybe (x = y)
 	-- e1 is the left side, e2 is the right side
-	groupDecideEq p g e1 e2 = 
+	groupDecideEq p g e1 e2 =
 		let (n_e1 ** (g_e1 ** (r_e1 ** (e_e1, p_e1)))) = groupReduce _ p g e1 in
 		let (n_e2 ** (g_e2 ** (r_e2 ** (e_e2, p_e2)))) = groupReduce _ p g e2 in
-			--buildProofGroup p e_e1 e_e2 p_e1 p_e2
-			Nothing
+			buildProofGroup p e_e1 e_e2 p_e1 p_e2
+
+
   
 ---------- Proofs ----------
 group_reduce.MelimMinus1 = proof
@@ -348,6 +385,7 @@ group_reduce.MelimDoubleNeg_3 = proof
   rewrite p_ih2
   mrefine refl  
   
+ 
 group_reduce.Melim_plusInverse_1 = proof
   intros
   rewrite p_e1'
@@ -381,13 +419,6 @@ group_reduce.Melim_plusInverse_6 = proof
   rewrite p_e1' 
   rewrite p_e2'
   mrefine refl
-
-{-  
-group_reduce.Melim_plusInverse_2 = proof
-  intros
-  rewrite (sym(left(Plus_inverse c2)))
-  trivial  
-  -}  
   
 group_reduce.MplusInverse_assoc_1 = proof
   intros
@@ -450,7 +481,7 @@ group_reduce.MplusInverse_assoc_9 = proof
   rewrite p_ih1
   rewrite p_ih2
   mrefine refl  
-    
+     
 group_reduce.MgroupReduce_1 = proof
   intros
   rewrite p_6
@@ -466,7 +497,7 @@ group_reduce.MbuildProofGroup = proof
   rewrite (sym lp)
   rewrite (sym rp)
   exact (Just refl)   
-
+  
 group_reduce.Mencode_1 = proof
   intros
   rewrite p_ih1
@@ -502,3 +533,4 @@ group_reduce.Mcode_reduceM_andDecode_1 = proof
   rewrite (sym pReduce  )
   rewrite (sym pDecode )
   exact refl
+  
