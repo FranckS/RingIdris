@@ -135,7 +135,7 @@ aux1 : O = plus O O
 postulate
 plusAssociativeZ : (left : ZZ) -> (centre : ZZ) -> (right : ZZ) ->
   left + (centre + right) = (left + centre) + right
-{-  
+{-
 plusAssociativeZ (Pos u) (Pos v) (Pos w) = let P:((plus u (plus v w))=(plus (plus u v) w)) = (plusAssociative u v w) in ?MplusAssociativeZ_1
 plusAssociativeZ (Pos u) (Pos v) (NegS w) = ?MplusAssociativeZ_2
 plusAssociativeZ (Pos u) (NegS v) (Pos w) = ?MplusAssociativeZ_3
@@ -332,19 +332,6 @@ postulate -- Will be proven later
     lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastElement pn) (reverse g)))
 
 
--- Two remarks : 
--- 	1) The two vectors may have different size
--- 	2) The result is a Maybe, instead of Dec (a proof is only provided if they are equal)
-total
-vect_eq : {a:Type} -> (a_eq : (a1:a)->(a2:a)->Maybe(a1=a2)) -> (n:Nat) -> (m:Nat) -> (g1:Vect n a) -> (g2:Vect m a) -> Maybe (g1=g2)
-vect_eq a_eq _ _ Nil Nil = Just refl
-vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) with (decEq pn pm)
-	vect_eq a_eq (S pn) (S pn) (h1::t1) (h2::t2) | (Yes refl) with (a_eq h1 h2, vect_eq a_eq pn pn t1 t2)
-		vect_eq a_eq _ _ (h1::t1) (h1::t1) | (Yes refl) | (Just refl, Just refl) = Just refl
-		vect_eq a_eq _ _ (h1::t1) _ | (Yes refl) | _ = Nothing
-	vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) | (No _) = Nothing
-vect_eq a_eq _ _ _ _ = Nothing
-
 
 ---------- Proofs ----------  
 -- Part A) : Pairs, dependent pairs, and functions
@@ -366,6 +353,7 @@ tools.MplusAssociativeZ_1 = proof {
   trivial;
 }
 -}
+
 
 tools.MGroup_unicity_1 = proof
   intro

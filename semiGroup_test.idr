@@ -17,26 +17,26 @@ instance SemiGroup Nat where
     Plus_assoc c1 c2 c3 = sym (plusAssociative c1 c2 c3)
 
 
-test1' : (x:Nat) -> ExprSG (%instance) [x] (2 + (3 + x)) 
-test1' x = PlusSG (ConstSG _ 2 True) (PlusSG (ConstSG _ 3 True) (VarSG _ fZ True))
+test1' : (x:Nat) -> ExprSG (%instance) [x] (2 + (3 + x))
+test1' x = PlusSG (ConstSG _ 2) (PlusSG (ConstSG _ 3) (VarSG _ fZ True))
 
 test2' : (x:Nat) -> ExprSG (%instance) [x] (5 + x)
-test2' x = PlusSG (PlusSG (ConstSG _ 2 True) (ConstSG _ 3 True)) (VarSG _ fZ True)
+test2' x = PlusSG (PlusSG (ConstSG _ 2) (ConstSG _ 3)) (VarSG _ fZ True)
 
 test3' : (x:Nat) -> ExprSG (%instance) [x] (5 + x)
-test3' x = PlusSG (ConstSG _ 5 True) (VarSG _ fZ True)
+test3' x = PlusSG (ConstSG _ 5) (VarSG _ fZ True)
 
 test4' : (x:Nat) -> (y:Nat) -> ExprSG (%instance) [x, y] ((x + (1+1)) + (2 + y))
-test4' x y = (PlusSG (PlusSG (VarSG _ (fS fZ) True) 
-                             (PlusSG (ConstSG _ 1 True) (ConstSG _ 1 True)))
-                     (PlusSG (ConstSG _ 2 True) (VarSG _ fZ True)))
+test4' x y = (PlusSG (PlusSG (VarSG _ (fS fZ) True)
+                             (PlusSG (ConstSG _ 1) (ConstSG _ 1)))
+                     (PlusSG (ConstSG _ 2) (VarSG _ fZ True)))
              
 test5' : (x:Nat) -> (y:Nat) -> ExprSG (%instance) [x, y] (x + (4 + y))
-test5' x y = PlusSG (VarSG _ (fS fZ) True) (PlusSG (ConstSG _ 4 True) (VarSG _ fZ True))           
+test5' x y = PlusSG (VarSG _ (fS fZ) True) (PlusSG (ConstSG _ 4) (VarSG _ fZ True))
              
--- Normalisation of 2 + (3 + x) that should give 5 + x this time, since now we are working with semiGroup 
+-- Normalisation of 2 + (3 + x) that should give 5 + x this time, since now we are working with semiGroup
 compare_test1'_test3' : (x:Nat) -> Maybe (2 + (3 + x) = 5 + x)
-compare_test1'_test3' x = semiGroupDecideEq (%instance) [x] (test1' x) (test3' x) 
+compare_test1'_test3' x = semiGroupDecideEq (%instance) [x] (test1' x) (test3' x)
 
 -- Later, we will have a real tactic which can fail. At this point, we will
 -- not have a missing case for "Nothing", which enables now to manipulate some false proof
