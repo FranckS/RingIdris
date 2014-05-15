@@ -7,6 +7,8 @@
 module dataTypes
 
 
+%default total
+
 index_reverse : {a:Type} -> {n:Nat} -> (Fin n) -> (Vect n a) -> a
 index_reverse j g = index j (reverse g)
 
@@ -99,6 +101,15 @@ using (g : Vect n c)
         MinusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
         NegG : {p : dataTypes.Group c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
         VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (index_reverse i g)
+
+    
+    print_ExprG : {p:dataTypes.Group c} -> {r1:c} -> (c -> String) -> ExprG p g r1 -> String
+    print_ExprG c_print (ConstG p const) = c_print const
+    print_ExprG c_print (PlusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") + (" ++ (print_ExprG c_print e2) ++ ")"
+    print_ExprG c_print (MinusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") - (" ++ (print_ExprG c_print e2) ++ ")"
+    print_ExprG c_print (VarG p i b) = if b then "Var " ++ (show (cast i)) else "~Var" ++ (show (cast i))
+    print_ExprG c_print (NegG e) = "(-" ++ (print_ExprG c_print e) ++ ")"
+
  
 -- Reflected terms in a commutative group       
     data ExprCG : CommutativeGroup c -> (Vect n c) -> c -> Type where
