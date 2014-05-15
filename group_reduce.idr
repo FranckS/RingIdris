@@ -23,9 +23,9 @@ exprG_eq p (PlusG x y) (PlusG x' y') with (exprG_eq p x x', exprG_eq p y y')
 exprG_eq p (VarG p i b1) (VarG p j b2) with (decEq i j, decEq b1 b2)
 	exprG_eq p (VarG p i b1) (VarG p i b1) | (Yes refl, Yes refl) = Just refl
 	exprG_eq p (VarG p i b1) (VarG p j b2) | _ = Nothing
-exprG_eq p (ConstG p const1) (ConstG p const2) with ((group_eq_as_elem_of_set p) const1 const2)
-	exprG_eq p (ConstG p const1) (ConstG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
-	exprG_eq p (ConstG p const1) (ConstG p const2) | _ = Nothing
+exprG_eq p (ConstG p const1 b1) (ConstG p const2 b2) with ((group_eq_as_elem_of_set p) const1 const2, decEq b1 b2)
+	exprG_eq p (ConstG p const1 b1) (ConstG p const1 b1) | (Just refl, Yes refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+	exprG_eq p (ConstG p const1 b1) _ | _ = Nothing
 exprG_eq p (NegG e1) (NegG e2) with (exprG_eq p e1 e2)
 	exprG_eq p (NegG e1) (NegG e1) | (Just refl) = Just refl
 	exprG_eq p (NegG e1) (NegG e2) | _ = Nothing
@@ -49,7 +49,7 @@ het_exprG_eq p n m g1 g2 e1 e2 with (vect_eq set_eq _ _ g1 g2)
 
 total
 elimMinus : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
-elimMinus p (ConstG p const) = (_ ** (ConstG p const, refl))
+elimMinus p (ConstG p const b) = (_ ** (ConstG p const b, refl))
 elimMinus p (PlusG e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p e2) in
@@ -176,7 +176,7 @@ encode n g (NegG {p=p} {c1=c1} e) = ((S n) ** (((Neg c1)::g) ** (_ ** (((VarMo (
 
 
 encode : {c:Type} -> {p:dataTypes.Group c} -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo (group_to_monoid_class p) g c2, c1=c2))
-encode n g (ConstG p c1) =(c1 ** (ConstMo (group_to_monoid_class p) c1, refl))
+encode n g (ConstG p c1 b1) =(c1 ** (ConstMo (group_to_monoid_class p) c1 b1, refl))
 encode n g (PlusG e1 e2) = 
     let (c2_ih1 ** (e_ih1, p_ih1)) = encode n g e1 in 
 	let (c2_ih2 ** (e_ih2, p_ih2)) = encode n g e2 in 
@@ -185,7 +185,8 @@ encode n g (VarG p i b) = (_ ** (VarMo (group_to_monoid_class p) i b, refl))
 -- For the (NegG e) (where e can only be a variable or a constant), we put a fake variable
 -- Note that we don't bother to know if the Neg was a Neg of a variable or of a constant. Since we do not have any more stuff to do after calling the monoid solver, we can lose this information
 -- This is still seomthing safe because the constant that we add in the context is effectively the negation of the value denoted by the (Neg e)
-encode n g (NegG {p=p} {c1=c1} e) = (_ ** (ConstMo (group_to_monoid_class p) (Neg c1), refl))
+encode n g (NegG {p=p} {c1=c1} (ConstG _ c1 b1)) = (_ ** (ConstMo (group_to_monoid_class p) (Neg c1) True, refl)) --TRUE IMPORTANT HERE
+encode n g (NegG {p=p} {c1=c1} e) = (_ ** (ConstMo (group_to_monoid_class p) (Neg c1) False, refl)) --FALSE IMPORTANT HERE
 
 
 {-
@@ -201,7 +202,7 @@ decode p n g (PlusMo e1 e2) =
 
 
 decode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) g c1) -> (c2 ** ((ExprG {n=n} p g c2, c1=c2)))  
-decode p n g (ConstMo _ c1) = (c1 ** ((ConstG p c1, refl)))
+decode p n g (ConstMo _ c1 b1) = (c1 ** ((ConstG p c1 b1, refl)))
 decode p n g (VarMo _ i b) = (_ ** (((VarG p i b), refl)))
 decode p n g (PlusMo e1 e2) = 
 	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p n g e1 in 
@@ -223,7 +224,7 @@ mutual
 -- Simplify (+e) + (-e) at *one* level of +
 --------------------------------------------
 	elim_plusInverse : {c:Type} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
-	elim_plusInverse p g (ConstG p const) = (_ ** (ConstG p const, refl))
+	elim_plusInverse p g (ConstG p const b) = (_ ** (ConstG p const b, refl))
 	elim_plusInverse p g (VarG p v b) = (_ ** (VarG p v b, refl))
 	-- Reminder : e1 and e2 can't be a Neg themselves, because you are suppose to call elimDoubleNeg before calling this function...
 	elim_plusInverse p g (PlusG (NegG e1) (NegG e2)) = 
@@ -232,14 +233,14 @@ mutual
 		(_ ** ((PlusG (NegG e1') (NegG e2')), ?Melim_plusInverse_1))
 	-- If e2 is not a Neg !
 	elim_plusInverse p g (PlusG (NegG e1) e2) with (groupDecideEq p g e1 e2) -- compare les versions simplifiees de e1 et de e2
-		elim_plusInverse p g (PlusG (NegG e1) e1) | (Just refl) = (_ ** ((ConstG _ Zero), ?Melim_plusInverse_2))
+		elim_plusInverse p g (PlusG (NegG e1) e1) | (Just refl) = (_ ** ((ConstG _ Zero True), ?Melim_plusInverse_2))
 		elim_plusInverse p g (PlusG (NegG e1) e2) | _ = 
 			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
 			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
 			(_ ** ((PlusG (NegG e1') e2'), ?Melim_plusInverse_2))
 	-- If e1 is not a Neg !
 	elim_plusInverse p g (PlusG e1 (NegG e2)) with (groupDecideEq p g e1 e2) -- compare les versions simplifiees de e1 et de e2
-		elim_plusInverse p g (PlusG e1 (NegG e1)) | (Just refl) = (_ ** ((ConstG _ Zero), ?Melim_plusInverse_3))
+		elim_plusInverse p g (PlusG e1 (NegG e1)) | (Just refl) = (_ ** ((ConstG _ Zero True), ?Melim_plusInverse_3))
 		elim_plusInverse p g (PlusG e1 (NegG e2)) | _ = 
 			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
 			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in

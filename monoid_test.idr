@@ -25,10 +25,10 @@ instance dataTypes.Monoid Nat where
     Plus_neutral_2 (S pc) = let px = Plus_neutral_2 pc in ?M_Nat_Monoid_3
 
 aaa : (x:Nat) -> ExprMo (%instance) [x] (2 + (0 + x)) 
-aaa x = PlusMo (ConstMo _ 2) (PlusMo (ConstMo _ 0) (VarMo _ fZ True))
+aaa x = PlusMo (ConstMo _ 2 True) (PlusMo (ConstMo _ 0 True) (VarMo _ fZ True))
 
 bbb : (x:Nat) -> ExprMo (%instance) [x] (2 + x)
-bbb x = PlusMo (ConstMo _ 2) (VarMo _ fZ True)
+bbb x = PlusMo (ConstMo _ 2 True) (VarMo _ fZ True)
 
 
 -- Normalisation of 2 + (0 + x) that should give 2 + x, since now we are working on a monoid
