@@ -133,53 +133,66 @@ countNeg p (VarG p i b) = 0
 
 
 
-using (c:Type, n:Nat, m:Nat)
-    data SubSet : Vect n c -> Vect m c -> Type where
-        SubSet_same : (g:Vect n c) -> SubSet g g
-        SubSet_add : (c1:c) -> (g1:Vect n c) -> (g2:Vect k c) -> (SubSet g1 g2) -> SubSet g1 (c1 :: g2)
 
 
 total
-SubSet_wkn : (g1:Vect n c) -> (g2:Vect m c) -> (c1:c) -> (SubSet (c1::g1) g2) -> (SubSet g1 g2)
-SubSet_wkn g1 _ c1 (SubSet_same _) = SubSet_add c1 g1 g1 (SubSet_same g1)
-SubSet_wkn g1 (h2::t2) c1 (SubSet_add h2 g1 t2 c1_cons_g1_in_t2) = SubSet_add h2 g1 t2 (SubSet_wkn g1 t2 c1 c1_cons_g1_in_t2)
+weakenMo : {c:Type} -> {p:dataTypes.Monoid c} -> (n:Nat) -> (g1:Vect n c) -> {c1:c} -> (e:ExprMo p g1 c1) -> (m:Nat) -> (g2 : Vect m c) -> (SubSet g1 g2) -> (c2 ** (ExprMo p g2 c2, c1=c2))
+weakenMo _ g1 e m _ (SubSet_same _) = (_ ** (e, refl))
+-- Case Subset_add
+weakenMo n g1 (ConstMo _ c1) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) = (_ ** (ConstMo _ c1, refl))
+weakenMo n g1 (VarMo _ i b) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) =
+	let paux : (GTE pm n) = (SubSet_size n pm g1 t p_g1_subset_t) in
+	let paux2 : (GTE (S pm) n) = (bigger_value pm n paux) in
+	let i':(Fin (S pm)) = (pre_convertFin i pm paux2) in
+		((index_reverse i' (h::t)) ** ((VarMo _ i' b), ?MweakenMo_1))
+weakenMo n g1 (PlusMo e1 e2) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) = 
+	let (c2_ih1 ** (e2_ih1, p_ih1)) = weakenMo n g1 e1 (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) in
+	let (c2_ih2 ** (e2_ih2, p_ih2)) = weakenMo n g1 e2 (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) in	
+		(_ ** ((PlusMo e2_ih1 e2_ih2), ?MweakenMo_2))
+
 
 
 total
-SubSet_trans : (g1:Vect n c) -> (g2:Vect m c) -> (g3 : Vect k c) -> (SubSet g1 g2) -> (SubSet g2 g3) -> (SubSet g1 g3)
-SubSet_trans g1 _ _ (SubSet_same g1) (SubSet_same _) = SubSet_same g1
-SubSet_trans g1 _ (h3::t3) (SubSet_same g1) (SubSet_add h3 g1 t3 g1_in_t3) = SubSet_add h3 g1 t3 g1_in_t3
-SubSet_trans g1 (h2::t2) _ (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_same _) = SubSet_add h2 g1 t2 g1_in_t2
-SubSet_trans g1 (h2::t2) (h3::t3) (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_add h3 _ t3 h2_cons_t2_in_t3) = 
-    let t2_in_t3 : SubSet t2 t3 = SubSet_wkn t2 t3 h2 h2_cons_t2_in_t3 in 
-        SubSet_add h3 g1 t3 (SubSet_trans g1 t2 t3 g1_in_t2 t2_in_t3)
-
-
-weakenMo : {c:Type} -> {p:dataTypes.Monoid c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c} -> (e:ExprMo p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (SubSet g1 g2) -> ExprMo p g2 c1
---weakenMo (ConstG p c1) 
-
-
-
-weakenG : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> {g1:Vect n c} -> {c1:c} -> (e:ExprG p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (SubSet g1 g2) -> ExprG p g2 c1
+weakenG : {c:Type} -> {p:dataTypes.Group c} -> (n:Nat) -> (g1:Vect n c) -> {c1:c} -> (e:ExprG p g1 c1) -> (m:Nat) -> (g2 : Vect m c) -> (SubSet g1 g2) -> (c2 ** (ExprG p g2 c2, c1=c2))
+weakenG _ g1 e m _ (SubSet_same _) = (_ ** (e, refl))
+-- Case Subset_add
+weakenG n g1 (ConstG _ c1) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) = (_ ** (ConstG _ c1, refl))
+weakenG n g1 (VarG _ i b) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) =
+	let paux : (GTE pm n) = (SubSet_size n pm g1 t p_g1_subset_t) in
+	let paux2 : (GTE (S pm) n) = (bigger_value pm n paux) in
+	let i':(Fin (S pm)) = (pre_convertFin i pm paux2) in
+		((index_reverse i' (h::t)) ** ((VarG _ i' b), ?MweakenG_1))
+weakenG n g1 (PlusG e1 e2) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) = 
+	let (c2_ih1 ** (e2_ih1, p_ih1)) = weakenG n g1 e1 (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) in
+	let (c2_ih2 ** (e2_ih2, p_ih2)) = weakenG n g1 e2 (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) in	
+		(_ ** ((PlusG e2_ih1 e2_ih2), ?MweakenG_2))
+weakenG n g1 (MinusG e1 e2) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) = 
+	let (c2_ih1 ** (e2_ih1, p_ih1)) = weakenG n g1 e1 (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) in
+	let (c2_ih2 ** (e2_ih2, p_ih2)) = weakenG n g1 e2 (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) in	
+		(_ ** ((MinusG e2_ih1 e2_ih2), ?MweakenG_3))
+weakenG n g1 (NegG e) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) = 
+	let (c2_ih1 ** (e2_ih1, p_ih1)) = weakenG n g1 e (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) in
+		(_ ** ((NegG e2_ih1), ?MweakenG_4))
 
 --weaken_correct : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g1:Vect n c) -> {c1:c} -> (e:ExprG p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (weaken p g1 e g2 = e)
 
 
---changeIeme : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (Vect n A)
-
---changeIeme_correct : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (a = index_reverse i (changeIeme g i a))
 
 
+-- Can't be tagged as total because of the missing case for Minus (they have been deleted when we reach this point)
 encode : {c:Type} -> {p:dataTypes.Group c} -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (n2 ** (g2 ** (c2 ** ((ExprMo {n=n2} (group_to_monoid_class p) g2 c2, c1=c2), SubSet g g2))))
 encode n g (ConstG p c1) = (_ ** (g ** (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), SubSet_same _))))
 encode n g (PlusG e1 e2) = 
     let (n_ih1 ** (g_ih1 ** (c2_ih1 ** ((e_ih1, p_ih1), prSubSet_ih1)))) = encode n g e1 in 
-      	let (n_ih2 ** (g_ih2 ** (c2_ih2 ** ((e_ih2, p_ih2), prSubSet_ih2)))) = encode n_ih1 g_ih1 (weakenG e2 g_ih1 prSubSet_ih1) in 
-	  (n_ih2 ** (g_ih2 ** (_** (((PlusMo (weakenMo e_ih1 g_ih2 prSubSet_ih2) e_ih2, ?Mencode_1), ?Mencode_2)))))
+	let (cWeak ** (eWeak, pWeak)) = (weakenG _ _ e2 _ g_ih1 prSubSet_ih1) in
+	let (n_ih2 ** (g_ih2 ** (c2_ih2 ** ((e_ih2, p_ih2), prSubSet_ih2)))) = encode n_ih1 g_ih1 eWeak in 
+	let (cWeak2 ** (eWeak2, pWeak2)) = (weakenMo _ _ e_ih1 _ g_ih2 prSubSet_ih2) in
+	  (n_ih2 ** (g_ih2 ** (_** (((PlusMo eWeak2 e_ih2, ?Mencode_1), ?Mencode_2)))))
 encode n g (VarG p i b) = (n ** (g ** (_ ** (((VarMo (group_to_monoid_class p) i b), refl), (SubSet_same g)))))
 -- For the (NegG e) (where e can only be a variable or a constant), we put a fake variable
 -- Note that we don't bother to know if the Neg was a Neg of a variable or of a constant. Since we do not have any more stuff to do after calling the monoid solver, we can lose this information
 -- This is still seomthing safe because the constant that we add in the context is effectively the negation of the value denoted by the (Neg e)
+encode n g (NegG {p=p} {c1=c1} (ConstG _ c1)) = (_ ** (g ** ((Neg c1) ** (((ConstMo (group_to_monoid_class p) (Neg c1)), refl), SubSet_same g))))
 encode n g (NegG {p=p} {c1=c1} e) = ((S n) ** (((Neg c1)::g) ** (_ ** (((VarMo (group_to_monoid_class p) (lastElement n) False), ?Mencode_3), SubSet_add (Neg c1) g g (SubSet_same g)))))
 
 
@@ -187,6 +200,7 @@ encode n g (NegG {p=p} {c1=c1} e) = ((S n) ** (((Neg c1)::g) ** (_ ** (((VarMo (
 --encode n g (NegG {p=p} (VarG _ i b)) = (n ** ((changeIeme g i (Neg (index_reverse i g))) ** (_ ** (((VarMo _ i False), ?Mencode_4), ?MAAA))))
 
 
+total
 decode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) g c1) -> (c2 ** ((ExprG {n=n} p g c2, c1=c2)))  
 decode p n g (ConstMo _ c1) = (c1 ** ((ConstG p c1, refl)))
 decode p n g (VarMo _ i True) = (_ ** (((VarG p i True), refl)))
@@ -497,11 +511,60 @@ group_reduce.MbuildProofGroup = proof
   rewrite (sym lp)
   rewrite (sym rp)
   exact (Just refl)   
+
+group_reduce.MweakenG_1 = proof
+  intros
+  mrefine indexReverse_of_convert 
+  exact c
+  exact n
+  exact g1
+  exact i
+  exact pm
+  exact (h::t)
+  exact (lower_value n pm (SubSet_size n pm g1 t p_g1_subset_t))
+  exact (SubSet_add h g1 t p_g1_subset_t)
   
-group_reduce.Mencode_1 = proof
+group_reduce.MweakenG_2 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
+  exact refl
+  
+group_reduce.MweakenG_3 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  exact refl
+  
+group_reduce.MweakenG_4 = proof
+  intros
+  rewrite p_ih1
+  exact refl
+  
+group_reduce.MweakenMo_1 = proof
+  intros
+  mrefine indexReverse_of_convert 
+  exact c
+  exact n
+  exact g1
+  exact i
+  exact pm
+  exact (h::t)
+  exact (lower_value n pm (SubSet_size n pm g1 t p_g1_subset_t))
+  exact (SubSet_add h g1 t p_g1_subset_t)
+  
+group_reduce.MweakenMo_2 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  exact refl    
+  
+group_reduce.Mencode_1 = proof
+  intros
+  rewrite pWeak2
+  rewrite p_ih1
+  rewrite p_ih2
+  rewrite pWeak
   exact refl
 
 group_reduce.Mencode_2 = proof
@@ -514,7 +577,7 @@ group_reduce.Mencode_3 = proof
   exact n
   exact c
   exact ((Neg c1) :: g)
-
+  
 {-  
 group_reduce.Mencode_4 = proof
   intros

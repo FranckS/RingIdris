@@ -184,6 +184,10 @@ lower_value (S px) (S py) (lteSucc p) = lteSucc (lower_value _ _ p)
 lower_value Z (S py) p = lteZero
 
 
+bigger_value : (x:Nat) -> (y:Nat) -> (GTE x y) -> GTE (S x) y
+bigger_value x y p = lower_value _ _ p
+
+
 greater_than_succ : (x:Nat) -> (y:Nat) -> (GTE x (S y)) -> (GTE x y)
 greater_than_succ (S px) Z (lteSucc p) = lteZero
 greater_than_succ (S px) (S py) (lteSucc p) = lower_value (S py) px p
@@ -328,10 +332,47 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
 -- -----------------------------------
 -- E) VECTOR TOOLS
 -- -----------------------------------
+
+{- Not needed now
+--changeIeme : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (Vect n A)
+
+--changeIeme_correct : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (a = index_reverse i (changeIeme g i a))
+-}
+
 postulate -- Will be proven later
     lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastElement pn) (reverse g)))
 
 
+    
+using (c:Type, n:Nat, m:Nat)
+    data SubSet : Vect n c -> Vect m c -> Type where
+        SubSet_same : (g:Vect n c) -> SubSet g g
+        SubSet_add : (c1:c) -> (g1:Vect n c) -> (g2:Vect k c) -> (SubSet g1 g2) -> SubSet g1 (c1 :: g2)
+
+
+total
+SubSet_wkn : (g1:Vect n c) -> (g2:Vect m c) -> (c1:c) -> (SubSet (c1::g1) g2) -> (SubSet g1 g2)
+SubSet_wkn g1 _ c1 (SubSet_same _) = SubSet_add c1 g1 g1 (SubSet_same g1)
+SubSet_wkn g1 (h2::t2) c1 (SubSet_add h2 g1 t2 c1_cons_g1_in_t2) = SubSet_add h2 g1 t2 (SubSet_wkn g1 t2 c1 c1_cons_g1_in_t2)
+
+
+total
+SubSet_trans : (g1:Vect n c) -> (g2:Vect m c) -> (g3 : Vect k c) -> (SubSet g1 g2) -> (SubSet g2 g3) -> (SubSet g1 g3)
+SubSet_trans g1 _ _ (SubSet_same g1) (SubSet_same _) = SubSet_same g1
+SubSet_trans g1 _ (h3::t3) (SubSet_same g1) (SubSet_add h3 g1 t3 g1_in_t3) = SubSet_add h3 g1 t3 g1_in_t3
+SubSet_trans g1 (h2::t2) _ (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_same _) = SubSet_add h2 g1 t2 g1_in_t2
+SubSet_trans g1 (h2::t2) (h3::t3) (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_add h3 _ t3 h2_cons_t2_in_t3) = 
+    let t2_in_t3 : SubSet t2 t3 = SubSet_wkn t2 t3 h2 h2_cons_t2_in_t3 in 
+        SubSet_add h3 g1 t3 (SubSet_trans g1 t2 t3 g1_in_t2 t2_in_t3)    
+    
+
+postulate    
+	SubSet_size : {c:Type} -> (n:Nat) -> (m:Nat) -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 g2) -> (GTE m n)
+    
+    
+-- Says that ig g2 is a superset of g1, then the first element are the same
+postulate -- Will be proven later
+	indexReverse_of_convert : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (i:Fin n) -> {m:Nat} -> (g2:Vect (S m) c) -> (p: GTE (S m) n) -> (SubSet g1 g2) -> (index_reverse i g1 = index_reverse (pre_convertFin i m p) g2) 
 
 ---------- Proofs ----------  
 -- Part A) : Pairs, dependent pairs, and functions
