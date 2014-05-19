@@ -38,6 +38,10 @@ f_equal : {A:Type} -> {B:Type} -> (f:A->B) -> (x:A) -> (y:A) -> (x=y) -> (f x = 
 f_equal f x y p = ?Mf_equal
 
 
+{-
+rewriteIn : {A':Type} -> {B':Type} -> {A:A'} -> {B:B'} -> (C:Type) -> (a:A) -> (p:A=B) -> (B -> C) -> C
+rewriteIn C a p f = ?MrewriteIn_1
+-}
 
 -- -------------------------------
 -- B) TOOLS AND LEMMAS FOR GROUPS
@@ -381,7 +385,8 @@ tools.Mf_equal = proof
   intros
   rewrite p
   exact refl
-
+  
+  
 -- Part B) : Groups
 
 -- B.1/ This subpart is to obtain the lemma "group_doubleNeg" : - (-a) = a
