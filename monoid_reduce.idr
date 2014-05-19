@@ -1,4 +1,4 @@
--- Edwin Brady, Franck SlaMo
+-- Edwin Brady, Franck Slama
 -- University of St Andrews
 -- File monoid_reduce.idr
 -- Normalize an expression reflecting an element in a monoid
@@ -8,6 +8,7 @@ module monoid_reduce
 
 import Decidable.Equality
 import dataTypes
+import semiGroup_reduce
 import tools
 
 

@@ -10,7 +10,6 @@ import Prelude.Vect
 import globalDef
 import dataTypes
 import semiGroup_reduce
-import magma_test
 
 
 instance SemiGroup Nat where

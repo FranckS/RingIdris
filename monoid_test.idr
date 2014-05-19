@@ -10,9 +10,7 @@ import Prelude.Vect
 import globalDef
 import dataTypes
 import monoid_reduce
-import semiGroup_reduce
 import semiGroup_test
-import magma_test
 
 
 instance ZeroC Nat where

@@ -8,6 +8,7 @@ module group_reduce
 
 import Decidable.Equality
 import dataTypes
+import monoid_reduce
 import tools
 import Prelude.Vect
 import Decidable.Equality

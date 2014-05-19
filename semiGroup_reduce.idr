@@ -8,6 +8,7 @@ module semiGroup_reduce
 
 import Decidable.Equality
 import dataTypes
+import magma_reduce
 import tools
 
 
