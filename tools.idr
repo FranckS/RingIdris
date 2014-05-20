@@ -343,11 +343,31 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
 --changeIeme_correct : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (a = index_reverse i (changeIeme g i a))
 -}
 
+-- E.1) index and reverse
+
 postulate -- Will be proven later
     lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastElement pn) (reverse g)))
 
+-- E.2) Append
 
+vectorAppendNil : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (g1 ++ Nil = g1)
+vectorAppendNil Nil = refl
+vectorAppendNil (h::t) = let paux:(t++Nil = t) = vectorAppendNil t in ?MvectorAppendNil_1
     
+
+vectorAppend_assoc : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (g1++(g2++g3) = (g1 ++ g2)++g3)
+vectorAppend_assoc Nil Nil Nil = refl
+vectorAppend_assoc Nil Nil (h3::t3) = refl
+vectorAppend_assoc Nil (h2::t2) Nil = refl
+vectorAppend_assoc Nil (h2::t2) (h3::t3) = refl
+vectorAppend_assoc (h1::t1) Nil Nil = let hn : (t1 ++ (Nil ++ Nil) = (t1 ++ Nil) ++ Nil) = vectorAppend_assoc t1 Nil Nil in ?MvectorAppend_assoc_1
+vectorAppend_assoc (h1::t1) Nil (h3::t3) = ?MvectorAppend_assoc_2
+vectorAppend_assoc (h1::t1) (h2::t2) Nil = ?MvectorAppend_assoc_3
+vectorAppend_assoc (h1::t1) (h2::t2) (h3::t3) = ?MvectorAppend_assoc_4  
+
+
+-- E.3) "Subsets"
+
 using (c:Type, n:Nat, m:Nat)
     data SubSet : Vect n c -> Vect m c -> Type where
         SubSet_same : (g:Vect n c) -> SubSet g g
@@ -374,9 +394,35 @@ postulate
 	SubSet_size : {c:Type} -> (n:Nat) -> (m:Nat) -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 g2) -> (GTE m n)
     
     
--- Says that ig g2 is a superset of g1, then the first element are the same
+concat_SubSet : {c:Type} -> {n:Nat} -> {m:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 (g2++g1))
+concat_SubSet g1 g2 = ?Mconcat_SubSet_1
+    
+    
+-- Says that ig g2 is a "superset" of g1, then the first element are the same
 postulate -- Will be proven later
-	indexReverse_of_convert : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (i:Fin n) -> {m:Nat} -> (g2:Vect (S m) c) -> (p: GTE (S m) n) -> (SubSet g1 g2) -> (index_reverse i g1 = index_reverse (pre_convertFin i m p) g2) 
+	indexReverse_of_convert : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (i:Fin n) -> {m:Nat} -> (g2:Vect (S m) c) -> (p: GTE (S m) n) -> (SubSet g1 g2) -> (index_reverse i g1 = index_reverse (pre_convertFin i m p) g2)
+	
+	
+-- Subset and equality
+SubSet_rewriteRight : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (SubSet g1 g2) -> (g2=g3) -> (SubSet g1 g3)
+SubSet_rewriteRight g1 g2 g3 psub peq = ?MSubSet_rewriteRight_1
+
+
+
+-- E.4) Removing elements
+
+-- Not needed now
+{-
+remove_first_x_elements : {a:Type} -> {n:Nat} -> (x:Nat) -> (Vect (x+n) a) -> (Vect n a)
+remove_first_x_elements Z g = g
+remove_first_x_elements (S px) (h::t) = remove_first_x_elements px t
+remove_first_x_elements (S px) Nil impossible
+
+
+remove_first_x_subset : {a:Type} -> {n:Nat} -> (x:Nat) -> (g:Vect (x+n) a) -> (SubSet (remove_first_x_elements x g) g)
+remove_first_x_subset x g = ?Mremove_first_x_subset_1
+
+-}
 
 ---------- Proofs ----------  
 -- Part A) : Pairs, dependent pairs, and functions

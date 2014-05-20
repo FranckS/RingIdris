@@ -69,8 +69,8 @@ termA : (x:ZZ) -> ExprG (%instance) [x] (-2 + x)
 termA x = PlusG (NegG (ConstG _ (Pos 2))) (VarG _ fZ True)
 									
 									
-termA_encoded : (x:ZZ) -> (n2 ** (g2:(Vect n2 ZZ) ** (c2:ZZ ** (((ExprMo {n=n2} (%instance) g2 c2), (-2+x = c2)), SubSet {n=1} {m=n2} [x] g2))))
-termA_encoded x = encode (S Z) [x] (termA x)
+termA_encoded : (x:ZZ) -> (y ** (g2 ** (c2:ZZ ** ((ExprMo {n=y+(S Z)} (%instance) (g2++[x]) c2), (-2+x = c2)))))
+termA_encoded x = encode _ _ (S Z) [x] (termA x)
 
 									
 termB : (x:ZZ) -> ExprG (%instance) [x] (0 + x) 

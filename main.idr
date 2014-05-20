@@ -50,14 +50,14 @@ main = putStrLn "coucou!"
 
 
 
-
+{-
 ((ExprMo (@@constructor of dataTypes.Group#Monoid c) (g_ih2 ++ g_ih1 ++ g) (Plus c1 c2), Plus c1 c2 = Plus c1 c2), SubSet g (g_ih2 ++ g_ih1 ++ g))
+-}
 
 
 
 
-
-
+{-
 intros
 mrefine Ex_intro
 exact (x_ih2+x_ih1)
@@ -72,7 +72,7 @@ rewrite p_ih1
 rewrite pWeak
 exact ((PlusMo eWeak2 e_ih2, refl), ?MA)
 
-
+-}
 
 
 

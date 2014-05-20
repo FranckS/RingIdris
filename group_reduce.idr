@@ -136,9 +136,6 @@ countNeg p (VarG p i b) = 0
 -}
 
 
-
-
-
 total
 weakenMo : {c:Type} -> {p:dataTypes.Monoid c} -> (n:Nat) -> (g1:Vect n c) -> {c1:c} -> (e:ExprMo p g1 c1) -> (m:Nat) -> (g2 : Vect m c) -> (SubSet g1 g2) -> (c2 ** (ExprMo p g2 c2, c1=c2))
 weakenMo _ g1 e m _ (SubSet_same _) = (_ ** (e, refl))
@@ -181,57 +178,49 @@ weakenG n g1 (NegG e) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) =
 --weaken_correct : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g1:Vect n c) -> {c1:c} -> (e:ExprG p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (weaken p g1 e g2 = e)
 
 
-transformExp : {c:Type} -> {p:dataTypes.Monoid c} -> {c1:c} -> (g1:Vect n c) -> (g2:Vect n c) -> (g1=g2) -> ExprMo p g1 c1 -> ExprMo p g2 c1
-transformExp g1 g2 p1 e = rewrite (sym p1) in e
+transformExp' : {c:Type} -> {p:dataTypes.Monoid c} -> {c1:c} -> (g1:Vect n c) -> (p1:n=m) -> ExprMo {n=n} p g1 c1 -> ExprMo {n=m} p (rewrite (sym p1) in g1) c1
+transformExp' g1 p1 e = ?MtransformExp'_1
+
+transformExp : {c:Type} -> {p:dataTypes.Monoid c} -> {c1:c} -> (g1:Vect n c) -> (g2:Vect m c) -> (n=m) -> (g1=g2) -> ExprMo {n=n} p g1 c1 -> ExprMo {n=m} p g2 c1
+-- Will perhaps use transformExp'
+transformExp g1 g2 p1 p2 e = ?MtransformExp_1 -- rewrite (sym p1) in e
+
 
 
 
 -- Can't be tagged as total because of the missing case for Minus (they have been deleted when we reach this point)
-encode : (c:Type) -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (x ** (g2 ** (c2 ** ((ExprMo {n=x+n} (group_to_monoid_class p) (g2++g) c2, c1=c2), SubSet g (g2++g)))))
-encode c p n g (ConstG p c1) = (Z ** (Nil ** (c1 ** ((ConstMo (group_to_monoid_class p) c1, refl), SubSet_same _))))
+encode : (c:Type) -> (p:dataTypes.Group c) -> (n:Nat) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (x ** (g2 ** (c2 ** (ExprMo {n=x+n} (group_to_monoid_class p) (g2++g) c2, c1=c2))))
+encode c p n g (ConstG p c1) = (Z ** (Nil ** (c1 ** (ConstMo (group_to_monoid_class p) c1, refl))))
 encode c p n g (PlusG e1 e2) = 
-	let (x_ih1 ** (g_ih1 ** (c2_ih1 ** ((e_ih1, p_ih1), prSubSet_ih1)))) = encode c p n g e1 in 
-	let (cWeak ** (eWeak, pWeak)) = (weakenG n g e2 (x_ih1+n) (g_ih1++g) prSubSet_ih1) in
-	 let (x_ih2 ** (g_ih2 ** (c2_ih2 ** ((e_ih2, p_ih2), prSubSet_ih2)))) = encode c p (x_ih1+n) (g_ih1++g) eWeak in 
-	let (cWeak2 ** (eWeak2, pWeak2)) = (weakenMo (x_ih1+n) (g_ih1++g) e_ih1 _ (g_ih2++(g_ih1++g)) prSubSet_ih2) in 
+	let (x_ih1 ** (g_ih1 ** (c2_ih1 ** (e_ih1, p_ih1)))) = encode c p n g e1 in 
+	let (cWeak ** (eWeak, pWeak)) = (weakenG n g e2 (x_ih1+n) (g_ih1++g) (concat_SubSet g g_ih1)) in
+	let (x_ih2 ** (g_ih2 ** (c2_ih2 ** (e_ih2, p_ih2)))) = encode c p (x_ih1+n) (g_ih1++g) eWeak in 
+	let (cWeak2 ** (eWeak2, pWeak2)) = (weakenMo (x_ih1+n) (g_ih1++g) e_ih1 _ (g_ih2++(g_ih1++g)) (concat_SubSet (g_ih1++g) g_ih2)) in 
 	
-	let paux:(g_ih2 ++ (g_ih1 ++ g) = (g_ih2 ++ g_ih1) ++ g) = ?MAAA in
-	let paux2:(x_ih2 + (x_ih1 + n) = (x_ih2 + x_ih1 + n)) = ?MBBB in
-	let vectTotal : Vect ((x_ih2 + x_ih1) + n) c = (rewrite (sym paux2) in (g_ih2 ++ (g_ih1 ++ g))) in 
-	 let expressionTransformed : ExprMo {n=(x_ih2 + x_ih1) + n} (group_to_monoid_class p) vectTotal (Plus cWeak2 c2_ih2) = ?ML in --(transformExp _ ((g_ih2 ++ g_ih1) ++ g) paux (PlusMo eWeak2 e_ih2)) in
-	--((x_ih2+x_ih1) ** ((g_ih2 ++ g_ih1) ** (_** (expressionTransformed, ?Mencode_1), ?Mencode_2)))
-	   ?MNNNN
-	 -- We rewrite with paux before giving value
-		
-encode c p n g (VarG p i b) = (Z ** (Nil ** (_ ** (((VarMo (group_to_monoid_class p) i b), refl), (SubSet_same g)))))
--- For the (NegG e) (where e can only be a variable or a constant), we put a fake variable
--- Note that we don't bother to know if the Neg was a Neg of a variable or of a constant. Since we do not have any more stuff to do after calling the monoid solver, we can lose this information
--- This is still seomthing safe because the constant that we add in the context is effectively the negation of the value denoted by the (Neg e)
-encode c p n g (NegG {p=p} {c1=c1} (ConstG _ c1)) = (Z ** (Nil ** ((Neg c1) ** (((ConstMo (group_to_monoid_class p) (Neg c1)), refl), SubSet_same g))))
-encode c p n g (NegG {p=p} {c1=c1} e) = ((S Z) ** (([Neg c1]) ** (_ ** (((VarMo (group_to_monoid_class p) (lastElement n) False), ?Mencode_3), SubSet_add (Neg c1) g g (SubSet_same g)))))
+	let paux:(x_ih2 + (x_ih1 + n) = (x_ih2 + x_ih1 + n)) = plusAssociative _ _ _ in
+	let paux2:(g_ih2 ++ (g_ih1 ++ g) = (g_ih2 ++ g_ih1) ++ g) = (vectorAppend_assoc g_ih2 g_ih1 g) in
+	let vectTotal : Vect ((x_ih2 + x_ih1) + n) c = ((g_ih2 ++ g_ih1) ++ g) in 
+	let exprTransformed : ExprMo {n=(x_ih2 + x_ih1) + n} (group_to_monoid_class p) vectTotal (Plus cWeak2 c2_ih2) = (transformExp _ ((g_ih2 ++ g_ih1) ++ g) paux paux2 (PlusMo eWeak2 e_ih2)) in
+	--let prSubSet_ih2_transformed : SubSet (g_ih1 ++ g) ((g_ih2 ++ g_ih1) ++ g) = SubSet_rewriteRight _ _ _ prSubSet_ih2 paux2 in
+		((x_ih2+x_ih1) ** ((g_ih2 ++ g_ih1) ** (_** (exprTransformed, ?Mencode_1))))
+encode c p n g (VarG p i b) = (Z ** (Nil ** (_ ** ((VarMo (group_to_monoid_class p) i b), refl))))
+-- For the (NegG e) (where e can only be a variable or a constant), we encode the variable or the constant
+encode c p n g (NegG {p=p} {c1=c1} (ConstG _ c1)) = (Z ** (Nil ** ((Neg c1) ** ((ConstMo (group_to_monoid_class p) (Neg c1)), refl))))
+encode c p n g (NegG {p=p} {c1=c1} e) = ((S Z) ** (([Neg c1]) ** (_ ** ((VarMo (group_to_monoid_class p) (lastElement n) False), ?Mencode_3))))
 
 
 --encode n g (NegG {p=p} {c1=c1} (ConstG _ c1)) = ((S n) ** (((Neg c1)::g) ** (_ ** (((VarMo (group_to_monoid_class p) (lastElement n) False), ?Mencode_3), SubSet_add (Neg c1) g g (SubSet_same g)))))
 --encode n g (NegG {p=p} (VarG _ i b)) = (n ** ((changeIeme g i (Neg (index_reverse i g))) ** (_ ** (((VarMo _ i False), ?Mencode_4), ?MAAA))))
 
 
-remove_first_x_elements : {a:Type} -> {n:Nat} -> (x:Nat) -> (Vect (x+n) a) -> (Vect n a)
-remove_first_x_elements Z g = g
-remove_first_x_elements (S px) (h::t) = remove_first_x_elements px t
-remove_first_x_elements (S px) Nil impossible
 
-{-
-postulate
-  remove_first_x_subset : {a:Type} -> {n:Nat} -> (x:Nat) -> (g:Vect (x+n) a) -> (SubSet (remove_first_x_elements x g) g)
-  -}
-
-total
-decode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g1:Vect n c) -> (x:Nat) -> (g2:Vect x c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) (g2++g1) c1) -> (c2 ** ((ExprG {n=n} p g1 c2, c1=c2), SubSet g1 (g2++g1)))  
-{-
-decode p n x g (ConstMo _ c1) = ((remove_first_x_elements x g) ** (c1 ** (((ConstG p c1, refl), remove_first_x_subset x g))))
-decode p n x g (VarMo _ i True) = ((remove_first_x_elements x g) ** (_ ** (((VarG p i True, refl), remove_first_x_subset x g))))
-decode p n x g (VarMo _ i False) = ((remove_first_x_elements x g) ** (_ ** (((ConstG _ (index_reverse i g), refl), remove_first_x_subset x g)))
--}
+--total
+decode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g1:Vect n c) -> (x:Nat) -> (g2:Vect x c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) (g2++g1) c1) -> (c2 ** (ExprG {n=n} p g1 c2, c1=c2))  
+decode p n g1 x g2 (ConstMo _ c1) = (c1 ** (((ConstG {g=g1} p c1, refl))))
+-- For the variable, if it's a first n variable, we can't convert it back. Otherwise, we have to interpret it like a constant
+-- Note: I don't need the boolean in VarMo, because I can guess with the position in the context : from 1 to n : that's a real variable, from n+1 to n+x : that's a fake variable
+--decode p n g1 x g2 (VarMo _ i True) = (_ ** (((VarG {g=g1} p i True, refl))))
+--decode p n g1 x g2 (VarMo _ i False) = (_ ** (((ConstG _ (index_reverse i g), refl))))
 {-
 decode p n g (PlusMo e1 e2) = 
 	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p n g e1 in 
@@ -240,14 +229,13 @@ decode p n g (PlusMo e1 e2) =
 		-}	  
 
 
-code_reduceM_andDecode : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
-{-
-code_reduceM_andDecode p e = 
-	let (n2 ** (g2 ** (c2 ** ((e2, pEncode), pSubSet)))) = encode _ _ e in
+code_reduceM_andDecode : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
+code_reduceM_andDecode p g e = 
+	let (n2 ** (g2 ** (c2 ** (e2, pEncode)))) = encode _ _ _ _ e in
 	let (c3 ** (e3, pReduce)) = monoidReduce (group_to_monoid_class p) (g2++g) e2 in
-	let (c4 ** (e4, pDecode)) = decode p _ g2 e3 in
-		(n2 ** (g2 ** (c4 ** (e4, ?Mcode_reduceM_andDecode_1))))
-		-}                                              
+	let (c4 ** (e4, pDecode)) = decode p _ g _ g2 e3 in
+		(c4 ** (e4, ?Mcode_reduceM_andDecode_1))
+                                              
                                               
                                               		
 mutual
@@ -351,9 +339,9 @@ mutual
 		let (r_4 ** (e_4, p_4)) = elim_plusInverse p g e_3 in
 		let (r_5 ** (e_5, p_5)) = plusInverse_assoc p g e_4 in
 		-- IMPORTANT : At this stage, we only have negation on variables and constants.
-		-- Thus, we can continue the reduction by calling the reduction for a monoid on another set, which encodes the minus :
+		-- Thus, we can continue the reduction by calling the reduction for a monoid, with encoding for the minus :
 		-- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
-		let (r_6 ** (e_6, p_6)) = code_reduceM_andDecode p e_5 in
+		let (r_6 ** (e_6, p_6)) = code_reduceM_andDecode p g e_5 in
 			(r_6 ** (e_6, ?MgroupReduce_1))
 		
 
@@ -596,10 +584,12 @@ group_reduce.Mencode_1 = proof
   rewrite pWeak
   exact refl
 
+{-  
 group_reduce.Mencode_2 = proof
   intros
-  exact (SubSet_trans _ _ _ prSubSet_ih1 prSubSet_ih2)  
-
+  exact (SubSet_trans _ _ _ prSubSet_ih1 prSubSet_ih2_transformed)  
+-}  
+  
 group_reduce.Mencode_3 = proof
   intros
   mrefine lastElement_of_reverse_is_first 
@@ -613,12 +603,14 @@ group_reduce.Mencode_4 = proof
   mrefine changeIeme_correct 
 -}
   
+{-  
 group_reduce.Mdecode_1 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl
-
+  -}
+  
 group_reduce.Mcode_reduceM_andDecode_1 = proof
   intros
   rewrite (sym pEncode )
