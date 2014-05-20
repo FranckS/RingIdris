@@ -205,6 +205,7 @@ encode c p n g (PlusG e1 e2) =
 		((x_ih2+x_ih1) ** ((g_ih2 ++ g_ih1) ** (_** (exprTransformed, ?Mencode_1))))
 encode c p n g (VarG p i b) = (Z ** (Nil ** (_ ** ((VarMo (group_to_monoid_class p) i b), refl))))
 -- For the (NegG e) (where e can only be a variable or a constant), we encode the variable or the constant
+-- I AM NOT ENTIRELY SURE YET FOR THESE TWO LINES JUST UNDER :
 encode c p n g (NegG {p=p} {c1=c1} (ConstG _ c1)) = (Z ** (Nil ** ((Neg c1) ** ((ConstMo (group_to_monoid_class p) (Neg c1)), refl))))
 encode c p n g (NegG {p=p} {c1=c1} e) = ((S Z) ** (([Neg c1]) ** (_ ** ((VarMo (group_to_monoid_class p) (lastElement n) False), ?Mencode_3))))
 
@@ -342,6 +343,10 @@ mutual
 		-- Thus, we can continue the reduction by calling the reduction for a monoid, with encoding for the minus :
 		-- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
 		let (r_6 ** (e_6, p_6)) = code_reduceM_andDecode p g e_5 in
+		-- CAREFUL : Maybe need to do the fixpoint of this with e_6, because some simplification done at the monoid level could lead to new simplification.
+		-- Exemple : (0+(Y)) become (Y) at the Monoid level. And if this Y was encoding (-x), then at the toplevel we can have x + (-x) now,
+		-- which need a new simplification at the group level
+		-- Implement fixpoint !
 			(r_6 ** (e_6, ?MgroupReduce_1))
 		
 

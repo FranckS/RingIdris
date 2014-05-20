@@ -360,7 +360,7 @@ vectorAppend_assoc Nil Nil Nil = refl
 vectorAppend_assoc Nil Nil (h3::t3) = refl
 vectorAppend_assoc Nil (h2::t2) Nil = refl
 vectorAppend_assoc Nil (h2::t2) (h3::t3) = refl
-vectorAppend_assoc (h1::t1) Nil Nil = let hn : (t1 ++ (Nil ++ Nil) = (t1 ++ Nil) ++ Nil) = vectorAppend_assoc t1 Nil Nil in ?MvectorAppend_assoc_1
+vectorAppend_assoc (h1::t1) Nil Nil = let ih : (t1 ++ (Nil ++ Nil) = (t1 ++ Nil) ++ Nil) = vectorAppend_assoc t1 Nil Nil in ?MvectorAppend_assoc_1
 vectorAppend_assoc (h1::t1) Nil (h3::t3) = ?MvectorAppend_assoc_2
 vectorAppend_assoc (h1::t1) (h2::t2) Nil = ?MvectorAppend_assoc_3
 vectorAppend_assoc (h1::t1) (h2::t2) (h3::t3) = ?MvectorAppend_assoc_4  
