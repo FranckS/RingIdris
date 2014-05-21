@@ -350,9 +350,13 @@ postulate -- Will be proven later
 
 -- E.2) Append
 
-vectorAppendNil : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (g1 ++ Nil = g1)
-vectorAppendNil Nil = refl
-vectorAppendNil (h::t) = let paux:(t++Nil = t) = vectorAppendNil t in ?MvectorAppendNil_1
+vectorAppendNil : (c:Type) -> (n:Nat) -> (g1:Vect n c) -> (g1 ++ Nil = g1)
+vectorAppendNil c Z Nil = refl
+vectorAppendNil c (S pn) (h::t) = 
+	let paux : (pn + Z = pn) = a_plus_zero pn in -- Note : There is probably a bug in rewrite, since we can't rewrite (sym paux) to immediately prove the metavariable ?MvectorAppendNil_1. Why ?
+	let paux2 : (Vect (pn+Z) c = Vect pn c) = ?MvectorAppendNil_1 in 
+	let ih : (t++Nil = t) = vectorAppendNil c pn t in -- Induction hypothesis
+		?MvectorAppendNil_2 -- Here I just want to rewrite (sym ih) in the current goal and then it's simply refl, and this rewriting should be doable since paux2 attests that the two types are convertible
     
 
 vectorAppend_assoc : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (g1++(g2++g3) = (g1 ++ g2)++g3)
@@ -393,10 +397,12 @@ SubSet_trans g1 (h2::t2) (h3::t3) (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_add h3 
 postulate    
 	SubSet_size : {c:Type} -> (n:Nat) -> (m:Nat) -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 g2) -> (GTE m n)
     
-    
+
 concat_SubSet : {c:Type} -> {n:Nat} -> {m:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 (g2++g1))
-concat_SubSet g1 g2 = ?Mconcat_SubSet_1
-    
+concat_SubSet Nil Nil = SubSet_same _
+concat_SubSet (h1::t1) Nil = SubSet_same _
+concat_SubSet g1 (h2::t2) = let ih:SubSet g1 (t2++g1) = concat_SubSet g1 t2 in SubSet_add h2 _ _ ih
+
     
 -- Says that ig g2 is a "superset" of g1, then the first element are the same
 postulate -- Will be proven later
@@ -406,7 +412,6 @@ postulate -- Will be proven later
 -- Subset and equality
 SubSet_rewriteRight : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (SubSet g1 g2) -> (g2=g3) -> (SubSet g1 g3)
 SubSet_rewriteRight g1 g2 g3 psub peq = ?MSubSet_rewriteRight_1
-
 
 
 -- E.4) Removing elements
@@ -620,7 +625,5 @@ tools.MlastElement'_1 = proof
   exact (lastElement pn)
   
 -- Part E : Vector tools
-
-
 
 

@@ -49,7 +49,6 @@ main = putStrLn "coucou!"
 
 
 
-
 {-
 ((ExprMo (@@constructor of dataTypes.Group#Monoid c) (g_ih2 ++ g_ih1 ++ g) (Plus c1 c2), Plus c1 c2 = Plus c1 c2), SubSet g (g_ih2 ++ g_ih1 ++ g))
 -}
