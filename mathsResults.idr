@@ -13,11 +13,13 @@ import dataTypes
 import tools
 
 
+%default total
+
 -- ---------------------------------
 -- Mathematical results for a Group
 ------------------------------------
 
--- This is a (logical) DEFINITION, not a LEMMA
+-- This is a (logical) DEFINITION, not a LEMMA (lies in TYPE)
 bad_push_negation : (C:Type) -> (p:dataTypes.Group C) -> (x:C) -> (y:C) -> Type
 bad_push_negation C p x y = (Neg (Plus x y) = Plus (Neg x) (Neg y))
 

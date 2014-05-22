@@ -353,8 +353,8 @@ postulate -- Will be proven later
 vectorAppendNil : (c:Type) -> (n:Nat) -> (g1:Vect n c) -> (g1 ++ Nil = g1)
 vectorAppendNil c Z Nil = refl
 vectorAppendNil c (S pn) (h::t) = 
-	let paux : (pn + Z = pn) = a_plus_zero pn in -- Note : There is probably a bug in rewrite, since we can't rewrite (sym paux) to immediately prove the metavariable ?MvectorAppendNil_1. Why ?
-	let paux2 : (Vect (pn+Z) c = Vect pn c) = ?MvectorAppendNil_1 in 
+	let paux : (pn + Z = pn) = a_plus_zero pn in 
+	let paux2 : (Vect (pn+Z) c = Vect pn c) = ?MvectorAppendNil_1 in -- Note : There is probably a bug in rewrite, since we can't rewrite (sym paux) to immediately prove the metavariable ?MvectorAppendNil_1. Why ?
 	let ih : (t++Nil = t) = vectorAppendNil c pn t in -- Induction hypothesis
 		?MvectorAppendNil_2 -- Here I just want to rewrite (sym ih) in the current goal and then it's simply refl, and this rewriting should be doable since paux2 attests that the two types are convertible
     

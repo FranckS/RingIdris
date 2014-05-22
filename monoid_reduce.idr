@@ -51,7 +51,9 @@ monoidReduce p g e =
     let (r_SGred ** (e_SGred,  p_SGred)) = semiGroupReduce (monoid_to_semiGroup_class p) g (monoid_to_semiGroup e) in
         let (r_elim ** (e_elim, p_elim)) = elimZero _ p (semiGroup_to_monoid p e_SGred) in
             (_ ** (e_elim, ?MmonoidReduce1))
+
             
+total
 buildProofMonoid : (p:dataTypes.Monoid c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprMo p g c1) -> (ExprMo p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
 buildProofMonoid p e1 e2 lp rp with (exprMo_eq p e1 e2)
     buildProofMonoid p e1 e1 lp rp | Just refl = ?MbuildProofMonoid

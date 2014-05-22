@@ -10,7 +10,7 @@ import Decidable.Equality
 import dataTypes
 
 
---%default total
+%default total
 
 -- Normalization
 magmaReduce : {p:Magma c} -> {g:Vect n c} -> {c1:c} -> (ExprMa p g c1) -> (c2 ** (ExprMa p g c2, c1=c2))
@@ -33,7 +33,8 @@ exprMa_eq p (VarMa p i b1) (VarMa p j b2) with (decEq i j, decEq b1 b2)
 exprMa_eq p (ConstMa p const1) (ConstMa p const2) with ((magma_eq_as_elem_of_set p) const1 const2)
     exprMa_eq p (ConstMa p const1) (ConstMa p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
     exprMa_eq p (ConstMa p const1) (ConstMa p const2) | _ = Nothing
-
+exprMa_eq p e1 e2 = Nothing
+    
 
 buildProofMagma : (p:dataTypes.Magma c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprMa p g c1) -> (ExprMa p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
 buildProofMagma p e1 e2 lp rp with (exprMa_eq p e1 e2)

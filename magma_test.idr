@@ -12,6 +12,7 @@ import dataTypes
 import magma_reduce
 
 
+
 instance Set Nat where
     set_eq x y with (decEq x y)
         set_eq x x | Yes refl = Just refl
