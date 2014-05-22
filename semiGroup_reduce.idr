@@ -139,8 +139,7 @@ semiGroup_reduce.Massoc1 = proof {
   rewrite p_ih1;
   rewrite p_ih2;
   rewrite p_3;
-  rewrite (plusSym_4v c p c1 c2 c4 c3);
-  rewrite (plusSym_4v' c p c1 c2 c4 c3);
+  rewrite semiGroupAssoc_4terms c p c1 c2 c4 c3;
   trivial;
 }
 

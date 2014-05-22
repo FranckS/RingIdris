@@ -153,33 +153,41 @@ plusAssociativeZ (NegS u) (NegS v) (NegS w) = ?MplusAssociativeZ_8
 
 
 -- -----------------------------------
--- C) TOOLS AND LEMMAS FOR SEMIGROUPS
+-- C) TOOLS AND LEMMAS FOR STRUCTURES
 -- -----------------------------------
 
-plusSym_4v : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 = Plus (Plus c1 c2) (Plus c3 c4))
-plusSym_4v = ?MplusSym_4v
+-- C.1) For SemiGroup
 
-plusAux : (C : Type) -> (SemiGroup C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x=x') -> (Plus x y = Plus x' y)
+semiGroupAssoc_4terms_Aux1 : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 = Plus (Plus c1 c2) (Plus c3 c4))
+semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc _ _ _
 
-plusSym_4v' : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 = Plus (Plus (Plus c1 c2) c3) c4)
-plusSym_4v' = ?MplusSym_4v'
+plusEqualLeft_SemiGroup : (C : Type) -> (SemiGroup C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x=x') -> (Plus x y = Plus x' y)
+plusEqualLeft_SemiGroup C p x x' y prEqual = ?MplusEqualLeft_SemiGroup_1
 
-{-
---minusNatZNeutralZ : (x:Nat) -> (minusNatZ x (S x) = Pos O)
---minusNatZNeutralZ O = ?A
--}
+semiGroupAssoc_4terms_Aux2 : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 = Plus (Plus (Plus c1 c2) c3) c4)
+semiGroupAssoc_4terms_Aux2 = ?MsemiGroupAssoc_4terms_Aux2_1
 
---class Relation s where
-    --rel : s -> s -> Type
+semiGroupAssoc_4terms : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4  = Plus (Plus c1 c2) (Plus c3 c4))
+semiGroupAssoc_4terms C p c1 c2 c3 c4 = ?MsemiGroupAssoc_4terms_1
 
---class Relation s => Setoid s where
-  --  refl : (x:s) -> rel x x
-    --sym : (x:s) -> (y:s) -> (rel x y) -> (rel y x)
-    --trans : (x:s) -> (y:s) -> (z:s) -> (rel x y) -> (rel y z) -> (rel x z)
-    
+-- C.2) For Group
+
+groupAssoc_4terms_Aux1 :  (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 = Plus (Plus c1 c2) (Plus c3 c4))
+groupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc _ _ _
+
+plusEqualLeft_Group : (C : Type) -> (dataTypes.Group C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x=x') -> (Plus x y = Plus x' y)
+plusEqualLeft_Group C p x x' y prEqual = ?MplusEqualLeft_Group_1 
+
+groupAssoc_4terms_Aux2 : (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 = Plus (Plus (Plus c1 c2) c3) c4)
+groupAssoc_4terms_Aux2 = ?MgroupAssoc_4terms_Aux2_1
+
+groupAssoc_4terms : (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4  = Plus (Plus c1 c2) (Plus c3 c4))
+groupAssoc_4terms C p c1 c2 c3 c4 = ?MgroupAssoc_4terms_1
+
+
 
 -- -----------------------------------
--- C) ARITH TOOLS
+-- D) ARITH TOOLS
 -- -----------------------------------
 lower_value : (x:Nat) -> (y:Nat) -> (LTE x y) -> LTE x (S y)
 lower_value Z Z lteZero = lteZero
@@ -264,7 +272,7 @@ plus_one_equals_succ Z = refl
 plus_one_equals_succ (S pn) = let p_ihn : (pn + 1 = S pn) = plus_one_equals_succ pn in ?Mplus_one_equals_succ_1
 
 -- -----------------------------------
--- D) FIN TOOLS
+-- E) FIN TOOLS
 -- -----------------------------------
 
 -- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
@@ -334,7 +342,7 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
                     ?MlastElement'_1
 
 -- -----------------------------------
--- E) VECTOR TOOLS
+-- F) VECTOR TOOLS
 -- -----------------------------------
 
 {- Not needed now
@@ -343,34 +351,31 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
 --changeIeme_correct : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (a = index_reverse i (changeIeme g i a))
 -}
 
--- E.1) index and reverse
+-- F.1) index and reverse
 
 postulate -- Will be proven later
     lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastElement pn) (reverse g)))
 
--- E.2) Append
+-- F.2) Append
 
-vectorAppendNil : (c:Type) -> (n:Nat) -> (g1:Vect n c) -> (g1 ++ Nil = g1)
-vectorAppendNil c Z Nil = refl
-vectorAppendNil c (S pn) (h::t) = 
-	let paux : (pn + Z = pn) = a_plus_zero pn in 
-	let paux2 : (Vect (pn+Z) c = Vect pn c) = ?MvectorAppendNil_1 in -- Note : There is probably a bug in rewrite, since we can't rewrite (sym paux) to immediately prove the metavariable ?MvectorAppendNil_1. Why ?
-	let ih : (t++Nil = t) = vectorAppendNil c pn t in -- Induction hypothesis
-		?MvectorAppendNil_2 -- Here I just want to rewrite (sym ih) in the current goal and then it's simply refl, and this rewriting should be doable since paux2 attests that the two types are convertible
-    
 
 vectorAppend_assoc : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (g1++(g2++g3) = (g1 ++ g2)++g3)
 vectorAppend_assoc Nil Nil Nil = refl
 vectorAppend_assoc Nil Nil (h3::t3) = refl
 vectorAppend_assoc Nil (h2::t2) Nil = refl
 vectorAppend_assoc Nil (h2::t2) (h3::t3) = refl
-vectorAppend_assoc (h1::t1) Nil Nil = let ih : (t1 ++ (Nil ++ Nil) = (t1 ++ Nil) ++ Nil) = vectorAppend_assoc t1 Nil Nil in ?MvectorAppend_assoc_1
-vectorAppend_assoc (h1::t1) Nil (h3::t3) = ?MvectorAppend_assoc_2
-vectorAppend_assoc (h1::t1) (h2::t2) Nil = ?MvectorAppend_assoc_3
-vectorAppend_assoc (h1::t1) (h2::t2) (h3::t3) = ?MvectorAppend_assoc_4  
+vectorAppend_assoc (h1::t1) Nil Nil = 
+	let ih : (t1 ++ (Nil) = (t1 ++ Nil) ++ Nil) = vectorAppend_assoc t1 Nil Nil in 
+	vectConsCong h1 (t1++[]) ((t1++[])++[]) ih 
+vectorAppend_assoc (h1::t1) Nil (h3::t3) = 
+	let ih = vectorAppend_assoc t1 Nil (h3::t3) in
+	vectConsCong h1 (t1++(h3::t3)) ((t1++[])++(h3::t3)) ih
+vectorAppend_assoc (h1::t1) (h2::t2) g3 = 
+	let ih = vectorAppend_assoc t1 (h2::t2) g3 in
+	vectConsCong h1 (t1++(h2::t2)++g3) ((t1++(h2::t2))++g3) ih
 
 
--- E.3) "Subsets"
+-- F.3) "Subsets"
 
 using (c:Type, n:Nat, m:Nat)
     data SubSet : Vect n c -> Vect m c -> Type where
@@ -411,10 +416,10 @@ postulate -- Will be proven later
 	
 -- Subset and equality
 SubSet_rewriteRight : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (SubSet g1 g2) -> (g2=g3) -> (SubSet g1 g3)
-SubSet_rewriteRight g1 g2 g3 psub peq = ?MSubSet_rewriteRight_1
+SubSet_rewriteRight g1 g2 g2 psub refl = psub -- ?MSubSet_rewriteRight_1
 
 
--- E.4) Removing elements
+-- F.4) Removing elements
 
 -- Not needed now
 {-
@@ -540,25 +545,44 @@ tools.Mpush_negation_3 = proof
   intros
   rewrite aux7
   mrefine refl  
-  
-tools.MplusSym_4v = proof {
-  intros;
-  mrefine Plus_assoc;
-}
 
-tools.MplusSym_4v' = proof {
-  intros;
-  mrefine plusAux;
-  rewrite (Plus_assoc  c1 c2 c3);
-  trivial;
-}
-
-tools.plusAux = proof {
+tools.MplusEqualLeft_SemiGroup_1 = proof {
   intros;
   rewrite prEqual;
   trivial;
 }
 
+tools.MsemiGroupAssoc_4terms_Aux2_1 = proof {
+  intros;
+  mrefine plusEqualLeft_SemiGroup;
+  rewrite (Plus_assoc c1 c2 c3);
+  trivial;
+}
+
+tools.MsemiGroupAssoc_4terms_1 = proof
+  intros
+  rewrite (semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4)
+  rewrite (semiGroupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
+  exact refl
+
+tools.MplusEqualLeft_Group_1 = proof {
+  intros;
+  rewrite prEqual;
+  trivial;
+}
+
+tools.MgroupAssoc_4terms_Aux2_1 = proof
+  intros
+  mrefine plusEqualLeft_Group 
+  rewrite (Plus_assoc c1 c2 c3)
+  exact refl
+
+tools.MgroupAssoc_4terms_1 = proof
+  intros
+  rewrite (groupAssoc_4terms_Aux1 C p c1 c2 c3 c4)
+  rewrite (groupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
+  mrefine refl
+    
 {-
 tools.aux1 = proof {
   compute;
@@ -566,7 +590,7 @@ tools.aux1 = proof {
 }
 -}
 
--- Part C : Arith tools
+-- Part D : Arith tools
 
 tools.M_S_both_side_1 = proof
   intros
@@ -599,7 +623,7 @@ tools.Mplus_one_equals_succ_1 = proof
   rewrite p_ihn 
   exact refl
 
--- Part D : Fin tools
+-- Part E : Fin tools
 
 tools.Mpre_convertFin_1 = proof
   intros
@@ -624,6 +648,6 @@ tools.MlastElement'_1 = proof
   rewrite (sym pn_plus_1_equals_Spn)
   exact (lastElement pn)
   
--- Part E : Vector tools
+-- Part F : Vector tools
 
 

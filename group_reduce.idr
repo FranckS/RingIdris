@@ -178,14 +178,10 @@ weakenG n g1 (NegG e) (S pm) (h::t) (SubSet_add h g1 t p_g1_subset_t) =
 --weaken_correct : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g1:Vect n c) -> {c1:c} -> (e:ExprG p g1 c1) -> {m:Nat} -> (g2 : Vect m c) -> (weaken p g1 e g2 = e)
 
 
-transformExp' : {c:Type} -> {p:dataTypes.Monoid c} -> {c1:c} -> (g1:Vect n c) -> (p1:n=m) -> ExprMo {n=n} p g1 c1 -> ExprMo {n=m} p (rewrite (sym p1) in g1) c1
-transformExp' g1 p1 e = ?MtransformExp'_1
 
+total
 transformExp : {c:Type} -> {p:dataTypes.Monoid c} -> {c1:c} -> (g1:Vect n c) -> (g2:Vect m c) -> (n=m) -> (g1=g2) -> ExprMo {n=n} p g1 c1 -> ExprMo {n=m} p g2 c1
--- Will perhaps use transformExp'
-transformExp g1 g2 p1 p2 e = ?MtransformExp_1 -- rewrite (sym p1) in e
-
-
+transformExp g1 g1 refl refl e = e 
 
 
 -- Can't be tagged as total because of the missing case for Minus (they have been deleted when we reach this point)
@@ -215,19 +211,27 @@ encode c p n g (NegG {p=p} {c1=c1} e) = ((S Z) ** (([Neg c1]) ** (_ ** ((VarMo (
 
 
 
---total
+total
 decode : {c:Type} -> (p:dataTypes.Group c) -> (n:Nat) -> (g1:Vect n c) -> (x:Nat) -> (g2:Vect x c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) (g2++g1) c1) -> (c2 ** (ExprG {n=n} p g1 c2, c1=c2))  
 decode p n g1 x g2 (ConstMo _ c1) = (c1 ** (((ConstG {g=g1} p c1, refl))))
 -- For the variable, if it's a first n variable, we can't convert it back. Otherwise, we have to interpret it like a constant
 -- Note: I don't need the boolean in VarMo, because I can guess with the position in the context : from 1 to n : that's a real variable, from n+1 to n+x : that's a fake variable
---decode p n g1 x g2 (VarMo _ i True) = (_ ** (((VarG {g=g1} p i True, refl))))
---decode p n g1 x g2 (VarMo _ i False) = (_ ** (((ConstG _ (index_reverse i g), refl))))
-{-
-decode p n g (PlusMo e1 e2) = 
-	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p n g e1 in 
-	 let (c2_ih2 ** ((e_ih2, p_ih2))) = decode p n g e2 in 
+-- THE LINE JUST UNDER (FOR VarMo) IS JUST FOR MATTER OF TESTING : WE CAN'T LEAVE IT LIKE THAT FOR ALL THE STRUCTURES ABOVE (WE DESTROY THE ABSTRACT SYNTAX BY DOING SO)
+decode p n g1 x g2 (VarMo _ i b) = (_ ** ((ConstG {g=g1} p (index_reverse i (g2++g1))), refl))
+decode p n g1 x g2 (PlusMo e1 e2) = 
+	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p n g1 x g2 e1 in 
+	let (c2_ih2 ** ((e_ih2, p_ih2))) = decode p n g1 x g2 e2 in 
 		(_** (PlusG e_ih1 e_ih2, ?Mdecode_1))
-		-}	  
+
+{-
+decode p (S pn) g1 x g2 (VarMo _ i True) with (isBeforeDec i (lastElement pn))
+	decode p (S pn) g1 x g2 (VarMo _ i True) | Yes p = 
+		let i' = transformeFin i (S pn) p in
+		(_ ** (((VarG {g=g1} p i' True, ?MA))))
+	decode p (S pn) g1 x g2 (VarMo _ i True) | No p =
+	-}
+--decode p n g1 x g2 (VarMo _ i False) = (_ ** (((ConstG _ (index_reverse i g), refl))))
+
 
 
 code_reduceM_andDecode : {c:Type} -> (p:dataTypes.Group c) -> {n:Nat} -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
@@ -330,26 +334,64 @@ mutual
 	plusInverse_assoc p g e =
 		(_ ** (e, refl))
 
-
-
-	groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
-	groupReduce c p g e =
+	
+	-- NEW : 3 levels of +
+	plusInverse_assoc' : {c:Type} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+	-- (a+b) + ((-c)+d)
+	plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) with (groupDecideEq p g e2 e3)
+		plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e2) e4)) | (Just refl) = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
+				(_ ** (PlusG e1' e4', ?MplusInverse_assoc'_1))
+		plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc' p g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc' p g e3 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
+				(_ ** ((PlusG (PlusG e1' e2') (PlusG (NegG e3') e4')), ?MplusInverse_assoc'_2))
+				
+	-- (a+(-b)) + (c+d)
+	plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e3 e4)) with (groupDecideEq p g e2 e3)
+		plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e2 e4)) | (Just refl) = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
+				(_ ** (PlusG e1' e4', ?MplusInverse_assoc'_3))
+		plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e3 e4)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc' p g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc' p g e3 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
+				(_ ** ((PlusG (PlusG e1' (NegG e2')) (PlusG e3' e4')), ?MplusInverse_assoc'_4))
+				
+			
+	pre_groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
+	pre_groupReduce c p g e =
 		let (r_1 ** (e_1, p_1)) = elimMinus p e in
 		let (r_2 ** (e_2, p_2)) = propagateNeg_fix p e_1 in
 		let (r_3 ** (e_3, p_3)) = elimDoubleNeg p e_2 in
 		let (r_4 ** (e_4, p_4)) = elim_plusInverse p g e_3 in
 		let (r_5 ** (e_5, p_5)) = plusInverse_assoc p g e_4 in
+		let (r_6 ** (e_6, p_6)) = plusInverse_assoc' p g e_5 in -- NEW (assoc at 3 levels of +, for dealing with things like (x+y) + (-y + z)
 		-- IMPORTANT : At this stage, we only have negation on variables and constants.
 		-- Thus, we can continue the reduction by calling the reduction for a monoid, with encoding for the minus :
 		-- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
-		let (r_6 ** (e_6, p_6)) = code_reduceM_andDecode p g e_5 in
-		-- CAREFUL : Maybe need to do the fixpoint of this with e_6, because some simplification done at the monoid level could lead to new simplification.
-		-- Exemple : (0+(Y)) become (Y) at the Monoid level. And if this Y was encoding (-x), then at the toplevel we can have x + (-x) now,
-		-- which need a new simplification at the group level
-		-- Implement fixpoint !
-			(r_6 ** (e_6, ?MgroupReduce_1))
-		
-
+		let (r_7 ** (e_7, p_7)) = code_reduceM_andDecode p g e_6 in
+			(r_7 ** (e_7, ?Mpre_groupReduce_1))
+			
+			
+	-- Computes the fixpoint of pre_groupReduce : do the entire serie of simplification as long as we've not finished (ie, as long as we don't loop on the same term)
+	-- That's needed because some simplification done at the monoid level could lead to new simplification.
+	-- Exemple : (0+(Y)) become (Y) at the Monoid level. And if this Y was encoding (-x), then at the toplevel we can have x + (-x) now,
+	-- which need a new simplification at the group level
+	groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
+	groupReduce c p g e = 
+		let (c' ** (e', p')) = pre_groupReduce c p g e in
+			case exprG_eq p e e' of 
+				Just pr => (c' ** (e', p'))-- We stop here
+				Nothing => let (c'' ** (e'', p'')) = groupReduce c p g e' in
+								(c'' ** (e'', ?Mgroup_Reduce_1))
+			
+			
 	buildProofGroup : (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p g c1) -> (ExprG p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
 	buildProofGroup p e1 e2 lp rp with (exprG_eq p e1 e2)
 		buildProofGroup p e1 e1 lp rp | Just refl = ?MbuildProofGroup
@@ -516,18 +558,59 @@ group_reduce.MplusInverse_assoc_9 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
-  mrefine refl  
-     
-group_reduce.MgroupReduce_1 = proof
+  mrefine refl
+  
+group_reduce.MplusInverse_assoc'_1 = proof
   intros
+  rewrite p_e1' 
+  rewrite p_e4' 
+  rewrite (groupAssoc_4terms c p c1 c4 (Neg c4) c3)
+  rewrite (sym (left (Plus_inverse c4)))
+  rewrite (sym(Plus_neutral_2  c1))
+  exact refl
+  
+group_reduce.MplusInverse_assoc'_2 = proof
+  intros
+  rewrite p_e1' 
+  rewrite p_e2' 
+  rewrite p_e3' 
+  rewrite p_e4' 
+  exact refl
+
+group_reduce.MplusInverse_assoc'_3 = proof
+  intros
+  rewrite p_e1' 
+  rewrite p_e4' 
+  rewrite (groupAssoc_4terms c p c1 (Neg c3) c3 c4)
+  rewrite (sym (right(Plus_inverse c3)))
+  rewrite (sym(Plus_neutral_2 c1))
+  exact refl  
+    
+group_reduce.MplusInverse_assoc'_4 = proof
+  intros
+  rewrite p_e1' 
+  rewrite p_e2' 
+  rewrite p_e3' 
+  rewrite p_e4' 
+  exact refl
+        
+group_reduce.Mpre_groupReduce_1 = proof
+  intros
+  rewrite p_7
   rewrite p_6
   rewrite p_5
   rewrite p_4
   rewrite p_3
   rewrite p_2
   rewrite p_1
-  exact refl  
+  exact refl 
   
+group_reduce.Mgroup_Reduce_1 = proof
+  intros
+  rewrite p''
+  rewrite p'
+  exact refl
+    
 group_reduce.MbuildProofGroup = proof
   intros
   rewrite (sym lp)
@@ -607,14 +690,12 @@ group_reduce.Mencode_4 = proof
   intros
   mrefine changeIeme_correct 
 -}
-  
-{-  
+    
 group_reduce.Mdecode_1 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl
-  -}
   
 group_reduce.Mcode_reduceM_andDecode_1 = proof
   intros
