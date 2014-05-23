@@ -47,23 +47,22 @@ main = putStrLn "coucou!"
 ---------- Proofs ----------
 
 
+intros
+rewrite (plus_succ_right (plus pa 1) (S pc))
+rewrite (plus_succ_left (plus pa 0) (S (S pc)))
+rewrite (sym(plus_succ_left (plus pa 0) (S (S pc))))
+rewrite (plus_succ_left (plus pa 0) (S (S pc)))
+rewrite (plus_succ_right pa 0)
+rewrite (plus_succ_left pa 0)
+undo
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+rewrite (sym(plus_succ_left pa 0))
+undo
+rewrite (plus_succ_left (plus pa 0) (S (S pc)))
+undo
+rewrite (sym(plus_succ_left (plus pa 0) (S (S pc))))
+undo
+rewrite (plus_succ_left (plus pa 0) (S (S pc)))
 
 
 
