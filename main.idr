@@ -47,6 +47,45 @@ main = putStrLn "coucou!"
 ---------- Proofs ----------
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-
+intros
+rewrite (sym(plusCommutativeZ (NegS (S pu)) (minusNatZ pw (S pv))))
+rewrite (minusSucc pw (S pv) (S pu))
+rewrite (sym(plus_succ_right pu (S pv)))
+-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{-
 intros
 rewrite (plus_succ_right (plus pa 1) (S pc))
 rewrite (plus_succ_left (plus pa 0) (S (S pc)))
@@ -63,7 +102,7 @@ undo
 rewrite (sym(plus_succ_left (plus pa 0) (S (S pc))))
 undo
 rewrite (plus_succ_left (plus pa 0) (S (S pc)))
-
+-}
 
 
 

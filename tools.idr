@@ -284,6 +284,51 @@ a_plusZ_zero : (a:ZZ) -> (a + (Pos Z) = a)
 a_plusZ_zero (Pos x) = ?Ma_plusZ_zero_1
 a_plusZ_zero (NegS x) = refl
 
+
+minusFirst : (x:Nat) -> (a:Nat) -> (b:Nat) -> (plusZ (Pos x) (minusNatZ a b) = minusNatZ (plus x a) b)
+minusFirst Z Z Z = refl
+minusFirst Z Z (S pb) = refl
+minusFirst Z (S pa) Z = refl
+minusFirst Z (S pa) (S pc) = ?MminusFirst_1
+minusFirst (S px) Z Z = refl
+minusFirst (S px) Z (S pb) = ?MminusFirst_2
+minusFirst (S px) (S pa) Z = refl
+minusFirst (S px) (S pa) (S pc) = ?MminusFirst_3 --minusFirst px (S pa) pc
+
+tools.MminusFirst_1 = proof
+  intros
+  rewrite (sym(plusCommutativeZ (Pos Z) (minusNatZ pa pc))) 
+  exact (plusZeroRightNeutralZ (minusNatZ pa pc))
+
+tools.MminusFirst_2 = proof
+  intros
+  rewrite (a_plus_zero px)
+  exact refl
+  
+tools.MminusFirst_3 = proof
+  intros
+  rewrite (sym(minusFirst (S px) pa pc))
+  rewrite (plus_succ_right px pa)
+  exact refl  
+
+plus_minus_succ : (a:Nat) -> (b:Nat) -> (c:Nat) -> minusNatZ (plus a (S b)) (S c) = minusNatZ (plus a b) c
+
+
+minusOne : (a:Nat) -> (b:Nat) -> (minusNatZ a (S b) = plusZ (minusNatZ a b) (NegS Z))
+
+
+minusSucc : (a:Nat) -> (b:Nat) -> (c:Nat) -> (minusNatZ a (plus b (S c)) = plusZ (minusNatZ a b) (NegS c))
+
+
+plusPos : (a:Nat) -> (b:Nat) -> (c:Nat) -> (minusNatZ (plus a b) c = plusZ (minusNatZ a c) (Pos b))
+
+
+switch_negS : (a:Nat) -> (b:Nat) -> (c:Nat) -> plusZ (minusNatZ a b) (NegS c) = plusZ (minusNatZ a c) (NegS b)
+
+
+switch_double_succ : (a:Nat) -> (b:Nat) -> plus a (S (S b)) = plus b (S (S a))
+ 
+
 -- To add in the depository for Idris
 %assert_total
 plusAssociativeZ : (left : ZZ) -> (centre : ZZ) -> (right : ZZ) ->
@@ -317,7 +362,7 @@ plusAssociativeZ (Pos Z) (NegS (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_3_1 --d
 plusAssociativeZ (Pos (S pu)) (NegS Z) (Pos Z) = ?MplusAssociativeZ_3_2 --done
 plusAssociativeZ (Pos (S pu)) (NegS Z) (Pos (S pw)) = ?MplusAssociativeZ_3_3 --done
 plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (Pos Z) = ?MplusAssociativeZ_3_4 --done
-plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_3_5 -- TO DO !
+plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_3_5 -- done
 
 -- Pos - Neg - Neg
 plusAssociativeZ (Pos Z) (NegS Z) (NegS Z) = refl
@@ -326,7 +371,7 @@ plusAssociativeZ (Pos Z) (NegS (S pv)) (NegS Z) = refl
 plusAssociativeZ (Pos Z) (NegS (S pv)) (NegS (S pw)) = refl
 plusAssociativeZ (Pos (S pu)) (NegS Z) (NegS Z) = refl
 plusAssociativeZ (Pos (S pu)) (NegS Z) (NegS (S pw)) = refl
-plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (NegS Z) = ?MplusAssociativeZ_4_4 -- TO DO !
+plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (NegS Z) = ?MplusAssociativeZ_4_4 -- done
 plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_4_5 --TO DO !
 
 -- start with NEG
@@ -344,10 +389,10 @@ plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_5_
 plusAssociativeZ (NegS Z) (Pos Z) (NegS Z) = refl
 plusAssociativeZ (NegS Z) (Pos Z) (NegS (S pw)) = refl
 plusAssociativeZ (NegS Z) (Pos (S pv)) (NegS Z) = refl
-plusAssociativeZ (NegS Z) (Pos (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_6_1 -- TO DO !
+plusAssociativeZ (NegS Z) (Pos (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_6_1 -- done
 plusAssociativeZ (NegS (S pu)) (Pos Z) (NegS Z) = refl
 plusAssociativeZ (NegS (S pu)) (Pos Z) (NegS (S pw)) = refl
-plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (NegS Z) = ?MplusAssociativeZ_6_4 -- TO DO !
+plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (NegS Z) = ?MplusAssociativeZ_6_4 -- done
 plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_6_5 -- TO DO !
 
 -- Neg - Neg - Pos
@@ -804,6 +849,12 @@ tools.MplusAssociativeZ_2_4 = proof
   intros
   rewrite (plus_succ_right pu pv)
   exact refl
+  
+tools.MplusAssociativeZ_2_5 = proof
+  intros
+  rewrite (sym(minusFirst (S pu) pv (S pw)))
+  rewrite (sym(plus_minus_succ pu pv pw))
+  exact refl  
 
 tools.MplusAssociativeZ_3_1 = proof
   intros
@@ -824,6 +875,28 @@ tools.MplusAssociativeZ_3_4 = proof
   intros
   rewrite (a_plusZ_zero (minusNatZ pu (S pv)))
   exact refl
+  
+tools.MplusAssociativeZ_3_5 = proof
+  intros
+  rewrite (sym(minusFirst (S pu) pw (S pv)))
+  rewrite (plus_minus_succ  pu pw pv)
+  rewrite (sym(plusCommutativeZ (minusNatZ pu (S pv)) (Pos(S pw))))
+  rewrite(sym(minusFirst (S pw) pu (S pv)))
+  rewrite (sym(plus_minus_succ pu pw pv))
+  rewrite (plusCommutative pw pu)
+  exact refl
+  
+tools.MplusAssociativeZ_4_4 = proof
+  intros
+  rewrite (sym(a_plus_zero pv))
+  rewrite (sym(minusOne pu (S pv)))
+  exact refl
+
+tools.MplusAssociativeZ_4_5 = proof
+  intros
+  rewrite (minusSucc pu (S pv) (S pw))
+  rewrite (sym(plus_succ_right pv (S pw)))
+  exact refl
 
 tools.MplusAssociativeZ_5_4 = proof
   intros
@@ -831,10 +904,47 @@ tools.MplusAssociativeZ_5_4 = proof
   rewrite (a_plusZ_zero (minusNatZ pv (S pu)))
   exact refl
 
+tools.MplusAssociativeZ_5_5 = proof
+  intros
+  rewrite (sym(plusPos pv (S pw) (S pu)))
+  exact refl
+  
+tools.MplusAssociativeZ_6_1 = proof
+  intros
+  rewrite (plusCommutativeZ (NegS Z) (minusNatZ pv (S pw)))
+  rewrite (sym(plusCommutativeZ (NegS Z) (minusNatZ pv (S pw))))
+  rewrite (minusOne pv (S pw))
+  exact refl
+  
+tools.MplusAssociativeZ_6_4 = proof
+  intros
+  rewrite (sym(minusOne pv (S pu)))
+  exact refl    
+
+tools.MplusAssociativeZ_6_5 = proof
+  intros
+  rewrite (sym(plusCommutativeZ (NegS (S pu)) (minusNatZ pv (S pw))))
+  rewrite (sym( switch_negS pv (S pw) (S pu)))
+  exact refl
+
+tools.MplusAssociativeZ_7_1 = proof
+  intros
+  rewrite (sym(plusCommutativeZ (NegS Z) (minusNatZ pw (S pv))))
+  rewrite (sym(switch_negS pw (S pv) Z))
+  exact refl
+
 tools.MplusAssociativeZ_7_3 = proof
   intros
   rewrite (a_plus_zero pu)
   exact refl
+  
+tools.MplusAssociativeZ_7_5 = proof
+  intros
+  rewrite (sym(plusCommutativeZ (NegS (S pu)) (minusNatZ pw (S pv))))
+  rewrite (minusSucc pw (S pv) (S pu))
+  rewrite (sym(plus_succ_right pu (S pv)))
+  rewrite (switch_double_succ pv pu)
+  exact refl  
 
 tools.MplusAssociativeZ_8_2 = proof
   intros
