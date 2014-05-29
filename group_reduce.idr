@@ -363,6 +363,10 @@ mutual
 			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
 				(_ ** ((PlusG (PlusG e1' (NegG e2')) (PlusG e3' e4')), ?MplusInverse_assoc'_4))
 				
+	-- Anything else
+	plusInverse_assoc' p g e =
+		(_ ** (e, refl))
+				
 			
 	pre_groupReduce : (c:Type) -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
 	pre_groupReduce c p g e =

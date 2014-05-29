@@ -62,6 +62,62 @@ main = putStrLn "coucou!"
 
 
 
+
+
+
+{-
+intros
+rewrite (sym(switch_negS pa pb (S pc)))
+-}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {-
 intros
 rewrite (sym(plusCommutativeZ (NegS (S pu)) (minusNatZ pw (S pv))))
