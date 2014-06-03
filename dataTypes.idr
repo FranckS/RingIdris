@@ -68,79 +68,6 @@ class (CommutativeGroup c, OneMult c) => Ring c where
 -- An abstract commutative ring    
 class dataTypes.Ring c => CommutativeRing c where
     Mult_comm : (c1:c) -> (c2:c) -> (Mult c1 c2 = Mult c2 c1)
-    
-using (g : Vect n c)
-
--- Reflected terms in a magma
-    data ExprMa : Magma c -> (Vect n c) -> c -> Type where
-        ConstMa : (p : Magma c) -> (c1:c) -> ExprMa p g c1
-        PlusMa : {p : Magma c} -> {c1:c} -> {c2:c} -> ExprMa p g c1 -> ExprMa p g c2 -> ExprMa p g (Plus c1 c2)
-        VarMa : (p : Magma c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprMa p g (index_reverse i g)
-
--- Reflected terms in semigroup
-    data ExprSG : SemiGroup c -> (Vect n c) -> c -> Type where
-        ConstSG : (p : SemiGroup c) -> (c1:c) -> ExprSG p g c1
-        PlusSG : {p : SemiGroup c} -> {c1:c} -> {c2:c} -> ExprSG p g c1 -> ExprSG p g c2 -> ExprSG p g (Plus c1 c2)
-        VarSG : (p : SemiGroup c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprSG p g (index_reverse i g)
-
-    print_ExprSG : {p:SemiGroup c} -> {r1:c} -> (c -> String) -> ExprSG p g r1 -> String
-    print_ExprSG c_print (ConstSG p const) = c_print const
-    print_ExprSG c_print (PlusSG e1 e2) = "(" ++ (print_ExprSG c_print e1) ++ ") + (" ++ (print_ExprSG c_print e2) ++ ")"
-    print_ExprSG c_print (VarSG p i b) = if b then "Var " ++ (show (cast i)) else "~Var" ++ (show (cast i))
-
--- Reflected terms in a monoid
-    data ExprMo : dataTypes.Monoid c -> (Vect n c) -> c -> Type where
-        ConstMo : (p : dataTypes.Monoid c) -> (c1:c) -> ExprMo p g c1
-        PlusMo : {p : dataTypes.Monoid c} -> {c1:c} -> {c2:c} -> ExprMo p g c1 -> ExprMo p g c2 -> ExprMo p g (Plus c1 c2)
-        VarMo : (p : dataTypes.Monoid c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprMo p g (index_reverse i g)
-
--- Reflected terms in a group  
-    data ExprG :  dataTypes.Group c -> (Vect n c) -> c -> Type where
-        ConstG : (p : dataTypes.Group c) -> (c1:c) -> ExprG p g c1
-        PlusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Plus c1 c2)
-        MinusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
-        NegG : {p : dataTypes.Group c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
-        VarG : (p : dataTypes.Group c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprG p g (index_reverse i g)
-
-    
-    print_ExprG : {p:dataTypes.Group c} -> {r1:c} -> (c -> String) -> ExprG p g r1 -> String
-    print_ExprG c_print (ConstG p const) = c_print const
-    print_ExprG c_print (PlusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") + (" ++ (print_ExprG c_print e2) ++ ")"
-    print_ExprG c_print (MinusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") - (" ++ (print_ExprG c_print e2) ++ ")"
-    print_ExprG c_print (VarG p i b) = if b then "Var " ++ (show (cast i)) else "~Var" ++ (show (cast i))
-    print_ExprG c_print (NegG e) = "(-" ++ (print_ExprG c_print e) ++ ")"
-
- 
--- Reflected terms in a commutative group       
-    data ExprCG : CommutativeGroup c -> (Vect n c) -> c -> Type where
-        ConstCG : (p:CommutativeGroup c) -> (c1:c) -> ExprCG p g c1
-        --ZeroCG : ExprCG p g Zero
-        PlusCG : {p : CommutativeGroup c} -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Plus c1 c2)
-        VarCG : (p : CommutativeGroup c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprCG p g (index_reverse i g)
-          
--- Reflected terms in a ring       
-    data ExprR : dataTypes.Ring c -> (Vect n c) -> c -> Type where
-        ConstR : (p:dataTypes.Ring c) -> (c1:c) -> ExprR p g c1  
-        --ZeroR : ExprR p g Zero
-        --OneR : ExprR p g One
-        PlusR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Plus c1 c2)
-        MultR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
-        VarR : (p:dataTypes.Ring c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprR p g (index_reverse i g)
-
-    print_ExprR : {p:dataTypes.Ring c} -> {r1:c} -> (c -> String) -> ExprR p g r1 -> String
-    print_ExprR c_print (ConstR p const) = c_print const
-    print_ExprR c_print (PlusR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") + (" ++ (print_ExprR c_print e2) ++ ")"
-    print_ExprR c_print (MultR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") * (" ++ (print_ExprR c_print e2) ++ ")"
-    print_ExprR c_print (VarR p i b) = if b then "Var " ++ (show (cast i)) else "~Var" ++ (show (cast i))
-      
--- Reflected terms in a commutative ring   
-    data ExprCR : CommutativeRing c -> (Vect n c) -> c -> Type where
-        ConstCR : (p:CommutativeRing c) -> (c1:c) -> ExprCR p g c1   
-        --ZeroCR : ExprCR p g Zero
-        --OneCR : ExprCR p g One
-        PlusCR : {p:CommutativeRing c} -> {c1:c} -> {c2:c} -> ExprCR p g c1 -> ExprCR p g c2 -> ExprCR p g (Plus c1 c2)
-        MultCR : {p:CommutativeRing c} -> {c1:c} -> {c2:c} -> ExprCR p g c1 -> ExprCR p g c2 -> ExprCR p g (Mult c1 c2)
-        VarCR : (p:CommutativeRing c) -> (i:Fin n) -> (positiveEncoding:Bool) -> ExprCR p g (index_reverse i g)
 
 ------------------------------
 -- Functions of conversion ---
@@ -153,62 +80,22 @@ magma_to_set_class x = (%instance)
 semiGroup_to_magma_class : (SemiGroup c) -> (Magma c)
 semiGroup_to_magma_class p = (%instance)
 
-semiGroup_to_magma : {p:SemiGroup c} -> {g:Vect n c} -> {c1:c} -> ExprSG p g c1 -> ExprMa (semiGroup_to_magma_class p) g c1
-semiGroup_to_magma (ConstSG p cst) = ConstMa (semiGroup_to_magma_class p) cst
-semiGroup_to_magma (PlusSG e1 e2) = PlusMa (semiGroup_to_magma e1) (semiGroup_to_magma e2)
-semiGroup_to_magma (VarSG p i b) = VarMa (semiGroup_to_magma_class p) i b
-
-magma_to_semiGroup : (p:SemiGroup c) -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) g c1 -> ExprSG p g c1
-magma_to_semiGroup p (ConstMa _ cst) = ConstSG p cst
-magma_to_semiGroup p (PlusMa e1 e2) = PlusSG (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
-magma_to_semiGroup p (VarMa _ i b) = VarSG p i b
-
 -- Monoid -> SemiGroup
 monoid_to_semiGroup_class : (dataTypes.Monoid c) -> (SemiGroup c)
 monoid_to_semiGroup_class p = (%instance)
-
-monoid_to_semiGroup : {p:dataTypes.Monoid c} -> {g:Vect n c} -> {c1:c} -> ExprMo p g c1 -> ExprSG (monoid_to_semiGroup_class p) g c1
-monoid_to_semiGroup (ConstMo p cst) = ConstSG (monoid_to_semiGroup_class p) cst
-monoid_to_semiGroup (PlusMo e1 e2) = PlusSG (monoid_to_semiGroup e1) (monoid_to_semiGroup e2)
-monoid_to_semiGroup (VarMo p i b) = VarSG (monoid_to_semiGroup_class p) i b
-
-semiGroup_to_monoid : (p:dataTypes.Monoid c) -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) g c1 -> ExprMo p g c1
-semiGroup_to_monoid p (ConstSG _ cst) = ConstMo p cst
-semiGroup_to_monoid p (PlusSG e1 e2) = PlusMo (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
-semiGroup_to_monoid p (VarSG _ i b) = VarMo p i b
 
 -- Group -> Monoid (needed for tools.idr, for unicity of symmetric)
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
 group_to_monoid_class p = (%instance)
 
-{-
-partial_group_to_monoid : {p:dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> ExprG p g c1 -> ExprMo (group_to_monoid_class p) g c1
-partial_group_to_monoid (ConstG p cst) = ConstMo (group_to_monoid_class p) cst
-partial_group_to_monoid (PlusG e1 e2) = PlusMo (partial_group_to_monoid e1) (partial_group_to_monoid e2)
-partial_group_to_monoid (VarG p i b) = VarMo (group_to_monoid_class p) i b
--- No case for Neg and Minus !
--}
-
-
 -- CommutativeRing -> Ring
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
 cr_to_r_class p = %instance -- finds the instance automatically from p
 
-cr_to_r : {p:CommutativeRing c} -> {g:Vect n c} -> {c1:c} -> ExprCR p g c1 -> ExprR (cr_to_r_class p) g c1
-cr_to_r (ConstCR p cst) = ConstR (cr_to_r_class p) cst
-cr_to_r (PlusCR e1 e2) = PlusR (cr_to_r e1) (cr_to_r e2)
-cr_to_r (MultCR e1 e2) = MultR (cr_to_r e1) (cr_to_r e2)
-cr_to_r (VarCR p i b) = VarR (cr_to_r_class p) i b
 
-r_to_cr : (p:CommutativeRing c) -> {g:Vect n c} -> {c1:c} -> ExprR (cr_to_r_class p) g c1 -> ExprCR p g c1
-r_to_cr p (ConstR _ cst) = ConstCR p cst
-r_to_cr p (PlusR e1 e2) = PlusCR (r_to_cr p e1) (r_to_cr p e2)
-r_to_cr p (MultR e1 e2) = MultCR (r_to_cr p e1) (r_to_cr p e2)
-r_to_cr p (VarR _ i b) = VarCR p i b
-
--- -----------------------------------
--- Get equality as elements of set ---
---------------------------------------
+-- -----------------------------------------
+-- (getters) Equality as elements of set ---
+--------------------------------------------
 set_eq_as_elem_of_set : (Set c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
 set_eq_as_elem_of_set x = set_eq
 
@@ -236,6 +123,249 @@ group_to_set x = (%instance)
 
 group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
+
+
+postulate
+axiom_instance_eq : {c:Type} -> (p1:dataTypes.Group c) -> (p2:dataTypes.Group c) -> (p1=p2)
+
+instance_eq : {c:Type} -> (p1:dataTypes.Group c) -> (p2:dataTypes.Group c) -> Maybe (p1=p2)
+instance_eq p1 p2 with (axiom_instance_eq p1 p2)
+    instance_eq p1 p1 | refl = Just refl
+   
+    
+using (g : Vect n c)
+    mutual
+        {-
+        data VariableA : {c:Type} -> (b:Bool) -> (if b then () else dataTypes.Group c) -> (Vect n c) -> c -> Type where
+            RealVariable : (i:Fin n) -> VariableA True () g (index_reverse i g)
+            EncodingGroupTerm_var : (p:dataTypes.Group c) -> (i:Fin n) -> VariableA False p g (Neg (index_reverse i g))
+            EncodingGroupTerm_const : (p:dataTypes.Group c) -> (c1:c) -> VariableA False p g (Neg c1)
+        -}
+    
+        data VariableA : {c:Type} -> (Vect n c) -> c -> Type where
+            RealVariable : (i:Fin n) -> VariableA g (index_reverse i g)
+            EncodingGroupTerm_var : (p:dataTypes.Group c) -> (i:Fin n) -> VariableA g (Neg (index_reverse i g))
+            EncodingGroupTerm_const : (p:dataTypes.Group c) -> (c1:c) -> VariableA g (Neg c1)
+    
+    
+{-
+        pairOfVariables : {c:Type} -> {n:Nat} -> (b:Bool) -> (g:Vect n c) -> (c1:c) -> (c2:c) -> Type
+        pairOfVariables True g c1 c2 = (VariableA True () g c1, VariableA True () g c2)
+        pairOfVariables False g c1 c2 = (pg ** (VariableA False pg g c1, VariableA False pg g c2))
+
+        get_maybeProof : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> (if b then () else dataTypes.Group c)
+        get_maybeProof True g x = ()
+        get_maybeProof False g (pg ** (v1,v2)) = pg
+
+        get_v1 : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> VariableA b (get_maybeProof b g x) g c1
+        get_v1 True g (v1, v2) = v1
+        get_v1 False g (pg ** (v1, v2)) = v1
+
+        get_v2 : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> VariableA b (get_maybeProof b g x) g c2
+        get_v2 True g (v1, v2) = v2
+        get_v2 False g (pg ** (v1, v2)) = v2
+
+        VariableA_eq : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> Maybe (get_v1 b g x = get_v2 b g x)
+        VariableA_eq True g (RealVariable i1, RealVariable i2) with (decEq i1 i2)
+            VariableA_eq True g (RealVariable i1, RealVariable i1) | (Yes refl) = Just refl
+            VariableA_eq True g (RealVariable i1, RealVariable i2) | _ = Nothing
+        VariableA_eq False g (pg ** (EncodingGroupTerm_var _ i1, EncodingGroupTerm_var _ i2)) with (decEq i1 i2) -- All the trick is here : the two EncodingGroupTerm can only have for instance of Group the instance pg, because we've succeded to force this constraint. That's why we put the underscore !
+            VariableA_eq False g (pg ** (EncodingGroupTerm_var _ i1, EncodingGroupTerm_var _ i1)) | (Yes refl) = Just refl
+            VariableA_eq False g (pg ** (EncodingGroupTerm_var _ i1, EncodingGroupTerm_var _ i2)) | _ = Nothing
+         VariableA_eq False g (pg ** (EncodingGroupTerm_const _ c1, EncodingGroupTerm_const _ c2)) with ((group_eq_as_elem_of_set pg) c1 c2) -- Same remark here !
+            VariableA_eq False g (pg ** (EncodingGroupTerm_const _ c1, EncodingGroupTerm_const _ c1)) | (Just refl) = Just refl
+            VariableA_eq False g (pg ** (EncodingGroupTerm_const _ c1, EncodingGroupTerm_const _ c2)) | _ = Nothing
+         VariableA_eq _ g _ = Nothing
+-}
+        
+        VariableA_eq : {c:Type} -> {c1:c} -> {c2:c} -> (g:Vect n c) -> (v1:VariableA g c1) -> (v2:VariableA g c2) -> Maybe (v1=v2)
+        VariableA_eq g (RealVariable i1) (RealVariable i2) with (decEq i1 i2)
+            VariableA_eq g (RealVariable i1) (RealVariable i1) | (Yes refl) = Just refl
+            VariableA_eq g (RealVariable i1) (RealVariable i2) | _ = Nothing
+        VariableA_eq g (EncodingGroupTerm_var p1 i1) (EncodingGroupTerm_var p2 i2) with (decEq i1 i2, instance_eq p1 p2) 
+            VariableA_eq g (EncodingGroupTerm_var p1 i1) (EncodingGroupTerm_var p1 i1) | (Yes refl, Just refl) = Just refl
+            VariableA_eq g (EncodingGroupTerm_var p1 i1) (EncodingGroupTerm_var _ _) | _ = Nothing
+         VariableA_eq g (EncodingGroupTerm_const p1 c1) (EncodingGroupTerm_const p2 c2) with ((group_eq_as_elem_of_set p1) c1 c2, instance_eq p1 p2)
+            VariableA_eq g (EncodingGroupTerm_const p1 c1) (EncodingGroupTerm_const p1 c1) | (Just refl, Just refl) = Just refl
+            VariableA_eq g (EncodingGroupTerm_const _ c1) (EncodingGroupTerm_const _ _) | _ = Nothing
+         VariableA_eq _ g _ = Nothing
+      
+        print_VariableA : {c1:c} -> (f:c -> String) -> VariableA g c1 -> String
+        print_VariableA f (RealVariable i) = "Var " ++ (show (cast i))
+        print_VariableA f (EncodingGroupTerm_var p i) = "[Encoding_var (" ++ (show(cast i)) ++ ") ]"
+        print_VariableA f (EncodingGroupTerm_const p c1) = "[Encoding_const (" ++ (f c1) ++ ") ]"
+
+
+-- Reflected terms in a magma
+        data ExprMa : Magma c -> (Vect n c) -> c -> Type where
+            ConstMa : (p : Magma c) -> (c1:c) -> ExprMa p g c1 
+            PlusMa : {p : Magma c} -> {c1:c} -> {c2:c} -> ExprMa p g c1 -> ExprMa p g c2 -> ExprMa p g (Plus c1 c2) 
+            VarMa : (p:Magma c) -> {c1:c} -> VariableA g c1 -> ExprMa p g c1
+
+        exprMa_eq : (p:Magma c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p g c1) -> (e2:ExprMa p g c2) -> (Maybe (e1=e2))
+        exprMa_eq p (PlusMa x y) (PlusMa x' y') with (exprMa_eq p x x', exprMa_eq p y y')
+          exprMa_eq p (PlusMa x y) (PlusMa x y) | (Just refl, Just refl) = Just refl
+          exprMa_eq p (PlusMa x y) (PlusMa x' y') | _ = Nothing
+        exprMa_eq p (VarMa _ v1) (VarMa _ v2) with (VariableA_eq _ v1 v2)
+          exprMa_eq p (VarMa _ v1) (VarMa _ v1) | (Just refl) = Just refl
+          exprMa_eq p (VarMa _ v1) (VarMa _ v2) | _ = Nothing      
+        exprMa_eq p (ConstMa p const1) (ConstMa p const2) with ((magma_eq_as_elem_of_set p) const1 const2)
+            exprMa_eq p (ConstMa p const1) (ConstMa p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+            exprMa_eq p (ConstMa p const1) (ConstMa p const2) | _ = Nothing
+        exprMa_eq p e1 e2 = Nothing
+
+
+{-
+
+-- Reflected terms in semigroup
+        data ExprSG : SemiGroup c -> (Vect n c) -> c -> Type where
+            ConstSG : (p : SemiGroup c) -> (c1:c) -> ExprSG p g c1
+            PlusSG : {p : SemiGroup c} -> {c1:c} -> {c2:c} -> ExprSG p g c1 -> ExprSG p g c2 -> ExprSG p g (Plus c1 c2)
+            VarSG : (p:SemiGroup c) -> {c1:c} -> VariableA g c1 -> ExprSG p g c1
+
+        exprSG_eq : (p:SemiGroup c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprSG p g c1) -> (e2:ExprSG p g c2) -> (Maybe (e1=e2))
+        exprSG_eq p (PlusSG x y) (PlusSG x' y') with (exprSG_eq p x x', exprSG_eq p y y')
+          exprSG_eq p (PlusSG x y) (PlusSG x y) | (Just refl, Just refl) = Just refl
+          exprSG_eq p (PlusSG x y) (PlusSG x' y') | _ = Nothing
+        exprSG_eq p (VarSG p v1) (VarSG p v2) with (VariableA_eq v1 v2)
+          exprSG_eq p (VarSG p v1) (VarSG p v1) | (Just refl) = Just refl
+          exprSG_eq p (VarSG p v1) (VarSG p v2) | _ = Nothing
+        exprSG_eq p (ConstSG p const1) (ConstSG p const2) with ((semiGroup_eq_as_elem_of_set p) const1 const2)
+            exprSG_eq p (ConstSG p const1) (ConstSG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+            exprSG_eq p (ConstSG p const1) (ConstSG p const2) | _ = Nothing
+        exprSG_eq p _ _ = Nothing
+
+        print_ExprSG : {p:SemiGroup c} -> {r1:c} -> (c -> String) -> ExprSG p g r1 -> String
+        print_ExprSG c_print (ConstSG p const) = c_print const
+        print_ExprSG c_print (PlusSG e1 e2) = "(" ++ (print_ExprSG c_print e1) ++ ") + (" ++ (print_ExprSG c_print e2) ++ ")"
+        print_ExprSG c_print (VarSG p v) = print_VariableA c_print v
+
+-- Reflected terms in a monoid
+        data ExprMo : dataTypes.Monoid c -> (Vect n c) -> c -> Type where
+            ConstMo : (p : dataTypes.Monoid c) -> (c1:c) -> ExprMo p g c1
+            PlusMo : {p : dataTypes.Monoid c} -> {c1:c} -> {c2:c} -> ExprMo p g c1 -> ExprMo p g c2 -> ExprMo p g (Plus c1 c2)
+            VarMo : (p:dataTypes.Monoid c) -> {c1:c} -> VariableA g c1 -> ExprMo p g c1
+
+        exprMo_eq : (p:dataTypes.Monoid c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprMo p g c1) -> (e2:ExprMo p g c2) -> (Maybe (e1=e2))
+        exprMo_eq p (PlusMo x y) (PlusMo x' y') with (exprMo_eq p x x', exprMo_eq p y y')
+          exprMo_eq p (PlusMo x y) (PlusMo x y) | (Just refl, Just refl) = Just refl
+          exprMo_eq p (PlusMo x y) (PlusMo x' y') | _ = Nothing
+        exprMo_eq p (VarMo p v1) (VarMo p v2) with (VariableA_eq v1 v2)
+          exprMo_eq p (VarMo p v1) (VarMo p v1) | (Just refl) = Just refl
+          exprMo_eq p (VarMo p v1) (VarMo p v2) | _ = Nothing
+        exprMo_eq p (ConstMo p const1) (ConstMo p const2) with ((monoid_eq_as_elem_of_set p) const1 const2)
+            exprMo_eq p (ConstMo p const1) (ConstMo p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+            exprMo_eq p (ConstMo p const1) (ConstMo p const2) | _ = Nothing
+        exprMo_eq p _ _  = Nothing
+
+-- Reflected terms in a group  
+        data ExprG :  dataTypes.Group c -> (Vect n c) -> c -> Type where
+            ConstG : (p : dataTypes.Group c) -> (c1:c) -> ExprG p g c1
+            PlusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Plus c1 c2)
+            MinusG : {p : dataTypes.Group c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
+            NegG : {p : dataTypes.Group c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
+            VarG : (p:dataTypes.Group c) -> {c1:c} -> VariableA g c1 -> ExprG p g c1
+
+        convert_ExprG_typeclass : {p1:dataTypes.Group c} -> (p2:dataTypes.Group c) -> {c1:c} -> (ExprG p1 g c1) -> (ExprG p2 g c1)
+        convert_ExprG_typeclass p2 (ConstG _ c1) = ConstG p2 c1 
+        --convert_ExprG_typeclass p2 (PlusG e1 e2) = PlusG (convert_ExprG_typeclass p2 e1) (convert_ExprG_typeclass p2 e2)
+        --convert_ExprG_typeclass p2 (MinusG e1 e2) = MinusG (convert_ExprG_typeclass p2 e1) (convert_ExprG_typeclass p2 e2)
+        --convert_ExprG_typeclass p2 (NegG e) = NegG (convert_ExprG_typeclass p2 e)
+        convert_ExprG_typeclass p2 (VarG _ v) = VarG p2 v
+
+        exprG_eq : (p:dataTypes.Group c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> (Maybe (e1=e2))
+        exprG_eq p (PlusG x y) (PlusG x' y') with (exprG_eq p x x', exprG_eq p y y')
+                exprG_eq p (PlusG x y) (PlusG x y) | (Just refl, Just refl) = Just refl
+                exprG_eq p (PlusG x y) (PlusG x' y') | _ = Nothing
+        exprG_eq p (VarG p v1) (VarG p v2) with (VariableA_eq v1 v2)
+                exprG_eq p (VarG p v1) (VarG p v1) | (Just refl) = Just refl
+                exprG_eq p (VarG p v1) (VarG p v2) | _ = Nothing
+        exprG_eq p (ConstG p const1) (ConstG p const2) with ((group_eq_as_elem_of_set p) const1 const2)
+                exprG_eq p (ConstG p const1) (ConstG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+                exprG_eq p (ConstG p const1) (ConstG p const2) | _ = Nothing
+        exprG_eq p (NegG e1) (NegG e2) with (exprG_eq p e1 e2)
+                exprG_eq p (NegG e1) (NegG e1) | (Just refl) = Just refl
+                exprG_eq p (NegG e1) (NegG e2) | _ = Nothing
+        exprG_eq p (MinusG x y) (MinusG x' y') with (exprG_eq p x x', exprG_eq p y y')
+                exprG_eq p (MinusG x y) (MinusG x y) | (Just refl, Just refl) = Just refl
+                exprG_eq p (MinusG x y) (MinusG x' y') | _ = Nothing	
+        exprG_eq p _ _  = Nothing
+    
+        print_ExprG : {p:dataTypes.Group c} -> {r1:c} -> (c -> String) -> ExprG p g r1 -> String
+        print_ExprG c_print (ConstG p const) = c_print const
+        print_ExprG c_print (PlusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") + (" ++ (print_ExprG c_print e2) ++ ")"
+        print_ExprG c_print (MinusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") - (" ++ (print_ExprG c_print e2) ++ ")"
+        print_ExprG c_print (VarG p v) = print_VariableA c_print v
+        print_ExprG c_print (NegG e) = "(-" ++ (print_ExprG c_print e) ++ ")"
+
+ 
+-- Reflected terms in a commutative group       
+        data ExprCG : CommutativeGroup c -> (Vect n c) -> c -> Type where
+            ConstCG : (p:CommutativeGroup c) -> (c1:c) -> ExprCG p g c1
+            --ZeroCG : ExprCG p g Zero
+            PlusCG : {p : CommutativeGroup c} -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Plus c1 c2)
+            VarCG : (p:CommutativeGroup c) -> {c1:c} -> VariableA g c1 -> ExprCG p g c1
+          
+-- Reflected terms in a ring       
+        data ExprR : dataTypes.Ring c -> (Vect n c) -> c -> Type where
+            ConstR : (p:dataTypes.Ring c) -> (c1:c) -> ExprR p g c1  
+            --ZeroR : ExprR p g Zero
+            --OneR : ExprR p g One
+            PlusR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Plus c1 c2)
+            MultR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
+            VarR : (p:dataTypes.Ring c) -> {c1:c} -> VariableA g c1 -> ExprR p g c1
+
+        print_ExprR : {p:dataTypes.Ring c} -> {r1:c} -> (c -> String) -> ExprR p g r1 -> String
+        print_ExprR c_print (ConstR p const) = c_print const
+        print_ExprR c_print (PlusR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") + (" ++ (print_ExprR c_print e2) ++ ")"
+        print_ExprR c_print (MultR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") * (" ++ (print_ExprR c_print e2) ++ ")"
+        print_ExprR c_print (VarR p v) = print_VariableA c_print v
+      
+-- Reflected terms in a commutative ring   
+        data ExprCR : CommutativeRing c -> (Vect n c) -> c -> Type where
+            ConstCR : (p:CommutativeRing c) -> (c1:c) -> ExprCR p g c1   
+            --ZeroCR : ExprCR p g Zero
+            --OneCR : ExprCR p g One
+            PlusCR : {p:CommutativeRing c} -> {c1:c} -> {c2:c} -> ExprCR p g c1 -> ExprCR p g c2 -> ExprCR p g (Plus c1 c2)
+            MultCR : {p:CommutativeRing c} -> {c1:c} -> {c2:c} -> ExprCR p g c1 -> ExprCR p g c2 -> ExprCR p g (Mult c1 c2)
+            VarCR : (p:CommutativeRing c) -> {c1:c} -> VariableA g c1 -> ExprCR p g c1
+
+
+-- SemiGroup -> Magma
+semiGroup_to_magma : {p:SemiGroup c} -> {g:Vect n c} -> {c1:c} -> ExprSG p g c1 -> ExprMa (semiGroup_to_magma_class p) g c1
+semiGroup_to_magma (ConstSG p cst) = ConstMa (semiGroup_to_magma_class p) cst
+semiGroup_to_magma (PlusSG e1 e2) = PlusMa (semiGroup_to_magma e1) (semiGroup_to_magma e2)
+semiGroup_to_magma (VarSG p v) = VarMa (semiGroup_to_magma_class p) v
+
+magma_to_semiGroup : (p:SemiGroup c) -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) g c1 -> ExprSG p g c1
+magma_to_semiGroup p (ConstMa _ cst) = ConstSG p cst
+magma_to_semiGroup p (PlusMa e1 e2) = PlusSG (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
+magma_to_semiGroup p (VarMa _ v) = VarSG p v
+
+-- Monoid -> SemiGroup
+monoid_to_semiGroup : {p:dataTypes.Monoid c} -> {g:Vect n c} -> {c1:c} -> ExprMo p g c1 -> ExprSG (monoid_to_semiGroup_class p) g c1
+monoid_to_semiGroup (ConstMo p cst) = ConstSG (monoid_to_semiGroup_class p) cst
+monoid_to_semiGroup (PlusMo e1 e2) = PlusSG (monoid_to_semiGroup e1) (monoid_to_semiGroup e2)
+monoid_to_semiGroup (VarMo p v) = VarSG (monoid_to_semiGroup_class p) v
+
+semiGroup_to_monoid : (p:dataTypes.Monoid c) -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) g c1 -> ExprMo p g c1
+semiGroup_to_monoid p (ConstSG _ cst) = ConstMo p cst
+semiGroup_to_monoid p (PlusSG e1 e2) = PlusMo (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
+semiGroup_to_monoid p (VarSG _ v) = VarMo p v
+
+cr_to_r : {p:CommutativeRing c} -> {g:Vect n c} -> {c1:c} -> ExprCR p g c1 -> ExprR (cr_to_r_class p) g c1
+cr_to_r (ConstCR p cst) = ConstR (cr_to_r_class p) cst
+cr_to_r (PlusCR e1 e2) = PlusR (cr_to_r e1) (cr_to_r e2)
+cr_to_r (MultCR e1 e2) = MultR (cr_to_r e1) (cr_to_r e2)
+cr_to_r (VarCR p v) = VarR (cr_to_r_class p) v
+
+r_to_cr : (p:CommutativeRing c) -> {g:Vect n c} -> {c1:c} -> ExprR (cr_to_r_class p) g c1 -> ExprCR p g c1
+r_to_cr p (ConstR _ cst) = ConstCR p cst
+r_to_cr p (PlusR e1 e2) = PlusCR (r_to_cr p e1) (r_to_cr p e2)
+r_to_cr p (MultR e1 e2) = MultCR (r_to_cr p e1) (r_to_cr p e2)
+r_to_cr p (VarR _ v) = VarCR p v
+
+-}
 
 
 

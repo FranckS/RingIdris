@@ -29,26 +29,7 @@ vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) with (decEq pn pm)
 	vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) | (No _) = Nothing
 vect_eq a_eq _ _ _ _ = Nothing
 -}
-
-
-total
-exprG_eq : (p:dataTypes.Group c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> (Maybe (e1=e2))
-exprG_eq p (PlusG x y) (PlusG x' y') with (exprG_eq p x x', exprG_eq p y y')
-	exprG_eq p (PlusG x y) (PlusG x y) | (Just refl, Just refl) = Just refl
-	exprG_eq p (PlusG x y) (PlusG x' y') | _ = Nothing
-exprG_eq p (VarG p i b1) (VarG p j b2) with (decEq i j, decEq b1 b2)
-	exprG_eq p (VarG p i b1) (VarG p i b1) | (Yes refl, Yes refl) = Just refl
-	exprG_eq p (VarG p i b1) (VarG p j b2) | _ = Nothing
-exprG_eq p (ConstG p const1) (ConstG p const2) with ((group_eq_as_elem_of_set p) const1 const2)
-	exprG_eq p (ConstG p const1) (ConstG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
-	exprG_eq p (ConstG p const1) (ConstG p const2) | _ = Nothing
-exprG_eq p (NegG e1) (NegG e2) with (exprG_eq p e1 e2)
-	exprG_eq p (NegG e1) (NegG e1) | (Just refl) = Just refl
-	exprG_eq p (NegG e1) (NegG e2) | _ = Nothing
-exprG_eq p (MinusG x y) (MinusG x' y') with (exprG_eq p x x', exprG_eq p y y')
-	exprG_eq p (MinusG x y) (MinusG x y) | (Just refl, Just refl) = Just refl
-	exprG_eq p (MinusG x y) (MinusG x' y') | _ = Nothing	
-exprG_eq p _ _  = Nothing	
+	
 	
 
 {-

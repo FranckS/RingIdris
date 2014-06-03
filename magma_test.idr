@@ -47,3 +47,19 @@ test2_equal_test3 : (x:Nat) -> ((2 + 3) + x = 5 + x)
 test2_equal_test3 = \x => let (Just pr) = magmaDecideEq (%instance) (test2 x) (test3 x) in pr --A second "non regression test", unfortunately not using the type checker (need to compute this term and to see if it crashs or not)
 
 
+-- JUST A STUPID TEST TO UNDERSTAND WHAT HAPPEN IF I A CONSTANT IS IN FACT A VARIABLE (of course, it won't give the proof we want for all x, but it works for specific values of x)
+
+termX : (x:Nat) -> ExprMa (%instance) [x] x
+termX x = ConstMa _ x
+
+compare_termX_termX : (x:Nat) -> Maybe (x = x)
+compare_termX_termX x = magmaDecideEq (%instance) (termX x) (termX x)
+
+result_termX_termX : (x:Nat) -> (x = x)
+result_termX_termX x = let (Just pr) = magmaDecideEq (%instance) (termX x) (termX x) in pr
+
+
+
+
+
+

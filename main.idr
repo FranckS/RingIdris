@@ -42,6 +42,22 @@ main = putStrLn "coucou!"
 
 
 
+        {-
+        Nat_from_Bool : Bool -> Nat
+        Nat_from_Bool True = Z
+        Nat_from_Bool False = (S Z)
+      
+        data A : (b:Bool) -> (if b then Nat else Bool) -> Nat -> Type where
+            A1 : (n:Nat) -> A True n n
+            A2 : (b:Bool) -> A False b (Nat_from_Bool b)
+      
+        g : (b1:Bool) -> (if b1 then Nat else Bool) -> Nat
+        g True n = n
+        g False b = Nat_from_Bool b
+      
+        f : (b1:Bool) -> (b2:Bool) -> (n1:Nat) -> (A b1 (if b1 then n1 else b1) (if b1 then n1 else (Nat_from_Bool b1))) -> (A b2 (if b2 then n2 else b2) (if b2 then n2 else (Nat_from_Bool b2))) -> Bool
+        -}
+
 
 
 ---------- Proofs ----------

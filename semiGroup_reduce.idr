@@ -14,18 +14,7 @@ import tools
 
 --%default total
 
-total
-exprSG_eq : (p:SemiGroup c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprSG p g c1) -> (e2:ExprSG p g c2) -> (Maybe (e1=e2))
-exprSG_eq p (PlusSG x y) (PlusSG x' y') with (exprSG_eq p x x', exprSG_eq p y y')
-  exprSG_eq p (PlusSG x y) (PlusSG x y) | (Just refl, Just refl) = Just refl
-  exprSG_eq p (PlusSG x y) (PlusSG x' y') | _ = Nothing
-exprSG_eq p (VarSG p i b1) (VarSG p j b2) with (decEq i j, decEq b1 b2)
-  exprSG_eq p (VarSG p i b1) (VarSG p i b1) | (Yes refl, Yes refl) = Just refl
-  exprSG_eq p (VarSG p i b1) (VarSG p j b2) | _ = Nothing
-exprSG_eq p (ConstSG p const1) (ConstSG p const2) with ((semiGroup_eq_as_elem_of_set p) const1 const2)
-    exprSG_eq p (ConstSG p const1) (ConstSG p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
-    exprSG_eq p (ConstSG p const1) (ConstSG p const2) | _ = Nothing
-exprSG_eq p _ _ = Nothing
+
 
 
 -- Normalization
