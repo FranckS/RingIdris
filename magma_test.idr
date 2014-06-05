@@ -22,14 +22,15 @@ instance Magma Nat where
     Plus x y = plus x y
     
 
-test1 : (x:Nat) -> ExprMa (%instance) [x] (Plus 2 (Plus 3 x))
-test1 x = PlusMa (ConstMa _ 2) (PlusMa (ConstMa _ 3) (VarMa _ fZ True))
 
-test2 : (x:Nat) -> ExprMa (%instance) [x] (Plus 5 x)
-test2 x = PlusMa (PlusMa (ConstMa _ 2) (ConstMa _ 3)) (VarMa _ fZ True)
+test1 : (x:Nat) -> ExprMa (%instance) (\x =>x) [x] (Plus 2 (Plus 3 x))
+test1 x = PlusMa _ (ConstMa _ _ _ 2) (PlusMa _ (ConstMa _ _ _ 3) (VarMa _ _ (RealVariable set_eq _ _ fZ)))
 
-test3 : (x:Nat) -> ExprMa (%instance) [x] (Plus 5 x)
-test3 x = PlusMa (ConstMa _ 5) (VarMa _ fZ True)
+test2 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
+test2 x = PlusMa _ (PlusMa _ (ConstMa _ _ _ 2) (ConstMa _ _ _ 3)) (VarMa _ _ (RealVariable set_eq _ _ fZ))
+
+test3 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
+test3 x = PlusMa _ (ConstMa _ _ _ 5) (VarMa _ _ (RealVariable set_eq _ _ fZ))
 
 --First test : 2 + (3 + x) =\= 5 + x
 compare_test1_test3 : (x:Nat) -> Maybe (2 + (3 + x) = 5 + x)
@@ -48,6 +49,7 @@ test2_equal_test3 = \x => let (Just pr) = magmaDecideEq (%instance) (test2 x) (t
 
 
 -- JUST A STUPID TEST TO UNDERSTAND WHAT HAPPEN IF I A CONSTANT IS IN FACT A VARIABLE (of course, it won't give the proof we want for all x, but it works for specific values of x)
+{-
 
 termX : (x:Nat) -> ExprMa (%instance) [x] x
 termX x = ConstMa _ x
@@ -57,6 +59,9 @@ compare_termX_termX x = magmaDecideEq (%instance) (termX x) (termX x)
 
 result_termX_termX : (x:Nat) -> (x = x)
 result_termX_termX x = let (Just pr) = magmaDecideEq (%instance) (termX x) (termX x) in pr
+
+
+-}
 
 
 

@@ -124,95 +124,62 @@ group_to_set x = (%instance)
 group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 
-
+{-
 postulate
 axiom_instance_eq : {c:Type} -> (p1:dataTypes.Group c) -> (p2:dataTypes.Group c) -> (p1=p2)
+
 
 instance_eq : {c:Type} -> (p1:dataTypes.Group c) -> (p2:dataTypes.Group c) -> Maybe (p1=p2)
 instance_eq p1 p2 with (axiom_instance_eq p1 p2)
     instance_eq p1 p1 | refl = Just refl
-   
-    
-using (g : Vect n c)
-    mutual
-        {-
-        data VariableA : {c:Type} -> (b:Bool) -> (if b then () else dataTypes.Group c) -> (Vect n c) -> c -> Type where
-            RealVariable : (i:Fin n) -> VariableA True () g (index_reverse i g)
-            EncodingGroupTerm_var : (p:dataTypes.Group c) -> (i:Fin n) -> VariableA False p g (Neg (index_reverse i g))
-            EncodingGroupTerm_const : (p:dataTypes.Group c) -> (c1:c) -> VariableA False p g (Neg c1)
-        -}
-    
-        data VariableA : {c:Type} -> (Vect n c) -> c -> Type where
-            RealVariable : (i:Fin n) -> VariableA g (index_reverse i g)
-            EncodingGroupTerm_var : (p:dataTypes.Group c) -> (i:Fin n) -> VariableA g (Neg (index_reverse i g))
-            EncodingGroupTerm_const : (p:dataTypes.Group c) -> (c1:c) -> VariableA g (Neg c1)
-    
-    
-{-
-        pairOfVariables : {c:Type} -> {n:Nat} -> (b:Bool) -> (g:Vect n c) -> (c1:c) -> (c2:c) -> Type
-        pairOfVariables True g c1 c2 = (VariableA True () g c1, VariableA True () g c2)
-        pairOfVariables False g c1 c2 = (pg ** (VariableA False pg g c1, VariableA False pg g c2))
-
-        get_maybeProof : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> (if b then () else dataTypes.Group c)
-        get_maybeProof True g x = ()
-        get_maybeProof False g (pg ** (v1,v2)) = pg
-
-        get_v1 : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> VariableA b (get_maybeProof b g x) g c1
-        get_v1 True g (v1, v2) = v1
-        get_v1 False g (pg ** (v1, v2)) = v1
-
-        get_v2 : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> VariableA b (get_maybeProof b g x) g c2
-        get_v2 True g (v1, v2) = v2
-        get_v2 False g (pg ** (v1, v2)) = v2
-
-        VariableA_eq : {c:Type} -> {c1:c} -> {c2:c} -> (b:Bool) -> (g:Vect n c) -> (x:pairOfVariables b g c1 c2) -> Maybe (get_v1 b g x = get_v2 b g x)
-        VariableA_eq True g (RealVariable i1, RealVariable i2) with (decEq i1 i2)
-            VariableA_eq True g (RealVariable i1, RealVariable i1) | (Yes refl) = Just refl
-            VariableA_eq True g (RealVariable i1, RealVariable i2) | _ = Nothing
-        VariableA_eq False g (pg ** (EncodingGroupTerm_var _ i1, EncodingGroupTerm_var _ i2)) with (decEq i1 i2) -- All the trick is here : the two EncodingGroupTerm can only have for instance of Group the instance pg, because we've succeded to force this constraint. That's why we put the underscore !
-            VariableA_eq False g (pg ** (EncodingGroupTerm_var _ i1, EncodingGroupTerm_var _ i1)) | (Yes refl) = Just refl
-            VariableA_eq False g (pg ** (EncodingGroupTerm_var _ i1, EncodingGroupTerm_var _ i2)) | _ = Nothing
-         VariableA_eq False g (pg ** (EncodingGroupTerm_const _ c1, EncodingGroupTerm_const _ c2)) with ((group_eq_as_elem_of_set pg) c1 c2) -- Same remark here !
-            VariableA_eq False g (pg ** (EncodingGroupTerm_const _ c1, EncodingGroupTerm_const _ c1)) | (Just refl) = Just refl
-            VariableA_eq False g (pg ** (EncodingGroupTerm_const _ c1, EncodingGroupTerm_const _ c2)) | _ = Nothing
-         VariableA_eq _ g _ = Nothing
 -}
-        
-        VariableA_eq : {c:Type} -> {c1:c} -> {c2:c} -> (g:Vect n c) -> (v1:VariableA g c1) -> (v2:VariableA g c2) -> Maybe (v1=v2)
-        VariableA_eq g (RealVariable i1) (RealVariable i2) with (decEq i1 i2)
-            VariableA_eq g (RealVariable i1) (RealVariable i1) | (Yes refl) = Just refl
-            VariableA_eq g (RealVariable i1) (RealVariable i2) | _ = Nothing
-        VariableA_eq g (EncodingGroupTerm_var p1 i1) (EncodingGroupTerm_var p2 i2) with (decEq i1 i2, instance_eq p1 p2) 
-            VariableA_eq g (EncodingGroupTerm_var p1 i1) (EncodingGroupTerm_var p1 i1) | (Yes refl, Just refl) = Just refl
-            VariableA_eq g (EncodingGroupTerm_var p1 i1) (EncodingGroupTerm_var _ _) | _ = Nothing
-         VariableA_eq g (EncodingGroupTerm_const p1 c1) (EncodingGroupTerm_const p2 c2) with ((group_eq_as_elem_of_set p1) c1 c2, instance_eq p1 p2)
-            VariableA_eq g (EncodingGroupTerm_const p1 c1) (EncodingGroupTerm_const p1 c1) | (Just refl, Just refl) = Just refl
-            VariableA_eq g (EncodingGroupTerm_const _ c1) (EncodingGroupTerm_const _ _) | _ = Nothing
-         VariableA_eq _ g _ = Nothing
+
+
+data VariableA : {c:Type} -> {n:Nat} -> (c_equal : (c1:c) -> (c2:c) -> Maybe(c1=c2)) -> (neg:c->c) -> (Vect n c) -> c -> Type where
+    RealVariable : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> VariableA c_equal neg g (index_reverse i g) -- neg is not used here
+    EncodingGroupTerm_var : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> VariableA c_equal neg g (neg (index_reverse i g)) -- neg is used here
+    EncodingGroupTerm_const : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> VariableA c_equal neg g (neg c1) -- and here
+    
+
+VariableA_eq : {c:Type} -> {n:Nat} -> {c1:c} -> {c2:c} -> (c_equal:(cx:c)->(cy:c)->Maybe(cx=cy)) -> (neg:c->c) -> (g:Vect n c) -> (v1:VariableA c_equal neg g c1) -> (v2:VariableA c_equal neg g c2) -> Maybe (v1=v2)
+VariableA_eq c_equal neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) with (decEq i1 i2)
+    VariableA_eq c_equal neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i1) | (Yes refl) = Just refl
+    VariableA_eq c_equal neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) | _ = Nothing
+VariableA_eq c_equal neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i2) with (decEq i1 i2) 
+    VariableA_eq c_equal neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i1) | (Yes refl) = Just refl
+    VariableA_eq c_equal neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i2) | _ = Nothing
+VariableA_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) with (c_equal c1 c2)
+    VariableA_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c1) | (Just refl) = Just refl
+    VariableA_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) | _ = Nothing
+VariableA_eq c_equal neg g _ _ = Nothing
       
-        print_VariableA : {c1:c} -> (f:c -> String) -> VariableA g c1 -> String
-        print_VariableA f (RealVariable i) = "Var " ++ (show (cast i))
-        print_VariableA f (EncodingGroupTerm_var p i) = "[Encoding_var (" ++ (show(cast i)) ++ ") ]"
-        print_VariableA f (EncodingGroupTerm_const p c1) = "[Encoding_const (" ++ (f c1) ++ ") ]"
+print_VariableA : {c1:c} -> (f:c -> String) -> (c_equal:(cx:c)->(cy:c)->Maybe(cx=cy)) -> (neg:c->c) -> (g:Vect n c) -> VariableA c_equal neg g c1 -> String
+print_VariableA f _ _ g (RealVariable _ _ _ i) = "Var " ++ (show (cast i))
+print_VariableA f _ _ g (EncodingGroupTerm_var _ _ _ i) = "[Encoding_var (" ++ (show(cast i)) ++ ") ]"
+print_VariableA f _ _ g (EncodingGroupTerm_const _ _ _ c1) = "[Encoding_const (" ++ (f c1) ++ ") ]"
+
+
+
+
 
 
 -- Reflected terms in a magma
-        data ExprMa : Magma c -> (Vect n c) -> c -> Type where
-            ConstMa : (p : Magma c) -> (c1:c) -> ExprMa p g c1 
-            PlusMa : {p : Magma c} -> {c1:c} -> {c2:c} -> ExprMa p g c1 -> ExprMa p g c2 -> ExprMa p g (Plus c1 c2) 
-            VarMa : (p:Magma c) -> {c1:c} -> VariableA g c1 -> ExprMa p g c1
+data ExprMa : {c:Type} -> {n:Nat} -> Magma c -> (neg:c->c) -> (Vect n c) -> c -> Type where
+    ConstMa : {c:Type} -> {n:Nat} -> (p : Magma c) -> (neg:c->c) -> (g:Vect n c) -> (c1:c)  -> ExprMa p neg g c1 
+    PlusMa : {c:Type} -> {n:Nat} -> {p : Magma c} -> (neg:c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprMa p neg g c1 -> ExprMa p neg g c2 -> ExprMa p neg g (Plus c1 c2) 
+    VarMa : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> {g:Vect n c} -> {c1:c} -> VariableA (magma_eq_as_elem_of_set p) neg g c1 -> ExprMa p neg g c1
 
-        exprMa_eq : (p:Magma c) -> {g:Vect n c} -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p g c1) -> (e2:ExprMa p g c2) -> (Maybe (e1=e2))
-        exprMa_eq p (PlusMa x y) (PlusMa x' y') with (exprMa_eq p x x', exprMa_eq p y y')
-          exprMa_eq p (PlusMa x y) (PlusMa x y) | (Just refl, Just refl) = Just refl
-          exprMa_eq p (PlusMa x y) (PlusMa x' y') | _ = Nothing
-        exprMa_eq p (VarMa _ v1) (VarMa _ v2) with (VariableA_eq _ v1 v2)
-          exprMa_eq p (VarMa _ v1) (VarMa _ v1) | (Just refl) = Just refl
-          exprMa_eq p (VarMa _ v1) (VarMa _ v2) | _ = Nothing      
-        exprMa_eq p (ConstMa p const1) (ConstMa p const2) with ((magma_eq_as_elem_of_set p) const1 const2)
-            exprMa_eq p (ConstMa p const1) (ConstMa p const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
-            exprMa_eq p (ConstMa p const1) (ConstMa p const2) | _ = Nothing
-        exprMa_eq p e1 e2 = Nothing
+exprMa_eq : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p neg g c1) -> (e2:ExprMa p neg g c2) -> (Maybe (e1=e2))
+exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ x' y') with (exprMa_eq p neg g x x', exprMa_eq p neg g y y')
+    exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ x y) | (Just refl, Just refl) = Just refl
+    exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ _ _) | _ = Nothing
+exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v2) with (VariableA_eq _ neg g v1 v2) -- Note : the "_" on the with clause correspond to (magma_eq_as_elem_of_set p) : both VarMo shares the same p, and given the definition of the type ExprMo, the argument c_equal is forced to be (magma_eq_as_elem_of_set p)
+    exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v1) | (Just refl) = Just refl
+    exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v2) | _ = Nothing      
+exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) with ((magma_eq_as_elem_of_set p) const1 const2)
+    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) | _ = Nothing
+exprMa_eq p neg g e1 e2 = Nothing
 
 
 {-
@@ -366,6 +333,9 @@ r_to_cr p (MultR e1 e2) = MultCR (r_to_cr p e1) (r_to_cr p e2)
 r_to_cr p (VarR _ v) = VarCR p v
 
 -}
+
+
+
 
 
 
