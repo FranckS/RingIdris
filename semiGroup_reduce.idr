@@ -19,16 +19,18 @@ import tools
 
 -- Normalization
 -- No longer total due to fixed point to reach (non structural recursivity) (see last line of function)
-assoc : (p:SemiGroup c) -> (g:Vect n c) -> {c1:c} -> (ExprSG p g c1) -> (c2 ** (ExprSG p g c2, c1=c2))
-assoc p g (ConstSG p const) = (_ ** (ConstSG p const, refl))
-assoc p g (VarSG p v b) = (_ ** (VarSG p v b, refl))
+assoc : (p:SemiGroup c) -> (neg:c->c) -> (g:Vect n c) -> {c1:c} -> (ExprSG p neg g c1) -> (c2 ** (ExprSG p neg g c2, c1=c2))
+assoc p neg g (ConstSG _ _ _ const) = (_ ** (ConstSG _ _ _ const, refl))
+assoc p neg g (VarSG _ _ v) = (_ ** (VarSG _ _ v, refl))
 -- (x + c1) + (c2 + y) -> (x + (res c1+c2)) + y
-assoc p g (PlusSG (PlusSG e1 (ConstSG p c1)) (PlusSG (ConstSG p c2) e2)) =
-    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
-    let (r_ih2 ** (e_ih2, p_ih2)) = (assoc p g e2) in
-    let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma {p} {g} (PlusSG (ConstSG p c1) (ConstSG p c2))) in
+assoc p neg g (PlusSG _ (PlusSG _ e1 (ConstSG _ _ _ c1)) (PlusSG _ (ConstSG _ _ _ c2) e2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p neg g e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = (assoc p neg g e2) in
+    let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma {p=p} {neg=neg} {g=g} (PlusSG _ (ConstSG _ _ _ c1) (ConstSG _ _ _ c2))) in
     let e_3' = magma_to_semiGroup p e_3 in
-    (_ ** ((PlusSG (PlusSG e_ih1 e_3') e_ih2), ?Massoc1))
+    (_ ** ((PlusSG _ (PlusSG _ e_ih1 e_3') e_ih2), ?Massoc1))
+    
+{-    
 -- (x + c1) + c2 -> x + (res c1+c2)
 assoc p g (PlusSG (PlusSG e1 (ConstSG p c1)) (ConstSG p c2)) =
     let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p g e1) in
@@ -230,7 +232,7 @@ semiGroup_reduce.MbuildProofSemiGroup = proof {
 
 
 
-
+-}
 
 
 
