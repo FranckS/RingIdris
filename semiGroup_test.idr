@@ -43,6 +43,7 @@ compare_test1'_test3' x = semiGroupDecideEq (%instance) (test1' x) (test3' x)
 -- (which causes a crash only when you apply then to a specific value for x)
 test : (x:Nat) -> (2 + (3 + x) = 5 + x)
 test x = let (Just ok) = compare_test1'_test3' x in ok
+-- WORKS FOR ALL X !!
 
 
 -- SECOND TEST : WE NORMALIZE TEST4' AND TEST5'
@@ -78,7 +79,7 @@ test_5'_norm_print x y = print_ExprSG show (test5'_norm x y)
 -- Result of the automatic equality solver for test4' and test5'
 secondTest : (x:Nat) -> (y:Nat) -> (((x + (1+1)) + (2 + y)) = (x + (4 + y)))
 secondTest x y = let (Just ok) = semiGroupDecideEq (%instance) (test4' x y) (test5' x y) in ok
-
+-- WORKS BUT NOT FOR ALL X YET
 
 
 

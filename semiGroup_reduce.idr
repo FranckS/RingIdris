@@ -15,8 +15,6 @@ import tools
 --%default total
 
 
-
-
 -- Normalization
 -- No longer possible to tag this function as total due to fixed point to reach (non structural recursivity) (see last lines of the function)
 assoc : (p:SemiGroup c) -> (neg:c->c) -> (g:Vect n c) -> {c1:c} -> (ExprSG p neg g c1) -> (c2 ** (ExprSG p neg g c2, c1=c2))

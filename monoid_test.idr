@@ -38,6 +38,8 @@ compare_a_b x = monoidDecideEq (%instance) (a x) (b x)
 -- (which causes a crash only when you apply then to a specific value for x)
 proof_a_b : (x:Nat) -> (2 + (0 + x) = 2 + x)
 proof_a_b x = let (Just ok) = compare_a_b x in ok
+-- WORKS FOR ALL X !!
+
 
 ---------- Proofs ----------
 monoid_test.M_Nat_Monoid_1 = proof

@@ -39,6 +39,7 @@ compare_test1_test3 x = magmaDecideEq (%instance) (test1 x) (test3 x)
 test1_not_equal_to_test3 : (x:Nat) -> (2 + (3 + x) = 5 + x)
 test1_not_equal_to_test3 x = let (Just pr) = magmaDecideEq (%instance) (test1 x) (test3 x) in pr --A "non regression test", unfortunately not using the type checker (need to compute this term and to see if it crashs or not)
 -- Should crash if we use the value !
+-- AND EFECTIVELY CRASHES FOR ALL X
 
 -- Second test : (2 + 3) + x = 5 + x
 compare_test2_test3 : (x:Nat) -> Maybe ((2 + 3) + x = 5 + x)
@@ -46,7 +47,7 @@ compare_test2_test3 x = magmaDecideEq (%instance) (test2 x) (test3 x)
 
 test2_equal_test3 : (x:Nat) -> ((2 + 3) + x = 5 + x)
 test2_equal_test3 = \x => let (Just pr) = magmaDecideEq (%instance) (test2 x) (test3 x) in pr --A second "non regression test", unfortunately not using the type checker (need to compute this term and to see if it crashs or not)
-
+-- WORKS FOR ALL X !!
 
 -- JUST A STUPID TEST TO UNDERSTAND WHAT HAPPEN IF I A CONSTANT IS IN FACT A VARIABLE 
 -- Of course, it won't give the proof we want for all x (because the algorithm waits for the value of x since we're supposed to have a _constant_), 

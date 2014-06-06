@@ -88,7 +88,7 @@ compare_termC_termD x = groupDecideEq (%instance) (termC x) (termD x)
 -- (which causes a crash only when you apply then to a specific value for x)
 proof_termC_termD : (x:ZZ) -> (((2 + (0-2))+x) = x)
 proof_termC_termD x = let (Just ok) = compare_termC_termD x in ok
--- RESULT : OK, IT EFFECTIVELY WORKS
+-- RESULT : WORKS BUT NOT FOR ALL X YET
   
 
 termE : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] ((3 + (0-2))+x)
@@ -113,7 +113,7 @@ compare_termE_termF x = groupDecideEq (%instance) (termE x) (termF x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termE_termF : (x:ZZ) -> (((3 + (0-2))+x) = (1+x))
 proof_termE_termF x = let (Just ok) = compare_termE_termF x in ok
--- RESULT : OK, IT EFFECTIVELY WORKS
+-- RESULT : FAILS ! PROBLEM HERE !!!!
 
 -- ----------------------
 -- TEST 3 THAT SHOULD FAIL
@@ -125,7 +125,7 @@ compare_termE_termG x = groupDecideEq (%instance) (termE x) (termG x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termE_termG : (x:ZZ) -> (((3 + (0-2))+x) = x)
 proof_termE_termG x = let (Just ok) = compare_termE_termG x in ok
--- RESULT : OK, IT EFFECTIVELY FAILS
+-- RESULT : WORKS FOR ALL X !!
 
 
 -- ----------------------
@@ -146,7 +146,7 @@ compare_termH_termG x = groupDecideEq (%instance) (termH x) (termG x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termH_termG : (x:ZZ) -> (((-2 + (0 + (-(-2)))) + x) = x)
 proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
--- RESULT : OK, IT EFFECTIVELY WORKS
+-- RESULT : WORKS BUT NOT FOR ALL X YET
 
 -- ----------------------
 -- TEST 5 THAT SHOULD WORK
@@ -181,7 +181,7 @@ compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termJ_termK : (x:ZZ) -> (y:ZZ) -> (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
 proof_termJ_termK x y = let (Just ok) = compare_termJ_termK x y in ok
--- FAILS AND SHOULD WORK !!! HAVE TO DEBUG HERE !
+-- RESULT : FAILS ! PROBLEM HERE !!!!
 
 
 -- To debug...
