@@ -24,13 +24,13 @@ instance Magma Nat where
 
 
 test1 : (x:Nat) -> ExprMa (%instance) (\x =>x) [x] (Plus 2 (Plus 3 x))
-test1 x = PlusMa _ (ConstMa _ _ _ 2) (PlusMa _ (ConstMa _ _ _ 3) (VarMa _ _ (RealVariable set_eq _ _ fZ)))
+test1 x = PlusMa _ (ConstMa _ _ _ 2) (PlusMa _ (ConstMa _ _ _ 3) (VarMa _ _ (RealVariable _ _ _ fZ)))
 
 test2 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
-test2 x = PlusMa _ (PlusMa _ (ConstMa _ _ _ 2) (ConstMa _ _ _ 3)) (VarMa _ _ (RealVariable set_eq _ _ fZ))
+test2 x = PlusMa _ (PlusMa _ (ConstMa _ _ _ 2) (ConstMa _ _ _ 3)) (VarMa _ _ (RealVariable _ _ _ fZ))
 
 test3 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
-test3 x = PlusMa _ (ConstMa _ _ _ 5) (VarMa _ _ (RealVariable set_eq _ _ fZ))
+test3 x = PlusMa _ (ConstMa _ _ _ 5) (VarMa _ _ (RealVariable _ _ _ fZ))
 
 --First test : 2 + (3 + x) =\= 5 + x
 compare_test1_test3 : (x:Nat) -> Maybe (2 + (3 + x) = 5 + x)
