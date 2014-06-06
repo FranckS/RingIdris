@@ -305,18 +305,20 @@ magma_to_semiGroup p (ConstMa _ _ _ cst) = ConstSG p _ _ cst
 magma_to_semiGroup p (PlusMa _ e1 e2) = PlusSG _ (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
 magma_to_semiGroup p (VarMa _ _ v) = VarSG p _ v
 
-{-
+
 
 -- Monoid -> SemiGroup
-monoid_to_semiGroup : {p:dataTypes.Monoid c} -> {g:Vect n c} -> {c1:c} -> ExprMo p g c1 -> ExprSG (monoid_to_semiGroup_class p) g c1
-monoid_to_semiGroup (ConstMo p cst) = ConstSG (monoid_to_semiGroup_class p) cst
-monoid_to_semiGroup (PlusMo e1 e2) = PlusSG (monoid_to_semiGroup e1) (monoid_to_semiGroup e2)
-monoid_to_semiGroup (VarMo p v) = VarSG (monoid_to_semiGroup_class p) v
+monoid_to_semiGroup : {c:Type} -> {n:Nat} -> {p:dataTypes.Monoid c} -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprMo p neg g c1 -> ExprSG (monoid_to_semiGroup_class p) neg g c1
+monoid_to_semiGroup (ConstMo p _ _ cst) = ConstSG (monoid_to_semiGroup_class p) _ _ cst
+monoid_to_semiGroup (PlusMo _ e1 e2) = PlusSG _ (monoid_to_semiGroup e1) (monoid_to_semiGroup e2)
+monoid_to_semiGroup (VarMo p _ v) = VarSG (monoid_to_semiGroup_class p) _ v
 
-semiGroup_to_monoid : (p:dataTypes.Monoid c) -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) g c1 -> ExprMo p g c1
-semiGroup_to_monoid p (ConstSG _ cst) = ConstMo p cst
-semiGroup_to_monoid p (PlusSG e1 e2) = PlusMo (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
-semiGroup_to_monoid p (VarSG _ v) = VarMo p v
+semiGroup_to_monoid : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) neg g c1 -> ExprMo p neg g c1
+semiGroup_to_monoid p (ConstSG p _ _ cst) = ConstMo p _ _ cst
+semiGroup_to_monoid p (PlusSG _ e1 e2) = PlusMo _ (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
+semiGroup_to_monoid p (VarSG _ _ v) = VarMo p _ v
+
+{-
 
 cr_to_r : {p:CommutativeRing c} -> {g:Vect n c} -> {c1:c} -> ExprCR p g c1 -> ExprR (cr_to_r_class p) g c1
 cr_to_r (ConstCR p cst) = ConstR (cr_to_r_class p) cst
