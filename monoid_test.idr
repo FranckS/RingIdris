@@ -22,16 +22,16 @@ instance dataTypes.Monoid Nat where
     Plus_neutral_2 Z = ?M_Nat_Monoid_2
     Plus_neutral_2 (S pc) = let px = Plus_neutral_2 pc in ?M_Nat_Monoid_3
 
-a : (x:Nat) -> ExprMo (%instance) [x] (2 + (0 + x)) 
-a x = PlusMo (ConstMo _ 2) (PlusMo (ConstMo _ 0) (VarMo _ fZ True))
+a : (x:Nat) -> ExprMo (%instance) (\x => x) [x] (2 + (0 + x)) 
+a x = PlusMo _ (ConstMo _ _ _ 2) (PlusMo _ (ConstMo _ _ _ 0) (VarMo _ _ (RealVariable _ _ _ fZ)))
 
-b : (x:Nat) -> ExprMo (%instance) [x] (2 + x)
-b x = PlusMo (ConstMo _ 2) (VarMo _ fZ True)
+b : (x:Nat) -> ExprMo (%instance) (\x => x) [x] (2 + x)
+b x = PlusMo _ (ConstMo _ _ _ 2) (VarMo _ _ (RealVariable _ _ _ fZ))
 
 
 -- Normalisation of 2 + (0 + x) that should give 2 + x, since now we are working on a monoid
 compare_a_b : (x:Nat) -> Maybe (2 + (0 + x) = 2 + x)
-compare_a_b x = monoidDecideEq (%instance) [x] (a x) (b x) 
+compare_a_b x = monoidDecideEq (%instance) (a x) (b x) 
 
 -- Later, we will have a real tactic "Monoid" which can fail. At this point, we will
 -- not have a missing case for "Nothing", which enables now to manipulate some false proof

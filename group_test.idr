@@ -65,33 +65,23 @@ instance dataTypes.Group ZZ where
     Plus_inverse x = plus_inverse x --hasSymmetric c (%instance) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)    
     
     
-termA : (x:ZZ) -> ExprG (%instance) [x] (-2 + x) 
-termA x = PlusG (NegG (ConstG _ (Pos 2))) (VarG _ fZ True)
-									
-									
-termA_encoded : (x:ZZ) -> (y ** (g2 ** (c2:ZZ ** ((ExprMo {n=y+(S Z)} (%instance) (g2++[x]) c2), (-2+x = c2)))))
-termA_encoded x = encode _ _ (S Z) [x] (termA x)
 
-									
-termB : (x:ZZ) -> ExprG (%instance) [x] (0 + x) 
-termB x = (PlusG (ConstG _ (Pos 0)) 
-				 (VarG _ fZ True))
 				 
 -- ----------------------
 -- TEST 1 THAT SHOULD WORK
 -- ----------------------
-termC : (x:ZZ) -> ExprG (%instance) [x] ((2 + (0-2))+x)
-termC x = PlusG (PlusG (ConstG _ (Pos 2))
-					   (MinusG (ConstG _ (Pos 0)) (ConstG _ (Pos 2))))
-				(VarG _ fZ True)
+termC : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] ((2 + (0-2))+x)
+termC x = PlusG _ (PlusG _ (ConstG _ _ _ (Pos 2))
+                                         (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
+				(VarG _ _ (RealVariable _ _ _ fZ))
 
-termD : (x:ZZ) -> ExprG (%instance) [x] x
-termD x = VarG _ fZ True
+termD : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] x
+termD x = VarG _ _ (RealVariable _ _ _ fZ)
 
 
 -- Normalisation of ((2 + (0-2))+x) that should give x, since now we are working on a group
 compare_termC_termD : (x:ZZ) -> Maybe (((2 + (0-2))+x) = x)
-compare_termC_termD x = groupDecideEq (%instance) [x] (termC x) (termD x) 
+compare_termC_termD x = groupDecideEq (%instance) (termC x) (termD x) 
 
 -- Later, we will have a real tactic "Group" which can fail. At this point, we will
 -- not have a missing case for "Nothing", which enables now to manipulate some false proof
@@ -101,24 +91,24 @@ proof_termC_termD x = let (Just ok) = compare_termC_termD x in ok
 -- RESULT : OK, IT EFFECTIVELY WORKS
   
 
-termE : (x:ZZ) -> ExprG (%instance) [x] ((3 + (0-2))+x)
-termE x = PlusG (PlusG (ConstG _ (Pos 3))
-					   (MinusG (ConstG _ (Pos 0)) (ConstG _ (Pos 2))))
-				(VarG _ fZ True)
+termE : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] ((3 + (0-2))+x)
+termE x = PlusG _ (PlusG _ (ConstG _ _ _ (Pos 3))
+                           (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
+                  (VarG _ _ (RealVariable _ _ _ fZ))
 
-termF : (x:ZZ) -> ExprG (%instance) [x] (1+x)
-termF x = PlusG (ConstG _ (Pos 1)) (VarG _ fZ True)
+termF : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] (1+x)
+termF x = PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ fZ))
 
 
-termG : (x:ZZ) -> ExprG (%instance) [x] x
-termG x = VarG _ fZ True
+termG : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] x
+termG x = VarG _ _ (RealVariable _ _ _fZ)
 
 -- ----------------------
 -- TEST 2 THAT SHOULD WORK
 -- ----------------------
 -- Normalisation of ((2 + (0-2))+x) that should give (1+x), since now we are working on a group
 compare_termE_termF : (x:ZZ) -> Maybe (((3 + (0-2))+x) = (1+x))
-compare_termE_termF x = groupDecideEq (%instance) [x] (termE x) (termF x) 
+compare_termE_termF x = groupDecideEq (%instance) (termE x) (termF x) 
 
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termE_termF : (x:ZZ) -> (((3 + (0-2))+x) = (1+x))
@@ -130,7 +120,7 @@ proof_termE_termF x = let (Just ok) = compare_termE_termF x in ok
 -- ----------------------
 -- Normalisation of ((2 + (0-2))+x) that should NOT give x, since now we are working on a group
 compare_termE_termG : (x:ZZ) -> Maybe (((3 + (0-2))+x) = x)
-compare_termE_termG x = groupDecideEq (%instance) [x] (termE x) (termG x) 
+compare_termE_termG x = groupDecideEq (%instance) (termE x) (termG x) 
 
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termE_termG : (x:ZZ) -> (((3 + (0-2))+x) = x)
@@ -142,16 +132,16 @@ proof_termE_termG x = let (Just ok) = compare_termE_termG x in ok
 -- TEST 4 THAT SHOULD WORK
 -- ----------------------
 
-termH : (x:ZZ) -> ExprG (%instance) [x] ((-2 + (0 + (-(-2)))) + x)
-termH x = PlusG (PlusG (NegG (ConstG _ (Pos 2)))
-					  (PlusG (ConstG _ (Pos 0)) (NegG (NegG (ConstG _ (Pos 2))))))
-				(VarG _ fZ True)
+termH : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] ((-2 + (0 + (-(-2)))) + x)
+termH x = PlusG _ (PlusG _ (NegG _ (ConstG _ _ _ (Pos 2)))
+                           (PlusG _ (ConstG _ _ _ (Pos 0)) (NegG _ (NegG _ (ConstG _ __ (Pos 2))))))
+                  (VarG _ _ (RealVariable _ _ _ fZ))
 
 
 -- Reminder : termG is just "x"
 
 compare_termH_termG : (x:ZZ) -> Maybe (((-2 + (0 + (-(-2)))) + x) = x)
-compare_termH_termG x = groupDecideEq (%instance) [x] (termH x) (termG x) 
+compare_termH_termG x = groupDecideEq (%instance) (termH x) (termG x) 
 
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termH_termG : (x:ZZ) -> (((-2 + (0 + (-(-2)))) + x) = x)
@@ -168,25 +158,25 @@ proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
 -- Here : e1 - y
 --        e2 = ((3 + (0-2))+x)
 --        e3 = 1+x
-termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
-termJ x y = PlusG (PlusG (VarG _ fZ True) 
-					     (PlusG (PlusG (ConstG _ (Pos 3))
-									   (MinusG (ConstG _ (Pos 0)) (ConstG _ (Pos 2))))
-							    (VarG _ (fS fZ) True)))
-				  (NegG (PlusG (ConstG _ (Pos 1)) (VarG _ (fS fZ) True)))
+termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (\x => Neg x) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
+termJ x y = PlusG _ (PlusG _ (VarG _ _ (RealVariable _ _ _ fZ)) 
+                             (PlusG _ (PlusG _ (ConstG _ _ _ (Pos 3))
+                                               (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
+                                      (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
+                    (NegG _ (PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
 
 
-termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] y
-termK x y = VarG _ fZ True
+termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (\x => Neg x) [x, y] y
+termK x y = VarG _ _ (RealVariable _ _ _ fZ)
 
-termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + (1+x)) + (-(1+x)))
-termL x y = PlusG (PlusG (VarG _ fZ True) 
-					     (PlusG (ConstG _ (Pos 1))
-							    (VarG _ (fS fZ) True)))
-				  (NegG (PlusG (ConstG _ (Pos 1)) (VarG _ (fS fZ) True)))
+termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (\x => Neg x) [x, y] ((y + (1+x)) + (-(1+x)))
+termL x y = PlusG _ (PlusG _ (VarG _ _ (RealVariable _ _ _ fZ)) 
+                             (PlusG _ (ConstG _ _ _ (Pos 1))
+                                      (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
+                    (NegG _ (PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
 
 compare_termJ_termK : (x:ZZ) -> (y:ZZ) -> Maybe (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
-compare_termJ_termK x y = groupDecideEq (%instance) [x, y] (termJ x y) (termK x y) 
+compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y) 
 
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termJ_termK : (x:ZZ) -> (y:ZZ) -> (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
@@ -199,7 +189,7 @@ proof_termJ_termK x y = let (Just ok) = compare_termJ_termK x y in ok
 -- A)
 
 compare_termJ_termL : (x:ZZ) -> (y:ZZ) -> Maybe (((y + ((3 + (0-2))+x)) + (-(1+x))) = ((y + (1+x)) + (-(1+x))))
-compare_termJ_termL x y = groupDecideEq (%instance) [x, y] (termJ x y) (termL x y) 
+compare_termJ_termL x y = groupDecideEq (%instance) (termJ x y) (termL x y) 
 
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termJ_termL : (x:ZZ) -> (y:ZZ) -> (((y + ((3 + (0-2))+x)) + (-(1+x))) = ((y + (1+x)) + (-(1+x))))
@@ -218,18 +208,7 @@ getC (NegG e) = Neg (getC e)
 getC (VarG p i b) = (index_reverse i g)
 -}
 
-getN : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> {g:Vect n c} -> {c1:c} -> (big : (n2 ** (g2 ** (c2 ** ((ExprG {n=n2} p g2 c2, c1=c2), SubSet g g2))))) -> Nat
-getN (n2 ** (g2 ** (c2 ** ((e, pEq), pSubSet)))) = n2
 
-getG : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> {g:Vect n c} -> {c1:c} -> (big : (n2 ** (g2 ** (c2 ** ((ExprG {n=n2} p g2 c2, c1=c2), SubSet g g2))))) -> (Vect (getN big) c)
-getG (n2 ** (g2 ** (c2 ** ((e, pEq), pSubSet)))) = g2
-
-getC : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> {g:Vect n c} -> {c1:c} -> (big : (n2 ** (g2 ** (c2 ** ((ExprG {n=n2} p g2 c2, c1=c2), SubSet g g2))))) -> c
-getC (n2 ** (g2 ** (c2 ** ((e, pEq), pSubSet)))) = c2
-
--- get the "reflected term"
-getE : {c:Type} -> {p:dataTypes.Group c} -> {n:Nat} -> {g:Vect n c} -> {c1:c} -> (big : (n2 ** (g2 ** (c2 ** ((ExprG {n=n2} p g2 c2, c1=c2), SubSet g g2))))) -> (ExprG {n=getN big} p (getG big) (getC big))
-getE (n2 ** (g2 ** (c2 ** ((e, pEq), pSubSet)))) = e
 
 
 {-

@@ -124,16 +124,10 @@ group_to_set x = (%instance)
 group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 
-{-
-postulate
-axiom_instance_eq : {c:Type} -> (p1:dataTypes.Group c) -> (p2:dataTypes.Group c) -> (p1=p2)
 
-
-instance_eq : {c:Type} -> (p1:dataTypes.Group c) -> (p2:dataTypes.Group c) -> Maybe (p1=p2)
-instance_eq p1 p2 with (axiom_instance_eq p1 p2)
-    instance_eq p1 p1 | refl = Just refl
--}
-
+-- ----------------------------
+-- ---- Reflected Terms ---- --
+-- ----------------------------
 
 data VariableA : {c:Type} -> {n:Nat} -> (c_equal : (c1:c) -> (c2:c) -> Maybe(c1=c2)) -> (neg:c->c) -> (Vect n c) -> c -> Type where
     RealVariable : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> VariableA c_equal neg g (index_reverse i g) -- neg is not used here
@@ -152,6 +146,7 @@ VariableA_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm
     VariableA_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c1) | (Just refl) = Just refl
     VariableA_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) | _ = Nothing
 VariableA_eq c_equal neg g _ _ = Nothing
+   
       
 print_VariableA : {c1:c} -> (f:c -> String) -> {c_equal:(cx:c)->(cy:c)->Maybe(cx=cy)} -> {neg:c->c} -> {g:Vect n c} -> VariableA c_equal neg g c1 -> String
 print_VariableA f (RealVariable _ _ _ i) = "Var " ++ (show (cast i))
@@ -294,6 +289,10 @@ print_ExprG c_print (NegG _ e) = "(-" ++ (print_ExprG c_print e) ++ ")"
 
 -}
 
+-- ----------------------------------------
+-- ---- Conversion of encoded terms ---- --
+-- ----------------------------------------
+
 -- SemiGroup -> Magma
 semiGroup_to_magma : {c:Type} -> {n:Nat} -> {p:SemiGroup c} -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprSG p neg g c1 -> ExprMa (semiGroup_to_magma_class p) neg g c1
 semiGroup_to_magma (ConstSG p _ _ cst) = ConstMa (semiGroup_to_magma_class p) _ _ cst
@@ -304,7 +303,6 @@ magma_to_semiGroup : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> {neg:c->c} -> {g:
 magma_to_semiGroup p (ConstMa _ _ _ cst) = ConstSG p _ _ cst
 magma_to_semiGroup p (PlusMa _ e1 e2) = PlusSG _ (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
 magma_to_semiGroup p (VarMa _ _ v) = VarSG p _ v
-
 
 
 -- Monoid -> SemiGroup

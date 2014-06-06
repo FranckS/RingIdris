@@ -534,13 +534,18 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
 
 -- F.1) index and reverse
 
+-- No longer needed !
+{-
 lastElement_of_reverse_is_first' : (g : Vect (S pn) a) -> (index (fZ {k=pn}) g = index (lastElement pn) (reverse g))
 lastElement_of_reverse_is_first' (h::Nil) = refl
 lastElement_of_reverse_is_first' (h::(h2::t2)) = let ih = lastElement_of_reverse_is_first' (h2::t2) in ?MA
+-}
 
-
+-- No longer needed !
+{-
 lastElement_of_reverse_is_first : (g : Vect (S pn) a) -> ((head g = index (lastElement pn) (reverse g)))
 lastElement_of_reverse_is_first (h::t) = ?MB
+-}
 
 -- F.2) Append
 
@@ -583,22 +588,26 @@ SubSet_trans g1 (h2::t2) _ (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_same _) = SubS
 SubSet_trans g1 (h2::t2) (h3::t3) (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_add h3 _ t3 h2_cons_t2_in_t3) = 
     let t2_in_t3 : SubSet t2 t3 = SubSet_wkn t2 t3 h2 h2_cons_t2_in_t3 in 
         SubSet_add h3 g1 t3 (SubSet_trans g1 t2 t3 g1_in_t2 t2_in_t3)    
-    
-
+  
+  
+-- No longer needed !
+{-
 postulate    
 	SubSet_size : {c:Type} -> (n:Nat) -> (m:Nat) -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 g2) -> (GTE m n)
-    
+-}    
 
 concat_SubSet : {c:Type} -> {n:Nat} -> {m:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 (g2++g1))
 concat_SubSet Nil Nil = SubSet_same _
 concat_SubSet (h1::t1) Nil = SubSet_same _
 concat_SubSet g1 (h2::t2) = let ih:SubSet g1 (t2++g1) = concat_SubSet g1 t2 in SubSet_add h2 _ _ ih
 
-    
+  
+-- No longer needed !
+{-  
 -- Says that ig g2 is a "superset" of g1, then the first element are the same
 postulate -- Will be proven later
 	indexReverse_of_convert : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (i:Fin n) -> {m:Nat} -> (g2:Vect (S m) c) -> (p: GTE (S m) n) -> (SubSet g1 g2) -> (index_reverse i g1 = index_reverse (pre_convertFin i m p) g2)
-	
+-}	
 	
 -- Subset and equality
 SubSet_rewriteRight : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (SubSet g1 g2) -> (g2=g3) -> (SubSet g1 g3)
