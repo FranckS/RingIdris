@@ -57,29 +57,56 @@ pre_get_e (r ** (e, p)) = e
 get_e : {pr: SemiGroup c} -> {r1:c} -> (big:(r ** (ExprSG pr neg [x, y] r, r1=r))) -> ExprSG pr neg [x, y] (get_r big)
 get_e (r ** (e, p)) = e
 
-{-
--- Result of normalization for test4'
-test4'_norm : (x:Nat) -> (y:Nat) -> (ExprSG (%instance) [x, y] (get_r (semiGroupReduce (%instance) [x, y] (test4' x y))))
---test4'_norm x y = get_e (semiGroupReduce (%instance) [x, y] (test4' x y))
 
-test_4'_norm_print : (x:Nat) -> (y:Nat) -> String
-test_4'_norm_print x y = print_ExprSG show (test4'_norm x y)
--}
-
-{-
--- Result of normalization for test5'
-test5'_norm : (x:Nat) -> (y:Nat) -> (ExprSG (%instance) [x, y] (get_r (semiGroupReduce (%instance) [x, y] (test5' x y))))
-test5'_norm x y = get_e (semiGroupReduce (%instance) [x, y] (test5' x y))
-
-test_5'_norm_print : (x:Nat) -> (y:Nat) -> String -- Question : how to normalize without having to instanciate the variable ? That's not nice, and not needed.
-test_5'_norm_print x y = print_ExprSG show (test5'_norm x y)
-
--}
 
 -- Result of the automatic equality solver for test4' and test5'
 secondTest : (x:Nat) -> (y:Nat) -> (((x + (1+1)) + (2 + y)) = (x + (4 + y)))
 secondTest x y = let (Just ok) = semiGroupDecideEq (%instance) (test4' x y) (test5' x y) in ok
 -- WORKS BUT NOT FOR ALL X YET
+
+
+
+-- Code to debug secondTest
+print_test4'_norm : Nat -> Nat -> String
+print_test4'_norm = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce  (%instance) (test4' x y)))))
+
+print_test5'_norm : Nat -> Nat -> String
+print_test5'_norm = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce  (%instance) (test5' x y)))))
+
+
+-- new test
+
+new_a : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + 4)
+new_a x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ (fS fZ))) (ConstSG _ _ _ 4)
+
+newTest_a : (x:Nat) -> (y:Nat) -> (x+4 = x+4)
+newTest_a x y = let (Just ok) = semiGroupDecideEq (%instance) (new_a x y) (new_a x y) in ok
+-- ok
+
+
+new_b : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (4 + y)
+new_b x y = PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ fZ))
+
+newTest_b : (x:Nat) -> (y:Nat) -> (4+y = 4+y)
+newTest_b x y = let (Just ok) = semiGroupDecideEq (%instance) (new_b x y) (new_b x y) in ok
+-- ok
+
+
+new_c : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + (4 + y))
+new_c x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ (fS fZ))) 
+                    (PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ fZ)))
+            
+newTest_c : (x:Nat) -> (y:Nat) -> (x+(4+y) = x+(4+y))
+newTest_c x y = let (Just ok) = semiGroupDecideEq (%instance) (new_c x y) (new_c x y) in ok
+-- ok
+
+
+print_test_c : Nat -> Nat -> String
+print_test_c = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce (%instance) (new_c x y)))))
+-- ok, as expected
+
+
+
 
 
 

@@ -251,9 +251,9 @@ exprG_eq p neg g _ _  = Nothing
 print_ExprG : {c:Type} -> {n:Nat} -> {p:dataTypes.Group c} -> {r1:c} -> (c -> String) -> {neg:c->c} -> {g:Vect n c} -> ExprG p neg g r1 -> String
 print_ExprG c_print (ConstG _ _ _ const) = c_print const
 print_ExprG c_print (PlusG _ e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") + (" ++ (print_ExprG c_print e2) ++ ")"
-print_ExprG c_print (MinusG _ e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") - (" ++ (print_ExprG c_print e2) ++ ")"
+print_ExprG c_print (MinusG _ e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") --- (" ++ (print_ExprG c_print e2) ++ ")"
 print_ExprG c_print (VarG _ _ v) = print_VariableA c_print v
-print_ExprG c_print (NegG _ e) = "(-" ++ (print_ExprG c_print e) ++ ")"
+print_ExprG c_print (NegG _ e) = "(--" ++ (print_ExprG c_print e) ++ ")"
 
 {-
 -- Reflected terms in a commutative group       
