@@ -42,7 +42,7 @@ exprG_eq p n m g1 g2 e1 e2 with (vect_eq set_eq _ _ g1 g2)
 	
 
 total
-elimMinus : {c:Type} -> (p:dataTypes.Group c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> (ExprG p neg g c1) -> (c2 ** (ExprG p neg g c2, c1=c2))
+elimMinus : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p Neg g c1) -> (c2 ** (ExprG p Neg g c2, c1=c2))
 elimMinus p (ConstG _ _ _ const) = (_ ** (ConstG _ _ _ const, refl))
 elimMinus p (PlusG _ e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
@@ -60,7 +60,7 @@ elimMinus p (NegG _ e1) =
   
 -- Ex : -(a+b) becomes (-b) + (-a)
 -- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
-propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> (ExprG p neg g c1) -> (c2 ** (ExprG p neg g c2, c1=c2))
+propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p Neg g c1) -> (c2 ** (ExprG p Neg g c2, c1=c2))
 propagateNeg p (NegG _ (PlusG _ e1 e2)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p (NegG _ e1)) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p (NegG _ e2)) in
@@ -77,7 +77,7 @@ propagateNeg p e =
   
 
 -- Needed because calling propagateNeg on -(-(a+b)) gives - [-b + -a] : we may need other passes
-propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> (ExprG p neg g c1) -> (c2 ** (ExprG p neg g c2, c1=c2))
+propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p Neg g c1) -> (c2 ** (ExprG p Neg g c2, c1=c2))
 propagateNeg_fix p e = 
 	let (r_1 ** (e_1, p_1)) = propagateNeg p e in
 		case exprG_eq p _ _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
@@ -87,7 +87,7 @@ propagateNeg_fix p e =
   
 
 total
-elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> (ExprG p neg g c1) -> (c2 ** (ExprG p neg g c2, c1=c2))
+elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p Neg g c1) -> (c2 ** (ExprG p Neg g c2, c1=c2))
 elimDoubleNeg p (NegG _ (NegG _ e1)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p e1 in
     (_ ** (e_ih1, ?MelimDoubleNeg_1))
@@ -100,7 +100,37 @@ elimDoubleNeg p (PlusG _ e1 e2) =
     ((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MelimDoubleNeg_3))        
 elimDoubleNeg p e1 = 
     (_ ** (e1, refl))
-     
+    
+
+-- Ex : -5 + -8 becomes -13
+-- it's needed because before reaching the level of computations (magma), negative constants will be wrapped into fake variables, and
+-- that will prevent computations to happen if we don't do this first simplification here.
+total
+fold_negative_constant : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p Neg g c1) -> (c2 ** (ExprG p Neg g c2, c1=c2))
+fold_negative_constant p (PlusG _ (NegG _ (ConstG _ _ _ c1)) (NegG _ (ConstG _ _ _ c2))) = (_ ** (NegG _ (ConstG _ _ _ (Plus c2 c1)), ?Mfold_negative_constant_1)) -- -- carefull here to the order which has to be reversed : -(a+b) is (-b + -a) but not (-a + -b) in the general case (when it's not an abelian (commutative) group)
+fold_negative_constant p (NegG _ e) = 
+    let (r_ih ** (e_ih, p_ih)) = fold_negative_constant p e in
+        (_ ** (NegG _ e_ih, ?Mfold_negative_constant_2))
+fold_negative_constant p (PlusG _ (ConstG p _ _ const1) (VarG _ _ (EncodingGroupTerm_const _ _ _ const2))) = (_ ** (ConstG p _ _ (Plus const1 (Neg const2)), refl))
+fold_negative_constant p (PlusG _ (VarG _ _ (EncodingGroupTerm_const _ _ _ const1)) (ConstG p _ _ const2)) = (_ ** (ConstG p _ _ (Plus (Neg const1) const2), refl))
+fold_negative_constant p (PlusG _ e1 e2) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = (fold_negative_constant p e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = (fold_negative_constant p e2) in
+        ((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?Mfold_negative_constant_3)) 
+-- Note : not needed to do it recursively for MinusG, since they have already been removed at this point
+fold_negative_constant p e = 
+    (_ ** (e, refl))
+
+
+-- As for propagateNeg, we need the fixpoint
+fold_negative_constant_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p Neg g c1) -> (c2 ** (ExprG p Neg g c2, c1=c2))
+fold_negative_constant_fix p e = 
+	let (r_1 ** (e_1, p_1)) = fold_negative_constant p e in
+		case exprG_eq p _ _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
+			Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
+			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = fold_negative_constant_fix p e_1 in -- We do another passe
+							(r_ih1 ** (e_ih1, ?Mfold_negative_constant_fix_1))
+
 
 ------------------------------------------------------------------------ 
 -- --------- Part concerning the encoding from Group to Monoid ---------
@@ -284,11 +314,12 @@ mutual
 		let (r_4 ** (e_4, p_4)) = elim_plusInverse p g e_3 in
 		let (r_5 ** (e_5, p_5)) = plusInverse_assoc p g e_4 in
 		let (r_6 ** (e_6, p_6)) = plusInverse_assoc' p g e_5 in -- NEW (assoc at 3 levels of +, for dealing with things like (x+y) + (-y + z)
+               let (r_7 ** (e_7, p_7)) = fold_negative_constant_fix p e_6 in
 		-- IMPORTANT : At this stage, we only have negation on variables and constants.
 		-- Thus, we can continue the reduction by calling the reduction for a monoid, with encoding for the minus :
 		-- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
-		let (r_7 ** (e_7, p_7)) = code_reduceM_andDecode p g e_6 in
-			(r_7 ** (e_7, ?Mpre_groupReduce_1))
+		let (r_8 ** (e_8, p_8)) = code_reduceM_andDecode p g e_7 in
+			(r_8 ** (e_8, ?Mpre_groupReduce_1))
 			
 			
 	-- Computes the fixpoint of pre_groupReduce : do the entire serie of simplification as long as we've not finished (ie, as long as we don't loop on the same term)
@@ -374,6 +405,28 @@ group_reduce.MelimDoubleNeg_3 = proof
   rewrite p_ih1
   rewrite p_ih2
   mrefine refl  
+
+group_reduce.Mfold_negative_constant_1 = proof
+  intros
+  mrefine sym
+  mrefine push_negation
+  
+group_reduce.Mfold_negative_constant_2 = proof
+  intros
+  rewrite p_ih
+  exact refl
+
+group_reduce.Mfold_negative_constant_3 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  exact refl
+
+group_reduce.Mfold_negative_constant_fix_1 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_1
+  exact refl
 
 group_reduce.Melim_plusInverse_1 = proof
   intros
@@ -507,6 +560,7 @@ group_reduce.MplusInverse_assoc'_4 = proof
         
 group_reduce.Mpre_groupReduce_1 = proof
   intros
+  rewrite p_8
   rewrite p_7
   rewrite p_6
   rewrite p_5
@@ -546,8 +600,6 @@ group_reduce.Mcode_reduceM_andDecode_1 = proof
   rewrite (sym pReduce  )
   rewrite (sym pDecode )
   exact refl
-
-
 
 
 

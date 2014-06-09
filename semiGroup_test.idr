@@ -48,6 +48,7 @@ test x = let (Just ok) = compare_test1'_test3' x in ok
 
 -- SECOND TEST : WE NORMALIZE TEST4' AND TEST5'
 
+{-
 get_r : {pr: SemiGroup c} -> {r1:c} -> (r ** (ExprSG pr neg [x, y] r, r1=r)) -> c
 get_r (r ** (e, p)) = r
 
@@ -56,7 +57,7 @@ pre_get_e (r ** (e, p)) = e
 
 get_e : {pr: SemiGroup c} -> {r1:c} -> (big:(r ** (ExprSG pr neg [x, y] r, r1=r))) -> ExprSG pr neg [x, y] (get_r big)
 get_e (r ** (e, p)) = e
-
+-}
 
 
 -- Result of the automatic equality solver for test4' and test5'
@@ -96,8 +97,12 @@ new_c : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + (4 + y))
 new_c x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ (fS fZ))) 
                     (PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ fZ)))
             
-newTest_c : (x:Nat) -> (y:Nat) -> (x+(4+y) = x+(4+y))
-newTest_c x y = let (Just ok) = semiGroupDecideEq (%instance) (new_c x y) (new_c x y) in ok
+new_d : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + (4 + y))
+new_d x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ (fS fZ))) 
+                    (PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ fZ)))
+            
+newTest_c_d : (x:Nat) -> (y:Nat) -> (x+(4+y) = x+(4+y))
+newTest_c_d x y = let (Just ok) = semiGroupDecideEq (%instance) (new_c x y) (new_d x y) in ok
 -- ok
 
 
@@ -106,6 +111,8 @@ print_test_c = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce (
 -- ok, as expected
 
 
+but_they_are_equal : (x:Nat) -> (y:Nat) -> Maybe (left (rightDep (semiGroupReduce (%instance) (test4' x y))) = (left (rightDep (semiGroupReduce (%instance) (test5' x y)))))
+but_they_are_equal = \x => \y => exprSG_eq (%instance) _ _ (left (rightDep (semiGroupReduce (%instance) (test4' x y)))) (left (rightDep (semiGroupReduce (%instance) (test5' x y))))
 
 
 

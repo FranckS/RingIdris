@@ -115,6 +115,12 @@ proof_termE_termF : (x:ZZ) -> (((3 + (0-2))+x) = (1+x))
 proof_termE_termF x = let (Just ok) = compare_termE_termF x in ok
 -- RESULT : FAILS ! PROBLEM HERE !!!!
 
+print_termE_norm : ZZ -> String
+print_termE_norm = (\x => print_ExprG show (left (rightDep (groupReduce  (%instance) (termE x)))))
+
+print_termF_norm : ZZ -> String
+print_termF_norm = (\x => print_ExprG show (left (rightDep (groupReduce  (%instance) (termF x)))))
+
 -- ----------------------
 -- TEST 3 THAT SHOULD FAIL
 -- ----------------------

@@ -81,6 +81,14 @@ main = putStrLn "coucou!"
 
 
 
+
+
+
+
+
+
+
+
 {-
 intros
 rewrite (sym(switch_negS pa pb (S pc)))
