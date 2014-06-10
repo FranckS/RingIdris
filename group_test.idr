@@ -88,7 +88,7 @@ compare_termC_termD x = groupDecideEq (%instance) (termC x) (termD x)
 -- (which causes a crash only when you apply then to a specific value for x)
 proof_termC_termD : (x:ZZ) -> (((2 + (0-2))+x) = x)
 proof_termC_termD x = let (Just ok) = compare_termC_termD x in ok
--- RESULT : WORKS ! (just to check why I don't get simply "refl" when I ask the proof for all x)
+-- RESULT : WORKS FOR ALL X !
   
 
 termE : (x:ZZ) -> ExprG (%instance) [x] ((3 + (0-2))+x)
@@ -113,7 +113,7 @@ compare_termE_termF x = groupDecideEq (%instance) (termE x) (termF x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termE_termF : (x:ZZ) -> (((3 + (0-2))+x) = (1+x))
 proof_termE_termF x = let (Just ok) = compare_termE_termF x in ok
--- RESULT : WORKS ! AND FOR ALL X !
+-- RESULT : WORKS FOR ALL X !
 
 print_termE_norm : ZZ -> String
 print_termE_norm = (\x => print_ExprG show (left (rightDep (groupReduce  (%instance) (termE x)))))
@@ -152,7 +152,7 @@ compare_termH_termG x = groupDecideEq (%instance) (termH x) (termG x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termH_termG : (x:ZZ) -> (((-2 + (0 + (-(-2)))) + x) = x)
 proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
--- RESULT : WORKS ! (just to check why I don't get simply "refl" when I ask the proof for all x)
+-- RESULT : WORKS FOR ALL X !
 
 
 -- ----------------------
@@ -186,9 +186,10 @@ compare_termJ_termK : (x:ZZ) -> (y:ZZ) -> Maybe (((y + ((3 + (0-2))+x)) + (-(1+x
 compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y) 
 
 -- Later, we will have a real tactic "Group" which can fail...
+--  !!! THIS IS THE MOST COMPLICATED EXAMPLE THAT WE'VE GOT AT THE MOMENT !!!
 proof_termJ_termK : (x:ZZ) -> (y:ZZ) -> (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
 proof_termJ_termK x y = let (Just ok) = compare_termJ_termK x y in ok
--- RESULT : WORKS ! (just to check why I don't get simply "refl" when I ask the proof for all x and y)
+-- RESULT : WORKS FOR ALL X AND Y !
 
 
 -- Old stuff for debugging, no longer needed
