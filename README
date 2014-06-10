@@ -26,15 +26,15 @@ No axioms, no Meta-variable to solve
 - Magma solver WORKS
 
 - Semi-group solver WORKS
-However, two remarks :
+However, one remark :
    . We don't pass the totality checker at the moment
 
 - Monoid solver WORKS
-However, two remarks :
+However, one remark :
    . We don't pass the totality checker at the moment
 
 - Group solver WORKS
-However, two remarks :
+However, one remark :
    . We don't pass the totality checker at the moment
 
 - Commutative Group (=Abelian group) solver NOT YET IMPLEMENTED
@@ -43,6 +43,12 @@ However, two remarks :
 
 - Commutative Ring solver NOT YET IMPLEMENTED
 
+How to compile it :
+-------------------
+Simply do :
+
+idris main.idr
+That will compiles the 4 tactics available yet + the tests for each of them.
 
 How to use it :
 ----------------
