@@ -63,8 +63,7 @@ get_e (r ** (e, p)) = e
 -- Result of the automatic equality solver for test4' and test5'
 secondTest : (x:Nat) -> (y:Nat) -> (((x + (1+1)) + (2 + y)) = (x + (4 + y)))
 secondTest x y = let (Just ok) = semiGroupDecideEq (%instance) (test4' x y) (test5' x y) in ok
--- WORKS BUT NOT FOR ALL X YET
-
+-- RESULT : WORKS ! (just to check why I don't get simply "refl" when I ask the proof for all x and y)
 
 
 -- Code to debug secondTest

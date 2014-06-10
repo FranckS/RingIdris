@@ -70,13 +70,13 @@ instance dataTypes.Group ZZ where
 -- ----------------------
 -- TEST 1 THAT SHOULD WORK
 -- ----------------------
-termC : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] ((2 + (0-2))+x)
-termC x = PlusG _ (PlusG _ (ConstG _ _ _ (Pos 2))
-                                         (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
-				(VarG _ _ (RealVariable _ _ _ fZ))
+termC : (x:ZZ) -> ExprG (%instance) [x] ((2 + (0-2))+x)
+termC x = PlusG (PlusG (ConstG _ _ (Pos 2))
+                                         (MinusG (ConstG _ _ (Pos 0)) (ConstG _ _ (Pos 2))))
+				(VarG _ (RealVariable _ _ _ fZ))
 
-termD : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] x
-termD x = VarG _ _ (RealVariable _ _ _ fZ)
+termD : (x:ZZ) -> ExprG (%instance) [x] x
+termD x = VarG _ (RealVariable _ _ _ fZ)
 
 
 -- Normalisation of ((2 + (0-2))+x) that should give x, since now we are working on a group
@@ -88,20 +88,20 @@ compare_termC_termD x = groupDecideEq (%instance) (termC x) (termD x)
 -- (which causes a crash only when you apply then to a specific value for x)
 proof_termC_termD : (x:ZZ) -> (((2 + (0-2))+x) = x)
 proof_termC_termD x = let (Just ok) = compare_termC_termD x in ok
--- RESULT : WORKS BUT NOT FOR ALL X YET
+-- RESULT : WORKS ! (just to check why I don't get simply "refl" when I ask the proof for all x)
   
 
-termE : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] ((3 + (0-2))+x)
-termE x = PlusG _ (PlusG _ (ConstG _ _ _ (Pos 3))
-                           (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
-                  (VarG _ _ (RealVariable _ _ _ fZ))
+termE : (x:ZZ) -> ExprG (%instance) [x] ((3 + (0-2))+x)
+termE x = PlusG (PlusG (ConstG _ _ (Pos 3))
+                           (MinusG (ConstG _ _ (Pos 0)) (ConstG _ _ (Pos 2))))
+                  (VarG _ (RealVariable _ _ _ fZ))
 
-termF : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] (1+x)
-termF x = PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ fZ))
+termF : (x:ZZ) -> ExprG (%instance) [x] (1+x)
+termF x = PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ fZ))
 
 
-termG : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] x
-termG x = VarG _ _ (RealVariable _ _ _fZ)
+termG : (x:ZZ) -> ExprG (%instance) [x] x
+termG x = VarG _ (RealVariable _ _ _fZ)
 
 -- ----------------------
 -- TEST 2 THAT SHOULD WORK
@@ -113,7 +113,7 @@ compare_termE_termF x = groupDecideEq (%instance) (termE x) (termF x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termE_termF : (x:ZZ) -> (((3 + (0-2))+x) = (1+x))
 proof_termE_termF x = let (Just ok) = compare_termE_termF x in ok
--- RESULT : FAILS ! PROBLEM HERE !!!!
+-- RESULT : WORKS ! AND FOR ALL X !
 
 print_termE_norm : ZZ -> String
 print_termE_norm = (\x => print_ExprG show (left (rightDep (groupReduce  (%instance) (termE x)))))
@@ -131,20 +131,20 @@ compare_termE_termG x = groupDecideEq (%instance) (termE x) (termG x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termE_termG : (x:ZZ) -> (((3 + (0-2))+x) = x)
 proof_termE_termG x = let (Just ok) = compare_termE_termG x in ok
--- RESULT : WORKS FOR ALL X !!
+-- RESULT : WORKS FOR ALL X (CAREFUL, it works because it gives Nothing : the two things are NOT equal here!)
 
 
 -- ----------------------
 -- TEST 4 THAT SHOULD WORK
 -- ----------------------
 
-termH : (x:ZZ) -> ExprG (%instance) (\x => Neg x) [x] ((-2 + (0 + (-(-2)))) + x)
-termH x = PlusG _ (PlusG _ (NegG _ (ConstG _ _ _ (Pos 2)))
-                           (PlusG _ (ConstG _ _ _ (Pos 0)) (NegG _ (NegG _ (ConstG _ __ (Pos 2))))))
-                  (VarG _ _ (RealVariable _ _ _ fZ))
+termH : (x:ZZ) -> ExprG (%instance) [x] ((-2 + (0 + (-(-2)))) + x)
+termH x = PlusG (PlusG (NegG (ConstG _ _ (Pos 2)))
+                           (PlusG (ConstG _ _ (Pos 0)) (NegG (NegG (ConstG _ _ (Pos 2))))))
+                  (VarG _ (RealVariable _ _ _ fZ))
 
 
--- Reminder : termG is just "x"
+-- Reminder : termG represents just "x"
 
 compare_termH_termG : (x:ZZ) -> Maybe (((-2 + (0 + (-(-2)))) + x) = x)
 compare_termH_termG x = groupDecideEq (%instance) (termH x) (termG x) 
@@ -152,7 +152,8 @@ compare_termH_termG x = groupDecideEq (%instance) (termH x) (termG x)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termH_termG : (x:ZZ) -> (((-2 + (0 + (-(-2)))) + x) = x)
 proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
--- RESULT : WORKS BUT NOT FOR ALL X YET
+-- RESULT : WORKS ! (just to check why I don't get simply "refl" when I ask the proof for all x)
+
 
 -- ----------------------
 -- TEST 5 THAT SHOULD WORK
@@ -164,22 +165,22 @@ proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
 -- Here : e1 - y
 --        e2 = ((3 + (0-2))+x)
 --        e3 = 1+x
-termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (\x => Neg x) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
-termJ x y = PlusG _ (PlusG _ (VarG _ _ (RealVariable _ _ _ fZ)) 
-                             (PlusG _ (PlusG _ (ConstG _ _ _ (Pos 3))
-                                               (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
-                                      (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
-                    (NegG _ (PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
+termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
+termJ x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ fZ)) 
+                             (PlusG (PlusG (ConstG _ _ (Pos 3))
+                                               (MinusG (ConstG _ _ (Pos 0)) (ConstG _ _ (Pos 2))))
+                                      (VarG _ (RealVariable _ _ _ (fS fZ)))))
+                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ (fS fZ)))))
 
 
-termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (\x => Neg x) [x, y] y
-termK x y = VarG _ _ (RealVariable _ _ _ fZ)
+termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] y
+termK x y = VarG _ (RealVariable _ _ _ fZ)
 
-termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (\x => Neg x) [x, y] ((y + (1+x)) + (-(1+x)))
-termL x y = PlusG _ (PlusG _ (VarG _ _ (RealVariable _ _ _ fZ)) 
-                             (PlusG _ (ConstG _ _ _ (Pos 1))
-                                      (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
-                    (NegG _ (PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ (fS fZ)))))
+termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + (1+x)) + (-(1+x)))
+termL x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ fZ)) 
+                             (PlusG (ConstG _ _ (Pos 1))
+                                      (VarG _ (RealVariable _ _ _ (fS fZ)))))
+                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ (fS fZ)))))
 
 compare_termJ_termK : (x:ZZ) -> (y:ZZ) -> Maybe (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
 compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y) 
@@ -187,10 +188,10 @@ compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y)
 -- Later, we will have a real tactic "Group" which can fail...
 proof_termJ_termK : (x:ZZ) -> (y:ZZ) -> (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
 proof_termJ_termK x y = let (Just ok) = compare_termJ_termK x y in ok
--- RESULT : FAILS ! PROBLEM HERE !!!!
+-- RESULT : WORKS ! (just to check why I don't get simply "refl" when I ask the proof for all x and y)
 
 
--- To debug...
+-- Old stuff for debugging, no longer needed
 
 -- A)
 
@@ -215,15 +216,11 @@ getC (VarG p i b) = (index_reverse i g)
 -}
 
 
-
-
 {-
-
 termJ_norm : (x:ZZ) -> (y:ZZ) -> (n2 ** (g2 ** (c1 ** ((((ExprG {n=2} (%instance) [x, y] c1)), (((y + ((3 + (0-2))+x)) + (-(1+x))) = c1)), SubSet [x,y] g2))))
 termJ_norm x y = groupReduce _ _ [x, y] (termJ x y)
-
-
 -}
+
 
 
 

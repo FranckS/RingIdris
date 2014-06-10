@@ -105,6 +105,7 @@ semiGroupReduce p e =
     (_ ** (e_shuffle, ?MsemiGroupReduce1))
 
 
+total
 buildProofSemiGroup : (p:SemiGroup c) -> {neg:c->c} -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprSG p neg g c1) -> (ExprSG p neg g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
 buildProofSemiGroup p e1 e2 lp rp with (exprSG_eq p _ _ e1 e2)
     buildProofSemiGroup p e1 e1 lp rp | Just refl = ?MbuildProofSemiGroup
