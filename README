@@ -10,12 +10,13 @@ Version 0.1 (10/06/14)
 This is the (early) implementation of a collection of tactics for Idris, 
 in Idris.
 Note that this work is still in progress, so you should not (yet) use it and 
-hope that the final build will be 100% compatible with the current state.
+hope that the final build will be 100% compatible with the current state that
+you see now.
 We will explicitely mention when we consider to have something reliable and 
 really usable.
 At the moment, you should only use this collection of tactics for testing 
 purpose only. If you wish to give a feedback, don't forget, that THIS IS STILL
-WORK IN PROGRESS. There may have bugs, the code is not clean, etc. 
+WORK IN PROGRESS. There may be bugs, the code is not clean, etc. 
 In definitive, you should not use it a for a "real" project right now.
 
 Current state (10/06/14) : 
@@ -52,8 +53,8 @@ However, two remarks :
 How to use it :
 ----------------
 
-- Automatic metaification is not yet implemented. That mean that you will have 
-to encode by hand the two sides of your equality to prove.
+- Automatic metaification is not yet implemented. That means that you will have 
+to encode by hand the two sides of your equality you wish to prove.
 
 See in group_test.idr (and the other test files) for detailed examples.
 
@@ -66,7 +67,7 @@ About the technique :
 
 1) We follow a "correct by construction" approach : rather than implementing
 the normalization of terms and afterwards proving that a normalized term
-and the original term denotes the same value, we do it "bit by bit" : we 
+and the original term denote the same value, we do it "bit by bit" : we 
 construct this proof at the same time as we normalize the two terms.
 The result if that the proof of correctness (which is in what we are interested)
 is a lot easier to do : for each little step of rewriting, the proof is quite 
@@ -76,14 +77,14 @@ trivial.
 each tactic in the host language (Haskell). That's something nice, especially
 for a future bootstraping of Idris.
 
-3) Each solver uses the algebraic solvers for the structures underneath : we don't 
-copy and past identic treatments at different levels : we convert our terms
-and we reuse every bit.
+3) Each solver uses the algebraic solvers for the structures underneath : we 
+don't "copy and paste" identic treatments at different levels : we convert our 
+terms between different structures, and we reuse every bit possible.
 For exemple, dealing with neutral elements (which appears for the first time at
-the Monoid level) is NOT reimplemented for the structures above (ie, only Group
+the Monoid level) is NOT reimplemented in the structures above (ie, only Group
 at the moment)
 
-About correctness and completude :
+About correctness and completeness :
 ----------------------------------
 
 1) Correctness
@@ -92,18 +93,20 @@ As we mentioned, the proof of correctness if in fact what we want to obtain.
 Let's assume that all our methods are total (even though a few of them are not
 provably total in Idris *yet* : mainly because of some non-structural 
 recursions for which we will have to encode the termination).
-Thus, because we don't have any axiom not meta-variable to solve, we can be 
+Thus, because we don't have any axiom nor meta-variable to solve, we can be 
 entirely sure that the proof generated is always A VALID PROOF.
 That mean that if the solver tells you that A = B (and gives you a proof of it),
-you can be shure that indeed A = B (maybe because of YOURS axioms, or because of
+you can be shure that indeed A = B (maybe because of YOUR axioms, or because of
 YOUR implementation of your structure and operations).
 
-2) Completude
-Hoever, if a solver is not able to prove for you A=B, that doesn't mean that A
-is not equal to B. Or at least, we can't prove this property in the system itself.
-Of course, we hope (and we've done everyting possible!) to have a complete tactic.
-The proof of completude will be done on the paper since it's a meta-theoretic 
-proof.
+2) Completeness
+However, if one solver is not able to prove for you A=B, that doesn't prove 
+that A is not equal to B. Or at least, we can't prove this property in the 
+system itself.
+Of course, we hope (and we've done everyting possible!) to have a tactic
+which is complete.
+The proof of completeness will be done a bit later on the paper since it's a 
+meta-theoretic proof.
 
 
  
