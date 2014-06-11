@@ -48,7 +48,8 @@ main = putStrLn "coucou!"
 
 
 
-
+bla : (x:Nat) -> Maybe (x+0 = x)
+bla x = Just (rewrite (a_plus_zero x) in refl)
 
 
 

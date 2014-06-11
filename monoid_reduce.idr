@@ -81,12 +81,12 @@ monoid_reduce.MelimZero3 = proof
   trivial  
 
 monoid_reduce.MbuildProofMonoid = proof
-  intros
-  rewrite lp
-  rewrite (sym lp)
-  rewrite (sym rp)
-  mrefine Just
-  trivial
+  intros;
+  refine Just;
+  rewrite( sym lp);
+  rewrite( sym rp);
+  exact refl;
+
 
   
   

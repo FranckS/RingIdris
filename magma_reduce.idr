@@ -39,21 +39,19 @@ magmaDecideEq p e1 e2 =
 
 
 ---------- Proofs ----------                
-
-magma_reduce.MbuildProofMagma = proof {
-  intros;
-  rewrite lp;
-  rewrite( sym lp);
-  rewrite( sym rp);
-  mrefine Just;
-  mrefine refl;
-}
-
 magma_reduce.MmagmaReduce1 = proof {
   intros;
   rewrite p_ih1;
   rewrite p_ih2;
   trivial;
+}
+
+magma_reduce.MbuildProofMagma = proof {
+  intros;
+  refine Just;
+  rewrite( sym lp);
+  rewrite( sym rp);
+  exact refl;
 }
 
 

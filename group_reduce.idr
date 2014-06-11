@@ -554,9 +554,11 @@ group_reduce.Mgroup_Reduce_1 = proof
     
 group_reduce.MbuildProofGroup = proof
   intros
+  refine Just 
   rewrite (sym lp)
   rewrite (sym rp)
-  exact (Just refl)   
+  exact refl
+    
 
 group_reduce.Mencode_1 = proof
   intros

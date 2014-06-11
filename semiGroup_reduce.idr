@@ -213,12 +213,11 @@ semiGroup_reduce.MsemiGroupReduce1 = proof {
 
 semiGroup_reduce.MbuildProofSemiGroup = proof {
   intros;
-  rewrite (sym lp);
-  rewrite (sym rp);
-  mrefine Just;
-  trivial;
+  refine Just;
+  rewrite( sym lp);
+  rewrite( sym rp);
+  exact refl;
 }
-
 
 
 
