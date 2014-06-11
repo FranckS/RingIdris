@@ -1,0 +1,86 @@
+\section{A brief overview of Idris}
+
+
+Idris is a purely functional programming language fairly recent. Its main purpose is to bring formal certification into the scope of programming : instead of Coq or Isabelle, Idris is not intended to be a proof assistant, but as a real programming language usable by non-logicians. One of its more interesting features -and the one that enables to effectively manipulate logical statements and proofs in the language- is its full and effective support for dependent types. Especially, Idris has a particularly efficient dependent pattern matching, which is something mandatory for writing code correct by construction.
+
+\subsection{defining inductive types and functions in Idris}
+
+Idris has been a lot influenced by haskell in its syntax.
+The definition of an inductive type is done using the keyword 'data', followed by the name of the data type, its type, and the list of constructors.
+For example, one can define the natural numbers like that in Idris :
+
+\begin{lstlisting}[caption=inductive data type, captionpos=b, label=lst1:haskell2]
+data Nat : Type where
+	O : Nat
+	S : Nat -> Nat
+\end{lstlisting}
+
+The definition of a function has exactly the same syntax as Haskell, except the use of ":" for specifying the type of the function, instead of "::", used for list concatenation, since ":" is the standard notation for that in type theory.
+Here is for example the definition of a plus function :
+
+\begin{lstlisting}[caption=recursive function, captionpos=b, label=lst2:haskell2]
+plus : Nat -> Nat -> Nat
+plus O y = y
+plus (S px) y = S (plus px y) 
+\end{lstlisting}
+
+\subsection{dependent types}
+Idris supports dependent types. This mainly means two things :
+\begin{itemize}
+\item inductive data types can be indexed over values
+\item the type of a function can be such as the type of its co domain depends on the value of one of its argument.
+\end{itemize}
+
+
+We will illustrate both features with the usual example on vector. Vector have the same structure as a list, but with embedded size, which is now a part of the data type.
+\begin{lstlisting}[caption=a family of types indexed by a natural number, captionpos=b, label=lst3:haskell2]
+data Vect : Nat -> Type -> Type where
+	Nil : Vect O a
+	(::) : a -> Vect n a -> Vect (S n) a
+\end{lstlisting}
+
+Because the size is now a part of the data type, it becomes now possible to write easily a function that operates on vectors and that requires some property about the size of the vectors.
+\begin{lstlisting}[caption=a function having a dependent type, captionpos=b, label=lst4:haskell2]
+(++) : Vect m a -> Vect n a -> Vect (m + n) a
+(++) Nil ys = ys
+(++) (x::xs) ys = x :: xs ++ ys
+\end{lstlisting}
+
+When we write a function in this way, we say that the type of the function is a precise specification, and this is clearly one of the benefits of dependent types. If one tries to define the function and by mistake write for the second clause :
+\begin{lstlisting}[captionpos=b, label=lst5:haskell2]
+(++) (x::xs) ys = xs ++ ys
+\end{lstlisting}
+The compiler will complain with the following error message : "Can't unify (plus n n) with (S (plus n n))". Idris has realized that the returned expression for this clause doesn't have the expected size. Working with dependent types is therefore a good way for ensure properties about functions. 
+
+\subsection{type classes}
+We often want to define functions which work for several different data types. For example, we would like arithmetic operators to work on natural numbers, relatives number and floating number. We would also like equality to work on the majority of data types. 
+Type class are a construct that supports ad hoc polymorphism. This is achieved by adding constraints to type variables in parametrically polymorphic types.
+For example, we can define the type class Show, and every structure that we can display on the screen will have to implement this type class :
+\begin{lstlisting}[caption=a simple type class, captionpos=b, label=lst6:haskell2]
+class Show a where {
+	show : a -> String;
+}
+\end{lstlisting}
+This generates a function 
+\begin{lstlisting}[captionpos=b, label=lst7:haskell2]
+show : Show a => a -> String
+\end{lstlisting}
+i.e. a function which will print any element of type $a$ under the constraint that $a$ is an instance of Show.
+
+Type classes can be extended. Here is an example with a first type class Eq for equality and a second one called Ord that any sortable structure will have to implement.
+
+\begin{lstlisting}[caption=extension of typeclass, captionpos=b, label=lst8:haskell2]
+class Eq a where
+	(==) : a -> a -> Bool
+
+data Ordering = LT | EQ | GT
+
+class Eq a => Ord a where
+	compare : a -> a -> Ordering
+	(<) : a -> a -> Bool
+	(>) : a -> a -> Bool
+	(<=) : a -> a -> Bool
+	(>=) : a -> a -> Bool
+	max : a -> a -> a
+	min : a -> a -> a
+\end{lstlisting}

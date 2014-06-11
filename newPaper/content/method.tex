@@ -1,0 +1,45 @@
+\section{An overview of the method}
+
+Our goal is to implement the collection of tactics in Idris itself, instead of writing them in Haskell (the host language of Idris). The main interest of writing the tactic in Idris is that it becomes possible to certify the tactic by using the logical framework provided by the Idris language. Because we want to implement and certify the tactic in the language itself, we will need to work by reflection.
+% Ici on donne l'idée générale. Nom de la section peut etre à revoir
+
+%The user of one of our tactic -say the group solver- will want to use the tactic for his own specific structure. He will just have to prove that his structure respects the axioms of a group, and the solver will try to solve the equality for himself. 
+
+\subsection{why working by reflection}
+
+As we mentioned, our decision procedure for a specific algebraic structure -say, a group- will essentially works by reducing the left and the right hand side of the equality $t1 = t2$ to their normal forms. These two terms $t1$ and $t2$ belongs to a specific type $A$ -usually defined by the user of the tactic-, and the only thing we know about this type is that it satisfies the axioms of the concerned structure -the group for example-.
+\begin{lstlisting}[caption=An instance of the type class Group, captionpos=b, label=lstAGroup:haskell2]
+-- A is a group
+instance Group A where
+	Zero = ... 
+	plus x y = ... 
+	neg x = ...
+	-- proof of associativity for +
+	-- proof that zero is a neutral for +
+	-- proof that every element has an inverse
+\end{lstlisting}	
+
+The decision procedure should works for any type satisfying the axioms of a group, i.e, for any type $T$ given with an instance of Group for $T$. Therefore, we can imagine the decidable equality to have the following type :
+\begin{lstlisting}[captionpos=b, label=groupDecideEq:haskell2, breaklines=true]
+groupDecideEq : {T:Type} -> (Group T) -> (x : T) -> (y : T) -> Maybe (x = y)
+\end{lstlisting}	
+
+As we said before, this decision procedure will use a function of normalization of terms in a group, in order to reduce $x$ and $y$ before comparing them with the syntactical equality. If we continue in the same direction, this function will have the following type :
+\begin{lstlisting}[captionpos=b, label=groupReduce:haskell2, breaklines=true]
+groupReduce : {T:Type} -> (Group T) -> T -> T
+\end{lstlisting}	
+
+Of course, when trying to solve an equality $t1 = t2$, the terms $t1$ and $t2$ can potentially contain variables (declared in the context), because we want to solve equalities with literals. For example, when the user wants to prove $ \forall x y z:A, (x+y) + z = (z + y) + x $, the equality appears in a context were $x$, $y$ and $z$ have been previously added. 
+
+One main problem of the reduction procedure $groupReduce$, is that we would like to pattern match the term of type $T$ against the different possible forms that a term can have. In our example, in a group, a term can have the form of a constant, of a variable, or of an addition between two terms in the group. And of course, we would like to recognize these different forms, and to have a treatment depending on how the term in constructed. However, this is impossible to pattern match a term of this type $T$, since we don't know anything about its internal structure, except that it satisfies the axiom of a group.
+The biggest part of the problem is that it is impossible to know if a term of type $T$ is a variable or not, since this is a meta information : when working in a specific context where $x$, $y$ and $z$ of type T are declared, the expression $(x+y)+z$ is an ordinary expression of type $T$, and nothing tells us that it contains variables.
+
+Therefore, this naive approach of trying to work directly with the effective terms doesn't work when we try to write the tactic in the language itself. We will need to reflect the terms in an abstract syntax, which encodes the different constructors that we expect for a specific algebraic structure. With these reflected terms, it will become possible to pattern match them, and then to reduce them properly.
+
+\subsection{a set of correct by construction tactics}
+
+As we said before, because we are implementing the tactics in Idris, it is possible to reason about them in the language. That would not have been possible if the tactics were written in Haskell, since Haskell is a usual programming language without a logical side -mainly because Haskell is not dependently typed-.
+
+The usual approach of formal certification is to implement the method -here the reduction for every algebraic structure-, and later to prove the correctness of the implementation. This usual way is naturally good for dealing with a lot of properties to ensure, one proved after the other, and all are proved after the definition of the function. The correct by construction approach is not so good for dealing with lot of properties to ensure, but one of its merits is that the writing of the program and the proof is simultaneously -forcing the programmer to think about correctness while programming-, and every bit of code has its "proof part", making therefore a strong link between the function and its proof of correctness. If the code of the function changes, that will be much easier to change the corresponding bit in the proof. The usual approach usually fails for this purpose, since a script of proof done afterwards in a proof mode is not easy to maintain, mainly because these kind of scripts are not easy to read.
+
+Also, working with the correct by "construction approach" means that we are working with strong specification, instead of having a type that just states about data types. Because the type of the function expresses now logical properties, we can avoid the desperate situation where someone would try to prove the correctness of an invalid function. With a strong specification, your program will not compile until it fulfil its type, which means here until the program is correct.
