@@ -1,0 +1,130 @@
+%-----------------------------------------------------------------------------
+%
+%			Edwin's and Franck's Paper !
+%  uses the template for sigplanconf LaTeX Class
+%
+%-----------------------------------------------------------------------------
+
+
+\documentclass{sigplanconf}
+
+% The following \documentclass options may be useful:
+
+% preprint      Remove this option only once the paper is in final form.
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% authoryear    To obtain author/year citation style instead of numeric.
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\newcommand{\cL}{{\cal L}}
+
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{POPL ’15}{January 15-17, 2015, Mumbai, India.}
+\copyrightyear{2014} 
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm} 
+\preprintfooter{Our paper for POPL '15}
+\doi{nnnnnnn.nnnnnnn}
+
+% Uncomment one of the following two, if you are not going for the 
+% traditional copyright transfer agreement.
+
+%\exclusivelicense                % ACM gets exclusive license to publish, 
+                                  % you retain copyright
+
+%\permissiontopublish             % ACM gets nonexclusive license to publish
+                                  % (paid open-access papers, 
+                                  % short abstracts)
+
+\titlebanner{banner above paper title}        % These are ignored unless
+\preprintfooter{short description of paper}   % 'preprint' option specified.
+
+\title{Proof by reflection for equalities in algebraic structures}
+%\subtitle{An example for a collection of tactics solving equalities in algebraic structures}
+
+%\authorinfo{Edwin Brady\and Franck Slama}
+%           {University of St Andrews, United-Kingdom}
+%           {ecb10@st-andrews.ac.uk \and fs39@st-andrews.ac.uk}
+\authorinfo{Author's name omitted for submission}
+           {University of ..., Country}
+           {email address omitted for submission}
+
+\bibliographystyle{abbrvnat}
+
+\maketitle
+
+\nocite{*}
+
+
+\input{./content/abstract.tex}
+
+
+Plan : \\
+- Intro (1 page): problem + contribution : NOT SPECIFIC ENOUGH YET. TOO GENERAL, TOO BORING. HOW TO CAPTURE THE INTEREST ? \\
+- The problem on a simplified idea (2 pages) : Assoc : that will present the reflection and correct by construction sides on a little example in order to build the intuition.  \\
+- The idea (2 pages)  : the different typeclass AND reflected data types AND functions decideEq \\
+- The details (4/5 pages): Normalizations functions in Magma, Semi-Group, monoid, Group \\ 
+- (1/2 pages) : Coating and automatic metaification \\
+- Related work (1 page): We may be slower (I'll have to check), but this is NICER. The proof of correctness of the  implementation of the normalization is trivial to obtain (and this is what we want to get !) \\
+- Conclusion (1 page)
+
+
+\input{./content/introduction.tex}
+
+
+         
+
+\section{Normalization procedures}
+
+\subsection{Normalization for terms in a magma}
+
+\subsection{Normalization for terms in a semi-group}
+
+\subsection{Normalization for terms in a monoid}
+
+\subsection{Normalization for terms in a group}
+
+\subsection{Normalization for terms in a ring}
+
+\subsection{Normalization for terms in a commutative ring}
+
+\section{Coating}
+%enrobage
+
+\section{Metaification}
+
+\section{Conclusion}
+
+
+
+\acks
+
+Acknowledgments, if needed.
+
+% We recommend abbrvnat bibliography style.
+
+
+\bibliography{biblio}
+
+\appendix
+\section{Appendix Title}
+
+This is the text of the appendix, if you need one.
+
+\end{document}
+
+%                       Revision History
+%                       -------- -------
+%  Date         Person  Ver.    Change
+%  ----         ------  ----    ------
+
+%  2013.06.29   TU      0.1--4  comments on permission/copyright notices
+
