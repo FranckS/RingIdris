@@ -67,47 +67,50 @@
 \input{./content/abstract.tex}
 
 
-Plan : \\
-- Intro (1 page): problem + contribution : NOT SPECIFIC ENOUGH YET. TOO GENERAL, TOO BORING. HOW TO CAPTURE THE INTEREST ? \\
-- The problem on a simplified idea (2 pages) : Assoc : that will present the reflection and correct by construction sides on a little example in order to build the intuition.  \\
-- The idea (2 pages)  : the different typeclass AND reflected data types AND functions decideEq \\
-- The details (4/5 pages): Normalizations functions in Magma, Semi-Group, monoid, Group \\ 
-- (1/2 pages) : Coating and automatic metaification \\
-- Related work (1 page): We may be slower (I'll have to check), but this is NICER. The proof of correctness of the  implementation of the normalization is trivial to obtain (and this is what we want to get !) \\
-- Conclusion (1 page)
 
 
+Remark : To do : making the introduction more SPECIFIC, with CRUNCHY things : what we would like to do, no general assertions like "we often have to prove equalities...". (cf Simon P J talk)
 \input{./content/introduction.tex}
 
 
          
+\section {The problem explained on a smaller example (1/2 pages)}
 
-\section{Normalization procedures}
+TO DO : With the example of assoc for list, we develop the notion of normalization of terms, before using syntactical equality, in order to decide equality betweens lists (with associative concatenation).
 
-\subsection{Normalization for terms in a magma}
 
-\subsection{Normalization for terms in a semi-group}
+\section {Back to the general problem : A hierachy of tactics (2/3 pages)}
 
-\subsection{Normalization for terms in a monoid}
+	\subsection {Hierarchy of typeclass}
 
-\subsection{Normalization for terms in a group}
+	\subsection {Reflected terms}
 
-\subsection{Normalization for terms in a ring}
+	\subsection {Deciding equality}
 
-\subsection{Normalization for terms in a commutative ring}
+\section {The details : normalization functions (4/5 pages)}
 
-\section{Coating}
-%enrobage
+	\subsection {Normalization of terms in a Magma}
 
-\section{Metaification}
+	\subsection {Normalization of terms in a Semi-Group}
 
-\section{Conclusion}
+	\subsection {Normalization of terms in a Monoid}
 
+	\subsection {Normalization of terms in a Group}
+
+\section {Auxiliary problems : Automatic metaification and coating (1/2 pages)}
+
+	\subsection {Automatic metaification}
+
+	\subsection {Coating : transforming this stuff into real tactics}
+
+\section {Related work (1 page)}
+
+\section {Conlusion (0,5/1 page)}
 
 
 \acks
 
-Acknowledgments, if needed.
+Acknowledgments : Chris, Mattus...
 
 % We recommend abbrvnat bibliography style.
 
