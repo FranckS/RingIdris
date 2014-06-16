@@ -78,6 +78,32 @@ Remark : To do : making the introduction more SPECIFIC, with CRUNCHY things : wh
 
 TO DO : With the example of assoc for list, we develop the notion of normalization of terms, before using syntactical equality, in order to decide equality betweens lists (with associative concatenation).
 
+We will start with the study of a smaller problem in which we aim to deal with lists, and associativity of list concatenation.
+For example, we would like to be able to generate automatically proofs of facts like $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$. \\
+For this smaller problem, we have decided to only work with the associativity of concatenation : $\forall l1\ l2\ l3,\ (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)$.
+So, in definitive, in this section, we want to write a decision procedure, able to say if to two expressions composed of lists and concatenation of lists are equal, when "equal" has the meaning "syntactically equal or equal thanks to associativity".
+
+The general idea -which will also apply for the real problem- will be to normalize both sides of the "potential equality" $l1=l2$, and afterwards to compare them using Leibniz syntactical equality.
+Of course, the normalization will have to fulfil the following property :
+$\forall l, norm\ l = l$ [1], which means that after normalization we obtain a list which is provably equal to the input's list. \\
+After normalization, we will compare the two resulting lists, and if they are equal, we will have obtained the corresponding proof.  \\
+Indeed :
+$norm\ l1 = norm\ l2$ will imply $l1=l2$ by [1].
+
+In fact, this is not really how it will be, because as for the real problem, we will work by reflection. The datatype presented in the Listing 1 is a first approximation what we will use to reflect out terms composed of lists and concatenation of lists.
+
+\begin{lstlisting}[caption=Reflected lists, captionpos=b, label=lst1:haskell2]
+data Expr : Type where
+	App  : Expr -> Expr -> Expr 
+	Var  : (i : Fin n) -> Expr
+    ENil : Expr
+\end{lstlisting}
+
+
+
+
+
+
 
 \section {Back to the general problem : A hierachy of tactics (2/3 pages)}
 
