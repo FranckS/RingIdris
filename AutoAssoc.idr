@@ -5,16 +5,17 @@ import Decidable.Equality
 -- Expr is a reflection of a list, indexed over the concrete list,
 -- and over a set of list variables.
 
-
-data Expr : (G : Vect n (List a)) -> List a -> Type where
-    App  : {G : Vect n (List a)} -> {x : List a} -> {y : List a} -> Expr G x -> Expr G y -> Expr G (x ++ y)
-    Var  : {G : Vect n (List a)} -> (i : Fin n) -> Expr G (index i G)
-    Const : {G : Vect n (List a)} -> (x : List a) -> Expr G x
+using (x : List a, y : List a, G : Vect n (List a))
+  data Expr : (G : Vect n (List a)) -> List a -> Type where
+       App  : Expr G x -> Expr G y -> Expr G (x ++ y)
+       Var  : (i : Fin n) -> Expr G (index i G)
+       ENil : Expr G []
 
 -- Fully right associative list expressions
-data RExpr : (G : Vect n (List a)) -> List a -> Type where
-    RApp : {G : Vect n (List a)} -> {x : List a} -> RExpr G x -> (i : Fin n) -> RExpr G (x ++ index i G)
-    RConst : {G : Vect n (List a)} -> (x : List a) -> RExpr G x
+
+  data RExpr : (G : Vect n (List a)) -> List a -> Type where
+       RApp : RExpr G x -> (i : Fin n) -> RExpr G (x ++ index i G)
+       RNil : RExpr G []
 
 -- Convert an expression to a right associative expression, and return
 -- a proof that the rewriting has an equal interpretation to the original
@@ -23,38 +24,38 @@ data RExpr : (G : Vect n (List a)) -> List a -> Type where
 -- The idea is that we use this proof to build a proof of equality of
 -- list appends
 
-expr_r : {G : Vect n (List a)} -> {x : List a} -> Expr G x -> (x' ** (RExpr G x', x = x'))
-expr_r (Const l) = (_ ** (RConst l, refl))
-expr_r (Var i) = (_ ** (RApp (RConst []) i, refl))
-expr_r (App ex ey) = let (xl ** (xr, xprf)) = expr_r ex in
-                     let (yl ** (yr, yprf)) = expr_r ey in
+  expr_r : Expr G x -> (x' ** (RExpr G x', x = x'))
+  expr_r ENil = (_ ** (RNil, refl))
+  expr_r (Var i) = (_ ** (RApp RNil i, refl))
+  expr_r (App ex ey) = let (xl ** (xr, xprf)) = expr_r ex in
+                       let (yl ** (yr, yprf)) = expr_r ey in
                            appRExpr _ _ xr yr xprf yprf
     where 
-    appRExpr : {G : Vect n (List a)} -> {x : List a} -> {y : List a}
-            -> (x', y' : List a) -> RExpr G x -> RExpr G y -> (x' = x) -> (y' = y)
-            -> (w' ** (RExpr G w', x' ++ y' = w'))
-    appRExpr x' y' rxs (RApp e i) xprf yprf = 
-        let (xs ** (rec, prf)) = appRExpr _ _ rxs e refl refl in
-            (_ ** (RApp rec i, ?appRExpr1))
-    appRExpr x' y' rxs RNil xprf yprf = (_ ** (rxs, ?appRExpr2))
+      appRExpr : (x', y' : List a) ->
+                 RExpr G x -> RExpr G y -> (x' = x) -> (y' = y) ->
+                 (w' ** (RExpr G w', x' ++ y' = w'))
+      appRExpr x' y' rxs (RApp e i) xprf yprf
+         = let (xs ** (rec, prf)) = appRExpr _ _ rxs e refl refl in
+               (_ ** (RApp rec i, ?appRExpr1))
+      appRExpr x' y' rxs RNil xprf yprf = (_ ** (rxs, ?appRExpr2))
 
--- ...and back againz
+-- ...and back again
 
-  r_expr : {G : Vect n (List a)} -> {x : List a} -> RExpr G x -> Expr G x
-  r_expr (RConst l) = Const l
+  r_expr : RExpr G x -> Expr G x
+  r_expr RNil = ENil
   r_expr (RApp xs i) = App (r_expr xs) (Var i)
 
 -- Convert an expression to some other equivalent expression (which
 -- just happens to be normalised to right associative form)
 
-  reduce : {G : Vect n (List a)} -> {x : List a} -> Expr G x -> (x' ** (Expr G x', x = x'))
+  reduce : Expr G x -> (x' ** (Expr G x', x = x'))
   reduce e = let (x' ** (e', prf)) = expr_r e in
                  (x' ** (r_expr e', prf))
 
 -- Build a proof that two expressions are equal. If they are, we'll know
 -- that the indices are equal.
 
-  eqExpr : {G : Vect n (List a)} -> {x : List a} -> {y : List a} -> (e : Expr G x) -> (e' : Expr G y) ->
+  eqExpr : (e : Expr G x) -> (e' : Expr G y) ->
            Maybe (e = e')
   eqExpr (App x y) (App x' y') with (eqExpr x x', eqExpr y y')
     eqExpr (App x y) (App x y)   | (Just refl, Just refl) = Just refl
@@ -62,9 +63,7 @@ expr_r (App ex ey) = let (xl ** (xr, xprf)) = expr_r ex in
   eqExpr (Var i) (Var j) with (decEq i j)
     eqExpr (Var i) (Var i) | (Yes refl) = Just refl
     eqExpr (Var i) (Var j) | _ = Nothing
-  eqExpr (Const l) (Const l') with (decEq l l')
-    eqExpr (Const l) (Const l) | (Yes refl) = Just refl
-    eqExpr (Const l) (Const l') | _ = Nothing
+  eqExpr ENil ENil = Just refl
   eqExpr _ _ = Nothing
 
   buildProof : {x : List a} -> {y : List a} ->
