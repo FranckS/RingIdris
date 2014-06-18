@@ -74,30 +74,69 @@ Remark : To do : making the introduction more SPECIFIC, with CRUNCHY things : wh
 
 
          
-\section {The problem explained on a smaller example (1/2 pages)}
+\section {A simpler problem : a little tactic correct by construction for lists (1/2 pages)}
 
-TO DO : With the example of assoc for list, we develop the notion of normalization of terms, before using syntactical equality, in order to decide equality betweens lists (with associative concatenation).
+We will start with the study of a smaller problem in which we aim to deal with variable lists, and associativity of list concatenation.
+For example, we would like to be able to automatically generate proofs of facts like $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$. \\
+For this smaller problem, we have decided to only work with the property of associativity of the concatenation : $\forall l1\ l2\ l3,\ (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)$. \\
+Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of variable lists and concatenation of variable lists are equal, and to produce of proof of this equality if appropriate, when "equal" has the meaning "syntactically equal or equal thanks to associativity".
 
-We will start with the study of a smaller problem in which we aim to deal with lists, and associativity of list concatenation.
-For example, we would like to be able to generate automatically proofs of facts like $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$. \\
-For this smaller problem, we have decided to only work with the associativity of concatenation : $\forall l1\ l2\ l3,\ (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)$.
-So, in definitive, in this section, we want to write a decision procedure, able to say if to two expressions composed of lists and concatenation of lists are equal, when "equal" has the meaning "syntactically equal or equal thanks to associativity".
-
-The general idea -which will also apply for the real problem- will be to normalize both sides of the "potential equality" $l1=l2$, and afterwards to compare them using Leibniz syntactical equality.
+The general idea -which will also apply for the real bigger problem explained in the next sections- will be to normalize both sides of the "potential equality" $l1=l2$, and afterwards to compare them using Leibniz syntactical equality.
 Of course, the normalization will have to fulfil the following property :
-$\forall l, norm\ l = l$ [1], which means that after normalization we obtain a list which is provably equal to the input's list. \\
-After normalization, we will compare the two resulting lists, and if they are equal, we will have obtained the corresponding proof.  \\
+$\forall l, norm\ l = l$ [1], which means that after normalization we obtain a list which is provably equal to the input list (potentially using multiple time the property of associativity!). \\
+After normalization, we will compare the two resulting lists, and if they are equal, we will have obtained the desired proof.  \\
 Indeed :
 $norm\ l1 = norm\ l2$ will imply $l1=l2$ by [1].
 
-In fact, this is not really how it will be, because as for the real problem, we will work by reflection. The datatype presented in the Listing 1 is a first approximation what we will use to reflect out terms composed of lists and concatenation of lists.
+In fact, this is not exactly how it will work, because we will work by reflection, as we will do for the real problem later. The datatype presented in the Listing 1 is a first approximation of our reflected lists composed of variable lists, concatenation of lists and empty list.
+
 
 \begin{lstlisting}[caption=Reflected lists, captionpos=b, label=lst1:haskell2]
-data Expr : Type where
-	App  : Expr -> Expr -> Expr 
-	Var  : (i : Fin n) -> Expr
-    ENil : Expr
+data Expr : (Vect n (List a)) -> Type where
+	App  : {n:Nat} -> {G : Vect n (List a)} -> Expr G -> Expr G -> Expr G 
+	Var  : {n:Nat} -> (G : Vect n (List a)) -> (i : Fin n) -> Expr G
+   ENil : {n:Nat} -> (G : Vect n (List a)) -> Expr G 
 \end{lstlisting}
+
+For this smaller problem, we want to prove equalities in which lists are always universally quantified, so we only need to represent variable (a universally quantified list), the constant list Nil, and the concatenation between lists.
+Variables are represent using a "De Brujin" index : (Var fZ) denotes a variable, (Var (fS fZ)) another one, and so on.
+
+The type Expr is indexed over a vector of lists (we will usually call it G), that represents our context. For example, if we want to prove $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$, then we will have to encode $(l1 ++ l2) ++ (l3 ++ l4)$ and $(l1 ++ (l2 ++ l3)) + l4$ in a context of four elements. The first element of this context denotes the variable $l1$, the second denotes $l2$, and so on.
+Thus, the left hand side will be encoded by :
+\begin{lstlisting}[caption=Reflected LHS, captionpos=b, label=lst1:haskell2]
+App (App (Var G fZ) 
+			(Var G (fS fZ))) 
+    (App (Var G (fS (fS fZ))) 
+    	   (Var G (fS (fS (fS fZ))))).
+\end{lstlisting}
+
+We need now to define what will be the normalization procedure.
+If it is a function which takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards :
+$\forall\ le1,\ interpretation\ (reduce le1)\ =\ interpretation\ le1$
+where $interpretation$ is a function computing the interpretation of an Expr, that is to say, the list this Expr is encoding.
+
+This proof can be quite tricky to make because it relies on the complete behaviour of the reduction and on the way we compute the interpretation.
+For this little example, the reduction will not be too heavy, but in the next sections, when we will have more properties than only associativity to deal with, it will certainly become more problematic to "unfold" the definition of a gigantic reduction procedure. \\
+To avoid these two sources of complexity, we will :
+- Use dependent types in order to directly capture the concrete list that an Expr is encoding
+- Write a "correct by construction" reduction procedure. The proof of preservation of the interpretation will be computed bit by bit at the same time as the function will produce the normalized expression.
+
+\begin{lstlisting}[caption=New reflected lists, captionpos=b, label=lst1:haskell2]
+using (x : List a, y : List a, G : Vect n (List a))
+  data Expr : (G : Vect n (List a)) -> List a -> Type where
+       App  : Expr G x -> Expr G y -> Expr G (x ++ y)
+       Var  : (i : Fin n) -> Expr G (index i G)
+       ENil : Expr G []
+\end{lstlisting}
+
+The reduction procedure is now supposed to be written on a "correct by construction" way, which mean that no additional proof should required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indewed over the real - concrete list : a term of type $Expr G l$ is the encoding of the list $l$.
+Thus, we can write the type of $reduce$ like this : \\
+$reduce\ :\ Expr\ G\ x\ ->\ (x'\ **\ (Expr\ G\ x',\ x\ =\ x'))$ \\
+The function $reduce$ produces a dependent pair : the new concrete list $x'$, and a pair composed by an $Expr G x'$ which is the new encoded term indexed iver the new concrete list, and a proof that old and new lists are equal.
+ 
+
+
+
 
 
 
