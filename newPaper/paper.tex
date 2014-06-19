@@ -91,9 +91,9 @@ And after normalization, we will compare the two resulting lists with a standard
 Indeed :
 $norm\ l1 = norm\ l2$ will imply $l1=l2$ by using the correctness lemma [1] of $norm$ two times. \\
 \\
-In fact, this is not exactly how it will work. This way would not be easily feasible, because in the LHS and RHS of $l1=l2$, we have potentially variables which have been universally quantified. And the normalization function would need to do different treatments for a "variable list" (a list which has been universally quantified) and for a constant, empty list. This is not possible yet, because once the variables are abstracted, nothing tells us where the variables are in the left and right hand side of the equality.
+In fact, this is not exactly how it will work. This way would not be easily feasible, because in the LHS and RHS of $l1=l2$, we have potentially variables which have been universally quantified. And the normalization function would need to do different treatments for a "variable list" (a list which has been universally quantified) and for a constant empty list. This is not possible yet, because once the variables are abstracted, nothing tells us where the variables are in the left and right hand side of the equality : this is a meta information of the AST that we can't access.
 For this reason, we will work by reflection, as we will do for for the real problem later. That means that we will define a datatype which will be used as an encoding of lists, or more precisely, an encoding of lists composed by "variable lists", Nil, and concatenation of the previous. This datatype will allow us to know the internal structure of the list, ie, where the variables and constants are.
-Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a list against the constructor $Nil$ and $Cons$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presentend in the Listing 1, we will be allowed to pattern match an encoding of list against the constructor App, Var and Enil, which give us the informations we want.
+Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a list against the constructor $Nil$ and $Cons$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presented in the Listing 1, we will be allowed to pattern match an encoding of list against the constructor App, Var and Enil, which give us the informations we want.
 
 \begin{lstlisting}[caption=First version of reflected lists, captionpos=b, label=lst1:haskell2]
 data Expr : (Vect n (List a)) -> Type where
@@ -118,14 +118,14 @@ App (App (Var G fZ)
 \end{lstlisting}
 
 We need now to define what will be the normalization procedure.
-If it is, as probably expected, a function which takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards : \\
+If, as it is probably expected, this function simply takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards, corresponding to the correcness property mentioned before : \\
 $\forall\ e:Expr\ G,\ interpretation\ (reduce\ e)\ =\ interpretation\ e$ \\
 where $interpretation$ is a function computing the interpretation of an Expr, that is to say, the list this Expr is encoding.
 This proof can be quite tricky to make because it relies on the complete behaviour of the reduction and on the way we compute the interpretation.
 For this little example, the reduction will not be too heavy, but in the next sections, when we will have more properties than only associativity to deal with, it will certainly become more problematic to "unfold" the definition of a gigantic reduction procedure. \\
 \\
 To avoid these two sources of complexity, we will : \\
-- Use dependent types in order to directly capture and embed the concrete list that an Expr is encoding \\
+- Use dependent types in order to directly capture and embed the concrete list that an Expr is encoding. Thus, it won't be necessary to define the $interpretation$ function. \\
 - Write a "correct by construction" reduction procedure. The proof of preservation of the interpretation will be computed "bit by bit" at the same time as the function will produce the normalized expression (by rewriting the term thanks to the property of associativity).
 
 \begin{lstlisting}[caption=New reflected lists, captionpos=b, label=lst1:haskell2]
@@ -147,20 +147,73 @@ Finally, if $e1$ is an expression encoding the list $x$, and $e2$ is an expressi
 The reduction procedure is now supposed to be written on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indexed over the real (concrete) list : a term of type $Expr\ G\ l$ is the encoding of the list $l$.
 Thus, we can write the type of $reduce$ like this : \\
 $reduce\ :\ Expr\ G\ x\ \rightarrow\ (x'\ **\ (Expr\ G\ x',\ x\ =\ x'))$ \\
-The function $reduce$ produces a dependent pair : the new concrete list $x'$, and a pair made of an $Expr\ G\ x'$ which is the new encoded term indexed by the new concrete list, and a proof that old and new lists are equal.
+The function $reduce$ produces a dependent pair : the new concrete list $x'$, and a pair made of an $Expr\ G\ x'$ which is the new encoded term indexed by the new concrete list, and a proof that old and new -real- lists are equal.
 Note that this function can't simply produce an $Expr\ G\ x$, because the list on which the resulting expression will be indexed is not necessary syntactically equal to the original list. 
 In fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
-The reason is simple : when we try to automatically prove $x=y$, we will have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$. We will normalize $e1$, and this will give a new list $x'$, a new expression $e1':Expr\ G\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new list $y$, an expression $e2':Expr\ G\ y'$, and a proof of $y=y'$. \\
-Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality : \\
-$eqExpr\ :\ (e\ :\ Expr\ G\ x)\ \rightarrow\ (e'\ :\ Expr\ G\ y)\ \rightarrow\ Maybe\ (e= e')$ \\
-And of course, if $e1'$ and $e2'$ are equal, then they necessary have the same type\footnote{we are working with the hetherogenous equality JMeq, but as always, the only way to have a proof of a:A = b:B is if A=B}, and therefore $x'=y'$
+The reason is simple : when we try to automatically prove $x=y$, these proofs $x=x'$ and $y=y'$ will be the crucial part for the construction of the desired proof. \\
+\\
+We will have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$\footnote{These encodings have to be produced by hand by the user for this small simple problem, but for the real collection of tactics, we will program an automatic metaification}.
+We will normalize $e1$, and this will give a new list $x'$, a new expression $e1':Expr\ G\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new list $y$, an expression $e2':Expr\ G\ y'$, and a proof of $y=y'$. \\
+Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality :
+\begin{lstlisting}[caption=Syntactical equality, captionpos=b, label=lst1:haskell2]
+  eqExpr : (e : Expr G x) -> (e' : Expr G y) 
+  	       -> Maybe (e = e')
+  eqExpr (App x y) (App x' y') 
+  		with (eqExpr x x', eqExpr y y')
+    eqExpr (App x y) (App x y)   
+    	| (Just refl, Just refl) = Just refl
+    eqExpr (App x y) (App x' y') 
+    	| _ = Nothing
+  eqExpr (Var i) (Var j) with (decEq i j)
+    eqExpr (Var i) (Var i) 
+    	| (Yes refl) = Just refl
+    eqExpr (Var i) (Var j) 
+    	| _ = Nothing
+  eqExpr ENil ENil = Just refl
+  eqExpr _ _ = Nothing
+\end{lstlisting}
+
+
+And of course, if $e1'$ and $e2'$ are equal, then they necessary have the same type\footnote{we are working with the heterogeneous equality JMeq, but as always, the only way to have a proof of a:A = b:B is if A=B}, and therefore $x'=y'$
 By rewriting the two previously obtained equality $x=x'$ and $y=y'$ in the new equality $x'=y'$, we can get a proof of $x=y$.
 
-
-
-
-
-
+\begin{lstlisting}[caption=Build proof, captionpos=b, label=lst1:haskell2]
+  buildProof : {x : List a} -> {y : List a} 
+               -> Expr G ln -> Expr G rn ->
+               (x = ln) -> (y = rn) ->
+               Maybe (x = y) 
+  buildProof e e' lp rp with (eqExpr e e')
+    buildProof e e lp rp  | Just refl = ?bp1
+    buildProof e e' lp rp | Nothing = Nothing
+\end{lstlisting}
+As we said, the proof for the metavariable is just the rewriting of the two equalities :
+\begin{lstlisting}[caption=Build proof metavirable, captionpos=b, label=lst1:haskell2]
+  bp1 = proof {
+  intros;
+  refine Just;
+  rewrite sym lp;
+  rewrite sym rp;
+  trivial;
+}  
+\end{lstlisting}
+Finally, the main function which tries to prove the equality $x=y$ is simply made of the reduction of the two metaified terms reflecting the left and the right hand side, and of the composition of the two obtained proofs thanks to $buildProof$:
+\begin{lstlisting}[caption=testEq, captionpos=b, label=lst1:haskell2]
+  testEq : Expr G x -> Expr G y 
+           -> Maybe (x = y)
+  testEq l r = let (ln ** (l', lPrf)) = reduce l in 
+               let (rn ** (r', rPrf)) = reduce r in
+                   buildProof l' r' lPrf rPrf
+\end{lstlisting}
+Now, we need to define the function reduce. To do that, we have to fix a canonical representation of associative lists. We decide that the right associative form will be the canonical representation. Thus, the $reduce$ function will have to rewrite the metaified term by rearranging the parentheses in order to transform it in the form $l1 ++ (l2 ++ (l3 ++(... ln)))$. To do so, we can define a new datatype which captures this property. Thus it will be easier to get sure that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of depend types when, like here, it doesn't introduce many complications.
+\begin{lstlisting}[caption=New reflected lists, captionpos=b, label=lst1:haskell2]
+  data RExpr : (G : Vect n (List a)) -> 
+                List a -> Type where
+       RApp : RExpr G x -> (i : Fin n) -> 
+              RExpr G (x ++ index i G)
+       RNil : RExpr G []
+\end{lstlisting}
+This datatype has only two constructors. In fact, it combines the previous $Var$ and $App$ constructors so that it becomes impossible to write an expression which isn't right associative.
+ 
 
 
 
