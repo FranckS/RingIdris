@@ -74,66 +74,88 @@ Remark : To do : making the introduction more SPECIFIC, with CRUNCHY things : wh
 
 
          
-\section {A simpler problem : a little tactic correct by construction for lists (1/2 pages)}
+\section {A simpler problem : a small correct by construction tactic for lists (1/2 pages)}
 
-We will start with the study of a smaller problem in which we aim to deal with variable lists, and associativity of list concatenation.
-For example, we would like to be able to automatically generate proofs of facts like $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$. \\
+In order to better explain the way we are trying to solve our problem, we will first present it on a simplified version, in which we aim to deal with universaly quantified lists, and associativity of list concatenation.
+For example, we would like to be able to automatically generate proofs of facts like $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$ [Example 1]. \\
 For this smaller problem, we have decided to only work with the property of associativity of the concatenation : $\forall l1\ l2\ l3,\ (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)$. \\
-Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of variable lists and concatenation of variable lists are equal, and to produce of proof of this equality if appropriate, when "equal" has the meaning "syntactically equal or equal thanks to associativity".
+Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of universally quantified lists and concatenation of these lists are equal, and to produce of proof of this equality if appropriate, when "equal" has the meaning "syntactically equal or equal thanks to associativity". \\
 
+When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. For the example 1, the goal becomes simply $(l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$, which is something of the general form $l1=l2$.
 The general idea -which will also apply for the real bigger problem explained in the next sections- will be to normalize both sides of the "potential equality" $l1=l2$, and afterwards to compare them using Leibniz syntactical equality.
-Of course, the normalization will have to fulfil the following property :
-$\forall l, norm\ l = l$ [1], which means that after normalization we obtain a list which is provably equal to the input list (potentially using multiple time the property of associativity!). \\
-After normalization, we will compare the two resulting lists, and if they are equal, we will have obtained the desired proof.  \\
+The goal of the normalization is of course to compute a canonical representation for a list $l$, such that any other list provably equal to $l$ will have the same canonical representation. That's why it will be possible to decide the equality by simply comparing the two normal forms with a week syntactical equality. \\
+\\
+Of course, the normalization will have to fulfil the following correctness property :
+$\forall l, norm\ l = l$ [1], which means that after normalization we obtain a list which is provably equal to the input list (potentially using the property of associativity multiple times). \\
+And after normalization, we will compare the two resulting lists with a standard syntactical equality, and if they are equal, we will have obtained the desired proof.  \\
 Indeed :
-$norm\ l1 = norm\ l2$ will imply $l1=l2$ by [1].
+$norm\ l1 = norm\ l2$ will imply $l1=l2$ by using the correctness lemma [1] of $norm$ two times. \\
+\\
+In fact, this is not exactly how it will work. This way would not be easily feasible, because in the LHS and RHS of $l1=l2$, we have potentially variables which have been universally quantified. And the normalization function would need to do different treatments for a "variable list" (a list which has been universally quantified) and for a constant, empty list. This is not possible yet, because once the variables are abstracted, nothing tells us where the variables are in the left and right hand side of the equality.
+For this reason, we will work by reflection, as we will do for for the real problem later. That means that we will define a datatype which will be used as an encoding of lists, or more precisely, an encoding of lists composed by "variable lists", Nil, and concatenation of the previous. This datatype will allow us to know the internal structure of the list, ie, where the variables and constants are.
+Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a list against the constructor $Nil$ and $Cons$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presentend in the Listing 1, we will be allowed to pattern match an encoding of list against the constructor App, Var and Enil, which give us the informations we want.
 
-In fact, this is not exactly how it will work, because we will work by reflection, as we will do for the real problem later. The datatype presented in the Listing 1 is a first approximation of our reflected lists composed of variable lists, concatenation of lists and empty list.
-
-
-\begin{lstlisting}[caption=Reflected lists, captionpos=b, label=lst1:haskell2]
+\begin{lstlisting}[caption=First version of reflected lists, captionpos=b, label=lst1:haskell2]
 data Expr : (Vect n (List a)) -> Type where
-	App  : {n:Nat} -> {G : Vect n (List a)} -> Expr G -> Expr G -> Expr G 
-	Var  : {n:Nat} -> (G : Vect n (List a)) -> (i : Fin n) -> Expr G
-   ENil : {n:Nat} -> (G : Vect n (List a)) -> Expr G 
+  App  : {n:Nat} -> {G : Vect n (List a)} -> 
+         Expr G -> Expr G -> Expr G 
+  Var  : {n:Nat} -> (G : Vect n (List a)) -> 
+         (i : Fin n) -> Expr G
+  ENil : {n:Nat} -> (G : Vect n (List a)) -> 
+         Expr G 
 \end{lstlisting}
 
 For this smaller problem, we want to prove equalities in which lists are always universally quantified, so we only need to represent variable (a universally quantified list), the constant list Nil, and the concatenation between lists.
-Variables are represent using a "De Brujin" index : (Var fZ) denotes a variable, (Var (fS fZ)) another one, and so on.
+Variables are represent using a De Brujin-like index : (Var fZ) denotes a variable, (Var (fS fZ)) another one, and so on.
 
-The type Expr is indexed over a vector of lists (we will usually call it G), that represents our context. For example, if we want to prove $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$, then we will have to encode $(l1 ++ l2) ++ (l3 ++ l4)$ and $(l1 ++ (l2 ++ l3)) + l4$ in a context of four elements. The first element of this context denotes the variable $l1$, the second denotes $l2$, and so on.
+The type Expr is indexed over a vector of lists (we will usually name it G), that represents our context. For example, if in the example 1, we will have to encode $(l1 ++ l2) ++ (l3 ++ l4)$ and $(l1 ++ (l2 ++ l3)) + l4$ in a context where four elements are declared. The first element of this context denotes the variable $l1$, the second denotes $l2$, and so on.
 Thus, the left hand side will be encoded by :
-\begin{lstlisting}[caption=Reflected LHS, captionpos=b, label=lst1:haskell2]
+\begin{lstlisting}[caption=Reflected LHS of example 1, captionpos=b, label=lst1:haskell2]
 App (App (Var G fZ) 
-			(Var G (fS fZ))) 
+         (Var G (fS fZ))) 
     (App (Var G (fS (fS fZ))) 
-    	   (Var G (fS (fS (fS fZ))))).
+         (Var G (fS (fS (fS fZ))))).
 \end{lstlisting}
 
 We need now to define what will be the normalization procedure.
-If it is a function which takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards :
-$\forall\ le1,\ interpretation\ (reduce le1)\ =\ interpretation\ le1$
+If it is, as probably expected, a function which takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards : \\
+$\forall\ e:Expr\ G,\ interpretation\ (reduce\ e)\ =\ interpretation\ e$ \\
 where $interpretation$ is a function computing the interpretation of an Expr, that is to say, the list this Expr is encoding.
-
 This proof can be quite tricky to make because it relies on the complete behaviour of the reduction and on the way we compute the interpretation.
 For this little example, the reduction will not be too heavy, but in the next sections, when we will have more properties than only associativity to deal with, it will certainly become more problematic to "unfold" the definition of a gigantic reduction procedure. \\
-To avoid these two sources of complexity, we will :
-- Use dependent types in order to directly capture the concrete list that an Expr is encoding
-- Write a "correct by construction" reduction procedure. The proof of preservation of the interpretation will be computed bit by bit at the same time as the function will produce the normalized expression.
+\\
+To avoid these two sources of complexity, we will : \\
+- Use dependent types in order to directly capture and embed the concrete list that an Expr is encoding \\
+- Write a "correct by construction" reduction procedure. The proof of preservation of the interpretation will be computed "bit by bit" at the same time as the function will produce the normalized expression (by rewriting the term thanks to the property of associativity).
 
 \begin{lstlisting}[caption=New reflected lists, captionpos=b, label=lst1:haskell2]
-using (x : List a, y : List a, G : Vect n (List a))
-  data Expr : (G : Vect n (List a)) -> List a -> Type where
-       App  : Expr G x -> Expr G y -> Expr G (x ++ y)
-       Var  : (i : Fin n) -> Expr G (index i G)
+using (x : List a, y : List a, 
+       G : Vect n (List a))
+  data Expr : (G : Vect n (List a)) -> 
+              List a -> Type where
+       App  : Expr G x -> Expr G y -> 
+              Expr G (x ++ y)
+       Var  : (i : Fin n) -> 
+              Expr G (index i G)
        ENil : Expr G []
 \end{lstlisting}
+For an expression $e\ :\ Expr\ G\ x$, we will say that "$e$ denotes (or encodes) the list $x$".
+When an expression is a variable, the denoted list is simply the corresponding variable in the context, ie, $(index\ i\ G)$.
+Also, the $ENil$ expression denotes the $Nil$ list.
+Finally, if $e1$ is an expression encoding the list $x$, and $e2$ is an expression encoding the list $y$, then the expression $App\ e1\ e2$ denotes the list $(x ++ y)$.
 
-The reduction procedure is now supposed to be written on a "correct by construction" way, which mean that no additional proof should required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indewed over the real - concrete list : a term of type $Expr G l$ is the encoding of the list $l$.
+The reduction procedure is now supposed to be written on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indexed over the real (concrete) list : a term of type $Expr\ G\ l$ is the encoding of the list $l$.
 Thus, we can write the type of $reduce$ like this : \\
-$reduce\ :\ Expr\ G\ x\ ->\ (x'\ **\ (Expr\ G\ x',\ x\ =\ x'))$ \\
-The function $reduce$ produces a dependent pair : the new concrete list $x'$, and a pair composed by an $Expr G x'$ which is the new encoded term indexed iver the new concrete list, and a proof that old and new lists are equal.
- 
+$reduce\ :\ Expr\ G\ x\ \rightarrow\ (x'\ **\ (Expr\ G\ x',\ x\ =\ x'))$ \\
+The function $reduce$ produces a dependent pair : the new concrete list $x'$, and a pair made of an $Expr\ G\ x'$ which is the new encoded term indexed by the new concrete list, and a proof that old and new lists are equal.
+Note that this function can't simply produce an $Expr\ G\ x$, because the list on which the resulting expression will be indexed is not necessary syntactically equal to the original list. 
+In fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
+The reason is simple : when we try to automatically prove $x=y$, we will have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$. We will normalize $e1$, and this will give a new list $x'$, a new expression $e1':Expr\ G\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new list $y$, an expression $e2':Expr\ G\ y'$, and a proof of $y=y'$. \\
+Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality : \\
+$eqExpr\ :\ (e\ :\ Expr\ G\ x)\ \rightarrow\ (e'\ :\ Expr\ G\ y)\ \rightarrow\ Maybe\ (e= e')$ \\
+And of course, if $e1'$ and $e2'$ are equal, then they necessary have the same type\footnote{we are working with the hetherogenous equality JMeq, but as always, the only way to have a proof of a:A = b:B is if A=B}, and therefore $x'=y'$
+By rewriting the two previously obtained equality $x=x'$ and $y=y'$ in the new equality $x'=y'$, we can get a proof of $x=y$.
+
 
 
 
