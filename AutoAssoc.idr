@@ -80,14 +80,14 @@ using (x : List a, y : List a, G : Vect n (List a))
 
   -- a couple of test expressions
 
-  testE1 : (xs, ys, zs : List a) -> 
+  e1 : (xs, ys, zs : List a) -> 
            Expr [xs, ys, zs] ((xs ++ ys) ++ (xs ++ zs))
-  testE1 xs ys zs = App (App (Var fZ) (Var (fS fZ))) 
+  e1 xs ys zs = App (App (Var fZ) (Var (fS fZ))) 
                         (App (Var fZ) (Var (fS (fS fZ))))
 
-  testE2 : (xs, ys, zs : List a) -> 
+  e2 : (xs, ys, zs : List a) -> 
            Expr [xs, ys, zs] (xs ++ ((ys ++ xs) ++ zs))
-  testE2 xs ys zs = App (Var fZ) 
+  e2 xs ys zs = App (Var fZ) 
          (App (App (Var (fS fZ)) (Var fZ)) (Var (fS (fS fZ))))
 
   -- TODO: need a tactic to run testEq rather than matching on Just ok, 
@@ -95,33 +95,34 @@ using (x : List a, y : List a, G : Vect n (List a))
   -- At the REPL, try 'magic {a=Int}' to see the generated proof.
 
 
-  pre_magic : (xs, ys, zs : List a) ->
+  e1_e2_testEq : (xs, ys, zs : List a) ->
           Maybe (((xs ++ ys) ++ (xs ++ zs)) = (xs ++ ((ys ++ xs) ++ zs)))
-  pre_magic xs ys zs = testEq (testE1 xs ys zs) (testE2 xs ys zs)
+  e1_e2_testEq xs ys zs = testEq (e1 xs ys zs) (e2 xs ys zs)
 
 
   magic : (xs, ys, zs : List a) ->
           (((xs ++ ys) ++ (xs ++ zs)) = (xs ++ ((ys ++ xs) ++ zs)))
   magic = \xs, ys,zs => 
-     let (Just ok) = testEq (testE1 xs ys zs) (testE2 xs ys zs) in ok
+     let (Just ok) = e1_e2_testEq xs ys zs in ok
 
 ---------- Proofs ----------
-
+{-
 AutoAssoc.appRExpr1 = proof {
   intros;
   rewrite sym xprf;
   rewrite sym yprf;
   rewrite prf;
   rewrite sym (appendAssociative x x2 (index i G));
-  trivial;
+  exact refl
 }
+-}
 
 appRExpr2 = proof {
   intros;
   rewrite xprf;
   rewrite sym yprf;
   rewrite appendNilRightNeutral x';
-  trivial;
+  exact refl
 }
 
 bp1 = proof {
@@ -129,5 +130,5 @@ bp1 = proof {
   refine Just;
   rewrite sym lp;
   rewrite sym rp;
-  trivial;
+  exact refl
 }
