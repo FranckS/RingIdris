@@ -74,16 +74,16 @@ Remark : To do : making the introduction more SPECIFIC, with CRUNCHY things : wh
 
 
          
-\section {A simpler problem : a small correct by construction tactic for lists (1/2 pages)}
+\section {A smaller problem : a correct by construction tactic for the associativity of lists concatenation}
 
 In order to better explain the way we are trying to solve our problem, we will first present it on a simplified version, in which we aim to deal with universaly quantified lists, and associativity of list concatenation.
 For example, we would like to be able to automatically generate proofs of facts like $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$ [Example 1]. \\
 For this smaller problem, we have decided to only work with the property of associativity of the concatenation : $\forall l1\ l2\ l3,\ (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)$. \\
 Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of universally quantified lists and concatenation of these lists are equal, and to produce of proof of this equality if appropriate, when "equal" has the meaning "syntactically equal or equal thanks to associativity". \\
 
-When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. For the example 1, the goal becomes simply $(l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$, which is something of the general form $l1=l2$.
-The general idea -which will also apply for the real bigger problem explained in the next sections- will be to normalize both sides of the "potential equality" $l1=l2$, and afterwards to compare them using Leibniz syntactical equality.
-The goal of the normalization is of course to compute a canonical representation for a list $l$, such that any other list provably equal to $l$ will have the same canonical representation. That's why it will be possible to decide the equality by simply comparing the two normal forms with a week syntactical equality. \\
+When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. For the example 1, after abstraction of the variables, the goal becomes simply $(l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$, which is something of the general form $l1=l2$.
+The general idea -which will also apply for the real bigger problem detailed in the next sections- will be to normalize both sides of the "potential equality" $l1=l2$, and afterwards to compare them using Leibniz syntactical equality.
+The goal of the normalization is of course to compute a canonical representation for a list $l$, such that any other list provably equal to $l$ (by using the associativity) will have the same canonical representation. That's why it will be possible to decide the equality by simply comparing the two normal forms with a week syntactical equality. \\
 \\
 Of course, the normalization will have to fulfil the following correctness property :
 $\forall l, norm\ l = l$ [1], which means that after normalization we obtain a list which is provably equal to the input list (potentially using the property of associativity multiple times). \\
@@ -91,9 +91,9 @@ And after normalization, we will compare the two resulting lists with a standard
 Indeed :
 $norm\ l1 = norm\ l2$ will imply $l1=l2$ by using the correctness lemma [1] of $norm$ two times. \\
 \\
-In fact, this is not exactly how it will work. This way would not be easily feasible, because in the LHS and RHS of $l1=l2$, we have potentially variables which have been universally quantified. And the normalization function would need to do different treatments for a "variable list" (a list which has been universally quantified) and for a constant empty list. This is not possible yet, because once the variables are abstracted, nothing tells us where the variables are in the left and right hand side of the equality : this is a meta information of the AST that we can't access.
+In fact, this is not exactly how it will work. This way would not be easily feasible, because in the LHS and RHS of $l1=l2$, we potentially have variables which have been universally quantified. And the normalization function would need to do different treatments for a "variable list" (a list which has been universally quantified) and for a constant empty list. This is not possible yet, because once the variables are abstracted, nothing tells us where the variables are in the left and right hand side of the equality : this is a meta information of the AST that we can't access.
 For this reason, we will work by reflection, as we will do for for the real problem later. That means that we will define a datatype which will be used as an encoding of lists, or more precisely, an encoding of lists composed by "variable lists", Nil, and concatenation of the previous. This datatype will allow us to know the internal structure of the list, ie, where the variables and constants are.
-Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a list against the constructor $Nil$ and $Cons$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presented in the Listing 1, we will be allowed to pattern match an encoding of list against the constructor App, Var and Enil, which give us the informations we want.
+Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a list against the constructor $Nil$ and $Cons$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presented in the Listing 1, we will be allowed to pattern match an encoding of list against the constructor App, Var and ENil, which gives us the informations we want.
 
 \begin{lstlisting}[caption=First version of reflected lists, captionpos=b, label=lst1:haskell2]
 data Expr : (Vect n (List a)) -> Type where
@@ -128,7 +128,7 @@ To avoid these two sources of complexity, we will : \\
 - Use dependent types in order to directly capture and embed the concrete list that an Expr is encoding. Thus, it won't be necessary to define the $interpretation$ function. \\
 - Write a "correct by construction" reduction procedure. The proof of preservation of the interpretation will be computed "bit by bit" at the same time as the function will produce the normalized expression (by rewriting the term thanks to the property of associativity).
 
-\begin{lstlisting}[caption=New reflected lists, captionpos=b, label=lst1:haskell2]
+\begin{lstlisting}[caption=Second version of reflected lists with embedded denotation, captionpos=b, label=lst1:haskell2]
 using (x : List a, y : List a, 
        G : Vect n (List a))
   data Expr : (G : Vect n (List a)) -> 
@@ -148,18 +148,18 @@ The reduction procedure is now supposed to be written on a "correct by construct
 Thus, we can write the type of $reduce$ like this : \\
 $reduce\ :\ Expr\ G\ x\ \rightarrow\ (x'\ **\ (Expr\ G\ x',\ x\ =\ x'))$ \\
 The function $reduce$ produces a dependent pair : the new concrete list $x'$, and a pair made of an $Expr\ G\ x'$ which is the new encoded term indexed by the new concrete list, and a proof that old and new -real- lists are equal.
-Note that this function can't simply produce an $Expr\ G\ x$, because the list on which the resulting expression will be indexed is not necessary syntactically equal to the original list. 
+Note that this function can't simply produce an $Expr\ G\ x$, because the list on which the resulting expression will be indexed is not necessary syntactically equal to the original list since it can use the property of associativity. 
 In fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
 The reason is simple : when we try to automatically prove $x=y$, these proofs $x=x'$ and $y=y'$ will be the crucial part for the construction of the desired proof. \\
 \\
 We will have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$\footnote{These encodings have to be produced by hand by the user for this small simple problem, but for the real collection of tactics, we will program an automatic metaification}.
 We will normalize $e1$, and this will give a new list $x'$, a new expression $e1':Expr\ G\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new list $y$, an expression $e2':Expr\ G\ y'$, and a proof of $y=y'$. \\
-Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality :
+Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality because they are in their normal form :
 \begin{lstlisting}[caption=Syntactical equality, captionpos=b, label=lst1:haskell2]
   eqExpr : (e : Expr G x) -> (e' : Expr G y) 
   	       -> Maybe (e = e')
   eqExpr (App x y) (App x' y') 
-  		with (eqExpr x x', eqExpr y y')
+          with (eqExpr x x', eqExpr y y')
     eqExpr (App x y) (App x y)   
     	| (Just refl, Just refl) = Just refl
     eqExpr (App x y) (App x' y') 
@@ -174,10 +174,10 @@ Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality :
 \end{lstlisting}
 
 
-And of course, if $e1'$ and $e2'$ are equal, then they necessary have the same type\footnote{we are working with the heterogeneous equality JMeq, but as always, the only way to have a proof of a:A = b:B is if A=B}, and therefore $x'=y'$
+And of course, if $e1'$ and $e2'$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq, but as always, the only way to have a proof of a:A = b:B is if A=B}, and therefore $x'=y'$
 By rewriting the two previously obtained equality $x=x'$ and $y=y'$ in the new equality $x'=y'$, we can get a proof of $x=y$.
 
-\begin{lstlisting}[caption=Build proof, captionpos=b, label=lst1:haskell2]
+\begin{lstlisting}[caption=Building the proof with the two proofs of equality, captionpos=b, label=lst1:haskell2]
   buildProof : {x : List a} -> {y : List a} 
                -> Expr G ln -> Expr G rn ->
                (x = ln) -> (y = rn) ->
@@ -200,24 +200,59 @@ Finally, the main function which tries to prove the equality $x=y$ is simply mad
 \begin{lstlisting}[caption=testEq, captionpos=b, label=lst1:haskell2]
   testEq : Expr G x -> Expr G y 
            -> Maybe (x = y)
-  testEq l r = let (ln ** (l', lPrf)) = reduce l in 
-               let (rn ** (r', rPrf)) = reduce r in
-                   buildProof l' r' lPrf rPrf
+  testEq l r = 
+     let (ln ** (l', lPrf)) = reduce l in 
+     let (rn ** (r', rPrf)) = reduce r in
+        buildProof l' r' lPrf rPrf
 \end{lstlisting}
-Now, we need to define the function reduce. To do that, we have to fix a canonical representation of associative lists. We decide that the right associative form will be the canonical representation. Thus, the $reduce$ function will have to rewrite the metaified term by rearranging the parentheses in order to transform it in the form $l1 ++ (l2 ++ (l3 ++(... ln)))$. To do so, we can define a new datatype which captures this property. Thus it will be easier to get sure that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of depend types when, like here, it doesn't introduce many complications.
-\begin{lstlisting}[caption=New reflected lists, captionpos=b, label=lst1:haskell2]
-  data RExpr : (G : Vect n (List a)) -> 
-                List a -> Type where
-       RApp : RExpr G x -> (i : Fin n) -> 
-              RExpr G (x ++ index i G)
-       RNil : RExpr G []
+Now, we need to define the function reduce. To do that, we have to fix a canonical representation of associative lists. We decide that the left associative form will be the canonical representation. Thus, the $reduce$ function will have to rewrite the metaified term by rearranging the parentheses in order to transform the underlying list in the form $(...((l1 ++ l2) ++ l3) ... ++ ln)$. To do so, we can define a new datatype which captures this property. Thus it will be easier to be certain that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of dependent types when, like here, it doesn't introduce more complications.
+\begin{lstlisting}[caption=New reflected lists : left associative, captionpos=b, label=lst1:haskell2]
+  data LExpr : (G : Vect n (List a)) -> 
+               List a -> Type where
+       LApp : LExpr G x -> (i : Fin n) -> 
+              LExpr G (x ++ index i G)
+       LNil : LExpr G []
 \end{lstlisting}
-This datatype has only two constructors. In fact, it combines the previous $Var$ and $App$ constructors so that it becomes impossible to write an expression which isn't right associative.
+This datatype has only two constructors. In fact, it combines the previous $Var$ and $App$ constructors so that it becomes impossible to write an expression which isn't left associative.
  
+As part of the normalization, we will write a function $expr\_l$ converting an $Expr\ G\ x$ to a $LExpr\ G\ x'$ and producing a proof that $x=x'$. This function will therefore use the property of associativity multiple times, in order to obtain the expected fully left associative form. Of course, because by using this new datatype $LExpr$ we've changed the representation of our encoded lists, we will need to convert back an $LExpr\ G\ x$ to an $Expr\ G\ x$. The function $l\_expr$ will do this easy task.
+
+\begin{lstlisting}[caption=Production of the left associative form, captionpos=b, label=lst1:haskell2]
+  expr_l : Expr G x -> 
+               (x' ** (LExpr G x', x = x'))
+  expr_l ENil = (_ ** (LNil, refl))
+  expr_l (Var i) = (_ ** (LApp RNil i, refl))
+  expr_l (App ex ey) = 
+  	let (xl ** (xr, xprf)) = expr_l ex in
+  	let (yl ** (yr, yprf)) = expr_l ey in
+   	   appLExpr _ _ xr yr xprf yprf
+    where 
+       appLExpr : (x', y' : List a) ->
+             LExpr G x -> LExpr G y -> 
+             (x' = x) -> (y' = y) ->
+             (w' ** (LExpr G w', x' ++ y' = w'))
+       appLExpr x' y' rxs (LApp e i) xprf yprf =
+          let (xs ** (rec, prf)) = 
+             appLExpr _ _ rxs e refl refl in
+             (_ ** (LApp rec i, ?appLExpr1))
+       appLExpr x' y' rxs LNil xprf yprf = 
+          (_ ** (rxs, ?appLExpr2))
 
 
+  l_expr : LExpr G x -> Expr G x
+  l_expr LNil = ENil
+  l_expr (LApp xs i) = App (r_expr xs) (Var i)
+\end{lstlisting}
 
+We can now define the reduction, which is just the composition of the two previous functions :
 
+\begin{lstlisting}[caption=Reduction function, captionpos=b, label=lst1:haskell2]
+  reduce : Expr G x -> (x' ** (Expr G x', x = x'))
+  reduce e = let (x' ** (e', prf)) = expr_l e in
+                 (x' ** (l_expr e', prf))
+\end{lstlisting}
+
+ADDING EXAMPLE OF HOW TO USE THIS LITTLE TACTIC HERE.
 
 \section {Back to the general problem : A hierachy of tactics (2/3 pages)}
 

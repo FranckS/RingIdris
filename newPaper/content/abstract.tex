@@ -1,8 +1,7 @@
 
 \begin{abstract}
 
-We present a collection of reflective and correct by construction tactics for
-solving automatically equalities in different algebraic structures in the dependently typed
+We present a collection of reflective and correct by construction tactics for automatically proving equalities in different algebraic structures in the dependently typed
 programming language Idris.
 The distinctive feature of this correct by construction approach is that it makes a
 strong link between the implementation of the tactic and its proof of correctness,
@@ -10,7 +9,7 @@ thereby enhancing the re-usability and the readability of the proof.
 This example shows that the use of dependent types can be of great value for
 building correct by construction software, since dependent types enable to capture
 logical properties easily. Our approach is also generic in order to avoid code
-duplication for different algebraic structures.
+duplication for the different algebraic structures : we are building a hierarchy of tactics, and not multiple individual ones.
 
 %Before Edwin's help :
 
