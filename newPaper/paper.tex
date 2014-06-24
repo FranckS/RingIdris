@@ -340,9 +340,63 @@ And if we ask for the evaluation of this term, we should obtain $Just$ and a pro
 
 And we effectively get what we wanted : a proof of equality between the two lists. As expected, this proof uses the properties of associativity ($appendAssociative$) and the property of neutrality of $Nil$ for $append$ ($appendNilRightAssociative$).
 
-\section {Back to the general problem : A hierachy of tactics (2/3 pages)}
+\section {Back to the general problem : A hierarchy of tactics (2/3 pages)}
 
-	\subsection {Hierarchy of typeclass}
+Now that we have introduced our ideas on this little example, it is time to apply them for our main goal : the implementation of a hierarchy of tactics proving equalities in algebraic structures. Very often, the properties available on a given type are the one of a well known structure : magma, semi-group, monoid, group, commutative-group...  We will no longer only work with the properties of associativity and neutral elements for Lists as we did in the previous section, but we will have available the properties of different structures, and these tactics will usable for any type that satisfies these properties.
+In a Magma, we only have a $Plus$ operation, and no axioms with it. With a Semi-Group, we will have one axiom about this Plus : the property of associativity. In a Monoid, we will have one more property : the fact that we have a neutral element. In fact, this property will be expressed as 3 facts : there is a value $Zero$, and we've got $\forall x, Zero + x = x$ and $\forall x, x + Zero = x$. \\
+
+We will define a hierarchy of typeclasses. All our tactics (the group solver, the monoid solver...) will be able to work on any type, being given that an instance of the corresponding typeclass is provided.
+
+\subsection {Hierarchy of typeclass}
+
+All our tactics will require to have a way of testing the equality between elements of the set, that is to say, a way to test equality between constants. For this reason, we define a notion of "set", which only requires this equality. All the algebraic structures above will extend this typeclass :
+
+\begin{code}[caption=Set, captionpos=b, label=lst1:haskell2]
+class Set c where
+    set_eq : (x:c) -> (y:c) -> Maybe (x=y)
+\end{code}
+
+Note that this equality is a "week" equality : it only produces a proof when the two elements are equal, but it doesn't produce a proof of dis-equality when they are different. That's quite natural, since we want to generate proof of equality, and not to generate counter examples for dis-equalities, which is another problem.
+
+Of course, there will be no tactic associated to $Set$, since we have no operations and not properties associated to this structure. Therefore, the equality in a $Set$ is just the syntactical equality, and can be proven with $refl$.
+
+The first structure, almost trivial, is the magma. A magma has just a $Plus$ operation which let us computing constants, and no axioms about this operation. Thus, as we will see later, the normalization will be simply a computation between constants inside parenthesis.
+
+\begin{code}[caption=Magma, captionpos=b, label=lst1:haskell2]   
+class Set c => Magma c where
+    Plus : c -> c -> c
+\end{code}
+
+bbb
+
+\begin{code}[caption=Semi-Group, captionpos=b, label=lst1:haskell2]   
+class Magma c => SemiGroup c where
+    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
+\end{code}
+
+ccc
+
+\begin{code}[caption=Monoid, captionpos=b, label=lst1:haskell2]   
+class SemiGroup c => Monoid c where
+	Zero : c    
+    Plus_neutral_1 : (c1:c) -> (Plus Zero c1 = c1)    
+    Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
+\end{code}	
+
+ddd
+
+\begin{code}[caption=Group, captionpos=b, label=lst1:haskell2]   
+hasSymmetric : (c:Type) -> (p:dataTypes.Monoid c) -> c -> c -> Type
+hasSymmetric c p a b = (Plus a b = Zero, Plus b a = the c Zero)    
+  
+class dataTypes.Monoid c => dataTypes.Group c where
+	Minus : c -> c ->
+	Neg : c -> c
+    Minus_simpl : (c1:c) -> (c2:c) -> Minus c1 c2 = Plus c1 (Neg c2) --Minus should not be primitive and should be simplifiable
+    Plus_inverse : (c1:c) -> hasSymmetric c (%instance) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
+\end{code}	
+
+
 
 	\subsection {Reflected terms}
 
