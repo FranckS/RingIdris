@@ -367,14 +367,14 @@ class Set c => Magma c where
     Plus : c -> c -> c
 \end{code}
 
-bbb
+A bit more interesting is the Semi-Group typeclass. A semi-Group is a Magma (ie, it still has a $plus$ operation), but it also has the property of associativity for this operation.
 
 \begin{code}[caption=Semi-Group, captionpos=b, label=lst1:haskell2]   
 class Magma c => SemiGroup c where
     Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
 \end{code}
 
-ccc
+The Monoid, for its part, is a Semi-Group with the property of neutral element.
 
 \begin{code}[caption=Monoid, captionpos=b, label=lst1:haskell2]   
 class SemiGroup c => Monoid c where
@@ -383,22 +383,44 @@ class SemiGroup c => Monoid c where
     Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
 \end{code}	
 
-ddd
+A Group is a Monoid, with two new operations. The binary $Minus$, and the unary $Neg$. One axiom says that the $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group.
+The second axiom, which is the most important one for a Group, is the fact that any $c1$ admits $Neg c1$ as an inverse, where being an inverse if define just under.
 
 \begin{code}[caption=Group, captionpos=b, label=lst1:haskell2]   
-hasSymmetric : (c:Type) -> (p:dataTypes.Monoid c) -> c -> c -> Type
-hasSymmetric c p a b = (Plus a b = Zero, Plus b a = the c Zero)    
+-- This is just a conjunctive predicate
+hasSymmetric : (c:Type) -> (p:dataTypes.Monoid c) 
+                -> c -> c -> Type
+hasSymmetric c p a b = 
+         (Plus a b = Zero, Plus b a = Zero)    
   
 class dataTypes.Monoid c => dataTypes.Group c where
-	Minus : c -> c ->
+	Minus : c -> c -> c
 	Neg : c -> c
-    Minus_simpl : (c1:c) -> (c2:c) -> Minus c1 c2 = Plus c1 (Neg c2) --Minus should not be primitive and should be simplifiable
-    Plus_inverse : (c1:c) -> hasSymmetric c (%instance) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
+	Minus_simpl : (c1:c) -> (c2:c) -> 
+	             Minus c1 c2 = Plus c1 (Neg c2) 
+	Plus_inverse : (c1:c) -> 
+	             hasSymmetric c (instance) c1 (Neg c1)
 \end{code}	
 
+This hierarchy can be extended without difficulty with Abelian groups (with the axiom of commutativity), Ring, Commutative Rings...
+
+The important thing to remember is that these typeclass will somehow be used as predicates on types. In order to call a solver on a type $T$, the user of the system will have to satisfy the corresponding typeclass by providing an instance of it for his type $T$, ie, he will have to prove that the corresponding properties effectively hold for $T$.
+
+Note that the properties required by these typeclass for a specific type $T$ will either be proven if the operations on $T$ are real computable definitions, or axiomatised if the user is working in an axiomatised theory where the operations ($Plus$, $Neg$) are just axioms.
+
+As discussed in the section above, the algorithm of normalization will not directly use the concrete value of type $T$, but a reflected term, indexed over the concrete value.
 
 
 	\subsection {Reflected terms}
+
+We will have one datatype for reflected terms in each algebraic structure.
+
+\begin{code}[caption=Reflected terms in a Magma, captionpos=b, label=lst1:haskell2]  
+data ExprMa : Magma c -> (Vect n c) -> c -> Type where
+    ConstMa : (p : Magma c) -> (g:Vect n c) -> (c1:c)  -> ExprMa p g c1 
+    PlusMa : {p : Magma c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprMa p g c1 -> ExprMa p g c2 -> ExprMa p g (Plus c1 c2) 
+    VarMa : (p:Magma c) -> {g:Vect n c} -> {c1:c} -> VariableA (magma_eq_as_elem_of_set p) g c1 -> ExprMa p g c1
+\end{code}	
 
 	\subsection {Deciding equality}
 
