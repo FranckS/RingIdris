@@ -413,14 +413,38 @@ As discussed in the section above, the algorithm of normalization will not direc
 
 	\subsection {Reflected terms}
 
-We will have one datatype for reflected terms in each algebraic structure.
+We will have one datatype for reflected terms in each algebraic structure. \\
+Blablabla
 
 \begin{code}[caption=Reflected terms in a Magma, captionpos=b, label=lst1:haskell2]  
-data ExprMa : Magma c -> (Vect n c) -> c -> Type where
-    ConstMa : (p : Magma c) -> (g:Vect n c) -> (c1:c)  -> ExprMa p g c1 
-    PlusMa : {p : Magma c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprMa p g c1 -> ExprMa p g c2 -> ExprMa p g (Plus c1 c2) 
-    VarMa : (p:Magma c) -> {g:Vect n c} -> {c1:c} -> VariableA (magma_eq_as_elem_of_set p) g c1 -> ExprMa p g c1
+data ExprMa : Magma c -> (Vect n c) -> c -> 
+              Type where
+    ConstMa : (p : Magma c) -> (g:Vect n c) 
+               -> (c1:c)  -> ExprMa p g c1 
+    PlusMa : {p : Magma c} -> {g:Vect n c}
+               -> {c1:c} -> {c2:c} 
+               -> ExprMa p g c1 -> ExprMa p g c2 
+               -> ExprMa p g (Plus c1 c2) 
+    VarMa : (p:Magma c) -> {g:Vect n c}
+               -> {c1:c} 
+               -> VariableA (get_eq_magma p) g c1
+               -> ExprMa p g c1
 \end{code}	
+
+
+For the moment, the definition of $Variable$ is just the following:
+
+\begin{code}[caption=Reflected variables, captionpos=b, label=lst1:haskell2]  
+data Variable : {c:Type} -> {n:Nat} -> 
+         (c_equal : (c1:c) -> (c2:c) -> Maybe(c1=c2)) 
+      -> (Vect n c) -> c -> Type where
+    RealVariable :
+             (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2))
+             -> (g:Vect n c) -> (i:Fin n) 
+             -> Variable c_equal g (index_reverse i g) 
+\end{code}	
+
+And $get\_eq\_magma$ is just a function which returns the equality test of the $Set$ level.
 
 	\subsection {Deciding equality}
 
