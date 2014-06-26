@@ -345,11 +345,11 @@ And we effectively get what we wanted : a proof of equality between the two list
 Now that we have introduced our ideas on this little example, it is time to apply them for our main goal : the implementation of a hierarchy of tactics proving equalities in algebraic structures. Very often, the properties available on a given type are the one of a well known structure : magma, semi-group, monoid, group, commutative-group...  We will no longer only work with the properties of associativity and neutral elements for Lists as we did in the previous section, but we will have available the properties of different structures, and these tactics will usable for any type that satisfies these properties.
 In a Magma, we only have a $Plus$ operation, and no axioms with it. With a Semi-Group, we will have one axiom about this Plus : the property of associativity. In a Monoid, we will have one more property : the fact that we have a neutral element. In fact, this property will be expressed as 3 facts : there is a value $Zero$, and we've got $\forall x, Zero + x = x$ and $\forall x, x + Zero = x$. \\
 
-We will define a hierarchy of typeclasses. All our tactics (the group solver, the monoid solver...) will be able to work on any type, being given that an instance of the corresponding typeclass is provided.
+We will construct a hierarchy of typeclasses. All our tactics (the group solver, the monoid solver...) will be able to work on any type, being given that an instance of the corresponding typeclass is provided.
 
 \subsection {Hierarchy of typeclass}
 
-All our tactics will require to have a way of testing the equality between elements of the set, that is to say, a way to test equality between constants. For this reason, we define a notion of "set", which only requires this equality. All the algebraic structures above will extend this typeclass :
+All our tactics will require to have a way of testing the equality between elements of the underlying set, that is to say, a way to test equality between constants. For this reason, we define a notion of "set", which only requires this equality. All the algebraic structures above will extend this typeclass :
 
 \begin{code}[caption=Set, captionpos=b, label=lst1:haskell2]
 class Set c where
@@ -358,33 +358,37 @@ class Set c where
 
 Note that this equality is a "week" equality : it only produces a proof when the two elements are equal, but it doesn't produce a proof of dis-equality when they are different. That's quite natural, since we want to generate proof of equality, and not to generate counter examples for dis-equalities, which is another problem.
 
-Of course, there will be no tactic associated to $Set$, since we have no operations and not properties associated to this structure. Therefore, the equality in a $Set$ is just the syntactical equality, and can be proven with $refl$.
+Of course, there will be no tactic associated to $Set$, since we have no operations and not properties associated to this structure. Therefore, the equality in a $Set$ is just the syntactical equality, and can simply be proven with $refl$.
 
-The first structure, almost trivial, is the magma. A magma has just a $Plus$ operation which let us computing constants, and no axioms about this operation. Thus, as we will see later, the normalization will be simply a computation between constants inside parenthesis.
+The first real structure, almost trivial, is the magma. A magma has just a $Plus$ operation which let us computing constants, and has no axioms about this operation. Thus, as we will see later, the normalization will be simply a computation between constants inside parenthesis.
 
 \begin{code}[caption=Magma, captionpos=b, label=lst1:haskell2]   
 class Set c => Magma c where
     Plus : c -> c -> c
 \end{code}
 
-A bit more interesting is the Semi-Group typeclass. A semi-Group is a Magma (ie, it still has a $plus$ operation), but it also has the property of associativity for this operation.
+A bit more interesting is the Semi-Group typeclass. A semi-Group is a Magma (ie, it still has a $plus$ operation), but moreover it has the property of associativity for this operation.
 
 \begin{code}[caption=Semi-Group, captionpos=b, label=lst1:haskell2]   
 class Magma c => SemiGroup c where
-    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
+    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) 
+           -> (Plus (Plus c1 c2) c3 
+                = Plus c1 (Plus c2 c3))
 \end{code}
 
 The Monoid, for its part, is a Semi-Group with the property of neutral element.
 
 \begin{code}[caption=Monoid, captionpos=b, label=lst1:haskell2]   
 class SemiGroup c => Monoid c where
-	Zero : c    
-    Plus_neutral_1 : (c1:c) -> (Plus Zero c1 = c1)    
-    Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
+    Zero : c    
+    Plus_neutral_1 : (c1:c) 
+            -> (Plus Zero c1 = c1)    
+    Plus_neutral_2 : (c1:c) 
+             -> (Plus c1 Zero = c1)
 \end{code}	
 
-A Group is a Monoid, with two new operations. The binary $Minus$, and the unary $Neg$. One axiom says that the $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group.
-The second axiom, which is the most important one for a Group, is the fact that any $c1$ admits $Neg c1$ as an inverse, where being an inverse if define just under.
+A Group is a Monoid, with two new operations. The binary operation $Minus$, and the unary operation $Neg$. One axiom says that the $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group, since we can always rewrite $(a-b)$ into $(a\ +\ -b)$.
+The second axiom, which is the most important one for a Group, is the fact that any $c1$ admits $Neg\ c1$ as an inverse, where being an inverse if the following property :
 
 \begin{code}[caption=Group, captionpos=b, label=lst1:haskell2]   
 -- This is just a conjunctive predicate
@@ -406,7 +410,7 @@ This hierarchy can be extended without difficulty with Abelian groups (with the 
 
 The important thing to remember is that these typeclass will somehow be used as predicates on types. In order to call a solver on a type $T$, the user of the system will have to satisfy the corresponding typeclass by providing an instance of it for his type $T$, ie, he will have to prove that the corresponding properties effectively hold for $T$.
 
-Note that the properties required by these typeclass for a specific type $T$ will either be proven if the operations on $T$ are real computable definitions, or axiomatised if the user is working in an axiomatised theory where the operations ($Plus$, $Neg$) are just axioms.
+Note that the properties required by these typeclass for a specific type $T$ will either be proven if the operations on $T$ are real computable definitions, or axiomatised if the user is working on an axiomatised theory where the operations ($Plus$, $Neg$) are just axioms.
 
 As discussed in the section above, the algorithm of normalization will not directly use the concrete value of type $T$, but a reflected term, indexed over the concrete value.
 
@@ -414,7 +418,8 @@ As discussed in the section above, the algorithm of normalization will not direc
 	\subsection {Reflected terms}
 
 We will have one datatype for reflected terms in each algebraic structure. \\
-Blablabla
+Each of these datatype is parametrised on a type $c$ : the real type on which we want to prove equalities. It is also indexed over an instance of the corresponding typeclass for $c$ (we usally call it $p$, because it looks like a proof saying that the structure $c$ has the desired properties), and indexed over a context (a vector $g$ of $n$ elements of type $c$), and also indexed over a value of type $c$, which is precisely the encoded value.
+A magma is only equiped with one operation $Plus$. Thus, we only have three concepts to express in order to reflect terms in a Magma : constantes, variables, and addition.
 
 \begin{code}[caption=Reflected terms in a Magma, captionpos=b, label=lst1:haskell2]  
 data ExprMa : Magma c -> (Vect n c) -> c -> 
@@ -423,7 +428,8 @@ data ExprMa : Magma c -> (Vect n c) -> c ->
                -> (c1:c)  -> ExprMa p g c1 
     PlusMa : {p : Magma c} -> {g:Vect n c}
                -> {c1:c} -> {c2:c} 
-               -> ExprMa p g c1 -> ExprMa p g c2 
+               -> ExprMa p g c1 
+               -> ExprMa p g c2 
                -> ExprMa p g (Plus c1 c2) 
     VarMa : (p:Magma c) -> {g:Vect n c}
                -> {c1:c} 
@@ -431,7 +437,11 @@ data ExprMa : Magma c -> (Vect n c) -> c ->
                -> ExprMa p g c1
 \end{code}	
 
+When we encode a constant $c1$ in a context $\Gamma$, we use the constructor $ConstMa$ to produce a term of type $ExprMa\ p\ \Gamma\ c1$ : the index representing the concrete value is simply the constant $c1$.
+If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation defined in the courant instance $p$.
 
+
+We've used $get\_eq\_magma$ in the constructor $VarMa$, and this is just a function which returns the equality test of the $Set$ level.
 For the moment, the definition of $Variable$ is just the following:
 
 \begin{code}[caption=Reflected variables, captionpos=b, label=lst1:haskell2]  
@@ -444,7 +454,35 @@ data Variable : {c:Type} -> {n:Nat} ->
              -> Variable c_equal g (index_reverse i g) 
 \end{code}	
 
-And $get\_eq\_magma$ is just a function which returns the equality test of the $Set$ level.
+This type will be extended with some other constructors later on.
+Because there is no more operations in a SemiGroup or in a Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
+However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
+
+\begin{code}[caption=Reflected terms in a Group, captionpos=b, label=lst1:haskell2]
+data ExprG :  Group c -> (Vect n c) -> c -> 
+              Type where
+    ConstG : (p : dataTypes.Group c) 
+       -> (g:Vect n c)
+       -> (c1:c) -> ExprG p g c1
+    PlusG : {p : Group c} -> {g:Vect n c} 
+       -> {c1:c} -> {c2:c} 
+       -> ExprG p g c1 
+       -> ExprG p g c2 
+       -> ExprG p g (Plus c1 c2)
+    MinusG : {p : Group c} -> {g:Vect n c} 
+       -> {c1:c} -> {c2:c} 
+       -> ExprG p g c1 
+       -> ExprG p g c2 
+       -> ExprG p g (Minus c1 c2)
+    NegG : {p : Group c} -> {g:Vect n c} 
+       -> {c1:c} -> ExprG p g c1 
+       -> ExprG p g (Neg c1)
+    VarG : (p : Group c) -> {g:Vect n c} 
+       -> {c1:c}
+       -> Variable (get_eq_group p) Neg g c1 
+       -> ExprG p g c1
+\end{code}
+
 
 	\subsection {Deciding equality}
 
