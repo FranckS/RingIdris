@@ -186,12 +186,13 @@ By rewriting the two previously obtained equality $x=x'$ and $y=y'$ in the new e
 
 \begin{code}[caption=Building the desired proof with the two proofs of equality, captionpos=b, label=lst1:haskell2]
   buildProof : {x : List a} -> {y : List a} 
-               -> Expr G ln -> Expr G rn ->
-               (x = ln) -> (y = rn) ->
-               Maybe (x = y) 
-  buildProof e e' lp rp with (eqExpr e e')
-    buildProof e e lp rp  | Just refl = ?bp1
-    buildProof e e' lp rp | Nothing = Nothing
+               -> {x' : List a} -> {y' : List a} 
+               -> Expr G x' -> Expr G y'
+               -> (x = x') -> (y = y')
+               -> Maybe (x = y) 
+  buildProof e1 e2 p1 p2 with (eqExpr e1 e2)
+    buildProof e1 e1 p1 p2  | Just refl =?bp1
+    buildProof e1 e2 p1 p2 | Nothing = Nothing
 \end{code}
 
 As we said, the proof for the metavariable is just the rewriting of the two equalities :
@@ -200,8 +201,8 @@ As we said, the proof for the metavariable is just the rewriting of the two equa
   bp1 = proof {
   intros;
   refine Just;
-  rewrite sym lp;
-  rewrite sym rp;
+  rewrite sym p1;
+  rewrite sym p2;
   exact refl;
 }  
 \end{code}
@@ -210,9 +211,9 @@ Finally, the main function which tries to prove the equality $x=y$ is simply mad
   testEq : Expr G x -> Expr G y 
            -> Maybe (x = y)
   testEq l r = 
-     let (ln ** (l', lPrf)) = reduce l in 
-     let (rn ** (r', rPrf)) = reduce r in
-        buildProof l' r' lPrf rPrf
+     let (x' ** (l', p1)) = reduce l in 
+     let (y' ** (r', p2)) = reduce r in
+        buildProof l' r' p1 p2
 \end{code}
 Now, we need to define the function reduce. To do that, we have to fix a canonical representation of associative lists. We decide that the left associative form will be the canonical representation. Thus, the $reduce$ function will have to rewrite the metaified term by rearranging the parentheses in order to transform the underlying list in the form $(...((l1 ++ l2) ++ l3) ... ++ ln)$. To do so, one possibility is to define a new datatype which captures this property, and to write a function going from $Expr$ to this new type. Thus it will be easier to be certain that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of dependent types when, like here, it doesn't introduce more complications.
 \begin{code}[caption=Reflected left associative lists, captionpos=b, label=lst1:haskell2]
@@ -425,16 +426,16 @@ A magma is only equiped with one operation $Plus$. Thus, we only have three conc
 data ExprMa : Magma c -> (Vect n c) -> c -> 
               Type where
     ConstMa : (p : Magma c) -> (g:Vect n c) 
-               -> (c1:c)  -> ExprMa p g c1 
+         -> (c1:c)  -> ExprMa p g c1 
     PlusMa : {p : Magma c} -> {g:Vect n c}
-               -> {c1:c} -> {c2:c} 
-               -> ExprMa p g c1 
-               -> ExprMa p g c2 
-               -> ExprMa p g (Plus c1 c2) 
+         -> {c1:c} -> {c2:c} 
+         -> ExprMa p g c1 
+         -> ExprMa p g c2 
+         -> ExprMa p g (Plus c1 c2) 
     VarMa : (p:Magma c) -> {g:Vect n c}
-               -> {c1:c} 
-               -> VariableA (get_eq_magma p) g c1
-               -> ExprMa p g c1
+         -> {c1:c} 
+         -> VariableA (get_eq_magma p) g c1
+         -> ExprMa p g c1
 \end{code}	
 
 When we encode a constant $c1$ in a context $\Gamma$, we use the constructor $ConstMa$ to produce a term of type $ExprMa\ p\ \Gamma\ c1$ : the index representing the concrete value is simply the constant $c1$.
@@ -445,16 +446,17 @@ We've used $get\_eq\_magma$ in the constructor $VarMa$, and this is just a funct
 For the moment, the definition of $Variable$ is just the following:
 
 \begin{code}[caption=Reflected variables, captionpos=b, label=lst1:haskell2]  
-data Variable : {c:Type} -> {n:Nat} -> 
-         (c_equal : (c1:c) -> (c2:c) -> Maybe(c1=c2)) 
-      -> (Vect n c) -> c -> Type where
-    RealVariable :
-             (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2))
-             -> (g:Vect n c) -> (i:Fin n) 
-             -> Variable c_equal g (index_reverse i g) 
+data Variable : {c:Type} -> {n:Nat}
+  -> (c_equal : (c1:c)->(c2:c)->Maybe(c1=c2)) 
+  -> (Vect n c) -> c -> Type where
+    RealVariable : (c_equal:(c1:c)->(c2:c)
+                    ->Maybe(c1=c2))
+          -> (g:Vect n c) -> (i:Fin n) 
+          -> Variable c_equal g (index i g) 
 \end{code}	
 
-This type will be extended with some other constructors later on.
+This type will be extended with some other constructors later on. For the moment, we can only express a "real variable". \\
+\\
 Because there is no more operations in a SemiGroup or in a Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
 However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
 
@@ -483,8 +485,70 @@ data ExprG :  Group c -> (Vect n c) -> c ->
        -> ExprG p g c1
 \end{code}
 
+Of course, the index of type $c$ (the real value represented by the expression) is always expressed with the oeprations available in the typeclass $p$, and here for a Group they are$Plus$, $Minus$ and $Neg$.
+
+	\subsection { A bit of notation}
+The equality we are trying to prove is $x=y$, where $x$ and $y$ are elements of the type $c$, which  simulates a set with some properties (making $c$ a Semi-Group, a Monoid, a Group...). The fact that $c$ fulfil the specification of an algebraic structure is expressed as an instance of the corresponding typeclass, and this instance will be denoted as $p$.
+The reflected term for $x$ will be denoted $e1$, and this term will have the type $ExprG\ p\ g\ x$ : $e1$ is the encoding of $x$ and its type is precisely indexed over the real value $x$.
+We've got similar thing for $y$, which is encoded by $e2$, and its type is indexed over the real value $y$.
+Running the normalisation procedure on $e1$ will produce the normal form $e1'$ of type $ExprG\ p\ g\ x'$ and a proof of $p1:x=x'$ while running the normalisation procedure on $e2$ will produce the normal form $e2'$ of type $ExprG\ p\ g\ y'$ and a proof of $p2:y=y'$.
 
 	\subsection {Deciding equality}
+	
+Each algebraic structure will have a function for reducing the reflected terms into their normal forms. This is fact a nice property that all these algebraic structures admit a canonical represent for any element. Without this property, it would become a lot more complicated to decide the equality without bruteforcing the 
+These functions will compute this canonical represent, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the real value indexing the original term and the real value indexing the produced term.
+
+The profile of these function will always be the same :
+\begin{code}[caption=Type of the reduction function for terms reflecting elements in a Group, captionpos=b, label=lst1:haskell2]
+	groupReduce : {c:Type} -> {n:Nat} 
+	  -> (p:Group c) -> {g:Vect n c} -> {x:c}
+	  -> (ExprG p g x) 
+	  -> (x' ** (ExprG p g x', x=x'))
+\end{code}
+
+This function will have more job to do in structures with multiple axioms (like Group), than it has in the easier structure underneath.
+The detail of these functions will be given in the next section. For the moment, we just assume that we've got such a function for each structure, and we want to decide equality between elements. We continue to give the details for the Group, but the principle is exactly the same with the other structures.
+
+We want to write the following function :
+\begin{code}[caption=Type of the function for deciding equality between elements in a Group, captionpos=b, label=lst1:haskell2]
+	groupDecideEq : (p:Group c) -> {g:Vect n c} 
+	   -> {x : c} -> {y : c} 
+	   -> (ExprG p g x) -> (ExprG p g y) 
+	   -> Maybe (x = y)
+\end{code}
+
+The first thing this function has to do is to compute the normal form of the two expressions $e1$ and $e2$ respectively encoding $x$ and $y$.
+Then, the only thing remaining to do will be to compare syntactically $e1'$ and $e2'$, and if they are equal, then we will get $x'=y'$, and we will be able to produce the desired proof of $x=y$ by "composing" the two proofs $p1$ and $p2$. 
+
+\begin{code}[caption=Decides if two elements of a group are equal, captionpos=b, label=lst1:haskell2]
+groupDecideEq p e1 e2 =
+  let (x' ** (e1', p1)) = 
+    groupReduce p e1 in
+  let (y' ** (e2', p2)) = 
+    groupReduce p e2 in
+	     buildProofGroup p e1' e2' p1 p2
+\end{code}
+
+The syntactical test of equality between $e1'$ and $e2'$ and the composition of the two proofs is done in the auxiliary function $buildProofGroup$. 
+
+\begin{code}[caption=Composes the two proofs if the NF are the same, captionpos=b, label=lst1:haskell2]
+buildProofGroup : (p:Group c) -> {g:Vect n c} 
+  -> {x : c} -> {y : c} 
+  -> {x':c} -> {y':c} 
+  -> (ExprG p g x') 
+  -> (ExprG p g y') 
+  -> (x = x') -> (y = y') 
+  -> (Maybe (x = y))
+buildProofGroup p e1 e2 p1 p2 
+       with (exprG_eq p _ e1 e2)
+	buildProofGroup p e1 e1 p1 p2 | Just refl = 
+	         ?MbuildProofGroup
+	buildProofGroup p e1 e2 p1 p2 | Nothing =
+	          Nothing
+\end{code}
+
+The proof for the metavariable MbuildProofGroup is exactly the same as the corresponding one (called $bp$) in the smallest example showed in section 2.
+
 
 \section {The details : normalization functions (4/5 pages)}
 
