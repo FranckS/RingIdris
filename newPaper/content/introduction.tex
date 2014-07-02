@@ -1,34 +1,38 @@
 \section{Introduction}
 
 
-A very common situation in formal certification is to need to prove that one term is equal to another within some theories. Of course, they are usually not syntactically equal -this case would be trivial-, but they are equal according to a set of properties. These properties are either obtained by implementation (the implementation of + for relatives numbers is symmetric for example), or by axioms if we are working with an abstract axiomatised structure. 
-These proofs are usually omitted "on the paper" for the ordinary every day maths, but are required by the proof assistant,  no matter how obvious they are. So they are done by hand, and are made with a potentially long sequence of rewriting, using the available properties that we have. For example, if $x$ and $y$ are relatives numbers, and if we want to show that :
+Proving that one term is equal to another within some theories is something quite common in formal certification. Of course, the two things are usually not syntactically equal --this case would be trivial--, but they are equal according to a set of properties. These properties are either obtained by implementation (the implementation of + for relatives numbers is symmetric for example), or by axioms if we are working with an abstract axiomatised structure. 
+These proofs are usually omitted "on the paper" for the ordinary every day maths, but are required by proof assistants, no matter how obvious they are. Currently, in the Idris programming language, they are done by hand, and they are made of a potentially long sequence of rewriting, using the available properties that we have. For example, if $x$ and $y$ are relatives numbers, and if we want to show that :
 $(x + y) * z = (z * x) + (y * z)$, we can first use the symmetry of $*$, saying that
 $\forall a b, a * b = b * a$.
 With the use of this property, we can rewrite the left part into the term $z * (x + y)$.
-If now we use the distributivity of $*$ over $+$, which says that :
+If now we use the distributivity of $*$ over $+$, which says that
 $\forall a b c, a * (b+c) = a*b + a*c$,
 we now obtain the term $x*z + y*z$ as the left side.
-If we use again the symmetry of $*$ on the subterm $(x*z)$, the left side of the equality becomes : $z*x + y*z$, and that finishes the proof because it is the same thing as the right hand side.
+If we use again the symmetry of $*$ on the subterm $(x*z)$, the left side of the equality becomes $z*x + y*z$, and that finishes the proof because it is the same thing as the right hand side.
 
 Thus, this kind of proofs consists of a potentially long sequence of rewriting, every rewriting step using one property of the theory. Without some specific automation, this sequence of rewriting is done by the user of the proof assistant. This is time consuming, and just a little change in the left or the right hand side of the equality will most of the time invalidate completely the proof done by hand. The re-usability of this kind of proofs is indeed very low, since they are performing rewritings for a very specific term.
 
-Instead, what we would like to have :
-INSERT CRUCHY EXAMPLE HERE : 
-a = b by cool\_tactic
+Algebraic structures like monoid, group, commutative group and ring have a very nice property : every element in them has a canonical represent. Thus these kind of proofs can be automatically produced by a tactic by simply computing the normal forms for each side of the equality, and then comparing them with the syntactical equality (Leibniz equality).
 
-In this paper, we describe a certified implementation of an automatic solver for equalities on algebraic structures, for the Idris language. Idris is a relatively new purely functional and dependently typed programming language with full dependent types, which also supports tactic based proofs. Idris will be briefly defined the the [Section X] (at the end of the paper)
+If we've proven that relative numbers follow the structure of some algebraic structure, this is the code that we would like to be able to write :
+
+\begin{code}[caption=Code we'd like to write, captionpos=b, label=lst1:haskell2]
+lemma : (x:ZZ) -> (y:ZZ) -> (z:ZZ) 
+        -> (x+y)*z = (z*x)+(y*z)
+lemma x y z = algebraicSolver ZZ
+\end{code}
+
+Algebraic solvers, like ring solvers, are already implemented for various proof assistants, including Coq and Agda. In this paper, we describe a certified implementation of an automatic solver for equalities on algebraic structures, for the Idris language. Idris is a relatively new purely functional and dependently typed programming language with full dependent types, which also supports tactic based proofs  (Idris will be briefly defined the the [Section X] (at the end of the paper)). The interesting thing that we're going to present in this paper lies in the way we construct it, in a "correct by construction" style.
 
 For our goal, we focus on some specific theories, which are the following algebraic structures : magmas, semi-group, monoid, group and Abelian group.
 The user will just have to prove that his structure satisfies the properties of an algebraic structure, and he will be allowed to invoke the corresponding tactic.
 
-We will work by reflection for the implementation of each tactic, and the reason for this will be discussed in section [Blabla]. Working by reflection for implementing tactics has been done several times, as in [paper Coq ring] for the implementation of a ring solver for the Coq proof assistant. We will compare with other implementation of this category of tactics in section [Blabla]. \\
-% NOT THE RIGHT PLACE FOR THAT
-%For these structures, this is effectively possible to decide if a given equality is true, and to produce the proof of the %equality is %appropriate. This result comes directly from the fact that there exist a normal form for every element of %these structures. The general %idea is therefore to normalize both side of the equality, and then to compare the %resulting terms using the usual syntactical Leibniz's %equality.
+Each tactic will be implemented by reflection, and the reason for this will be discussed in section [Blabla]. Working by reflection for implementing tactics has been done several times, as in [paper Coq ring] for the implementation of a ring solver for the Coq proof assistant. We will compare our approach with other implementation of this kind of tactics in section [Blabla]. \\
 \\
 Our contribution mainly consists of three points :
 \begin{itemize}
-	\item 1) We follow a "correct by construction" approach for implementing the reduction procedures, instead of implementing a normalization procedure, and proving afterwards that this function effectively computes a normal form. For achieving this goal, we are extensively using dependent types in order to capture the interesting properties that matters for assuring the correctness of the method. 
-	\item 2) This collection of tactics can be written in a "correct by construction" style because we use an original representation of reflected terms which encodes the denoted -concrete- value;
-	\item 3) We develop a hierarchy of tactics which enables to be increase a lot the reusability of each solver : we reuse each solver for the solvers of the structures above. For example simplifiying neutral elements is only implemented at the Monoid level, and each level above reuse it. As will discussed in section [blabla], reusability can be quite tricky to get when we want to reuse a solver from a structure above which is less expressive. For example, reusing the monoid solver for the group solver is not trivial, since we lose the possibility to express the negations $-x$ and minus $x-y$ operations.
+	\item 1) We follow a "correct by construction" approach for implementing the reduction procedures, instead of implementing a normalization procedure, and proving afterwards that this function effectively computes a normal form. The approach will be presented in section 2 on a smaller problem, and on section 3 for the complete hierarchy of algebraic structures. Details of the normalization procedures are given in section 4.
+	\item 2) For achieving the first goal, we are extensively using dependent types in order to capture the interesting properties that matter for assuring the correctness of the method. We use an original representation of reflected terms which embeds the denoted --concrete-- value represented. The reflected terms become indexed over the concrete ones. These representations are presented in section 2 for the toy example, and in section 3 for the real problem.
+	\item 3) We develop a hierarchy of tactics which enables to increase a lot the reusability of each solver : we reuse as much as possible each solver in the implementation of the other solvers for the above structures. For example simplifying neutral elements is only implemented at the monoid level, and each level above monoid reuse it. As it will be discussed in section 4, reusability can be quite tricky to get when we want to reuse a solver from a structure above which is less expressive. For example, reusing the monoid solver for the group solver is not trivial, since we lose the possibility to express the negations $-x$ and minus $x-y$ operations.
 \end{itemize}
