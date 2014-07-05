@@ -80,39 +80,39 @@
          
 \section {A smaller problem : a correct by construction tactic for the associativity of lists concatenation}
 
-In order to better explain the way we are trying to solve our problem, we will first present it on a simplified version, in which we aim to deal with universaly quantified lists, and associativity of list concatenation.
-For example, we would like to be able to automatically generate proofs of facts like $\forall l1\ l2\ l3 : List,\ (l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$ [Example 1]. \\
-For this smaller problem, we have decided to only work with the associativity of the concatenation : $\forall l1\ l2\ l3,\ (l1 ++ l2) ++ l3 = l1 ++ (l2 ++ l3)$ and with the fact that Nil is a neutral element for the concatenation : $\forall l, l ++ Nil = l$. Of course, this work could be extended by dealing with more axioms, and this is exactly what we will do in the next sections when we will generalize this problem. \\
-Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of universally quantified lists and concatenation of these lists are equal, and to produce of proof of this equality if appropriate, when "equal" has the meaning "syntactically equal or equal thanks to associativity or thanks to the "neutrality" of Nil". \\
+In order to better explain the way we are trying to solve our problem, we will first present it on a simplified version, in which we aim to deal with universally quantified natural numbers, the the properties of associativity and neutral element for the operation plus.
+For example, we would like to be able to automatically generate proofs of facts like $\forall x1\ x2\ x3 : List,\ (x1 + l2) ++ (x3 + x4) = (x1 + (x2 + x3)) + x4$ [Example 1]. \\
+For this smaller problem, we have decided to only work with the associativity of plus : $\forall x1\ x2\ x3,\ (x1 + x2) ++ x3 = x1 ++ (x2 + x3)$ and with the fact that Z is a neutral element on the right side of the plus : $\forall x, x ++ Z = x$. Of course, this work could be extended by dealing with more axioms, and this is exactly what we will do in the next sections when we will write a general hierarchy of solvers for different algebraic structures. \\
+Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of universally quantified natural numbers and additions of these numbers are equal, and to produce of proof of this equality if appropriate, when "equal" has the meaning "syntactically equal or equal thanks to associativity or thanks to the "neutrality" of Z". \\
 
-When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. For the example 1, after abstraction of the variables, the goal becomes simply $(l1 ++ l2) ++ (l3 ++ l4) = (l1 ++ (l2 ++ l3)) + l4$, which is something of the general form $x=y$.
+When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. For the example 1, after abstraction of the variables, the goal becomes simply $(x1 + x2) ++ (x3 + l4) = (x1 + (x2 + x3)) + x4$, which is something of the general form $x=y$.
 The general idea -which will also apply for the real bigger problem detailed in the next sections- will be to normalize both sides of the "potential equality" $x=y$, and afterwards to compare them using Leibniz syntactical equality.
-The goal of the normalization is of course to compute a canonical representation for a list $l$, such that any other list provably equal to $l$ (by using the associativity) will have the same canonical representation. That's why it will be possible to decide the equality by simply comparing the two normal forms with a week syntactical equality. \\
+The goal of the normalization is of course to compute a canonical representation for a list $x$, such that any other list provably equal to $x$ (by using the two available properties) will have the same canonical representation. That's why it will be possible to decide the equality by simply comparing the two normal forms with a week syntactical equality. \\
 \\
 Of course, the normalization will have to fulfil the following correctness property :
-$\forall l, norm\ l = l$ [1], which means that after normalization we obtain a list which is provably equal to the input list (potentially using the property of associativity multiple times). \\
-And after normalization, we will compare the two resulting lists with a standard syntactical equality, and if they are equal, we will have obtained the desired proof.  \\
+$\forall x, norm\ x = x$ [1], which means that after normalization we obtain a list which is provably equal to the input list (potentially using our properties multiple times). \\
+And after normalization, we will compare the two resulting terms with a standard syntactical equality, and if they are equal, we will have obtained the desired proof.  \\
 Indeed :
 $norm\ x = norm\ y$ will imply $x=y$ by using the correctness lemma [1] of $norm$ two times. \\
 \\
-In fact, this is not exactly how it will work. This way would not be easily feasible, because in the LHS and RHS of $l1=l2$, we potentially have variables which have been universally quantified. And the normalization function would need to do different treatments for a "variable list" (a list which has been universally quantified) and for a constant empty list. This is not possible yet, because once the variables are abstracted, nothing tells us where the variables are in the left and right hand side of the equality : this is a meta information of the AST that we can't access.
-For this reason, we will work by reflection, as we will do for for the real problem later. That means that we will define a datatype which will be used as an encoding of lists, or more precisely, an encoding of lists composed of "variable lists", Nil, and concatenation of the previous. This datatype will allow us to know the internal structure of the list, ie, where the variables and constants are.
-Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a list against the constructor $Nil$ and $Cons$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presented in the Listing 1, we will be allowed to pattern match an encoding of list against the constructor App, Var and ENil, which gives us the informations we want.
+In fact, this is not exactly how it will work. This way would not be easily feasible, because in the LHS and RHS of $x=y$, we potentially have variables which have been universally quantified. And the normalization function would need to do different treatments for a "variable natural number" (a number which has been universally quantified) and for a constant $Z$. This is not possible yet, because once the variables are abstracted, nothing tells us where the variables are in the left and right hand side of the equality : this is a meta information of the AST that we can't access.
+For this reason, we will work by reflection, as we will do for for the real problem later. That means that we will define a datatype which will be used as an encoding of natural numbers, or more precisely, an encoding of natural numbers composed of "variable numbers", $Z$, and additions of these. This datatype will allow us to know the internal structure of the number, ie, where the variables and constants are.
+Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a list against the constructor $Z$ and $S$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presented in the Listing 1, we will be allowed to pattern match an encoding of number against the constructor Plus, Var and Zero, which gives us the informations we want.
 
-\begin{code}[caption=First version of reflected lists, captionpos=b, label=lst1:haskell2]
-data Expr : (Vect n (List a)) -> Type where
-  App  : {n:Nat} -> {G : Vect n (List a)} -> 
-         Expr G -> Expr G -> Expr G 
-  Var  : {n:Nat} -> (G : Vect n (List a)) -> 
-         (i : Fin n) -> Expr G
-  ENil : {n:Nat} -> (G : Vect n (List a)) -> 
-         Expr G 
+\begin{code}[caption=First version of reflected numbers, captionpos=b, label=lst1:haskell2]
+data Expr : (G : Vect n Nat) -> Type where
+     Plus : {n:Nat} -> {G:Vect n Nat} -> 
+            Expr G -> Expr G -> Expr G
+     Var  : {n:Nat} -> {G:Vect n Nat} -> 
+            (i : Fin n) -> Expr G
+     Zero : {n:Nat} -> (G:Vect n Nat) -> 
+            Expr G Z
 \end{code}
 
-For this smaller problem, we want to prove equalities in which lists are always universally quantified, so we only need to represent variable (a universally quantified list), the constant list Nil, and the concatenation between lists.
+For this smaller problem, we want to prove equalities in which numbers are always universally quantified, so we only need to represent variable (a universally quantified natural), the constant Z, and the addition.
 Variables are represent using a De Brujin-like index : (Var fZ) denotes a variable, (Var (fS fZ)) another one, and so on.
 
-The type Expr is indexed over a vector of lists (we will usually name it G), that represents our context. For example, if in the example 1, we will have to encode $(l1 ++ l2) ++ (l3 ++ l4)$ and $(l1 ++ (l2 ++ l3)) + l4$ in a context where four elements are declared. The first element of this context denotes the variable $l1$, the second denotes $l2$, and so on.
+The type Expr is indexed over a vector of numbers (we will usually name it $G$), that represents our context. For example, if in the example 1, we will have to encode $(x1 + x2) + (x3 + x4)$ and $(x1 + (x2 + x3)) + x4$ in a context where four elements are declared. The first element of this context denotes the variable $x1$, the second denotes $x2$, and so on.
 Thus, the left hand side will be encoded by :
 \begin{code}[caption=Reflected LHS of example 1, captionpos=b, label=lst1:haskell2]
 App (App (Var G fZ) 
@@ -121,61 +121,52 @@ App (App (Var G fZ)
          (Var G (fS (fS (fS fZ)))))
 \end{code}
 
-We need now to define what will be the normalization procedure.
-If, as it is probably expected, this function simply takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards, corresponding to the correcness property mentioned before : \\
+We now need to define what will be the normalization procedure.
+If, as it is probably expected, this function simply takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards, corresponding to the correctness property mentioned before : \\
 $\forall\ e:Expr\ G,\ interpretation\ (reduce\ e)\ =\ interpretation\ e$ \\
 where $interpretation$ is a function computing the interpretation of an Expr, that is to say, the list this Expr is encoding.
 This proof can be quite tricky to make because it relies on the complete behaviour of the reduction and on the way we compute the interpretation.
-For this little example, the reduction will not be too heavy, but in the next sections, when we will have more properties than only associativity to deal with, it will certainly become more problematic to "unfold" the definition of a gigantic reduction procedure. \\
+For this little example, the reduction will not be too heavy, but in the next sections, when we will have more properties than only associativity and neutral element to deal with, it will certainly become more problematic to "unfold" the definition of a gigantic reduction procedure. \\
 \\
 To avoid these two sources of complexity, we will : \\
-- Use dependent types in order to directly capture and embed the concrete list that an Expr is encoding. Thus, it won't be necessary to define the $interpretation$ function. \\
-- Write a "correct by construction" reduction procedure. The proof of preservation of the interpretation will be computed "bit by bit" at the same time as the function will produce the normalized expression (by rewriting the term thanks to the property of associativity).
+- Use dependent types in order to directly capture and embed the concrete number that an Expr is encoding. Thus, it won't be necessary to define the $interpretation$ function. \\
+- Write a "correct by construction" reduction procedure. The proof of preservation of the interpretation will be computed "bit by bit" at the same time as the function will produce the normalized expression (by rewriting the term thanks to the properties of associativity and neutral element).
 
 The type for reflected lists therefore becomes :
 \begin{code}[caption=Second version of reflected lists with embedded denotation, captionpos=b, label=lst1:haskell2]
-using (x : List a, y : List a, 
-       G : Vect n (List a))
-  data Expr : (G : Vect n (List a)) -> 
-              List a -> Type where
-       App  : Expr G x -> Expr G y -> 
-              Expr G (x ++ y)
-       Var  : (i : Fin n) -> 
-              Expr G (index i G)
-       ENil : Expr G []
+using (x : Nat, y : Nat, G : Vect n Nat)
+  data Expr : (G : Vect n Nat) -> Nat -> Type where
+       Plus : Expr G x -> Expr G y -> Expr G (x + y)
+       Var  : (i : Fin n) -> Expr G (index i G)
+       Zero : Expr G Z
 \end{code}
-For an expression $e\ :\ Expr\ G\ x$, we will say that "$e$ denotes (or encodes) the list $x$".
-When an expression is a variable, the denoted list is simply the corresponding variable in the context, ie, $(index\ i\ G)$.
-Also, the $ENil$ expression denotes the $Nil$ list.
-Finally, if $e1$ is an expression encoding the list $x$, and $e2$ is an expression encoding the list $y$, then the expression $App\ e1\ e2$ denotes the list $(x ++ y)$.
+For an expression $e\ :\ Expr\ G\ x$, we will say that "$e$ denotes (or encodes) the number $x$".
+When an expression is a variable, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ G)$.
+Also, the $Zero$ expression denotes the natural number $Z$.
+Finally, if $e1$ is an expression encoding the number $x$, and $e2$ is an expression encoding the number $y$, then the expression $Plus\ e1\ e2$ denotes the number $(x + y)$.
 
-The reduction procedure is now supposed to be written on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indexed over the real (concrete) list : a term of type $Expr\ G\ l$ is the encoding of the list $l$.
+The reduction procedure is now supposed to be written on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indexed over the real --concrete-- list : a term of type $Expr\ G\ x$ is the encoding of the number $x$.
 Thus, we can write the type of $reduce$ like this : \\
 $reduce\ :\ Expr\ G\ x\ \rightarrow\ (x'\ **\ (Expr\ G\ x',\ x\ =\ x'))$ \\
-The function $reduce$ produces a dependent pair : the new concrete list $x'$, and a pair made of an $Expr\ G\ x'$ which is the new encoded term indexed by the new concrete list, and a proof that old and new -real- lists are equal.
-Note that this function can't simply produce an $Expr\ G\ x$, because the list on which the resulting expression will be indexed is not necessary syntactically equal to the original list since it can use the property of associativity. 
-In fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
+The function $reduce$ produces a dependent pair : the new concrete number $x'$, and a pair made of an $Expr\ G\ x'$ which is the new encoded term indexed by the new concrete number we have just produced, and a proof that old and new --concrete-- numbers are equal.
+Note that this function can't simply produce an $Expr\ G\ x$, because the number on which the resulting expression will be indexed is not necessary syntactically equal to the original number since it can use the two available properties. 
+And in fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
 The reason is simple : when we try to automatically prove $x=y$, these proofs $x=x'$ and $y=y'$ will be the crucial part for the construction of the desired proof. \\
 \\
 We will have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$\footnote{These encodings have to be produced by hand by the user for this small simple problem, but for the real collection of tactics, we will program an automatic metaification}.
-We will normalize $e1$, and this will give a new list $x'$, a new expression $e1':Expr\ G\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new list $y$, an expression $e2':Expr\ G\ y'$, and a proof of $y=y'$. \\
+We will normalize $e1$, and this will give a new number $x'$, a new expression $e1':Expr\ G\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new number $y$, an expression $e2':Expr\ G\ y'$, and a proof of $y=y'$. \\
 Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality because they are in their normal form :
 
 \begin{code}[caption=Syntactical equality, captionpos=b, label=lst1:haskell2]
-  eqExpr : (e : Expr G x) -> (e' : Expr G y) 
-  	       -> Maybe (e = e')
-  eqExpr (App x y) (App x' y') 
-          with (eqExpr x x', eqExpr y y')
-    eqExpr (App x y) (App x y)   
-    	| (Just refl, Just refl) = Just refl
-    eqExpr (App x y) (App x' y') 
-    	| _ = Nothing
-  eqExpr (Var i) (Var j) with (decEq i j)
-    eqExpr (Var i) (Var i) 
-    	| (Yes refl) = Just refl
-    eqExpr (Var i) (Var j) 
-    	| _ = Nothing
-  eqExpr ENil ENil = Just refl
+  eqExpr : (e : Expr G xs) -> (e' : Expr G ys) ->
+           Maybe (e = e')
+  eqExpr (Plus x y) (Plus x' y') with (eqExpr x x', eqExpr y y')
+    eqExpr (Plus x y) (Plus x y) | (Just refl, Just refl) = Just refl
+    eqExpr (Plus x y) (Plus x' y') | _ = Nothing
+  eqExpr (Var i) (Var j) with (prim__syntactic_eq _ _ i j)
+    eqExpr (Var i) (Var i) | (Just refl) = Just refl
+    eqExpr (Var i) (Var j) | _ = Nothing
+  eqExpr Zero Zero = Just refl
   eqExpr _ _ = Nothing
 \end{code}
 
@@ -184,14 +175,12 @@ And of course, if $e1'$ and $e2'$ are equal, then they necessary have the same t
 By rewriting the two previously obtained equality $x=x'$ and $y=y'$ in the new equality $x'=y'$, we can get a proof of $x=y$.
 
 \begin{code}[caption=Building the desired proof with the two proofs of equality, captionpos=b, label=lst1:haskell2]
-  buildProof : {x : List a} -> {y : List a} 
-               -> {x' : List a} -> {y' : List a} 
-               -> Expr G x' -> Expr G y'
-               -> (x = x') -> (y = y')
-               -> Maybe (x = y) 
-  buildProof e1 e2 p1 p2 with (eqExpr e1 e2)
-    buildProof e1 e1 p1 p2  | Just refl =?bp1
-    buildProof e1 e2 p1 p2 | Nothing = Nothing
+  buildProof : {xs : Nat} -> {ys : Nat} ->
+               Expr G ln -> Expr G rn ->
+               (xs = ln) -> (ys = rn) -> Maybe (xs = ys)
+  buildProof e e' lp rp with (eqExpr e e')
+    buildProof e e lp rp | Just refl = ?bp1
+    buildProof e e' lp rp | Nothing = Nothing
 \end{code}
 
 As we said, the proof for the metavariable is just the rewriting of the two equalities :
@@ -214,73 +203,65 @@ Finally, the main function which tries to prove the equality $x=y$ is simply mad
      let (y' ** (r', p2)) = reduce r in
         buildProof l' r' p1 p2
 \end{code}
-Now, we need to define the function reduce. To do that, we have to fix a canonical representation of associative lists. We decide that the left associative form will be the canonical representation. Thus, the $reduce$ function will have to rewrite the metaified term by rearranging the parentheses in order to transform the underlying list in the form $(...((l1 ++ l2) ++ l3) ... ++ ln)$. To do so, one possibility is to define a new datatype which captures this property, and to write a function going from $Expr$ to this new type. Thus it will be easier to be certain that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of dependent types when, like here, it doesn't introduce more complications.
-\begin{code}[caption=Reflected left associative lists, captionpos=b, label=lst1:haskell2]
-  data LExpr : (G : Vect n (List a)) -> 
-               List a -> Type where
-       LApp : LExpr G x -> (i : Fin n) -> 
-              LExpr G (x ++ index i G)
-       LNil : LExpr G []
+Now, we need to define the function reduce. To do that, we have to fix a canonical representation of associative natural numbers. We decide that the left associative form will be the canonical representation. Thus, the $reduce$ function will have to rewrite the metaified term by rearranging the parentheses in order to transform the underlying number in the form $(...((x1 + x2) + x3) ... + xn)$. To do so, one possibility is to define a new datatype which captures this property, and to write a function going from $Expr$ to this new type. Thus it will be easier to be certain that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of dependent types when, like here, it doesn't introduce more complications.
+\begin{code}[caption=Reflected left associative numbers, captionpos=b, label=lst1:haskell2]
+  data LExpr : (G : Vect n Nat) -> Nat -> Type where
+       LPlus : LExpr G x -> (i : Fin n) -> LExpr G (x + index i G)
+       LZero : LExpr G Z
 \end{code}
-This datatype has only two constructors. In fact, it combines the previous $Var$ and $App$ constructors so that it becomes impossible to write an expression which isn't left associative.
+This datatype has only two constructors. In fact, it combines the previous $Var$ and $Plus$ constructors so that it becomes impossible to write an expression which isn't left associative.
  
 As part of the normalization, we will write a function $expr\_l$ converting an $Expr\ G\ x$ to a $LExpr\ G\ x'$ and producing a proof that $x=x'$. This function will therefore use the property of associativity multiple times, in order to obtain the expected fully left associative form. Of course, because by using this new datatype $LExpr$ we've changed the representation of our encoded lists, we will need to convert back an $LExpr\ G\ x$ to an $Expr\ G\ x$. The function $l\_expr$ will do this easy task.
 
 \begin{code}[caption=Production of the left associative form, captionpos=b, label=lst1:haskell2]
-  expr_l : Expr G x -> 
-               (x' ** (LExpr G x', x = x'))
-  expr_l ENil = (_ ** (LNil, refl))
-  expr_l (Var i) = (_ ** 
-                   (LApp RNil i, refl))
-  expr_l (App ex ey) = 
-  	let (xl ** (xr, xprf)) = expr_l ex in
-  	let (yl ** (yr, yprf)) = expr_l ey in
-   	   appLExpr _ _ xr yr xprf yprf
-    where 
-       appLExpr : (x', y' : List a) ->
-         LExpr G x -> LExpr G y -> 
-         (x' = x) -> (y' = y) ->
-         (w' ** (LExpr G w', x' ++ y' = w'))
-       appLExpr x' y' rxs (LApp e i) xprf yprf =
-          let (xs ** (rec, prf)) = 
-             appLExpr _ _ rxs e refl refl in
-             (_ ** (LApp rec i, ?appLExpr1))
-       appLExpr x' y' rxs LNil xprf yprf = 
-          (_ ** (rxs, ?appLExpr2))
+  expr_l : Expr G xs -
+        > (xs' ** (LExpr G xs', xs = xs'))
+  expr_l Zero = (_ ** (LZero, refl))
+  expr_l (Var i) = (_ ** (LPlus LZero i, refl))
+  expr_l (Plus ex ey) = let (xl ** (xr, xprf)) = expr_l ex in
+                       let (yl ** (yr, yprf)) = expr_l ey in
+                               PlusLExpr _ _ xr yr xprf yprf
+    where
+      PlusLExpr : (x', y' : Nat) ->
+                 {G : Vect n Nat} -> {x, y : Nat} ->
+                 LExpr G x -> LExpr G y -> (x' = x) -> (y' = y) ->
+                 (w' ** (LExpr G w', x' + y' = w'))
+      PlusLExpr x' y' rx (LPlus e i) xprf yprf
+         = let (x ** (rec, prf)) = PlusLExpr _ _ rx e refl refl in
+               (_ ** (LPlus rec i, ?PlusLExpr1))
+      PlusLExpr x' y' rx LZero xprf yprf = (_ ** (rx, ?PlusLExpr2))
 
+  l_expr : LExpr G xs -> Expr G xs
+  l_expr LZero = Zero
+  l_expr (LPlus x i) = Plus (l_expr x) (Var i)
 
-  l_expr : LExpr G x -> Expr G x
-  l_expr LNil = ENil
-  l_expr (LApp xs i) = App (r_expr xs) (Var i)
 \end{code}
 
-We notice that for transforming the list into its left associative equivalent representation, we've effectively needed to know where the variables and the Nil constants are : the functions $expr\_l$ and $l\_expr$ are doing different treatments for these different possibilities. \\
+We notice that for transforming the number into its left associative equivalent representation, we've effectively needed to know where the variables and the $Z$ constants are : the functions $expr\_l$ and $l\_expr$ are doing different treatments for these different possibilities. \\
 \\
-We've got two metavariables to prove. The metavariable $appRExpr1$ requires us to prove the goal : $x' ++ y' = xs ++ index\ i\ G$ in a context where we've got, amongst other things,  $(xprf\ :\ x'\ =\ x)$, $(yprf\ :\ y'\ =\ x2\ ++\ index\ i\ G)$ and $(prf\ :\ x\ ++\ x2\ =\ xs)$.
+We've got two metavariables to prove. The metavariable $appLExpr1$ requires us to prove the goal : $x' + y' = x + index\ i\ G$ in a context where we've got, amongst other things,  $(xprf\ :\ x'\ =\ x)$, $(yprf\ :\ y'\ =\ x2\ ++\ index\ i\ G)$ and $(prf\ :\ x\ ++\ x2\ =\ x)$.
 Proving this goal uses the property of associativity after rewriting the goal with these three proof of equality $xprf$, $yprf$ and $prf$.
 
-\begin{code}[caption=Proof of the metavariable appRExpr1, captionpos=b, label=lst1:haskell2]
-AutoAssoc.appRExpr1 = proof {
+\begin{code}[caption=Proof of the metavariable appLExpr1, captionpos=b, label=lst1:haskell2]
+PlusRExpr1 = proof {
   intros;
   rewrite sym xprf;
   rewrite sym yprf;
   rewrite prf;
   rewrite sym 
-       (appendAssociative x x2 (index i G));
+       (plusAssociative x x2 (index i G));
   exact refl;
 }
 \end{code}
 
-And the metavariable appRExpr2 uses the fact that Nil is a neutral element for the concatenation.
+And the metavariable appRExpr2 uses the fact that $Z$ is a neutral element for the concatenation.
 
-\begin{code}[caption=Proof of the metavariable appRExpr2, captionpos=b, label=lst1:haskell2]
-appRExpr2 = proof {
-  intros;
-  rewrite xprf;
-  rewrite sym yprf;
-  rewrite appendNilRightNeutral x';
-  exact refl;
-}
+\begin{code}[caption=Proof of the metavariable appLExpr2, captionpos=b, label=lst1:haskell2]
+PlusLExpr2 = proof
+  intros
+  rewrite xprf 
+  rewrite (sym yprf)
+  mrefine a_plus_zero
 \end{code}
 
 We can now define the reduction, which is just the composition of the two previous functions $expr\_l$ and $l\_expr$:
@@ -295,50 +276,43 @@ We can now define the reduction, which is just the composition of the two previo
 
 At the moment, what we've got is not exactly a real tactic, in the sense that we only have a function which produces a value of type $Maybe (x = y)$. A real tactic would be a coating of this function, which could properly fail when the two terms are not equal. However, here, when $x\ne y$, the function $testEq$ will simply produce the value $Nothing$. \\
 It's now time to see how to use this minimalist "tactic".
-Let's define two expressions $e1$ and $e2$, respectively representing the lists $((xs ++ ys) ++ (xs ++ zs))$ and $(xs ++ ((ys ++ xs) ++ zs))$ in the context $[xs, ys, zs]$ of three abstracted variables.
+Let's define two expressions $e1$ and $e2$, respectively representing the numbers $((x + ys) + (x + z))$ and $(x + ((y + x) + z))$ in the context $[x, y, z]$ of three abstracted variables.
 
 \begin{code}[caption=Two test expressions, captionpos=b, label=lst1:haskell2]
-  e1 : (xs, ys, zs : List a) -> 
-           Expr [xs, ys, zs] 
-           ((xs ++ ys) ++ (xs ++ zs))
-  e1 xs ys zs = 
-     App (App (Var fZ) (Var (fS fZ))) 
-         (App (Var fZ) (Var (fS (fS fZ))))
+  e1 : (xs, ys, zs : Nat) -> 
+           Expr [xs, ys, zs] ((xs + ys) + (xs + zs))
+  e1 xs ys zs = Plus (Plus (Var fZ) (Var (fS fZ))) 
+                        (Plus (Var fZ) (Var (fS (fS fZ))))
 
-  e2 : (xs, ys, zs : List a) -> 
-           Expr [xs, ys, zs] 
-           (xs ++ ((ys ++ xs) ++ zs))
-  e2 xs ys zs = 
-     App (Var fZ) 
-         (App (App (Var (fS fZ)) (Var fZ)) 
-              (Var (fS (fS fZ))))
+  e2 : (xs, ys, zs : Nat) -> 
+           Expr [xs, ys, zs] (xs + ((ys + xs) + zs))
+  e2 xs ys zs = Plus (Var fZ) 
+         (Plus (Plus (Var (fS fZ)) (Var fZ)) (Var (fS (fS fZ))))
 \end{code}
 
-The lists denoted by the expressions $e1$ and $e2$ are equal, and we can generate a proof of this by using $testEq$.
+The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can generate a proof of this by using $testEq$.
 \begin{code}[caption=Test of equality betwen e1 and e2, captionpos=b, label=lst1:haskell2]
-  e1_e2_testEq : (xs, ys, zs : List a) ->
-          Maybe (((xs ++ ys) ++ (xs ++ zs)) = 
-                 (xs ++ ((ys ++ xs) ++ zs)))
-  e1_e2_testEq xs ys zs = 
-     testEq (e1 xs ys zs) (e2 xs ys zs) 
+  e1_e2_testEq : (xs, ys, zs : Nat) ->
+          Maybe (((xs + ys) + (xs + zs)) = (xs + ((ys + xs) + zs)))
+  e1_e2_testEq xs ys zs = testEq (e1 xs ys zs) (e2 xs ys zs)
 \end{code}
 
-And if we ask for the evaluation of this term, we should obtain $Just$ and a proof of equality between the two underlying lists.
+And if we ask for the evaluation of this term, we should obtain $Just$ and a proof of equality between the two underlying numbers.
 \begin{code}[caption=Evaluation of the result, captionpos=b, label=lst1:haskell2]
-\xs => \ys => \zs => e1_e2_testEq {a=Int} xs ys zs
+\xs => \ys => \zs => e1_e2_testEq xs ys zs
 
 \xs => \ys => \zs => Just (replace (sym (replace 
-(sym (replace (replace (appendNilRightNeutral xs)
- refl (replace (sym (appendAssociative xs [] ys)) 
+(sym (replace (replace (plusZeroRightNeutral xs)
+ refl (replace (sym (plusAssociative xs [] ys)) 
  refl))) (replace (sym (replace (replace 
- (appendNilRightNeutral [...] refl)))) refl)) 
+ (plusZeroRightNeutral [...] refl)))) refl)) 
 : (xs : List Int) -> (ys : List Int) -> 
   (zs : List Int) -> 
   Maybe ((xs ++ ys) ++ xs ++ zs 
          = xs ++ (ys ++ xs) + zs)
 \end{code}
 
-And we effectively get what we wanted : a proof of equality between the two lists. As expected, this proof uses the properties of associativity ($appendAssociative$) and the property of neutrality of $Nil$ for $append$ ($appendNilRightAssociative$).
+And we effectively get the proof of equality we wanted. As expected, this proof uses the properties of associativity ($plusAssociative$) and the property of neutrality of $Z$ for $plus$ ($plusZeroRightAssociative$).
 
 \section {Back to the general problem : A hierarchy of tactics (2/3 pages)}
 

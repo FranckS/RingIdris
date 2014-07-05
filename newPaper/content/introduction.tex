@@ -4,10 +4,10 @@
 Proving that one term is equal to another within some theories is something quite common in formal certification. Of course, the two things are usually not syntactically equal --this case would be trivial--, but they are equal according to a set of properties. These properties are either obtained by implementation (the implementation of + for natural numbers satisfies the property of associativity for example), or by axioms if we are working within an axiomatised structure. 
 These proofs are usually omitted "on the paper" for the ordinary every day maths, but they are required by proof assistants, no matter how obvious they are. Currently, in the Idris\footnote{Idris is a relatively new, purely functional, and dependently typed programming language with full dependent types, which also supports tactic based proofs  (Idris will be briefly defined the the [Section X] (at the end of the paper))} programming language, they are done by hand, and they are made of a potentially long sequence of rewriting, where each step of rewriting uses one of the available properties. 
 These proofs are the every day routine when we are working in a dependently typed language, as Idris, and especially when we're intensively indexing types over values in order to capture certain logical properties.
-The indices can be for example natural numbers, and in this case the lemmas that we have to prove about these indices are arithmetic statements which use the properties of natural numbers and their usual operations : symmetry and commutativity for +, existence of neutral element for +, etc.
+For example, If a type $T$ is indexed over natural numbers, then the definition of a function which has co-domain $T$ will often require to prove that the index of the produced term is equal to the expected index. This proof will use properties of natural numbers and their usual operations : symmetry and commutativity for +, existence of neutral element for +, etc.
 
 \subsection{A motivating little example}
-We introduce a little example which shows how these proofs appear when we index a type by values like natural numbers.
+We introduce a little example which shows how these lemmas appear when we index a type by values like natural numbers.
 Let's define the types of $Bit$ and $Binary$ number, both indexed over the value they represent, expressed in base ten as a natural number.
 \begin{code}[caption=Bit and binary number, captionpos=b, label=lst1:haskell2]
 data Bit : Nat -> Type where
@@ -29,7 +29,7 @@ pad : Binary w n -> Binary (S w) n
 pad zero = zero # b0
 pad (num # x) = pad num # x
 \end{code}
-Of course, this operation preserves the value represented by the binary number : this function takes a $Binary\ w\ n$ and produces a $Binary\ (S\ w)\ n$, so there will be no need to prove the correctness of this function after its definition (the $value$ is still $n$).
+Of course, this operation preserves the value represented by the binary number : this function takes a $Binary\ w\ n$ and produces a $Binary\ (S\ w)\ n$, so there will be no need to prove the correctness of this function after its definition since the $value$ is still $n$.
 
 Now, we're tempted to write the addition between two binary numbers.
 We start with an auxiliary function which adds three bits (the third one will latter play the role of the carry), and produces the two bits of the result.
@@ -49,7 +49,7 @@ addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, _)))
 addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, _)))
 \end{code}
 
-In fact, this function produces a dependent pair. The first component is the value $bX$ represented by the first bit produced (of type $Bit\ bX$), and the second component is itself another dependent pair. This second dependent pair is composed of the value $bY$ represented by the second bit produced, and of a triple containing the two bits produced and the proof that these two bits are effectively encoding the result of the addition we had to perform.
+In fact, this function produces a dependent pair. The first component is the value $bX$ represented by the first bit produced (of type $Bit\ bX$), and the second component is itself another dependent pair. This second dependent pair is composed of the value $bY$ represented by the second bit produced, and of a triple containing finally the two bits produced and the proof that these two bits are effectively encoding the result of the addition we had to perform.
 For example, with the line corresponding to the computation $1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$) and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
 
 Again, we note that there is no need to produce any lemma of correctness about $addBit$ afterwards : the correct by construction style in which it is written already gives the property that we want : that the two bits produced effectively represent the addition of the three bits given in input.
@@ -64,12 +64,12 @@ adc (numx # bX) (numy # bY) carry
       addBit bX bY carry in
           adc numx numy carry0 # lsb
 \end{code}
-Unfortunately, the types are mismatching for the two cases expressed by this pattern matching. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] and we're providing a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\] [I AM SURPRISED HERE BY THE TYPE OF THE PROVIDED TERM].
+Unfortunately, the types are mismatching for the two cases expressed by this pattern matching. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we're providing a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\] [I AM SURPRISED HERE BY THE TYPE OF THE PROVIDED TERM].
 The problem is even worse for the second line where the result is expected to have type \[plus\ (plus\ c\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0)))\] while we're trying to provide a term of type \[plus\ v2\ (plus\ (plus\ (plus\ v1\ v)\ v)\ (plus\ (plus (plus\ v1\ v)\ v)\ 0))\]
-For this kind of situation, Idris provides the possibility to write a provisional definition --provisional definitions are described with the brief overview of the language in page XX-- with the syntax "?=". Using a provisional definitions here will make the definition being accepted, but we will have to prove afterwards that the term provided can be converted into a term which has the right type.
-However, for both of these two patterns, it is possible to prove the equality between the expected and the provided types, and this is even stronger than we need. Using this equality of types it will be trivial to produce a term of the expected type by using the provided term and by simply rewriting its type with this proof. These proofs will be made of a series of rewriting, and each rewriting will use a property about natural numbers and the usual operations.
+For this kind of situation, Idris provides the possibility to write a provisional definition\footnote{provisional definitions are described with the brief overview of the language in page XX} with the syntax "?=". Using a provisional definitions here will make the definition being accepted, but we will have to prove afterwards that in both patterns, the term provided can be converted into a term which has the right type.
+However, for both of these two patterns, it is possible to prove the equality between the expected and the provided types, and this is even stronger than we need. These proofs will be made of a series of rewriting, and each rewriting will use a property about the operation $+$ on natural numbers.
 For example, the proof for the second pattern look like this :
-\begin{code}[caption=Proof by hand of the correspondence between expected and provided types for the second line of the definition of adc, captionpos=b, label=lst1:haskell2]
+\begin{code}[caption=Proof by hand of the correspondence between expected and provided types for the second pattern of the definition of adc, captionpos=b, label=lst1:haskell2]
 adc_lemma_2 = proof {
     intros;
     rewrite sym (plusZeroRightNeutral x);
@@ -91,23 +91,22 @@ If we've already proven that natural numbers follow the structure of commutative
 \begin{code}[caption=Code we'd like to write for the addition of two binary numbers, captionpos=b, label=lst1:haskell2]
 adc : Binary w x -> Binary w y -> Bit c 
      -> Binary (S w) (c + x + y)
-adc zero zero carry = zero # carry 
+adc zero zero carry ?= zero # carry 
         by CommutativeGroupSolver
 adc (numx # bX) (numy # bY) carry
-   = let (v1 ** (v2 ** (carry0, lsb, _))) = 
+   ?= let (v1 ** (v2 ** (carry0, lsb, _))) = 
       addBit bX bY carry in
           adc numx numy carry0 # lsb 
         by CommutativeGroupSolver
 \end{code}
-We would like to let a solver for commutative groups to find the proof on its own, and thereby, there will be no extra lemmas to prove afterwards.
+We would like to let a solver for commutative groups to find the proof on its own.
 This is a something doable because algebraic structures like monoid, group, commutative group and ring have all a very nice property : every element in them has a canonical represent. Thus these kind of proofs can be automatically produced by a tactic by simply computing the normal forms for each side of the equality, and then comparing them with the syntactical equality (Leibniz equality).
 
 \subsection{Our contributions}
 
-Algebraic solvers, like ring solvers, are already implemented for various proof assistants, including Coq and Agda. In this paper, we describe a certified implementation of an automatic solver for equalities on algebraic structures, for the Idris language. The interesting thing that we're going to present in this paper lies in the way we construct it, in a "correct by construction" style.
+Algebraic solvers, like ring solvers, are already implemented for various proof assistants, including Coq and Agda. In this paper, we describe a certified implementation of an automatic solver for equalities on algebraic structures, for the Idris language. The interesting thing that we're going to present in this paper lies in the way we construct it, which is a "correct by construction" style, with the same spirit as the functions we've written above.
 
 In this paper, we focus on some specific theories, which are the following algebraic structures : magmas, semi-group, monoid, group and Abelian group.
-The user will just have to prove that his structure satisfies the properties of an algebraic structure, and he will be allowed to invoke the corresponding tactic.
 
 Each tactic will be implemented by reflection, and the reason for this will be discussed in section [Blabla]. Working by reflection for implementing tactics has been done several times, as in [paper Coq ring] for the implementation of a ring solver for the Coq proof assistant. We will compare our approach with other implementation of this kind of tactics in section [Blabla]. \\
 \\

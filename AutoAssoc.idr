@@ -1,5 +1,6 @@
 module AutoAssoc
 
+
 import Decidable.Equality
 
 -- Expr is a reflection of a list, indexed over the concrete list,

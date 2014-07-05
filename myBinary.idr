@@ -44,12 +44,39 @@ adc zero zero carry ?= zero # carry
 adc (numx # bX) (numy # bY) carry
    ?= let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
           adc numx numy carry0 # lsb
-     
+          
+
+          
+          
+          
+          
+          
+myLemma : 
+          (c : Nat) ->
+          (v : Nat) ->
+          (bit : Nat) ->
+          (v1 : Nat) ->
+          (bit1 : Nat) ->
+          (vCarry0 : Nat) ->
+          (vLsb : Nat) ->
+
+                 (plus vLsb
+                       (plus (plus (plus vCarry0 v) v1)
+                             (plus (plus (plus vCarry0 v) v1) 0)))
+                 =
+                 (plus (plus c (plus bit (plus v (plus v 0))))
+                       (plus bit1 (plus v1 (plus v1 0))))
+          
+myLemma c v bit v1 bit1 vCarry0 vLsb = ?MX
+          
+
+          
+---------- Proofs ----------                  
 Main.adc_lemma_2 = proof {
     intro c,w,v,bit0,num0;
     intro b0,v1,bit1,num1,b1;
     intro bc,x,x1,bX,bX1;
-    rewrite sym (plusZeroRightNeutral x);
+    --rewrite sym (plusZeroRightNeutral x);
     rewrite sym (plusZeroRightNeutral v1);
     rewrite sym (plusZeroRightNeutral (plus (plus x v) v1));
     rewrite sym (plusZeroRightNeutral v);
