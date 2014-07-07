@@ -43,7 +43,6 @@ main = putStrLn "coucou!"
 
 
 
-
 ---------- Proofs ----------
 
 

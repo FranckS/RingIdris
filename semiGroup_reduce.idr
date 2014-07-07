@@ -33,7 +33,7 @@ assoc p neg g (PlusSG _ (PlusSG _ e1 (ConstSG _ _ _ c1)) (ConstSG _ _ _ c2)) =
     let (r_2 ** (e_2, p_2)) = magmaReduce (semiGroup_to_magma {p=p} {neg=neg} {g=g} (PlusSG _ (ConstSG _ _ _ c1) (ConstSG _ _ _ c2))) in
     let e_2' = magma_to_semiGroup p e_2 in
     (_ ** ((PlusSG _ e_ih1 e_2'), ?Massoc2))
--- c1 + (c2 + x) -> (res c1 +c c2) + x
+-- c1 + (c2 + x) -> (res c1 + c2) + x
 assoc p neg g (PlusSG _ (ConstSG _ _ _ c1) (PlusSG _ (ConstSG _ _ _ c2) e1)) =
     let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p neg g e1) in
     let (r_2 ** (e_2, p_2)) = magmaReduce (semiGroup_to_magma {p=p} {neg=neg} {g=g} (PlusSG _ (ConstSG _ _ _ c1) (ConstSG _ _ _ c2))) in

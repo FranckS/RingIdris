@@ -103,31 +103,31 @@ For this reason, we will work by reflection, as we will do for the hierarchy of 
 Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a natural number against the constructors $Z$ and $S$, which wasn't interesting for our goal.  With the first approximation of the datatype $Expr$ presented in the Listing 1, we will be allowed to pattern match an encoding of number against the constructor $Plus$, $Var$ and $Zero$, which gives us the informations we want.
 
 \begin{code}[caption=First version of reflected numbers, captionpos=b, label=lst1:haskell2]
-data Expr : (G : Vect n Nat) -> Type where
-     Plus : {n:Nat} -> {G:Vect n Nat} -> 
-            Expr G -> Expr G -> Expr G
-     Var  : {n:Nat} -> {G:Vect n Nat} -> 
-            (i : Fin n) -> Expr G
-     Zero : {n:Nat} -> (G:Vect n Nat) -> 
-            Expr G Z
+data Expr : (gam : Vect n Nat) -> Type where
+     Plus : {n:Nat} -> {gam:Vect n Nat} -> 
+            Expr gam -> Expr gam -> Expr gam
+     Var  : {n:Nat} -> {gam:Vect n Nat} -> 
+            (i : Fin n) -> Expr gam
+     Zero : {n:Nat} -> (gam:Vect n Nat) -> 
+            Expr gam Z
 \end{code}
 
 For this smaller problem, we want to prove equalities in which numbers are always universally quantified, so we only need to represent variables (universally quantified natural numbers), the constant Z, and additions.
 Variables are represent using a De Brujin-like index : (Var fZ) denotes a variable, (Var (fS fZ)) another one, and so on.
 
-The type Expr is indexed over a vector of numbers (we will usually name it $G$), which represents our context. For example, in the example 1, we will have to encode $(x1 + x2) + (x3 + x4)$ and $(x1 + (x2 + x3)) + x4$ in a context where four elements are declared. The first element of this context denotes the variable $x1$, the second denotes $x2$, and so on.
+The type Expr is indexed over a vector of numbers (we will usually name it $\Gamma$), which represents our context. For example, in the example 1, we will have to encode $(x1 + x2) + (x3 + x4)$ and $(x1 + (x2 + x3)) + x4$ in a context where four elements are declared. The first element of this context denotes the variable $x1$, the second denotes $x2$, and so on.
 Thus, the left hand side will be encoded by :
 \begin{code}[caption=Reflected LHS of example 1, captionpos=b, label=lst1:haskell2]
-App (App (Var G fZ) 
-         (Var G (fS fZ))) 
-    (App (Var G (fS (fS fZ))) 
-         (Var G (fS (fS (fS fZ)))))
+App (App (Var gam fZ) 
+         (Var gam (fS fZ))) 
+    (App (Var gam (fS (fS fZ))) 
+         (Var gam (fS (fS (fS fZ)))))
 \end{code}
 
 We now need to define what will be the normalization procedure.
 If, as it is probably expected, this function simply takes an Expr and produces another Expr, then we will need to prove the following lemma afterwards, corresponding to the correctness property mentioned before : \\
-$\forall\ e:Expr\ G,\ interpretation\ (reduce\ e)\ =\ interpretation\ e$ \\
-where $interpretation$ is a function computing the interpretation of an Expr in a context $G$, that is to say, the number that this Expr is encoding.
+$\forall\ e:Expr\ \Gamma,\ interpretation\ (reduce\ e)\ =\ interpretation\ e$ \\
+where $interpretation$ is a function computing the interpretation of an Expr in a context $\Gamma$, that is to say, the number that this Expr is encoding.
 This proof can be quite tricky to make because it relies on the complete behaviour of the reduction and on the way the interpretation is computed.
 For this little example, the reduction will not be too heavy, but in the next sections, with more sophisticated algebraic structures, we will have more rewriting rules to deal with, it will certainly become more problematic to "unfold" the definition of a gigantic reduction procedure. \\
 \\
@@ -137,36 +137,36 @@ To avoid these two sources of complexity, we will : \\
 
 Thus, the type for reflected numbers becomes :
 \begin{code}[caption=Second version of reflected number with embedded denotation, captionpos=b, label=lst1:haskell2]
-using (x : Nat, y : Nat, G : Vect n Nat)
+using (x : Nat, y : Nat, gam : Vect n Nat)
   data Expr : (Vect n Nat) -> Nat 
                -> Type where
-       Plus : Expr G x -> Expr G y -> 
-              Expr G (x + y)
+       Plus : Expr gam x -> Expr gam y -> 
+              Expr gam (x + y)
        Var  : (i : Fin n) -> 
-              Expr G (index i G)
-       Zero : Expr G Z
+              Expr gam (index i gam)
+       Zero : Expr gam Z
 \end{code}
-For an expression $e\ :\ Expr\ G\ x$, we will say that "$e$ denotes (or encodes) the number $x$ in the context $G$".
-When an expression is a variable, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ G)$.
+For an expression $e\ :\ Expr\ \Gamma\ x$, we will say that "$e$ denotes (or encodes) the number $x$ in the context $\Gamma$".
+When an expression is a variable, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ \Gamma)$.
 Also, the $Zero$ expression denotes the natural number $Z$.
 Finally, if $e1$ is an expression encoding the number $x$, and $e2$ is an expression encoding the number $y$, then the expression $Plus\ e1\ e2$ denotes the number $(x + y)$.
 
 \subsection{A correct by construction approach}
 
-The reduction procedure is now supposed to be written on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indexed over the real --concrete-- number : a term of type $Expr\ G\ x$ is the encoding of the number $x$.
+The reduction procedure is now supposed to be written on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indexed over the real --concrete-- number : a term of type $Expr\ \Gamma\ x$ is the encoding of the number $x$.
 Thus, we can write the type of $reduce$ like this : \\
-$reduce\ :\ Expr\ G\ x\ \rightarrow\ (x'\ **\ (Expr\ G\ x',\ x\ =\ x'))$ \\
-The function $reduce$ produces a dependent pair : the new concrete number $x'$, and a pair made of an $Expr\ G\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new --concrete-- numbers are equal.
-Note that this function can't simply produce an $Expr\ G\ x$, because the number on which the resulting expression will be indexed is not necessary syntactically equal to the original number since this equality can use the two available properties. 
+$reduce\ :\ Expr\ \Gamma\ x\ \rightarrow\ (x'\ **\ (Expr\ \Gamma\ x',\ x\ =\ x'))$ \\
+The function $reduce$ produces a dependent pair : the new concrete number $x'$, and a pair made of an $Expr\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new --concrete-- numbers are equal.
+Note that this function can't simply produce an $Expr\ \Gamma\ x$, because the number on which the resulting expression will be indexed is not necessary syntactically equal to the original number since this equality can use the two available properties. 
 And in fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
 The reason is simple : when we try to automatically prove $x=y$, these proofs $x=x'$ and $y=y'$ will be the crucial part for the construction of the desired proof. \\
 \\
 We will have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$\footnote{These encodings have to be produced by hand by the user for this small simple problem, but for the real collection of tactics, we will program an automatic metaification}.
-We will normalize $e1$, and this will give a new number $x'$, a new expression $e1':Expr\ G\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new number $y$, an expression $e2':Expr\ G\ y'$, and a proof of $y=y'$. \\
+We will normalize $e1$, and this will give a new number $x'$, a new expression $e1':Expr\ \Gamma\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new number $y$, an expression $e2':Expr\ \Gamma\ y'$, and a proof of $y=y'$. \\
 Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality because these two expressions are in normal form :
 
 \begin{code}[caption=Syntactical equality between reflected terms, captionpos=b, label=lst1:haskell2]
-eqExpr : (e : Expr G xs) -> (e' : Expr G ys) 
+eqExpr : (e : Expr gam x) -> (e' : Expr gam y) 
          -> Maybe (e = e')
 eqExpr (Plus x y) (Plus x' y') 
         with (eqExpr x x', eqExpr y y')
@@ -189,7 +189,7 @@ By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the n
 
 \begin{code}[caption=Building the desired proof with the two proofs of equality, captionpos=b, label=lst1:haskell2]
 buildProof : {x : Nat} -> {y : Nat} 
-       -> Expr G x' -> Expr G y' 
+       -> Expr gam x' -> Expr gam y' 
        -> (x = x') -> (y = y') 
        -> Maybe (x = y)
 buildProof e e' lp rp with (eqExpr e e')
@@ -210,7 +210,7 @@ As we mentioned, the proof for the metavariable is just a rewriting of the two e
 \end{code}
 Finally, the main function which tries to prove the equality $x=y$ simply has to reduce the two metaified terms reflecting the left and the right hand side, and to use the function $buildProof$ in order to compose the two proofs we just obtained :
 \begin{code}[caption=testEq, captionpos=b, label=lst1:haskell2]
-  testEq : Expr G x -> Expr G y 
+  testEq : Expr gam x -> Expr gam y 
            -> Maybe (x = y)
   testEq l r = 
      let (x' ** (l', p1)) = reduce l in 
@@ -219,19 +219,19 @@ Finally, the main function which tries to prove the equality $x=y$ simply has to
 \end{code}
 Now, we need to define the function reduce. To do that, we have to fix a canonical representation of associative natural numbers. We decide that the left associative form will be the canonical representation. Thus, the $reduce$ function will have to rewrite the metaified term by rearranging the parentheses in order to transform the underlying number in the form $(...((x1 + x2) + x3) ... + xn)$. To do so, one possibility is to define a new datatype which captures this property, and to write a function going from $Expr$ to this new type. Thus it will be easier to be certain that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of dependent types when, like here, it doesn't introduce more complications.
 \begin{code}[caption=Reflected left associative numbers, captionpos=b, label=lst1:haskell2]
-data LExpr : (G : Vect n Nat) -> Nat 
+data LExpr : (gam : Vect n Nat) -> Nat 
              -> Type where
-     LPlus : LExpr G x -> (i : Fin n) 
-             -> LExpr G (x + index i G)
-     LZero : LExpr G Z
+     LPlus : LExpr gam x -> (i : Fin n) 
+             -> LExpr gam (x + index i gam)
+     LZero : LExpr gam Z
 \end{code}
 This datatype has only two constructors. In fact, it combines the previous $Var$ and $Plus$ constructors so that it becomes impossible to write an expression which isn't left associative.
  
-As part of the normalization, we will write a function $expr\_l$ which converts an $Expr\ G\ x$ to a $LExpr\ G\ x'$ and which produces a proof of $x=x'$. This function will therefore use the two available properties multiple times --and especially the property of associativity--, in order to obtain the expected fully left associative form. Of course, because by using this new datatype $LExpr$ we've changed the representation of our encoded lists, we will need to convert back an $LExpr\ G\ x$ to an $Expr\ G\ x$. The function $l\_expr$ will do this easy task.
+As part of the normalization, we will write a function $expr\_l$ which converts an $Expr\ \Gamma\ x$ to a $LExpr\ \Gamma\ x'$ and which produces a proof of $x=x'$. This function will therefore use the two available properties multiple times --and especially the property of associativity--, in order to obtain the expected fully left associative form. Of course, because by using this new datatype $LExpr$ we've changed the representation of our encoded lists, we will need to convert back an $LExpr\ \Gamma\ x$ to an $Expr\ \Gamma\ x$. The function $l\_expr$ will do this easy task.
 
 \begin{code}[caption=Production of the left associative form, captionpos=b, label=lst1:haskell2]
-expr_l : Expr G x 
-         -> (x' ** (LExpr G x', x = x'))
+expr_l : Expr gam x 
+         -> (x' ** (LExpr gam x', x = x'))
 expr_l Zero = (_ ** (LZero, refl))
 expr_l (Var i) = (_ ** (LPlus LZero i, refl))
 expr_l (Plus ex ey) = 
@@ -240,10 +240,10 @@ expr_l (Plus ex ey) =
     plusLExpr _ _ xr yr xprf yprf
       where 
       plusLExpr : (x', y' : Nat)
-            -> {G : Vect n Nat} -> {x, y : Nat} 
-            -> LExpr G x -> LExpr G y 
+            -> {gam : Vect n Nat} -> {x, y : Nat} 
+            -> LExpr gam x -> LExpr gam y 
             -> (x' = x) -> (y' = y) 
-            -> (w' ** (LExpr G w', x'+y'=w'))
+            -> (w' ** (LExpr gam w', x'+y'=w'))
       plusLExpr x' y' rx (LPlus e i) xprf yprf =
         let (xrec ** (rec, prf)) = 
           plusLExpr _ _ rx e refl refl in
@@ -251,14 +251,14 @@ expr_l (Plus ex ey) =
       plusLExpr x' y' rx LZero xprf yprf =
         (_ ** (rx, ?plusLExpr2))
 
-l_expr : LExpr G x -> Expr G x
+l_expr : LExpr gam x -> Expr gam x
 l_expr LZero = Zero
 l_expr (LPlus x i) = Plus (l_expr x) (Var i)
 \end{code}
 
 We notice that for transforming the expression into its left associative equivalent representation, we've effectively needed to know where the variables and the $Z$ constants are : the functions $expr\_l$ and $l\_expr$ are doing different treatments for these different possibilities. \\
 \\
-We've got two metavariables to prove. The metavariable $plusLExpr1$ requires us to prove the goal : $x' + y' = xrec + index\ i\ G$ in a context where we've got, amongst other things,  $(xprf\ :\ x'\ =\ x)$, $(yprf\ :\ y'\ =\ x1\ +\ index\ i\ G)$ and $(prf\ :\ x\ +\ x1\ =\ xrec)$.
+We've got two metavariables to prove. The metavariable $plusLExpr1$ requires us to prove the goal : $x' + y' = xrec + index\ i\ \Gamma$ in a context where we've got, amongst other things,  $(xprf\ :\ x'\ =\ x)$, $(yprf\ :\ y'\ =\ x1\ +\ index\ i\ \Gamma)$ and $(prf\ :\ x\ +\ x1\ =\ xrec)$.
 Proving this goal uses the property of associativity after rewriting the goal with these three proof of equality $xprf$, $yprf$ and $prf$.
 
 \begin{code}[caption=Proof of the metavariable plusLExpr1, captionpos=b, label=lst1:haskell2]
@@ -284,8 +284,8 @@ plusLExpr2 = proof
 We can now define the reduction, which is just the composition of the two previous functions $expr\_l$ and $l\_expr$:
 
 \begin{code}[caption=Reduction function, captionpos=b, label=lst1:haskell2]
-  reduce : Expr G x -> 
-           (x' ** (Expr G x', x = x'))
+  reduce : Expr gam x -> 
+           (x' ** (Expr gam x', x = x'))
   reduce e = 
      let (x' ** (e', prf)) = expr_l e in
          (x' ** (l_expr e', prf))
@@ -417,28 +417,28 @@ As discussed in the section 2.1 on the smaller problem, the algorithm of normali
 
 	\subsection {Reflected terms}
 
-We will have one datatype for reflected terms in each algebraic structure. \\
-Each of these datatype is parametrised on a type $c$ : the real type on which we want to prove equalities. It is also indexed over an instance of the corresponding typeclass for $c$ (we usally call it $p$, because it looks like a proof saying that the structure $c$ has the desired properties), and indexed over a context (a vector $g$ of $n$ elements of type $c$), and also indexed over a value of type $c$, which is precisely the encoded value.
-A magma is only equiped with one operation $Plus$. Thus, we only have three concepts to express in order to reflect terms in a Magma : constantes, variables, and addition.
+We will have one datatype for reflecting terms in each algebraic structure. \\
+Each of these datatype is parametrised over a type $T$, which is the real type on which we want to prove equalities. It is also indexed over an instance of the corresponding typeclass for $T$ (we usually call it $p$, because it looks like a proof saying that the structure $T$ has the desired properties), and indexed over a context (a vector $\Gamma$ of $n$ elements of type $T$), and also indexed over a value of type $T$, which is precisely the encoded value.
+A magma is only equipped with one operation $Plus$. Thus, we only have three concepts to express in order to reflect terms in a Magma : constants, variables, and addition.
 
 \begin{code}[caption=Reflected terms in a Magma, captionpos=b, label=lst1:haskell2]  
-data ExprMa : Magma c -> (Vect n c) -> c -> 
+data ExprMa : Magma T -> (Vect n T) -> T -> 
               Type where
-    ConstMa : (p : Magma c) -> (g:Vect n c) 
-         -> (c1:c)  -> ExprMa p g c1 
-    PlusMa : {p : Magma c} -> {g:Vect n c}
-         -> {c1:c} -> {c2:c} 
-         -> ExprMa p g c1 
-         -> ExprMa p g c2 
-         -> ExprMa p g (Plus c1 c2) 
-    VarMa : (p:Magma c) -> {g:Vect n c}
-         -> {c1:c} 
-         -> VariableA (get_eq_magma p) g c1
-         -> ExprMa p g c1
+    ConstMa : (p : Magma T) -> (gam:Vect n T) 
+         -> (c1:T)  -> ExprMa p gam c1 
+    PlusMa : {p : Magma c} -> {gam:Vect n c}
+         -> {c1:T} -> {c2:T} 
+         -> ExprMa p gam c1 
+         -> ExprMa p gam c2 
+         -> ExprMa p gam (Plus c1 c2) 
+    VarMa : (p:Magma T) -> {gam:Vect n T}
+         -> {c1:T} 
+         -> Variable (get_eq_magma p) gam c1
+         -> ExprMa p gam c1
 \end{code}	
 
 When we encode a constant $c1$ in a context $\Gamma$, we use the constructor $ConstMa$ to produce a term of type $ExprMa\ p\ \Gamma\ c1$ : the index representing the concrete value is simply the constant $c1$.
-If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation defined in the courant instance $p$.
+If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation defined in the current instance $p$.
 
 
 We've used $get\_eq\_magma$ in the constructor $VarMa$, and this is just a function which returns the equality test of the $Set$ level.
@@ -450,11 +450,11 @@ data Variable : {c:Type} -> {n:Nat}
   -> (Vect n c) -> c -> Type where
     RealVariable : (c_equal:(c1:c)->(c2:c)
                     ->Maybe(c1=c2))
-          -> (g:Vect n c) -> (i:Fin n) 
-          -> Variable c_equal g (index i g) 
+          -> (gam:Vect n c) -> (i:Fin n) 
+          -> Variable c_equal gam (index i gam) 
 \end{code}	
 
-This type will be extended with some other constructors later on. For the moment, we can only express a "real variable". \\
+This type will be extended with some other constructors later on. For the moment, we can only express a "real variable", referred by its index $i$. \\
 \\
 Because there is no more operations in a SemiGroup or in a Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
 However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
@@ -463,61 +463,61 @@ However, the one for $Group$ will introduce two new constructors for the $Neg$ a
 data ExprG :  Group c -> (Vect n c) -> c -> 
               Type where
     ConstG : (p : dataTypes.Group c) 
-       -> (g:Vect n c)
-       -> (c1:c) -> ExprG p g c1
-    PlusG : {p : Group c} -> {g:Vect n c} 
-       -> {c1:c} -> {c2:c} 
-       -> ExprG p g c1 
-       -> ExprG p g c2 
-       -> ExprG p g (Plus c1 c2)
-    MinusG : {p : Group c} -> {g:Vect n c} 
-       -> {c1:c} -> {c2:c} 
-       -> ExprG p g c1 
-       -> ExprG p g c2 
-       -> ExprG p g (Minus c1 c2)
-    NegG : {p : Group c} -> {g:Vect n c} 
-       -> {c1:c} -> ExprG p g c1 
-       -> ExprG p g (Neg c1)
-    VarG : (p : Group c) -> {g:Vect n c} 
-       -> {c1:c}
-       -> Variable (get_eq_group p) Neg g c1 
-       -> ExprG p g c1
+      -> (gam:Vect n c)
+      -> (c1:c) -> ExprG p gam c1
+    PlusG : {p : Group c} -> {gam:Vect n c} 
+      -> {c1:c} -> {c2:c} 
+      -> ExprG p gam c1 
+      -> ExprG p gam c2 
+      -> ExprG p gam (Plus c1 c2)
+    MinusG : {p : Group c} -> {gam:Vect n c} 
+      -> {c1:c} -> {c2:c} 
+      -> ExprG p gam c1 
+      -> ExprG p gam c2 
+      -> ExprG p gam (Minus c1 c2)
+    NegG : {p : Group c} -> {gam:Vect n c} 
+      -> {c1:c} -> ExprG p gam c1 
+      -> ExprG p gam (Neg c1)
+    VarG : (p : Group c) -> {gam:Vect n c} 
+      -> {c1:c}
+     -> Variable (get_eq_group p) Neg gam c1 
+      -> ExprG p gam c1
 \end{code}
 
-Of course, the index of type $c$ (the real value represented by the expression) is always expressed with the oeprations available in the typeclass $p$, and here for a Group they are$Plus$, $Minus$ and $Neg$.
+Of course, the index of type $T$ (the real value represented by the expression) is always expressed with the operations available in the typeclass $p$, and here for a Group they are$Plus$, $Minus$ and $Neg$.
 
 	\subsection { A bit of notation}
-The equality we are trying to prove is $x=y$, where $x$ and $y$ are elements of the type $c$, which  simulates a set with some properties (making $c$ a Semi-Group, a Monoid, a Group...). The fact that $c$ fulfil the specification of an algebraic structure is expressed as an instance of the corresponding typeclass, and this instance will be denoted as $p$.
-The reflected term for $x$ will be denoted $e1$, and this term will have the type $ExprG\ p\ g\ x$ : $e1$ is the encoding of $x$ and its type is precisely indexed over the real value $x$.
+The equality we are trying to prove is $x=y$, where $x$ and $y$ are elements of the type $T$, which  simulates a set with some properties (which make $T$ being a Semi-Group, a Monoid, a Group...). The fact that $T$ fulfil the specification of an algebraic structure is expressed as an instance of the corresponding typeclass, and this instance will be denoted as $p$.
+The reflected term for $x$ will be denoted $e1$, and this term will have the type $ExprG\ p\ \Gamma\ x$. $e1$ is the encoding of $x$ and its type is precisely indexed over the real value $x$.
 We've got similar thing for $y$, which is encoded by $e2$, and its type is indexed over the real value $y$.
-Running the normalisation procedure on $e1$ will produce the normal form $e1'$ of type $ExprG\ p\ g\ x'$ and a proof of $p1:x=x'$ while running the normalisation procedure on $e2$ will produce the normal form $e2'$ of type $ExprG\ p\ g\ y'$ and a proof of $p2:y=y'$.
+Running the normalisation procedure on $e1$ will produce the normal form $e1'$ of type $ExprG\ p\ \Gamma\ x'$ and a proof $p1$ of $x=x'$ while running the normalisation procedure on $e2$ will produce the normal form $e2'$ of type $ExprG\ p\ \Gamma\ y'$ and a proof $p2$ of $y=y'$.
 
 	\subsection {Deciding equality}
 	
-Each algebraic structure will have a function for reducing the reflected terms into their normal forms. This is fact a nice property that all these algebraic structures admit a canonical represent for any element. Without this property, it would become a lot more complicated to decide the equality without bruteforcing the 
+Each algebraic structure will have a function for reducing the reflected terms into their normal forms. This is fact a nice property that all these algebraic structures admit a canonical represent for any element. Without this property, it would become a lot more complicated to decide the equality without bruteforcing a serie of rewriting.
 These functions will compute this canonical represent, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the real value indexing the original term and the real value indexing the produced term.
 
 The profile of these function will always be the same :
 \begin{code}[caption=Type of the reduction function for terms reflecting elements in a Group, captionpos=b, label=lst1:haskell2]
 	groupReduce : {c:Type} -> {n:Nat} 
-	  -> (p:Group c) -> {g:Vect n c} -> {x:c}
-	  -> (ExprG p g x) 
-	  -> (x' ** (ExprG p g x', x=x'))
+	  -> (p:Group c) -> {gam:Vect n c} -> {x:c}
+	  -> (ExprG p gam x) 
+	  -> (x' ** (ExprG p gam x', x=x'))
 \end{code}
 
-This function will have more job to do in structures with multiple axioms (like Group), than it has in the easier structure underneath.
-The detail of these functions will be given in the next section. For the moment, we just assume that we've got such a function for each structure, and we want to decide equality between elements. We continue to give the details for the Group, but the principle is exactly the same with the other structures.
+This function will have more job to do in structures with multiple axioms (like Group), than it has to do in the easier structure underneath.
+The detail of these functions will be given in the next section. For the moment, we just assume that we've got such a function for each structure, and we want to decide equality between elements. We continue to give here the details for the Group structure, but the principle is exactly the same with the other structures.
 
 We want to write the following function :
 \begin{code}[caption=Type of the function for deciding equality between elements in a Group, captionpos=b, label=lst1:haskell2]
-	groupDecideEq : (p:Group c) -> {g:Vect n c} 
-	   -> {x : c} -> {y : c} 
-	   -> (ExprG p g x) -> (ExprG p g y) 
+	groupDecideEq : (p:Group c) 
+	   -> {gam:Vect n c} -> {x : c} -> {y : c} 
+	   -> (ExprG p gam x) -> (ExprG p gam y) 
 	   -> Maybe (x = y)
 \end{code}
 
 The first thing this function has to do is to compute the normal form of the two expressions $e1$ and $e2$ respectively encoding $x$ and $y$.
-Then, the only thing remaining to do will be to compare syntactically $e1'$ and $e2'$, and if they are equal, then we will get $x'=y'$, and we will be able to produce the desired proof of $x=y$ by "composing" the two proofs $p1$ and $p2$. 
+Then, the only thing remaining to do will be to compare syntactically $e1'$ and $e2'$, and if they are equal, then we will get $x'=y'$, and we will be able to produce the desired proof of $x=y$ by using the two proofs $p1$ and $p2$. 
 
 \begin{code}[caption=Decides if two elements of a group are equal, captionpos=b, label=lst1:haskell2]
 groupDecideEq p e1 e2 =
@@ -531,11 +531,9 @@ groupDecideEq p e1 e2 =
 The syntactical test of equality between $e1'$ and $e2'$ and the composition of the two proofs is done in the auxiliary function $buildProofGroup$. 
 
 \begin{code}[caption=Composes the two proofs if the NF are the same, captionpos=b, label=lst1:haskell2]
-buildProofGroup : (p:Group c) -> {g:Vect n c} 
-  -> {x : c} -> {y : c} 
-  -> {x':c} -> {y':c} 
-  -> (ExprG p g x') 
-  -> (ExprG p g y') 
+buildProofGroup : (p:Group c) -> {gam:Vect n c} 
+  -> {x : c} -> {y : c} -> {x':c} -> {y':c} 
+  -> (ExprG p gam x') -> (ExprG p gam y') 
   -> (x = x') -> (y = y') 
   -> (Maybe (x = y))
 buildProofGroup p e1 e2 p1 p2 
@@ -546,28 +544,138 @@ buildProofGroup p e1 e2 p1 p2
 	          Nothing
 \end{code}
 
-The proof for the metavariable MbuildProofGroup is exactly the same as the corresponding one (called $bp$) in the smallest example showed in section 2.
+The proof for the metavariable MbuildProofGroup is exactly the same as the corresponding one (called $bp$) in the smallest example showed in section 2.2.
 
 
 \section {The details : normalization functions (4/5 pages)}
 
 	\subsection {Normalization of terms in a Magma}
 
+The normalization in a Magma nearly has nothing to do. It simply need to use the operation $Plus$ between constants under brackets. Indeed, we don't have any property of rewriting here, so we can only compute constants.
+
+\begin{code}[caption=Normalization function for Magma, captionpos=b, label=lst1:haskell2]
+magmaReduce : {c:Type} -> {n:Nat} 
+              -> {p:Magma c} -> {gam:Vect n c} 
+              -> {c1:c} -> (ExprMa p gam c1) 
+              -> (c2 ** (ExprMa p gam c2, c1=c2))
+magmaReduce (PlusMa
+      (ConstMa p _ const1) 
+      (ConstMa p _ const2)) = 
+         (_ ** (ConstMa p g 
+               (Plus const1 const2), refl))
+magmaReduce (PlusMa neg e1 e2) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) 
+        = (magmaReduce e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) 
+        = (magmaReduce e2) in
+    ((Plus r_ih1 r_ih2) ** 
+        (PlusMa neg e_ih1 e_ih2, ?MmagmaReduce1))                    
+magmaReduce e = (_ ** (e, refl))
+\end{code}
+
+This function returns the same value for constant or for a variable. For a $Plus$, we apply the treatment recursively, except if it's a $Plus$ between two constants, in which case we compute the addition of these two constants.
+
+
 	\subsection {Normalization of terms in a Semi-Group}
+
+In a semigroup, we have to deal with the new property of associativity. We have to use the $Plus$ on constants computable thanks to associativity. Three possible patterns need this treatment : $(x+c1)+(c2+y)$ , $(x + c1) + c2$  and $c1 + (c2 + x)$ when $c1$ and $c2$ denote constants. We simply rearrange the parentheses, and call the normalization procedure for Magma on the constants, which is denoted [c1+c2].
+The first pattern is rewritten into $(x + [c1+c2]) + y$, the second into $x + [c1+c2]$ and the third one into $[c1 + c2] + x$.
+We show the code for the first pattern.
+\begin{code}[caption=Computing with associativity in a Semi-Group, captionpos=b, label=lst1:haskell2]
+assoc : (p:SemiGroup c) -> (gam:Vect n c) 
+        -> {c1:c} -> (ExprSG p gam c1) 
+        -> (c2 ** (ExprSG p gam c2, c1=c2))
+assoc p gam (PlusSG 
+             (PlusSG e1 
+                        (ConstSG _ _ c1)) 
+             (PlusSG (ConstSG _ _ c2) e2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) 
+       = (assoc p gam e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) 
+       = (assoc p gam e2) in
+    let (r_3 ** (e_3, p_3)) 
+       = magmaReduce (semiGroup_to_magma 
+            (PlusSG (ConstSG _ _ c1) 
+            (ConstSG _ _ c2))) in
+    let e_3' = magma_to_semiGroup p e_3 in
+    (_ ** ((PlusSG (PlusSG e_ih1 e_3') e_ih2), 
+          ?Massoc1))
+[...]
+\end{code}
+
+Note that we use function of conversions between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$.
+
+After simplifying the constants computable thanks to associativity, the normalization for SemiGroup also has to rearrange the brackets on a systematic way. The fully right or fully left associative forms can both be chosen for this purpose, and the implementation is very similar to the function $expr_l$ previously described on section 2.2.
 
 	\subsection {Normalization of terms in a Monoid}
 
+In a monoid, we simply have to eliminate zeros, thanks to the two properties of left and right neutrality. Because zeros will be computed with constants automatically at the level underneath, we only have to simplify the addition between the constant zero and a variable. There is in fact two cases, since the variable can come first, or the $Zero$ can come first.
+
+\begin{code}[caption=Eliminating zeros in a Monoid, captionpos=b, label=lst1:haskell2]
+elimZero : (p:Monoid c)->(gam:Vect n c)->{c1:c} 
+            -> (ExprMo p gam c1) 
+            -> (c2 ** (ExprMo p gam c2, c1=c2))
+elimZero c p gam 
+ (PlusMo (ConstMo _ _ const1) (VarMo _ v)) 
+        with (eq_on_set p Zero const1)
+   elimZero c p gam (PlusMo (ConstMo _ _ Zero) 
+                 (VarMo _ v)) | (Just refl) 
+          = (_ ** (VarMo _ v, ?MelimZero1))
+   elimZero c p gam (PlusMo (ConstMo _ _ const1) 
+                 (VarMo _ v)) | _ 
+          = (_ ** (PlusMo (ConstMo _ _ const1) 
+               (VarMo _ v), refl)) 
+elimZero c p gam 
+ (PlusMo (VarMo _ v) (ConstMo _ _ const2)) 
+      with (eq_as_elem_of_set p Zero const2) 
+   elimZero c p gam (PlusMo (VarMo _ v) 
+            (ConstMo _ _ Zero)) | (Just refl) 
+          = (_ ** (VarMo _ _ v, ?MelimZero2))
+   elimZero c p gam (PlusMo (VarMo _ v) 
+            (ConstMo _ _ const2)) | _ 
+          = (_ ** (PlusMo (VarMo _ v) 
+                 (ConstMo _ _ const2), refl))
+[...]
+\end{code}
+
+Now the normalization of reflected expressions in a monoid is simply made of a call to the function reducing terms on a semigroup, followed by a call to elimZero which will eliminate the remaining zeros. 
+
 	\subsection {Normalization of terms in a Group}
 
-\section {Auxiliary problems : Automatic metaification and coating (1/2 pages)}
+TO BE WRITTEN
+
+\section{Completeness}
+
+Mentionning that we hope to be complete, and giving intuitive arguments briefly, but explaining that this can't be proven inside the language.
+
+
+
+\section {Auxiliary problems : Automatic metaification and coating (a bit less than a page!)}
 
 	\subsection {Automatic metaification}
 
+How to compute automatically the metaified expression, by using the reflection stuff (0,5 page)
+
 	\subsection {Coating : transforming this stuff into real tactics}
 
-\section {Related work (1 page)}
+What we have to add to Idris in order to invoke this stuff as a "real tactic" (which can fail). (0,25 page)
 
-\section {Conlusion (0,5/1 page)}
+
+\section {Related work and comparison with other work(less than 1 page)}
+
+TO BE CONTINUED
+
+There exists implementation of ring solver for the Coq proof assistant and for Agda. The first one, implemented by Benjamin Grégoire and Assia Mahboubi and described in their paper "Proving equalities in a commutative ring done right in coq", is also implemented by reflection.
+The main difference is that they write a function of normalization for their reflected terms, and latter on prove that this normalization preserves the interpretation, ie, the concrete value reflected.
+This approach is quite normal for the Coq proof assistant, since it does not have a good support for dependent types. For example, there is no dependent pattern matching in Coq. However, in Idris is designed as a programming language with full support for dependent types, and that's why the temptation was high to use this good support in order to write correct by construction tactics.
+Also, in most implementations, only one algebraic level is treated. In the best case, they deal with rings and commutative rings. But is a given structure only has the properties of a group, their tactic is not usable. One could of course write a solver for group, but it will have a big part similar to the ring solver, but this part will have to be duplicated.
+However, in our work, each solver uses the solver of the algebraic structures underneath, increasing drastically the re-usability of code.
+
+\section {Conlusion and futher work (0,5 page)}
+TO BE CONTINUED
+
+We've constructed a correct by construction hierarchy of tactics. This hierarchy is going to be extended  with structures like ring and commutative ring. The main contribution of our work was to intensively use dependent types in order to capture the concrete value reflected by an expression. This enabled us to write the implementation of the tactics on a "correct by construction" style, where the proof is almost trivial and computed at the same time as the result.
+It is true that dependent types often bring more complexity, and for example, the lemmas that we have to proven as soon as one is playing with dependent types. Pleasantly, if the problem comes with dependent types, the solution is also accompanied with the use dependent types which helped us to write a collection of tactics without pain.
 
 
 \acks
@@ -576,13 +684,13 @@ Acknowledgments : Chris, Mattus for discussions. Jan for help in latex.
 
 % We recommend abbrvnat bibliography style.
 
-
 \bibliography{biblio}
 
 \appendix
-\section{Appendix Title}
+\section{Appendix : A little overview of Idris}
 
-This is the text of the appendix, if you need one.
+\input{./content/idrisOverview.tex}
+
 
 \end{document}
 
