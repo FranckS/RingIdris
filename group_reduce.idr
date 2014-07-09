@@ -11,7 +11,6 @@ import dataTypes
 import monoid_reduce
 import tools
 import Prelude.Vect
-import Decidable.Equality
 
 --%default total
 

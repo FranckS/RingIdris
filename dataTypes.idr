@@ -125,6 +125,13 @@ group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> (Maybe (x=y)
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 
 
+-- Commutative Group
+commutativeGroup_to_set : (CommutativeGroup c) -> (Set c)
+commutativeGroup_to_set x = (%instance)
+
+commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_to_set x)
+
 -- ----------------------------
 -- ---- Reflected Terms ---- --
 -- ----------------------------
@@ -252,14 +259,15 @@ print_ExprG c_print (MinusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") - (" 
 print_ExprG c_print (VarG _ v) = print_Variable c_print v
 print_ExprG c_print (NegG e) = "(-" ++ (print_ExprG c_print e) ++ ")"
 
-{-
+
 -- Reflected terms in a commutative group       
-        data ExprCG : {c:Type} -> {n:Nat} -> CommutativeGroup c -> (neg:c->c) -> (Vect n c) -> c -> Type where
-            ConstCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> (neg:c->c) -> (c1:c) -> ExprCG p g c1
-            --ZeroCG : ExprCG p g Zero
-            PlusCG : {p : CommutativeGroup c} -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Plus c1 c2)
-            VarCG : (p:CommutativeGroup c) -> {c1:c} -> VariableA g c1 -> ExprCG p g c1
-          
+data ExprCG : {c:Type} -> {n:Nat} -> CommutativeGroup c -> (Vect n c) -> c -> Type where
+    ConstCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> (g:Vect n c) -> (c1:c) -> ExprCG p g c1
+    PlusCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Plus c1 c2)
+    MinusCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Minus c1 c2)
+    NegCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> ExprCG p g c1 -> ExprCG p g (Neg c1)
+    VarCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> Variable (commutativeGroup_eq_as_elem_of_set p) Neg g c1 -> ExprCG p g c1
+{-
 -- Reflected terms in a ring       
         data ExprR : dataTypes.Ring c -> (Vect n c) -> c -> Type where
             ConstR : (p:dataTypes.Ring c) -> (c1:c) -> ExprR p g c1  

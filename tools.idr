@@ -455,6 +455,13 @@ plusAssociativeZ (NegS (S pu)) (NegS (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_
 -- -----------------------------------
 -- E) FIN TOOLS
 -- -----------------------------------
+minusOrEqual_Fin : {n:Nat} -> (i:Fin n) -> (j:Fin m) -> Bool
+minusOrEqual_Fin fZ fZ = True
+minusOrEqual_Fin (fS i') fZ = True
+minusOrEqual_Fin fZ (fS j') = False
+minusOrEqual_Fin (fS i') (fS j') = minusOrEqual_Fin i' j'
+
+
 
 -- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
 total

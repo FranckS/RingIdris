@@ -20,6 +20,7 @@ import magma_reduce
 import semiGroup_reduce
 import monoid_reduce
 import group_reduce
+import commutativeGroup_reduce
 --import commRing_reduce
 --import testNat
 --import testZZ
@@ -42,19 +43,10 @@ main = putStrLn "coucou!"
 
 
 
-
----------- Proofs ----------
-
-
-
 bla : (x:Nat) -> Maybe (x+0 = x)
 bla x = Just (rewrite (a_plus_zero x) in refl)
 
-
-
-
-
-
+---------- Proofs ----------
 
 
 
