@@ -457,12 +457,20 @@ plusAssociativeZ (NegS (S pu)) (NegS (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_
 -- -----------------------------------
 minusOrEqual_Fin : {n:Nat} -> (i:Fin n) -> (j:Fin m) -> Bool
 minusOrEqual_Fin fZ fZ = True
-minusOrEqual_Fin (fS i') fZ = True
-minusOrEqual_Fin fZ (fS j') = False
+minusOrEqual_Fin fZ (fS j') = True
+minusOrEqual_Fin (fS i') fZ = False
 minusOrEqual_Fin (fS i') (fS j') = minusOrEqual_Fin i' j'
 
 
+eq_dec_fin : {n:Nat} -> (i:Fin n) -> (j:Fin n) -> (Maybe (i=j))
+eq_dec_fin fZ fZ = Just refl
+eq_dec_fin fZ (fS j') = Nothing
+eq_dec_fin (fS i') fZ = Nothing
+eq_dec_fin (fS i') (fS j') with (eq_dec_fin i' j')
+	eq_dec_fin (fS i') (fS i') | (Just refl) = Just refl
+	eq_dec_fin (fS i') (fS j') | Nothing = Nothing
 
+	
 -- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
 total
 pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)

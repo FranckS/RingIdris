@@ -88,6 +88,10 @@ monoid_to_semiGroup_class p = (%instance)
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
 group_to_monoid_class p = (%instance)
 
+-- CommutativeGroup -> Group
+commutativeGroup_to_group_class : (CommutativeGroup c) -> (dataTypes.Group c)
+commutativeGroup_to_group_class p = (%instance)
+
 -- CommutativeRing -> Ring
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
 cr_to_r_class p = %instance -- finds the instance automatically from p
@@ -267,6 +271,27 @@ data ExprCG : {c:Type} -> {n:Nat} -> CommutativeGroup c -> (Vect n c) -> c -> Ty
     MinusCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Minus c1 c2)
     NegCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> ExprCG p g c1 -> ExprCG p g (Neg c1)
     VarCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> Variable (commutativeGroup_eq_as_elem_of_set p) Neg g c1 -> ExprCG p g c1
+    
+    
+exprCG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCG p g c1) -> (e2:ExprCG p g c2) -> (Maybe (e1=e2))
+exprCG_eq p g (PlusCG x y) (PlusCG x' y') with (exprCG_eq p g x x', exprCG_eq p g y y')
+        exprG_eq p g (PlusCG x y) (PlusCG x y) | (Just refl, Just refl) = Just refl
+        exprG_eq p g (PlusCG x y) (PlusCG _ _) | _ = Nothing
+exprCG_eq p g (VarCG _ v1) (VarCG _ v2) with (Variable_eq _ Neg g v1 v2)
+        exprG_eq p g (VarCG _ v1) (VarCG _ v1) | (Just refl) = Just refl
+        exprG_eq p g (VarCG _ v1) (VarCG _ v2) | _ = Nothing
+exprCG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
+        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) | _ = Nothing
+exprCG_eq p g (NegCG e1) (NegCG e2) with (exprCG_eq p g e1 e2)
+        exprG_eq p g (NegCG e1) (NegCG e1) | (Just refl) = Just refl
+        exprG_eq p g (NegCG e1) (NegCG e2) | _ = Nothing
+exprCG_eq p g (MinusCG x y) (MinusCG x' y') with (exprCG_eq p g x x', exprCG_eq p g y y')
+        exprG_eq p g (MinusCG x y) (MinusCG x y) | (Just refl, Just refl) = Just refl
+        exprG_eq p g (MinusCG x y) (MinusCG _ _) | _ = Nothing	
+exprCG_eq p g _ _  = Nothing
+    
+    
 {-
 -- Reflected terms in a ring       
         data ExprR : dataTypes.Ring c -> (Vect n c) -> c -> Type where
@@ -317,9 +342,25 @@ monoid_to_semiGroup (PlusMo _ e1 e2) = PlusSG _ (monoid_to_semiGroup e1) (monoid
 monoid_to_semiGroup (VarMo p _ v) = VarSG (monoid_to_semiGroup_class p) _ v
 
 semiGroup_to_monoid : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) neg g c1 -> ExprMo p neg g c1
-semiGroup_to_monoid p (ConstSG p _ _ cst) = ConstMo p _ _ cst
+semiGroup_to_monoid p (ConstSG _ _ _ cst) = ConstMo p _ _ cst
 semiGroup_to_monoid p (PlusSG _ e1 e2) = PlusMo _ (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
 semiGroup_to_monoid p (VarSG _ _ v) = VarMo p _ v
+
+-- CommutativeGroup -> Group
+commutativeGroup_to_group : {c:Type} -> {n:Nat} -> {p:dataTypes.CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> ExprCG p g c1 -> ExprG (commutativeGroup_to_group_class p) g c1
+commutativeGroup_to_group (ConstCG p g c1) = ConstG (commutativeGroup_to_group_class p) g c1
+commutativeGroup_to_group (PlusCG e1 e2) = PlusG (commutativeGroup_to_group e1) (commutativeGroup_to_group e2)
+commutativeGroup_to_group (MinusCG e1 e2) = MinusG (commutativeGroup_to_group e1) (commutativeGroup_to_group e2)
+commutativeGroup_to_group (NegCG e) = NegG (commutativeGroup_to_group e)
+commutativeGroup_to_group (VarCG p v) = VarG (commutativeGroup_to_group_class p) v
+
+group_to_commutativeGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> ExprG (commutativeGroup_to_group_class p) g c1 -> ExprCG p g c1
+group_to_commutativeGroup p (ConstG _ g c1) = ConstCG p g c1
+group_to_commutativeGroup p (PlusG e1 e2) = PlusCG (group_to_commutativeGroup p e1) (group_to_commutativeGroup p e2)
+group_to_commutativeGroup p (MinusG e1 e2) = MinusCG (group_to_commutativeGroup p e1) (group_to_commutativeGroup p e2)
+group_to_commutativeGroup p (NegG e) = NegCG (group_to_commutativeGroup p e)
+group_to_commutativeGroup p (VarG _ v) = VarCG p v
+
 
 {-
 

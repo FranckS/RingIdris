@@ -403,6 +403,25 @@ group_reduce.Mfold_negative_constant_fix_1 = proof
   rewrite p_1
   exact refl
 
+group_reduce.Mencode_1 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  exact refl
+
+group_reduce.Mdecode_1 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  exact refl
+
+group_reduce.Mcode_reduceM_andDecode_1 = proof
+  intros
+  rewrite (sym pEncode )
+  rewrite (sym pReduce  )
+  rewrite (sym pDecode )
+  exact refl    
+  
 group_reduce.Melim_plusInverse_1 = proof
   intros
   rewrite p_e1'
@@ -559,24 +578,7 @@ group_reduce.MbuildProofGroup = proof
   exact refl
     
 
-group_reduce.Mencode_1 = proof
-  intros
-  rewrite p_ih1
-  rewrite p_ih2
-  exact refl
 
-group_reduce.Mdecode_1 = proof
-  intros
-  rewrite p_ih1
-  rewrite p_ih2
-  exact refl
-
-group_reduce.Mcode_reduceM_andDecode_1 = proof
-  intros
-  rewrite (sym pEncode )
-  rewrite (sym pReduce  )
-  rewrite (sym pDecode )
-  exact refl
 
 
 
