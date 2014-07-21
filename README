@@ -37,7 +37,10 @@ However, one remark :
 However, one remark :
    . We don't pass the totality checker at the moment
 
-- Commutative Group (=Abelian group) solver NOT YET IMPLEMENTED
+- Commutative Group (=Abelian group) solver IMPLEMENTED but NOT WELL TESTED YET
+(only one trivial example implemented at the moment)
+However, one remark :
+   . We don't pass the totality checker at the moment
 
 - Ring solver NOT YET IMPLEMENTED
 
