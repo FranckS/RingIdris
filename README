@@ -4,7 +4,7 @@
 -- (very) brief explanation about what's this stuff
 -------------------------------------------------------------------
 
-Version 0.1 (10/06/14)
+Version 0.2 (21/07/14)
 -----------------------
 
 This is the (early) implementation of a collection of tactics for Idris, 
@@ -19,7 +19,7 @@ only. If you wish to give a feedback, don't forget, that THIS IS STILL WORK IN
 PROGRESS. There may be bugs, the code is not clean, etc. 
 In definitive, you should not use it a for a "real" project right now.
 
-Current state (10/06/14) : 
+Current state (21/07/14) : 
 ------------------------------
 No axioms, no Meta-variable to solve
 
@@ -51,7 +51,7 @@ How to compile it :
 Simply do :
 
 idris main.idr
-That will compiles the 4 tactics available yet + the tests for each of them.
+That will compiles the 5 tactics available yet + the tests for each of them.
 
 How to use it :
 ----------------
@@ -59,7 +59,7 @@ How to use it :
 - Automatic metaification is not yet implemented. That means that you will have 
 to encode by hand the two sides of your equality you wish to prove.
 
-See in group_test.idr (and the other test files) for detailed examples.
+See in commutativeGroup_test.idr and group_test.idr (and the other test files) for detailed examples.
 
 About the technique :
 ----------------------
