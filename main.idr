@@ -28,6 +28,7 @@ import magma_test
 import semiGroup_test
 import monoid_test
 import group_test
+import commutativeGroup_test
 
 
 
