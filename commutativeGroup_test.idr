@@ -49,10 +49,43 @@ compare_expA_expC : (x:ZZ) -> Maybe (x + (-x) = Pos 0)
 compare_expA_expC x = commutativeGroupDecideEq (%instance) (expA x) (expC x)
 -- RESULT : Ok, works for all x !
 
-
+-- --------------------------------------------------------------
+-- TEST 3 : Test if ((u + (x + (-y)))) + ((-x + z) + y) = z + u
+-- --------------------------------------------------------------
+expD : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (((u + (x + (-y)))) + ((-x + z) + y))
+expD x y z u = PlusCG 
+            (PlusCG
+                (VarCG _ (RealVariable _ _ _ fZ))
+                (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ))))) (NegCG (VarCG _ (RealVariable _ _ _ (fS (fS fZ)))))))
+            (PlusCG
+                (PlusCG (NegCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ)))))) (VarCG _ (RealVariable _ _ _ (fS fZ))))
+                (VarCG _ (RealVariable _ _ _ (fS (fS fZ)))))
 
  
-    
+expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (z + u)
+expE x y z y = PlusCG
+                (VarCG _ (RealVariable _ _ _ (fS fZ)))
+                (VarCG _ (RealVariable _ _ _ fZ))
+
+
+compare_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> Maybe (((u + (x + (-y)))) + ((-x + z) + y) = z + u)
+compare_expD_expE x y z u = commutativeGroupDecideEq (%instance) (expD x y z u) (expE x y z u) 
+
+-- Later, we will have a real tactic "CommutativeGroup" which can fail. At this point, we will
+-- not have a missing case for "Nothing", which enables now to manipulate some false proof
+-- (which causes a crash only when you apply then to a specific value for x)
+proof_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> (((u + (x + (-y)))) + ((-x + z) + y) = z + u)
+proof_expD_expE x y z u = let (Just ok) = compare_expD_expE x y z u in ok
+-- DOESN'T WORK AT THE MOMENT
+
+-- Debugging
+
+expD' : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (leftDep (commutativeGroupReduce _ (expD x y z u)))
+expD' x y z u = left (rightDep (commutativeGroupReduce _ (expD x y z u)))
+
+
+
+
 
 
 
