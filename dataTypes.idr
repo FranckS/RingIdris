@@ -290,7 +290,15 @@ exprCG_eq p g (MinusCG x y) (MinusCG x' y') with (exprCG_eq p g x x', exprCG_eq 
         exprG_eq p g (MinusCG x y) (MinusCG x y) | (Just refl, Just refl) = Just refl
         exprG_eq p g (MinusCG x y) (MinusCG _ _) | _ = Nothing	
 exprCG_eq p g _ _  = Nothing
-    
+
+
+print_ExprCG : {c:Type} -> {n:Nat} -> {p:dataTypes.CommutativeGroup c} -> {r1:c} -> (c -> String) -> {g:Vect n c} -> ExprCG p g r1 -> String
+print_ExprCG c_print (ConstCG _ _ const) = c_print const
+print_ExprCG c_print (PlusCG e1 e2) = "(" ++ (print_ExprCG c_print e1) ++ ") + (" ++ (print_ExprCG c_print e2) ++ ")"
+print_ExprCG c_print (MinusCG e1 e2) = "(" ++ (print_ExprCG c_print e1) ++ ") --- (" ++ (print_ExprCG c_print e2) ++ ")"
+print_ExprCG c_print (VarCG _ v) = print_Variable c_print v
+print_ExprCG c_print (NegCG e) = "(-" ++ (print_ExprCG c_print e) ++ ")"
+
     
 {-
 -- Reflected terms in a ring       

@@ -67,7 +67,17 @@ putVarOnPlace p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e) (RealVariab
 		else (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e), ?MputVarOnPlace_5))
 putVarOnPlace p (PlusCG (NegCG (ConstCG _ _ c0)) e) (RealVariable _ _ _ i) = 
 	(_ ** (PlusCG (VarCG p (RealVariable _ _ _ i)) (PlusCG (NegCG (ConstCG _ _ c0)) e), ?MputVarOnPlace_6)) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
+-- Basic cases : cases without Plus
+putVarOnPlace p (ConstCG _ _ c0) (RealVariable _ _ _ i) = (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i)) (ConstCG _ _ c0), ?MputVarOnPlace_7))
+putVarOnPlace p (NegCG (ConstCG _ _ c0)) (RealVariable _ _ _ i) = (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i)) (ConstCG _ _ (Neg c0)), ?MputVarOnPlace_8))
+putVarOnPlace p (VarCG p (RealVariable _ _ _ i0)) (RealVariable _ _ _ i) = 
+	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i0)) (VarCG p (RealVariable _ _ _ i)), refl))
+		else (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i)) (VarCG p (RealVariable _ _ _ i0)), ?MputVarOnPlace_9))
+putVarOnPlace p (NegCG (VarCG p (RealVariable _ _ _ i0))) (RealVariable _ _ _ i) = 
+		if minusOrEqual_Fin i0 i then (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p (RealVariable _ _ _ i)), refl))
+		else (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i)) (NegCG (VarCG p (RealVariable _ _ _ i0))), ?MputVarOnPlace_10))
 
+	
 	
 
 putConstantOnPlace : {c:Type} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} 
@@ -81,7 +91,13 @@ putConstantOnPlace p (PlusCG (NegCG (ConstCG _ _ c0)) e) constValue = (_ ** (Plu
 putConstantOnPlace p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e) constValue = 
     	let (r_ihn ** (e_ihn, p_ihn)) = putConstantOnPlace p e constValue in
 		(_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e_ihn, ?MputConstantOnPlace_4))
-        
+-- Basic cases : cases without Plus
+putConstantOnPlace p (ConstCG _ _ c0) constValue = (_ ** (ConstCG _ _ (Plus c0 constValue), refl))
+putConstantOnPlace p (NegCG (ConstCG _ _ c0)) constValue = (_ ** (ConstCG _ _ (Plus (Neg c0) constValue), refl))
+putConstantOnPlace p (VarCG p (RealVariable _ _ _ i0)) constValue = (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i0)) (ConstCG _ _ constValue), refl))
+putConstantOnPlace p (NegCG (VarCG p (RealVariable _ _ _ i0))) constValue = (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (ConstCG _ _ constValue), refl))
+
+
 
 putNegVarOnPlace : {c:Type} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} 
    -> (ExprCG p g c1) -> {varValue:c} 
@@ -102,7 +118,15 @@ putNegVarOnPlace p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e) (RealVar
 		else (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i))) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e), ?MputNegVarOnPlace_5))
 putNegVarOnPlace p (PlusCG (NegCG (ConstCG _ _ c0)) e) (RealVariable _ _ _ i) = 
 	(_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i))) (PlusCG (NegCG (ConstCG _ _ c0)) e), ?MputNegVarOnPlace_6)) -- the negation of the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
-		
+-- Basic cases : cases without Plus
+putNegVarOnPlace p (ConstCG _ _ c0) (RealVariable _ _ _ i) = (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i))) (ConstCG _ _ c0), ?MputNegVarOnPlace_7))
+putNegVarOnPlace p (NegCG (ConstCG _ _ c0)) (RealVariable _ _ _ i) = (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i))) (ConstCG _ _ (Neg c0)), ?MputNegVarOnPlace_8))
+putNegVarOnPlace p (VarCG p (RealVariable _ _ _ i0)) (RealVariable _ _ _ i) = 
+	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i0)) (NegCG (VarCG p (RealVariable _ _ _ i))), refl))
+		else (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i))) (VarCG p (RealVariable _ _ _ i0)), ?MputNegVarOnPlace_9))
+putNegVarOnPlace p (NegCG (VarCG p (RealVariable _ _ _ i0))) (RealVariable _ _ _ i) = 
+		if minusOrEqual_Fin i0 i then (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (NegCG (VarCG p (RealVariable _ _ _ i))), refl))
+		else (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i))) (NegCG (VarCG p (RealVariable _ _ _ i0))), ?MputNegVarOnPlace_10))
 
 
 putNegConstantOnPlace : {c:Type} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} 
@@ -116,7 +140,13 @@ putNegConstantOnPlace p (PlusCG (NegCG (ConstCG _ _ c0)) e) constValue = (_ ** (
 putNegConstantOnPlace p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e) constValue = 
     	let (r_ihn ** (e_ihn, p_ihn)) = putNegConstantOnPlace p e constValue in
 		(_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e_ihn, ?MputNegConstantOnPlace_4))
-
+-- Basic cases : cases without Plus
+putNegConstantOnPlace p (ConstCG _ _ c0) constValue = (_ ** (ConstCG _ _ (Plus c0 (Neg constValue)), refl))
+putNegConstantOnPlace p (NegCG (ConstCG _ _ c0)) constValue = (_ ** (ConstCG _ _ (Plus (Neg c0) (Neg constValue)), refl))
+putNegConstantOnPlace p (VarCG p (RealVariable _ _ _ i0)) constValue = (_ ** (PlusCG (VarCG p (RealVariable _ _ _ i0)) (ConstCG _ _ (Neg constValue)), refl))
+putNegConstantOnPlace p (NegCG (VarCG p (RealVariable _ _ _ i0))) constValue = (_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (ConstCG _ _ (Neg constValue)), refl))
+		
+		
 
 -- FUNCTION WHICH REORGANIZE AN EXPRESSION	
 -- -----------------------------------------
@@ -199,8 +229,8 @@ commutativeGroupReduce p e =
 	let e_1 = commutativeGroup_to_group e in
 	let (r_2 ** (e_2, p_2)) = groupReduce _ e_1 in
 	let e_3 = group_to_commutativeGroup p e_2 in
-        let (r_4 ** (e_4, p_4)) = reorganize p e_3 in
-        let (r_5 ** (e_5, p_5)) = simplifyAfterReorg_fix p e_3 in
+    let (r_4 ** (e_4, p_4)) = reorganize p e_3 in
+    let (r_5 ** (e_5, p_5)) = simplifyAfterReorg_fix p e_3 in
 		(_ ** (e_4, ?McommutativeGroupReduce_1))
 
 		
@@ -269,7 +299,23 @@ commutativeGroup_reduce.MputVarOnPlace_5 = proof
 
 commutativeGroup_reduce.MputVarOnPlace_6 = proof
   intros
+  mrefine Plus_comm
+
+commutativeGroup_reduce.MputVarOnPlace_7 = proof
+  intros
+  mrefine Plus_comm   
+  
+commutativeGroup_reduce.MputVarOnPlace_8 = proof
+  intros
+  mrefine Plus_comm
+
+commutativeGroup_reduce.MputVarOnPlace_9 = proof
+  intros
   mrefine Plus_comm 
+    
+commutativeGroup_reduce.MputVarOnPlace_10 = proof
+  intros
+  mrefine Plus_comm   
   
 commutativeGroup_reduce.MputConstantOnPlace_1 = proof
   intros
@@ -314,6 +360,22 @@ commutativeGroup_reduce.MputNegVarOnPlace_5 = proof
 commutativeGroup_reduce.MputNegVarOnPlace_6 = proof
   intros
   mrefine Plus_comm  
+  
+commutativeGroup_reduce.MputNegVarOnPlace_7 = proof
+  intros
+  mrefine Plus_comm   
+  
+commutativeGroup_reduce.MputNegVarOnPlace_8 = proof
+  intros
+  mrefine Plus_comm
+
+commutativeGroup_reduce.MputNegVarOnPlace_9 = proof
+  intros
+  mrefine Plus_comm 
+    
+commutativeGroup_reduce.MputNegVarOnPlace_10 = proof
+  intros
+  mrefine Plus_comm     
   
 commutativeGroup_reduce.MputNegConstantOnPlace_1 = proof
   intros

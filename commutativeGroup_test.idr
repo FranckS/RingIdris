@@ -52,7 +52,7 @@ compare_expA_expC x = commutativeGroupDecideEq (%instance) (expA x) (expC x)
 -- --------------------------------------------------------------
 -- TEST 3 : Test if ((u + (x + (-y)))) + ((-x + z) + y) = z + u
 -- --------------------------------------------------------------
-expD : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (((u + (x + (-y)))) + ((-x + z) + y))
+expD : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (((u + (x + (Neg y)))) + ((-x + z) + y))
 expD x y z u = PlusCG 
             (PlusCG
                 (VarCG _ (RealVariable _ _ _ fZ))
@@ -84,6 +84,7 @@ expD' : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] 
 expD' x y z u = left (rightDep (commutativeGroupReduce _ (expD x y z u)))
 
 
+-- \x => \y =>  \z =>  \u => print_ExprCG show (expD' x y z u)
 
 
 
