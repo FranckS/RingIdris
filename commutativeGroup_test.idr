@@ -76,15 +76,20 @@ compare_expD_expE x y z u = commutativeGroupDecideEq (%instance) (expD x y z u) 
 -- (which causes a crash only when you apply then to a specific value for x)
 proof_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> (((u + (x + (-y)))) + ((-x + z) + y) = z + u)
 proof_expD_expE x y z u = let (Just ok) = compare_expD_expE x y z u in ok
--- DOESN'T WORK AT THE MOMENT
+-- RESULT : Ok, works for all x !
 
+{-
 -- Debugging
 
 expD' : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (leftDep (commutativeGroupReduce _ (expD x y z u)))
 expD' x y z u = left (rightDep (commutativeGroupReduce _ (expD x y z u)))
 
+-- Use this to test : \x => \y =>  \z =>  \u => print_ExprCG show (expD' x y z u)
 
--- \x => \y =>  \z =>  \u => print_ExprCG show (expD' x y z u)
+expE' : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (leftDep (commutativeGroupReduce _ (expE x y z u)))
+expE' x y z u = left (rightDep (commutativeGroupReduce _ (expE x y z u)))
+-}
+
 
 
 

@@ -174,8 +174,9 @@ reorganize p e = (_ ** (e, refl))
 
 -- SIMPLIFY BY DELETING TERMS AND THEIR SYMMETRICS	
 -- ------------------------------------------------
-		
+
 simplifyAfterReorg : {c:Type} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, c1=c2))
+-- var + (-var + e)
 simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i1))) e)) with (eq_dec_fin i0 i1)
 	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e)) | (Just refl) = 
 		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p e in
@@ -183,7 +184,8 @@ simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (V
 	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i1))) e)) | (Nothing) = 
 		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i1))) e) in
 			(_ ** (PlusCG (VarCG p (RealVariable _ _ _ i0)) e_ihn, rewrite p_ihn in refl))
-		
+
+-- (-var) + (var + e)
 simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (PlusCG (VarCG p (RealVariable _ _ _ i1)) e)) with (eq_dec_fin i0 i1)
 	simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (PlusCG (VarCG p (RealVariable _ _ _ i0)) e)) | (Just refl) = 
 		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p e in
@@ -193,6 +195,7 @@ simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (PlusCG (
 			(_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e_ihn, rewrite p_ihn in refl)) 
 	
 -- Any other case with the first two elements not simplifiable
+-- something + (somethingElse + e)
 simplifyAfterReorg p (PlusCG t1 (PlusCG t2 exp)) = 
 	let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p (PlusCG t2 exp) in
 		(_ ** (PlusCG t1 e_ihn, ?MsimplifyAfterReorg_3))
@@ -211,7 +214,7 @@ simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p 
 		(_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p (RealVariable _ _ _ i1)), refl))
 		
 --Anything else simply gives the same value
-simplifyAfterReorg p e = (_ ** (e, refl))
+simplifyAfterReorg p e = (_ ** (e, refl)) 
 
 
 
@@ -224,14 +227,39 @@ simplifyAfterReorg_fix p e =
 							(r_ih1 ** (e_ih1, ?MsimplifyAfterReorg_fix_1))
 
 
+--WHY DO WE NEED THIS IN THE FUNCTION elimZeroCG JUST UNDER ? THAT'S CRAP !
+getZero : {c:Type} -> (p:dataTypes.CommutativeGroup c) -> c
+getZero p = Zero
+
+
+elimZeroCG : {c:Type} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, c1=c2))
+elimZeroCG p (ConstCG p _ const) = (_ ** (ConstCG p _ const, refl))
+elimZeroCG p (PlusCG (ConstCG p _ const1) (VarCG p v)) with (commutativeGroup_eq_as_elem_of_set p Zero const1)
+    elimZeroCG p (PlusCG (ConstCG p _ (getZero p)) (VarCG p v)) | (Just refl) = (_ ** (VarCG p v, ?MelimZeroCG1))
+    elimZeroCG p (PlusCG (ConstCG p _ const1) (VarCG p v)) | _ = (_ ** (PlusCG (ConstCG p _ const1) (VarCG p v), refl))
+elimZeroCG p (PlusCG (VarCG _ v) (ConstCG _ _ const2)) with (commutativeGroup_eq_as_elem_of_set p Zero const2) 
+    elimZeroCG p (PlusCG (VarCG _ v) (ConstCG _ _ (getZero p))) | (Just refl) = (_ ** (VarCG _ v, ?MelimZeroCG2))
+    elimZeroCG p (PlusCG (VarCG _ v) (ConstCG _ _ const2)) | _ = (_ ** (PlusCG (VarCG _ v) (ConstCG _ _ const2), refl))
+elimZeroCG p (PlusCG e1 e2) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = (elimZeroCG p e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = (elimZeroCG p e2) in
+        ((Plus r_ih1 r_ih2) ** (PlusCG e_ih1 e_ih2, ?MelimZeroCG3))
+elimZeroCG p (VarCG _ v) = (_ ** (VarCG _ v, refl))
+-- No treatment for Minus since they have already been simplified
+-- and no treatment for Neg since we should not find a constant inside a Neg at this point
+elimZeroCG p e = (_ ** (e, refl))
+
+
+
 commutativeGroupReduce : (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, c1=c2))
 commutativeGroupReduce p e =
-	let e_1 = commutativeGroup_to_group e in
-	let (r_2 ** (e_2, p_2)) = groupReduce _ e_1 in
-	let e_3 = group_to_commutativeGroup p e_2 in
+    let e_1 = commutativeGroup_to_group e in
+    let (r_2 ** (e_2, p_2)) = groupReduce _ e_1 in
+    let e_3 = group_to_commutativeGroup p e_2 in
     let (r_4 ** (e_4, p_4)) = reorganize p e_3 in
-    let (r_5 ** (e_5, p_5)) = simplifyAfterReorg_fix p e_3 in
-		(_ ** (e_4, ?McommutativeGroupReduce_1))
+    let (r_5 ** (e_5, p_5)) = simplifyAfterReorg_fix p e_4 in
+    let (r_6 ** (e_6, p_6)) = elimZeroCG p e_5 in
+            (_ ** (e_6, ?McommutativeGroupReduce_1))
 
 		
 buildProofCommutativeGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprCG p g c1) -> (ExprCG p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
@@ -448,10 +476,26 @@ commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
   intros
   rewrite (sym p_1)
   rewrite (sym p_ih1)
-  exact refl  
+  exact refl
+  
+commutativeGroup_reduce.MelimZeroCG1 = proof
+  intros
+  mrefine Plus_neutral_1
+
+commutativeGroup_reduce.MelimZeroCG2 = proof
+  intros
+  mrefine Plus_neutral_2
+  
+commutativeGroup_reduce.MelimZeroCG3 = proof
+  intros
+  rewrite p_ih1
+  rewrite p_ih2
+  trivial  
 
 commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
   intros
+  rewrite p_6
+  rewrite p_5
   rewrite p_4
   rewrite p_2
   exact refl  
