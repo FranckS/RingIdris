@@ -71,12 +71,13 @@ myLemma c v bit v1 bit1 vCarry0 vLsb = ?MX
           
 
           
----------- Proofs ----------                  
+---------- Proofs ----------      
+{-            
 Main.adc_lemma_2 = proof {
     intro c,w,v,bit0,num0;
     intro b0,v1,bit1,num1,b1;
     intro bc,x,x1,bX,bX1;
-    --rewrite sym (plusZeroRightNeutral x);
+    rewrite sym (plusZeroRightNeutral x);
     rewrite sym (plusZeroRightNeutral v1);
     rewrite sym (plusZeroRightNeutral (plus (plus x v) v1));
     rewrite sym (plusZeroRightNeutral v);
@@ -100,7 +101,9 @@ Main.adc_lemma_2 = proof {
     rewrite sym (plusAssociative (plus x v) v1 (plus x v));
     rewrite (plusAssociative (plus (plus x v) v1) (plus x v) v1);
     trivial;
-}
+-}
+
+
 
 Main.adc_lemma_1 = proof {
     intros;
