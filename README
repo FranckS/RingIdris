@@ -37,8 +37,7 @@ However, one remark :
 However, one remark :
    . We don't pass the totality checker at the moment
 
-- Commutative Group (=Abelian group) solver IMPLEMENTED but NOT WELL TESTED YET
-(only one trivial example implemented at the moment)
+- Commutative Group (=Abelian group) solver WORKS
 However, one remark :
    . We don't pass the totality checker at the moment
 
