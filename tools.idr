@@ -564,7 +564,7 @@ lastElement_of_reverse_is_first (h::t) = ?MB
 
 -- F.2) Append
 
-
+{-
 vectorAppend_assoc : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (g1++(g2++g3) = (g1 ++ g2)++g3)
 vectorAppend_assoc Nil Nil Nil = refl
 vectorAppend_assoc Nil Nil (h3::t3) = refl
@@ -579,7 +579,7 @@ vectorAppend_assoc (h1::t1) Nil (h3::t3) =
 vectorAppend_assoc (h1::t1) (h2::t2) g3 = 
 	let ih = vectorAppend_assoc t1 (h2::t2) g3 in
 	vectConsCong h1 (t1++(h2::t2)++g3) ((t1++(h2::t2))++g3) ih
-
+	-}
 
 -- F.3) "Subsets"
 

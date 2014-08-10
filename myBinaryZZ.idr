@@ -78,6 +78,15 @@ leftKnown' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeGroupReduce _ (lef
 
 
 
+leftKnown'_bis : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
+               -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ) 
+               -> ExprCG (%instance) [c, bit0, bit1, x, x1, v, v1] (plusZ bit1 (plusZ bit0 c))
+leftKnown'_bis c bit0 bit1 x x1 v v1 = PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS (fS fZ)))))) 
+					  (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS (fS (fS fZ))))))) (VarCG _ (RealVariable _ _ _ (fS (fS (fS (fS (fS (fS fZ)))))))))
+
+
+
+
 rightKnown : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
                -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ) 
                -> ExprCG (%instance) [c, bit0, bit1, x, x1, v, v1]
@@ -94,6 +103,14 @@ rightKnown': (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ)
 rightKnown' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeGroupReduce _ (rightKnown c bit0 bit1 x x1 v v1)))
 
 
+
+rightKnown'_bis : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
+               -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ) 
+               -> ExprCG (%instance) [c, bit0, bit1, x, x1, v, v1] (plusZ x1 (plusZ x x))
+rightKnown'_bis c bit0 bit1 x x1 v v1 = PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS fZ))))
+                                          (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ))))) (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ))))))
+                                          
+                                          
 -- Use this to see the two results of the normalizations for the known equality : 
 -- \c => \bit0 => \bit1 => \x => \x1 => \v => \v1 => print_ExprCG show (leftKnown' c bit0 bit1 x x1 v v1)
 -- \c => \bit0 => \bit1 => \x => \x1 => \v => \v1 => print_ExprCG show (rightKnown' c bit0 bit1 x x1 v v1)
@@ -136,7 +153,15 @@ LHSreflected': (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ)
                -> ExprCG (%instance) [c, bit0, bit1, x, x1, v, v1] (leftDep (commutativeGroupReduce _ (LHSreflected c bit0 bit1 x x1 v v1)))
 LHSreflected' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeGroupReduce _ (LHSreflected c bit0 bit1 x x1 v v1)))
 
-                
+
+-- Just the same as above, but by hand
+LHSreflected'_bis : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
+               -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ) 
+               -> ExprCG (%instance) [c, bit0, bit1, x, x1, v, v1] (v1+(v1+(v+(v+(x1+(x+x))))))
+LHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCG (VarCG _ (RealVariable _ _ _ fZ)) (PlusCG (VarCG _ (RealVariable _ _ _ fZ)) 
+					  (PlusCG (VarCG _ (RealVariable _ _ _ (fS fZ))) (PlusCG (VarCG _ (RealVariable _ _ _ (fS fZ))) 
+					    (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS fZ)))) (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ))))) 
+													(VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ))))))))))
              
              
 -- RHS
@@ -170,12 +195,25 @@ RHSreflected c bit0 bit1 x x1 v v1 =
                 
 
 
+                               
+                
 -- RHS reflected
 RHSreflected': (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
                -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ) 
                -> ExprCG (%instance) [c, bit0, bit1, x, x1, v, v1] (leftDep (commutativeGroupReduce _ (RHSreflected c bit0 bit1 x x1 v v1)))
 RHSreflected' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeGroupReduce _ (RHSreflected c bit0 bit1 x x1 v v1)))
 
+
+
+RHSreflected'_bis : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
+               -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ) 
+               -> ExprCG (%instance) [c, bit0, bit1, x, x1, v, v1] (plusZ v1 (plusZ v1 (plusZ v (plusZ v (plusZ bit1 (plusZ bit0 c))))))
+RHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCG (VarCG _ (RealVariable _ _ _ fZ)) (PlusCG (VarCG _ (RealVariable _ _ _ fZ)) 
+					  (PlusCG (VarCG _ (RealVariable _ _ _ (fS fZ))) (PlusCG (VarCG _ (RealVariable _ _ _ (fS fZ))) 
+					    (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS (fS fZ)))))) (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS (fS (fS fZ))))))) 
+														  (VarCG _ (RealVariable _ _ _ (fS (fS (fS( fS( fS (fS fZ)))))))))))))
+														  
+               
 
 -- Use this to see the two results of the normalizations : 
 -- \c => \bit0 => \bit1 => \x => \x1 => \v => \v1 => print_ExprCG show (LHSreflected' c bit0 bit1 x x1 v v1)
@@ -185,11 +223,14 @@ RHSreflected' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeGroupReduce _ (
 -- This is NOT total   
 getJust : {a:Type} -> (Maybe a) -> a
 getJust (Just x) = x
-   
+
+
+
+
 goal : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
                -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ)
                -> (known : (plusZ (plusZ c bit0) bit1 = plusZ x1 (plusZ x x))) ->
-                    (
+                 Maybe (
                         (plusZ x1 
                                 (plusZ 
                                     (plusZ 
@@ -216,31 +257,98 @@ goal : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ)
                              )
                          )
                     )
-goal c bit0 bit1 x x1 v v1 known = let maybe_LHS_equals_LHS' = (commutativeGroupDecideEq _ (LHSreflected c bit0 bit1 x x1 v v1) (LHSreflected' c bit0 bit1 x x1 v v1)) in
-                                    let LHS_equals_LHS' : ((plusZ x1 (plusZ (plusZ (plusZ x v) v1)(plusZ (plusZ (plusZ x v) v1) (Pos 0)))) = v1+(v1+(v+(v+(x1+(x+x)))))) = getJust maybe_LHS_equals_LHS' in
-                                    {-
-                                        let Just maybe_RHS_equals_RHS' = (commutativeGroupDecideEq _ (RHSreflected c bit0 bit1 x x1 v v1) (RHSreflected' c bit0 bit1 x x1 v v1)) in
-                                        let RHS_equals_RHS' : ? = getJust maybe_RHS_equals_RHS in
-                    
-                                            let Just maybe_leftKnown_equals_leftKnown' = (commutativeGroupDecideEq _ (leftKnown c bit0 bit1 x x1 v v1) (leftKnown' c bit0 bit1 x x1 v v1)) in
-                                            let leftKnown_equals_leftKnown' = getJust maybe_leftKnown_equals_leftKnown in
-                    
-                                                let Just maybe_rightKnown_equals_rightKnown' = (commutativeGroupDecideEq _ (leftKnown c bit0 bit1 x x1 v v1) (leftKnown' c bit0 bit1 x x1 v v1)) in
-                                                let rightKnown_equals_rightKnown' = getJust maybe_rightKnown_equals_rightKnown in
-                        
-                                                -- The new known equality : 
-                                    -}
-                                                ?MX 
+goal c bit0 bit1 x x1 v v1 known = 
+  let maybe_LHS_equals_LHS'bis = (commutativeGroupDecideEq _ (LHSreflected c bit0 bit1 x x1 v v1) (LHSreflected'_bis c bit0 bit1 x x1 v v1)) in
+  let maybe_RHS_equals_RHS'bis = (commutativeGroupDecideEq _ (RHSreflected c bit0 bit1 x x1 v v1) (RHSreflected'_bis c bit0 bit1 x x1 v v1)) in
+  let maybe_leftKnown_equals_leftKnown'bis = (commutativeGroupDecideEq _ (leftKnown c bit0 bit1 x x1 v v1) (leftKnown'_bis c bit0 bit1 x x1 v v1)) in
+  let maybe_rightKnown_equals_rightKnown'bis = (commutativeGroupDecideEq _ (rightKnown c bit0 bit1 x x1 v v1) (rightKnown'_bis c bit0 bit1 x x1 v v1)) in
+				      
+  case (maybe_LHS_equals_LHS'bis, maybe_RHS_equals_RHS'bis, maybe_leftKnown_equals_leftKnown'bis, maybe_rightKnown_equals_rightKnown'bis) of
+    (Just p1, Just p2, Just p3, Just p4) => let LHS_equals_LHS'bis : (plusZ x1 (plusZ (plusZ (plusZ x v) v1)(plusZ (plusZ (plusZ x v) v1) (Pos 0))) = v1+(v1+(v+(v+(x1+(x+x)))))) = p1 in
+						let RHS_equals_RHS'bis : (plusZ (plusZ c (plusZ bit0 (plusZ v (plusZ v (Pos 0))))) (plusZ bit1 (plusZ v1 v1)) = (plusZ v1 (plusZ v1 (plusZ v (plusZ v (plusZ bit1 (plusZ bit0 c))))))) = p2 in
+						  let leftKnown_equals_leftKnown'bis : ((plusZ (plusZ c bit0) bit1) = (plusZ bit1 (plusZ bit0 c))) = p3 in
+						    let rightKnown_equals_rightKnown'bis : ((plusZ x1 (plusZ x x)) = (plusZ x1 (plusZ x x))) = p4 in -- useless
+						      -- uses the known equality "known" and "leftKnown_equals_leftKnown'bis"
+						      let newKnownEquality : ((plusZ bit1 (plusZ bit0 c)) = (plusZ x1 (plusZ x x))) = ?Mgoal_1 in
+							?Mgoal_2
+    _ => Nothing
+-- Works for all variables ! Great !     
+                                               
    
+
+-- l is the length of the Binary   
+goal_aux : (l:Nat) -> (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
+               -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ)
+               -> (known : (plusZ (plusZ c bit0) bit1 = plusZ x1 (plusZ x x))) ->
+           (Maybe (Binary l (plusZ x1 
+                                (plusZ 
+                                    (plusZ 
+                                        (plusZ x v) 
+                                        v1)
+                                    (plusZ 
+                                        (plusZ 
+                                            (plusZ x v) 
+                                            v1) 
+                                        (Pos 0))
+                                )
+                        )
+		  -> Binary l (plusZ 
+                            (plusZ c 
+                                   (plusZ bit0 
+                                          (plusZ v 
+                                                (plusZ v (Pos 0))
+                                           )
+                                    )
+                             )
+                             (plusZ bit1 
+                                    (plusZ v1 v1)
+                             )
+                         )
+		    ))
+goal_aux l c bit0 bit1 x x1 v v1 known = 
+  case goal c bit0 bit1 x x1 v v1 known of
+    Just p => ?Mgoal_aux_1
+    Nothing => Nothing
+   
+             
+             
+goal_final : (l:Nat) -> (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
+               -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ)
+               -> (known : (plusZ (plusZ c bit0) bit1 = plusZ x1 (plusZ x x))) ->
+           (Binary l (plusZ x1 
+                                (plusZ 
+                                    (plusZ 
+                                        (plusZ x v) 
+                                        v1)
+                                    (plusZ 
+                                        (plusZ 
+                                            (plusZ x v) 
+                                            v1) 
+                                        (Pos 0))
+                                )
+                        )
+		  -> Binary l (plusZ 
+                            (plusZ c 
+                                   (plusZ bit0 
+                                          (plusZ v 
+                                                (plusZ v (Pos 0))
+                                           )
+                                    )
+                             )
+                             (plusZ bit1 
+                                    (plusZ v1 v1)
+                             )
+                         )
+		    )
+goal_final l c bit0 bit1 x x1 v v1 known = getJust (goal_aux l c bit0 bit1 x x1 v v1 known)
                     
 -- -----------------------------------------
--- END OF TEST WHAT WE CAN DO AT THE MOMENT
+	-- END OF TEST WHAT WE CAN DO AT THE MOMENT
 -- -----------------------------------------       
-                  
-
-
-          
+  
+  
 ---------- Proofs ----------
+-- Old proof, done by hand
 {-                  
 Main.adc_lemma_2 = proof {
     intro c,w,v,bit0,num0;
@@ -278,3 +386,76 @@ Main.adc_lemma_1 = proof {
     rewrite sym (plusZeroRightNeutralZ c) ;
     trivial;
 }
+
+
+Main.Mgoal_1 = proof
+  intros
+  rewrite leftKnown_equals_leftKnown'bis 
+  rewrite known
+  exact refl
+
+Main.Mgoal_2 = proof
+  intros
+  mrefine Just
+  rewrite (sym LHS_equals_LHS'bis) 
+  rewrite (sym RHS_equals_RHS'bis) 
+  rewrite newKnownEquality 
+  exact refl
+
+Main.Mgoal_aux_1 = proof
+  intros
+  rewrite p
+  exact (Just (\x => x))
+
+  
+  
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
+---------- Proofs ----------
+
+Main.adc_lemma_2 = proof
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  rewrite (sym(plusZeroRightNeutralZ vCarry0 ))
+  rewrite (sym(plusZeroRightNeutralZ v1))
+  intro
+  exact (goal_final (S (S w)) c bit bit1 vCarry0 vLsb v v1 b)
+  
+
+
+  
+  
+  
