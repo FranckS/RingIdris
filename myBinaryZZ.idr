@@ -43,11 +43,6 @@ addBit b1 b0 b1 = bitpair b1 b0
 addBit b1 b1 b0 = bitpair b1 b0
 addBit b1 b1 b1 = bitpair b1 b1
 
-adc : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
-adc zero zero carry ?= zero # carry
-adc (numx # bX) (numy # bY) carry
-   ?= let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
-          adc numx numy carry0 # lsb
           
 -------------------------------------
 -- TEST WHAT WE CAN DO AT THE MOMENT
@@ -226,7 +221,8 @@ getJust (Just x) = x
 
 
 
-
+-- We're going to use this fact to prove the second lemma of adc.
+-- The idea is that we don't make this proof by hand, but we call our tactic fot commutative group (4 times here)
 goal : (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
                -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ)
                -> (known : (plusZ (plusZ c bit0) bit1 = plusZ x1 (plusZ x x))) ->
@@ -276,6 +272,7 @@ goal c bit0 bit1 x x1 v v1 known =
                                                
    
 
+-- Uses the result above to transfom a Binary of a size into a Binary of another size, because these two sizes are equal, thanks to the property of the commutative group ZZ.
 -- l is the length of the Binary   
 goal_aux : (l:Nat) -> (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
                -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ)
@@ -310,8 +307,9 @@ goal_aux l c bit0 bit1 x x1 v v1 known =
     Just p => ?Mgoal_aux_1
     Nothing => Nothing
    
-             
-             
+    
+    
+-- Same as above, except that we forget that the result could be a "Nothing"             
 goal_final : (l:Nat) -> (c:ZZ) -> (bit0:ZZ) -> (bit1:ZZ) 
                -> (x:ZZ) -> (x1:ZZ) -> (v:ZZ) -> (v1:ZZ)
                -> (known : (plusZ (plusZ c bit0) bit1 = plusZ x1 (plusZ x x))) ->
@@ -345,11 +343,20 @@ goal_final l c bit0 bit1 x x1 v v1 known = getJust (goal_aux l c bit0 bit1 x x1 
 -- -----------------------------------------
 	-- END OF TEST WHAT WE CAN DO AT THE MOMENT
 -- -----------------------------------------       
-  
+ 
+ 
+-- The most interesting function
+adc : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
+adc zero zero carry ?= zero # carry
+adc (numx # bX) (numy # bY) carry
+   ?= let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
+          adc numx numy carry0 # lsb
+
+   
   
 ---------- Proofs ----------
 -- Old proof, done by hand
-{-                  
+{-              
 Main.adc_lemma_2 = proof {
     intro c,w,v,bit0,num0;
     intro b0,v1,bit1,num1,b1;
@@ -407,32 +414,7 @@ Main.Mgoal_aux_1 = proof
   rewrite p
   exact (Just (\x => x))
 
-  
-  
-  
-  
-
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-
----------- Proofs ----------
-
+-- New proof, with a bit of automation
 Main.adc_lemma_2 = proof
   intro
   intro
