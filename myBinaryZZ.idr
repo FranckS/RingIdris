@@ -433,8 +433,8 @@ Main.adc_lemma_2 = proof
   intro
   rewrite (sym(plusZeroRightNeutralZ vCarry0 ))
   rewrite (sym(plusZeroRightNeutralZ v1))
-  intro
-  exact (goal_final (S (S w)) c bit bit1 vCarry0 vLsb v v1 b)
+  intro equalityKnown
+  exact (goal_final (S (S w)) c bit bit1 vCarry0 vLsb v v1 equalityKnown)
   
 
 
