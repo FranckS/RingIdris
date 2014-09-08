@@ -9,6 +9,16 @@ module dataTypes
 
 %default total
 
+
+eq_dec_fin : {n:Nat} -> (i:Fin n) -> (j:Fin n) -> (Maybe (i=j))
+eq_dec_fin fZ fZ = Just refl
+eq_dec_fin fZ (fS j') = Nothing
+eq_dec_fin (fS i') fZ = Nothing
+eq_dec_fin (fS i') (fS j') with (eq_dec_fin i' j')
+	eq_dec_fin (fS i') (fS i') | (Just refl) = Just refl
+	eq_dec_fin (fS i') (fS j') | Nothing = Nothing
+
+
 index_reverse : {a:Type} -> {n:Nat} -> (Fin n) -> (Vect n a) -> a
 index_reverse j g = index j (reverse g)
 
@@ -37,6 +47,11 @@ class Magma c => SemiGroup c where
 class (SemiGroup c, ZeroC c) => Monoid c where
     Plus_neutral_1 : (c1:c) -> (Plus Zero c1 = c1)    
     Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
+
+-- NEW : That's something usefull for Nat for example, since we don't have negatives numbers
+class dataTypes.Monoid c => CommutativeMonoid c where
+    Plus_comm' : (c1:c) -> (c2:c) -> (Plus c1 c2 = Plus c2 c1)
+
 
 -- We define the fact to have a symmetric as a notion on a monoid. And this will help to define the property of being a group
 hasSymmetric : (c:Type) -> (p:dataTypes.Monoid c) -> c -> c -> Type
@@ -120,6 +135,15 @@ monoid_to_set x = (%instance)
 
 monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
 monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
+
+
+-- Commutative Monoid
+commutativeMonoid_to_set : (CommutativeMonoid c) -> (Set c)
+commutativeMonoid_to_set x = (%instance)
+
+commutativeMonoid_eq_as_elem_of_set : (CommutativeMonoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid_to_set x)
+
 
 -- Group
 group_to_set : (dataTypes.Group c) -> (Set c)
@@ -226,6 +250,26 @@ exprMo_eq p neg g (ConstMo _ _ _ const1) (ConstMo _ _ _ const2) with ((monoid_eq
     exprMo_eq p neg g (ConstMo _ _ _  const1) (ConstMo _ _ _ const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
     exprMo_eq p neg g (ConstMo _ _ _ const1) (ConstMo _ _ _ const2) | _ = Nothing
 exprMo_eq p neg g _ _  = Nothing
+
+
+-- Reflected terms in a commutative monoid
+data ExprCM : {c:Type} -> {n:Nat} -> (CommutativeMonoid c) -> (Vect n c) -> c -> Type where
+    ConstCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> (g:Vect n c) -> (c1:c) -> ExprCM p g c1
+    PlusCM : {c:Type} -> {n:Nat} -> {p : CommutativeMonoid c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCM p g c1 -> ExprCM p g c2 -> ExprCM p g (Plus c1 c2)
+    VarCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> {g:Vect n c} -> (i:Fin n) -> ExprCM p g (index_reverse i g)
+
+exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p g c1) -> (e2:ExprCM p g c2) -> (Maybe (e1=e2))
+exprCM_eq p g (PlusCM x y) (PlusCM x' y') with (exprCM_eq p g x x', exprCM_eq p g y y')
+    exprCM_eq p g (PlusCM x y) (PlusCM x y) | (Just refl, Just refl) = Just refl
+    exprCM_eq p g (PlusCM x y) (PlusCM _ _) | _ = Nothing
+exprCM_eq p g (VarCM _ i1) (VarCM _ i2) with (eq_dec_fin i1 i2)
+    exprCM_eq p g (VarCM _ i1) (VarCM _ i1) | (Just refl) = Just refl
+    exprCM_eq p g (VarCM _ i1) (VarCM _ i2) | _ = Nothing
+exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) with ((commutativeMonoid_eq_as_elem_of_set p) const1 const2)
+    exprCM_eq p g (ConstCM _ _  const1) (ConstCM _ _ const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
+    exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) | _ = Nothing
+exprCM_eq p g _ _  = Nothing
+
 
 
 -- Reflected terms in a group  

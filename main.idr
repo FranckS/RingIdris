@@ -19,6 +19,7 @@ import dataTypes
 import magma_reduce
 import semiGroup_reduce
 import monoid_reduce
+import commutativeMonoid_reduce -- NEW
 import group_reduce
 import commutativeGroup_reduce
 --import commRing_reduce
