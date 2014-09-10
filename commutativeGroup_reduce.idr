@@ -352,7 +352,7 @@ commutativeGroup_reduce.MputConstantOnPlace_1 = proof
 commutativeGroup_reduce.MputConstantOnPlace_2 = proof
   intros
   rewrite p_ihn 
-  mrefine  Plus_assoc
+  mrefine Plus_assoc
   
 commutativeGroup_reduce.MputConstantOnPlace_3 = proof
   intros
@@ -490,7 +490,7 @@ commutativeGroup_reduce.MelimZeroCG3 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
-  trivial  
+  exact refl  
 
 commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
   intros

@@ -28,6 +28,7 @@ import commutativeGroup_reduce
 import magma_test
 import semiGroup_test
 import monoid_test
+import commutativeMonoid_test
 import group_test
 import commutativeGroup_test
 
@@ -51,6 +52,20 @@ bla x = Just (rewrite (a_plus_zero x) in refl)
 
 
 ---------- Proofs ----------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

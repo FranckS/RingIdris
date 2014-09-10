@@ -103,6 +103,11 @@ monoid_to_semiGroup_class p = (%instance)
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
 group_to_monoid_class p = (%instance)
 
+-- CommutativeMonoid -> Monoid
+-- NEW
+commutativeMonoid_to_monoid_class : (CommutativeMonoid c) -> (dataTypes.Monoid c)
+commutativeMonoid_to_monoid_class p = (%instance)
+
 -- CommutativeGroup -> Group
 commutativeGroup_to_group_class : (CommutativeGroup c) -> (dataTypes.Group c)
 commutativeGroup_to_group_class p = (%instance)
@@ -397,6 +402,22 @@ semiGroup_to_monoid : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> {neg:c->c
 semiGroup_to_monoid p (ConstSG _ _ _ cst) = ConstMo p _ _ cst
 semiGroup_to_monoid p (PlusSG _ e1 e2) = PlusMo _ (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
 semiGroup_to_monoid p (VarSG _ _ v) = VarMo p _ v
+
+
+-- CommutativeMonoid -> Monoid
+-- NEW
+commutativeMonoid_to_monoid : {c:Type} -> {n:Nat} -> {p:CommutativeMonoid c} -> {g:Vect n c} -> {c1:c} -> ExprCM p g c1 -> ExprMo (commutativeMonoid_to_monoid_class p) (\x => x) g c1 -- there is no negations to encode, that's why we use the identity function here
+commutativeMonoid_to_monoid (ConstCM p _ cst) = ConstMo (commutativeMonoid_to_monoid_class p) _ _ cst
+commutativeMonoid_to_monoid (PlusCM e1 e2) = PlusMo _ (commutativeMonoid_to_monoid e1) (commutativeMonoid_to_monoid e2)
+commutativeMonoid_to_monoid (VarCM p v) = VarMo (commutativeMonoid_to_monoid_class p) _ (RealVariable set_eq (\x => x) _ v)
+
+monoid_to_commutativeMonoid : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> {g:Vect n c} -> {c1:c} -> ExprMo (commutativeMonoid_to_monoid_class p) (\x => x) g c1 -> ExprCM p g c1 -- we know that no negations have been encoded
+monoid_to_commutativeMonoid p (ConstMo _ _ _ cst) = (ConstCM p _ cst)
+monoid_to_commutativeMonoid p (PlusMo _ e1 e2) = PlusCM (monoid_to_commutativeMonoid p e1) (monoid_to_commutativeMonoid p e2)
+monoid_to_commutativeMonoid p (VarMo _ _ (RealVariable _ _ g i)) = VarCM _ i 
+-- This case can't happen, this we only decode what we have previously encoded, and we've never encoded something with a "EncodingGroupTerm_var". Anyway, it has to be total...
+monoid_to_commutativeMonoid p (VarMo _ _ (EncodingGroupTerm_var _ _ g i)) = VarCM _ i
+
 
 -- CommutativeGroup -> Group
 commutativeGroup_to_group : {c:Type} -> {n:Nat} -> {p:dataTypes.CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> ExprCG p g c1 -> ExprG (commutativeGroup_to_group_class p) g c1
