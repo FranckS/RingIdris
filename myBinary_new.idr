@@ -81,9 +81,327 @@ LHSreflected c bit0 bit1 x x1 v v1 =
         
 
 
+-- LHS normalized
+-- We nned to do it by hand
+{-
+LHSreflected': (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (leftDep (commutativeMonoidReduce _ (LHSreflected c bit0 bit1 x x1 v v1)))
+LHSreflected' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeMonoidReduce _ (LHSreflected c bit0 bit1 x x1 v v1)))
+-}
 
+-- Just the same as above, but by hand
+LHSreflected'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (v1+(v1+(v+(v+(x1+(x+x))))))
+LHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ fZ) (PlusCM (VarCM _ fZ) 
+					  (PlusCM (VarCM _ (fS fZ)) (PlusCM (VarCM _ (fS fZ)) 
+					    (PlusCM (VarCM _ (fS (fS fZ))) (PlusCM (VarCM _ (fS (fS (fS fZ)))) 
+                                                        (VarCM _ (fS (fS (fS fZ)))))))))
+         
         
         
         
-        
+-- RHS
+RHSreflected : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] 
+                         (plus 
+                            (plus c 
+                                   (plus bit0 
+                                          (plus v 
+                                                (plus v Z)
+                                           )
+                                    )
+                             )
+                             (plus bit1 
+                                    (plus v1 (plus v1 Z))
+                             )
+                         )
+RHSreflected c bit0 bit1 x x1 v v1 = 
+                PlusCM
+                    (PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ)))))))
+                            (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ))))))
+                                   (PlusCM (VarCM _ (fS fZ))
+                                          (PlusCM (VarCM _ (fS fZ)) (ConstCM _ _ Z))
+                                   )
+                            )
+                    )
+                    (PlusCM (VarCM _ (fS (fS (fS  (fS fZ)))))
+                            (PlusCM (VarCM _ fZ) (PlusCM (VarCM _ fZ) (ConstCM _ _ Z)))
+                    )
+            
+            
+            
+            
+RHSreflected'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus v1 (plus v1 (plus v (plus v (plus bit1 (plus bit0 c))))))
+RHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ fZ) (PlusCM (VarCM _ fZ) 
+					  (PlusCM (VarCM _ (fS fZ)) (PlusCM (VarCM _ (fS fZ)) 
+					    (PlusCM (VarCM _ (fS (fS (fS (fS fZ))))) (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ)))))) 
+                                                                                                (VarCM _ (fS (fS (fS( fS( fS (fS fZ))))))))))))
+														  
+  
+            
+            
+--LHS of the known equality
+leftKnown : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1]
+                    (plus (plus c bit0) bit1)
+leftKnown c bit0 bit1 x x1 v v1 = PlusCM
+                                    (PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))) (VarCM _ (fS (fS (fS (fS (fS fZ)))))))
+                                    (VarCM _ (fS (fS (fS (fS fZ)))))
+                    
+                    
+                    
+                    
+-- Normalized LHS of the known equality
+leftKnown'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus bit1 (plus bit0 c))
+leftKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS (fS (fS fZ))))) 
+					  (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ)))))) (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))))
+
+
+                    
+-- RHS of the known equality                    
+rightKnown : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1]
+                    (plus x1
+                          (plus x (plus x Z)))
+rightKnown c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS fZ)))
+                                          (PlusCM (VarCM _ (fS (fS (fS fZ)))) (PlusCM (VarCM _ (fS (fS (fS fZ)))) (ConstCM _ _ Z))) 
       
+      
+      
+-- Normalized RHS of the known equality
+rightKnown'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
+               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus x1 (plus x x))
+rightKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS fZ)))
+                                          (PlusCM (VarCM _ (fS (fS (fS fZ)))) (VarCM _ (fS (fS (fS fZ)))))
+           
+      
+      
+      
+-- We're going to use this fact to prove the second lemma of adc.
+-- The idea is that we don't make this proof by hand, but we call our tactic fot commutative Monoid (4 times here)
+goal : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat)
+               -> (known : (plus (plus c bit0) bit1 = plus x1 (plus x (plus x Z)))) ->
+                 Maybe (
+                        (plus x1 
+                                (plus 
+                                    (plus 
+                                        (plus x v) 
+                                        v1)
+                                    (plus 
+                                        (plus 
+                                            (plus x v) 
+                                            v1) 
+                                        Z)
+                                )
+                        )
+                =
+                    (plus 
+                            (plus c 
+                                   (plus bit0 
+                                          (plus v 
+                                                (plus v Z)
+                                           )
+                                    )
+                             )
+                             (plus bit1 
+                                    (plus v1 (plus v1 Z))
+                             )
+                         )
+                    )
+goal c bit0 bit1 x x1 v v1 known = 
+  let maybe_LHS_equals_LHS'bis = (commutativeMonoidDecideEq _ (LHSreflected c bit0 bit1 x x1 v v1) (LHSreflected'_bis c bit0 bit1 x x1 v v1)) in
+  let maybe_RHS_equals_RHS'bis = (commutativeMonoidDecideEq _ (RHSreflected c bit0 bit1 x x1 v v1) (RHSreflected'_bis c bit0 bit1 x x1 v v1)) in
+  let maybe_leftKnown_equals_leftKnown'bis = (commutativeMonoidDecideEq _ (leftKnown c bit0 bit1 x x1 v v1) (leftKnown'_bis c bit0 bit1 x x1 v v1)) in
+  let maybe_rightKnown_equals_rightKnown'bis = (commutativeMonoidDecideEq _ (rightKnown c bit0 bit1 x x1 v v1) (rightKnown'_bis c bit0 bit1 x x1 v v1)) in
+				      
+  case (maybe_LHS_equals_LHS'bis, maybe_RHS_equals_RHS'bis, maybe_leftKnown_equals_leftKnown'bis, maybe_rightKnown_equals_rightKnown'bis) of
+    (Just p1, Just p2, Just p3, Just p4) => let LHS_equals_LHS'bis : (plus x1 (plus (plus (plus x v) v1)(plus (plus (plus x v) v1) Z)) = v1+(v1+(v+(v+(x1+(x+x)))))) = p1 in
+						let RHS_equals_RHS'bis : (plus (plus c (plus bit0 (plus v (plus v Z)))) (plus bit1 (plus v1 (plus v1 Z))) = (plus v1 (plus v1 (plus v (plus v (plus bit1 (plus bit0 c))))))) = p2 in
+						  let leftKnown_equals_leftKnown'bis : ((plus (plus c bit0) bit1) = (plus bit1 (plus bit0 c))) = p3 in
+						    let rightKnown_equals_rightKnown'bis : ((plus x1 (plus x (plus x Z))) = (plus x1 (plus x x))) = p4 in
+						      -- uses the known equality "known" and "leftKnown_equals_leftKnown'bis"
+						      let newKnownEquality : ((plus bit1 (plus bit0 c)) = (plus x1 (plus x x))) = ?Mgoal_1 in
+							?Mgoal_2
+    _ => Nothing
+-- Works for all variables ! Great !  
+      
+      
+
+
+
+-- Uses the result above to transfom a Binary of a size into a Binary of another size, because these two sizes are equal, thanks to the property of the commutative monoid Nat.
+-- l is the length of the Binary   
+goal_aux : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat)
+               -> (known : (plus (plus c bit0) bit1 = plus x1 (plus x (plus x Z)))) ->
+           (Maybe (Binary l (plus x1 
+                                (plus 
+                                    (plus 
+                                        (plus x v) 
+                                        v1)
+                                    (plus 
+                                        (plus 
+                                            (plus x v) 
+                                            v1) 
+                                        Z)
+                                )
+                        )
+		  -> Binary l (plus 
+                            (plus c 
+                                   (plus bit0 
+                                          (plus v 
+                                                (plus v Z)
+                                           )
+                                    )
+                             )
+                             (plus bit1 
+                                    (plus v1 (plus v1 Z))
+                             )
+                         )
+		    ))
+goal_aux l c bit0 bit1 x x1 v v1 known = 
+  case goal c bit0 bit1 x x1 v v1 known of
+    Just p => ?Mgoal_aux_1
+    Nothing => Nothing
+   
+    
+
+-- This is NOT total   
+getJust : {a:Type} -> (Maybe a) -> a
+getJust (Just x) = x
+
+    
+-- Same as above, except that we forget that the result could be a "Nothing"             
+goal_final : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat)
+               -> (known : (plus (plus c bit0) bit1 = plus x1 (plus x (plus x Z)))) ->
+           (Binary l (plus x1 
+                                (plus 
+                                    (plus 
+                                        (plus x v) 
+                                        v1)
+                                    (plus 
+                                        (plus 
+                                            (plus x v) 
+                                            v1) 
+                                        Z)
+                                )
+                        )
+		  -> Binary l (plus 
+                            (plus c 
+                                   (plus bit0 
+                                          (plus v 
+                                                (plus v Z)
+                                           )
+                                    )
+                             )
+                             (plus bit1 
+                                    (plus v1 (plus v1 Z))
+                             )
+                         )
+		    )
+goal_final l c bit0 bit1 x x1 v v1 known = getJust (goal_aux l c bit0 bit1 x x1 v v1 known)
+
+
+
+
+
+
+
+---------- Proofs ----------
+-- Old proof, done by hand
+{-
+Main.adc_lemma_2 = proof {
+    intro c,w,v,bit0,num0;
+    intro b0,v1,bit1,num1,b1;
+    intro bc,x,x1,bX,bX1;
+    rewrite sym (plusZeroRightNeutral x);
+    rewrite sym (plusZeroRightNeutral v1);
+    rewrite sym (plusZeroRightNeutral (plus (plus x v) v1));
+    rewrite sym (plusZeroRightNeutral v);
+    intro thing1,thing2;
+    rewrite sym (plusAssociative (plus c (plus bit0 (plus v v))) bit1 (plus v1 v1));
+    rewrite (plusAssociative c (plus bit0 (plus v v)) bit1);
+    rewrite (plusAssociative bit0 (plus v v) bit1);
+    rewrite plusCommutative bit1 (plus v v);
+    rewrite sym (plusAssociative c bit0 (plus bit1 (plus v v)));
+    rewrite sym (plusAssociative (plus c bit0) bit1 (plus v v));
+    rewrite sym thing1;
+    rewrite plusAssociative x1 (plus x x) (plus v v);
+    rewrite plusAssociative x x (plus v v);
+    rewrite sym (plusAssociative x v v);
+    rewrite plusCommutative v (plus x v);
+    rewrite sym (plusAssociative x v (plus x v));
+    rewrite (plusAssociative x1 (plus (plus x v) (plus x v)) (plus v1 v1));
+    rewrite sym (plusAssociative (plus (plus x v) (plus x v)) v1 v1);
+    rewrite (plusAssociative (plus x v) (plus x v) v1);
+    rewrite (plusCommutative v1 (plus x v));
+    rewrite sym (plusAssociative (plus x v) v1 (plus x v));
+    rewrite (plusAssociative (plus (plus x v) v1) (plus x v) v1);
+    trivial;
+}
+-}
+Main.Mgoal_1 = proof
+  intros
+  rewrite leftKnown_equals_leftKnown'bis
+  rewrite rightKnown_equals_rightKnown'bis
+  rewrite known
+  exact refl
+
+Main.Mgoal_2 = proof
+  intros
+  mrefine Just
+  rewrite (sym LHS_equals_LHS'bis) 
+  rewrite (sym RHS_equals_RHS'bis) 
+  rewrite newKnownEquality 
+  exact refl
+
+Main.Mgoal_aux_1 = proof
+  intros
+  rewrite p
+  exact (Just (\x => x))
+
+
+
+-- New proof, with our new bit of automation !!!
+Main.adc_lemma_2 = proof
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro
+  intro equalityKnown
+  exact (goal_final (S (S w)) c bit bit1 vCarry0 vLsb v v1 equalityKnown)
+
+Main.adc_lemma_1 = proof {
+    intros;
+    rewrite sym (plusZeroRightNeutral c) ;
+    trivial;
+}
+
+
+
+
+
+
