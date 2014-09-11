@@ -240,7 +240,7 @@ goal c bit0 bit1 x x1 v v1 known =
 
 
 
--- Uses the result above to transfom a Binary of a size into a Binary of another size, because these two sizes are equal, thanks to the property of the commutative monoid Nat.
+-- Uses the result above to transfom a Binary encoding a natural into a binary encoding another natural, because these two naturals are equal, thanks to the property of the commutative monoid Nat.
 -- l is the length of the Binary   
 goal_aux : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat)
