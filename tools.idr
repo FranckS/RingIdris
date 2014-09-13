@@ -23,10 +23,10 @@ left (x,y) = x
 right : {A:Type} -> {B:Type} -> (A,B) -> B
 right (x,y) = y
 
-leftDep : {A:Type} -> {B:A->Type} -> (x : Exists A B) -> A
+leftDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> A
 leftDep (a ** b) = a
 
-rightDep : {A:Type} -> {B:A->Type} -> (x:Exists A B) -> B (leftDep x)
+rightDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> B (leftDep x)
 rightDep (a ** b) = b
 
 {-

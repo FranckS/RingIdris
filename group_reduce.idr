@@ -441,7 +441,7 @@ group_reduce.Melim_plusInverse_3 = proof
   
 group_reduce.Melim_plusInverse_4 = proof
   intros
-  rewrite (sym(left(Plus_inverse c2)))
+  rewrite (sym(left(Plus_inverse c1)))
   mrefine refl  
 
 group_reduce.Melim_plusInverse_5 = proof
@@ -459,8 +459,8 @@ group_reduce.Melim_plusInverse_6 = proof
 group_reduce.MplusInverse_assoc_1 = proof
   intros
   rewrite p_e3'
-  rewrite (Plus_assoc c3 (Neg c3) c2)
-  rewrite (sym(left(Plus_inverse c3)))
+  rewrite (Plus_assoc c1 (Neg c1) c2)
+  rewrite (sym(left(Plus_inverse c1)))
   mrefine Plus_neutral_1
 
 group_reduce.MplusInverse_assoc_2 = proof
@@ -473,8 +473,8 @@ group_reduce.MplusInverse_assoc_2 = proof
 group_reduce.MplusInverse_assoc_3 = proof
   intros
   rewrite p_e3'
-  rewrite (Plus_assoc (Neg c2) c2 c3)
-  rewrite (sym(right(Plus_inverse c2)))
+  rewrite (Plus_assoc (Neg c1) c1 c3)
+  rewrite (sym(right(Plus_inverse c1)))
   mrefine Plus_neutral_1  
 
 group_reduce.MplusInverse_assoc_4 = proof
@@ -487,8 +487,8 @@ group_reduce.MplusInverse_assoc_4 = proof
 group_reduce.MplusInverse_assoc_5 = proof
   intros
   rewrite p_e1'
-  rewrite (sym(Plus_assoc c1 c3 (Neg c3)))
-  rewrite (sym(left(Plus_inverse c3)))
+  rewrite (sym(Plus_assoc c1 c2 (Neg c2)))
+  rewrite (sym(left(Plus_inverse c2)))
   mrefine Plus_neutral_2
   
 group_reduce.MplusInverse_assoc_6 = proof
@@ -522,8 +522,8 @@ group_reduce.MplusInverse_assoc'_1 = proof
   intros
   rewrite p_e1' 
   rewrite p_e4' 
-  rewrite (groupAssoc_4terms c p c1 c4 (Neg c4) c3)
-  rewrite (sym (left (Plus_inverse c4)))
+  rewrite (groupAssoc_4terms c p c1 c2 (Neg c2) c3)
+  rewrite (sym (left (Plus_inverse c2)))
   rewrite (sym(Plus_neutral_2  c1))
   exact refl
   
@@ -539,8 +539,8 @@ group_reduce.MplusInverse_assoc'_3 = proof
   intros
   rewrite p_e1' 
   rewrite p_e4' 
-  rewrite (groupAssoc_4terms c p c1 (Neg c3) c3 c4)
-  rewrite (sym (right(Plus_inverse c3)))
+  rewrite (groupAssoc_4terms c p c1 (Neg c2) c2 c4)
+  rewrite (sym (right(Plus_inverse c2)))
   rewrite (sym(Plus_neutral_2 c1))
   exact refl  
     
