@@ -4,10 +4,10 @@
 -- Normalize an expression reflecting an element in a magma
 -------------------------------------------------------------------
 
-module magma_reduce
+module Solver.magma_reduce
 
 import Decidable.Equality
-import dataTypes
+import Solver.dataTypes
 
 
 %default total
@@ -39,14 +39,14 @@ magmaDecideEq p e1 e2 =
 
 
 ---------- Proofs ----------                
-magma_reduce.MmagmaReduce1 = proof {
+Solver.magma_reduce.MmagmaReduce1 = proof {
   intros;
   rewrite p_ih1;
   rewrite p_ih2;
   trivial;
 }
 
-magma_reduce.MbuildProofMagma = proof {
+Solver.magma_reduce.MbuildProofMagma = proof {
   intros;
   refine Just;
   rewrite( sym lp);

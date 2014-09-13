@@ -4,15 +4,15 @@
 -- test the normalization for group
 -------------------------------------------------------------------
 
-module group_test
+module Solver.group_test
 
 import Prelude.Vect
-import globalDef
-import dataTypes
-import group_reduce
-import monoid_reduce
-import monoid_test
-import magma_test
+import Solver.globalDef
+import Solver.dataTypes
+import Solver.group_reduce
+import Solver.monoid_reduce
+import Solver.monoid_test
+import Solver.magma_test
 --import Data.ZZ
 
 

@@ -4,12 +4,12 @@
 -- test the normalization for magma
 -------------------------------------------------------------------
 
-module magma_test
+module Solver.magma_test
 
 import Prelude.Vect
-import globalDef
-import dataTypes
-import magma_reduce
+import Solver.globalDef
+import Solver.dataTypes
+import Solver.magma_reduce
 
 
 

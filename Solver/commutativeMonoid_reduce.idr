@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a commutative monoid
 -------------------------------------------------------------------
 
-module commutativeMonoid_reduce
+module Solver.commutativeMonoid_reduce
 
 import Decidable.Equality
-import dataTypes
-import monoid_reduce
-import tools
+import Solver.dataTypes
+import Solver.monoid_reduce
+import Solver.tools
 import Prelude.Vect
 
 
@@ -125,77 +125,77 @@ commutativeMonoidDecideEq p e1 e2 =
 
 ---------- Proofs ----------  
 
-commutativeMonoid_reduce.Massoc_commute_and_assoc'_1 = proof
+Solver.commutativeMonoid_reduce.Massoc_commute_and_assoc'_1 = proof
   intros
   rewrite (sym aux)
   rewrite (sym aux2)
   rewrite (sym aux3)
   exact refl
 
-commutativeMonoid_reduce.MputVarOnPlace_cm_1 = proof
+Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_1 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc         
         
-commutativeMonoid_reduce.MputVarOnPlace_cm_2 = proof
+Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_2 = proof
   intros
   mrefine Plus_comm'
         
-commutativeMonoid_reduce.MputVarOnPlace_cm_3 = proof
+Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_3 = proof
   intros
   mrefine Plus_comm'
 
-commutativeMonoid_reduce.MputVarOnPlace_cm_4 = proof
+Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_4 = proof
   intros
   mrefine Plus_comm'
         
-commutativeMonoid_reduce.MputVarOnPlace_cm_5 = proof
+Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_5 = proof
   intros
   mrefine Plus_comm'
 
-commutativeMonoid_reduce.MputConstantOnPlace_cm_1 = proof
+Solver.commutativeMonoid_reduce.MputConstantOnPlace_cm_1 = proof
   intros
   mrefine assoc_commute_and_assoc'
 
-commutativeMonoid_reduce.MputConstantOnPlace_cm_2 = proof
+Solver.commutativeMonoid_reduce.MputConstantOnPlace_cm_2 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc
 
-commutativeMonoid_reduce.Mreorganize_cm_1 = proof
+Solver.commutativeMonoid_reduce.Mreorganize_cm_1 = proof
   intros
   rewrite p_add
   rewrite p_ihn
   mrefine Plus_comm'
 
-commutativeMonoid_reduce.Mreorganize_cm_2 = proof
+Solver.commutativeMonoid_reduce.Mreorganize_cm_2 = proof
   intros
   rewrite p_add
   rewrite p_ihn
   mrefine Plus_comm'
 
-commutativeMonoid_reduce.MelimZeroCM1 = proof
+Solver.commutativeMonoid_reduce.MelimZeroCM1 = proof
   intros
   mrefine Plus_neutral_1
 
-commutativeMonoid_reduce.MelimZeroCM2 = proof
+Solver.commutativeMonoid_reduce.MelimZeroCM2 = proof
   intros
   mrefine Plus_neutral_2
 
-commutativeMonoid_reduce.MelimZeroCM3 = proof
+Solver.commutativeMonoid_reduce.MelimZeroCM3 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl
 
-commutativeMonoid_reduce.McommutativeMonoidReduce_1 = proof
+Solver.commutativeMonoid_reduce.McommutativeMonoidReduce_1 = proof
   intros
   rewrite p_5
   rewrite p_4
   rewrite p_2
   exact refl
 
-commutativeMonoid_reduce.MbuildProofCommutativeMonoid = proof
+Solver.commutativeMonoid_reduce.MbuildProofCommutativeMonoid = proof
   intros
   refine Just
   rewrite (sym lp)

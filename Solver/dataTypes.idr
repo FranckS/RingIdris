@@ -4,7 +4,7 @@
 -- Groups, commutative groups, rings, commutative rings, and corresponding reflected terms
 -------------------------------------------------------------------
 
-module dataTypes
+module Solver.dataTypes
 
 
 %default total

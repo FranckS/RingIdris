@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a semi-group
 -------------------------------------------------------------------
 
-module semiGroup_reduce
+module Solver.semiGroup_reduce
 
 import Decidable.Equality
-import dataTypes
-import magma_reduce
-import tools
+import Solver.dataTypes
+import Solver.magma_reduce
+import Solver.tools
 
 
 --%default total
@@ -122,7 +122,7 @@ semiGroupDecideEq p e1 e2 =
 
 
 ---------- Proofs ----------
-semiGroup_reduce.Massoc1 = proof {
+Solver.semiGroup_reduce.Massoc1 = proof {
   intros;
   rewrite p_ih1;
   rewrite p_ih2;
@@ -131,14 +131,14 @@ semiGroup_reduce.Massoc1 = proof {
   trivial;
 }
 
-semiGroup_reduce.Massoc2 = proof {
+Solver.semiGroup_reduce.Massoc2 = proof {
   intros;
   rewrite p_ih1 ;
   rewrite p_2;
   mrefine Plus_assoc;
 }
 
-semiGroup_reduce.Massoc3 = proof {
+Solver.semiGroup_reduce.Massoc3 = proof {
   intros;
   rewrite p_ih1 ;
   rewrite p_2;
@@ -146,14 +146,14 @@ semiGroup_reduce.Massoc3 = proof {
   trivial;
 }
 
-semiGroup_reduce.Massoc4 = proof {
+Solver.semiGroup_reduce.Massoc4 = proof {
   intros;
   rewrite p_3;
   rewrite p_4;
   trivial;
 }
 
-semiGroup_reduce.Massoc5 = proof {
+Solver.semiGroup_reduce.Massoc5 = proof {
   intros;
   rewrite p_final ;
   rewrite p_3;
@@ -161,34 +161,26 @@ semiGroup_reduce.Massoc5 = proof {
   trivial;
 }
 
-semiGroup_reduce.MaddAfter1 = proof {
+Solver.semiGroup_reduce.MaddAfter1 = proof {
   intros;
   rewrite (sym p_ih1);
   rewrite (Plus_assoc c1 c3 c2);
   trivial;
 }
 
-semiGroup_reduce.MshuffleRight1 = proof {
+Solver.semiGroup_reduce.MshuffleRight1 = proof {
   intros;
   rewrite p_ih1 ;
   trivial;
 }
 
-semiGroup_reduce.MshuffleRight2 = proof {
+Solver.semiGroup_reduce.MshuffleRight2 = proof {
   intros;
   rewrite p_ih1 ;
   trivial;
 }
 
-semiGroup_reduce.MshuffleRight3 = proof {
-  intros;
-  rewrite p_2;
-  rewrite (sym p_2);
-  rewrite p_ih1 ;
-  trivial;
-}
-
-semiGroup_reduce.MshuffleRight4 = proof {
+Solver.semiGroup_reduce.MshuffleRight3 = proof {
   intros;
   rewrite p_2;
   rewrite (sym p_2);
@@ -196,7 +188,15 @@ semiGroup_reduce.MshuffleRight4 = proof {
   trivial;
 }
 
-semiGroup_reduce.MshuffleRight5 = proof {
+Solver.semiGroup_reduce.MshuffleRight4 = proof {
+  intros;
+  rewrite p_2;
+  rewrite (sym p_2);
+  rewrite p_ih1 ;
+  trivial;
+}
+
+Solver.semiGroup_reduce.MshuffleRight5 = proof {
   intros;
   rewrite (sym p_3);
   rewrite p_ih1;
@@ -204,14 +204,14 @@ semiGroup_reduce.MshuffleRight5 = proof {
   trivial;
 }
 
-semiGroup_reduce.MsemiGroupReduce1 = proof {
+Solver.semiGroup_reduce.MsemiGroupReduce1 = proof {
   intros;
   rewrite p_shuffle ;
   rewrite p_assoc ;
   trivial;
 }
 
-semiGroup_reduce.MbuildProofSemiGroup = proof {
+Solver.semiGroup_reduce.MbuildProofSemiGroup = proof {
   intros;
   refine Just;
   rewrite( sym lp);

@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a group
 -------------------------------------------------------------------
 
-module group_reduce
+module Solver.group_reduce
 
 import Decidable.Equality
-import dataTypes
-import monoid_reduce
-import tools
+import Solver.dataTypes
+import Solver.monoid_reduce
+import Solver.tools
 import Prelude.Vect
 
 --%default total
@@ -326,199 +326,199 @@ mutual
 
   
 ---------- Proofs ----------
-group_reduce.MelimMinus1 = proof
+Solver.group_reduce.MelimMinus1 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   trivial
 
-group_reduce.MelimMinus2 = proof
+Solver.group_reduce.MelimMinus2 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   mrefine Minus_simpl
   
-group_reduce.MelimMinus3 = proof
+Solver.group_reduce.MelimMinus3 = proof
   intros
   rewrite p_ih1 
   trivial
   
-group_reduce.MpropagateNeg_1 = proof
+Solver.group_reduce.MpropagateNeg_1 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   mrefine push_negation
   
-group_reduce.MpropagateNeg_2 = proof
+Solver.group_reduce.MpropagateNeg_2 = proof
   intros
   rewrite p_ih1 
   mrefine refl
   
-group_reduce.MpropagateNeg_3 = proof
+Solver.group_reduce.MpropagateNeg_3 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   mrefine refl
   
-group_reduce.MpropagateNeg_fix_1 = proof
+Solver.group_reduce.MpropagateNeg_fix_1 = proof
   intros
   rewrite p_ih1 
   exact p_1
    
-group_reduce.MelimDoubleNeg_1 = proof
+Solver.group_reduce.MelimDoubleNeg_1 = proof
   intros
   rewrite p_ih1
   mrefine group_doubleNeg
   
-group_reduce.MelimDoubleNeg_2 = proof
+Solver.group_reduce.MelimDoubleNeg_2 = proof
   intros
   rewrite p_ih1
   mrefine refl
   
-group_reduce.MelimDoubleNeg_3 = proof
+Solver.group_reduce.MelimDoubleNeg_3 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   mrefine refl  
 
-group_reduce.Mfold_negative_constant_1 = proof
+Solver.group_reduce.Mfold_negative_constant_1 = proof
   intros
   mrefine sym
   mrefine push_negation
   
-group_reduce.Mfold_negative_constant_2 = proof
+Solver.group_reduce.Mfold_negative_constant_2 = proof
   intros
   rewrite p_ih
   exact refl
 
-group_reduce.Mfold_negative_constant_3 = proof
+Solver.group_reduce.Mfold_negative_constant_3 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl
 
-group_reduce.Mfold_negative_constant_fix_1 = proof
+Solver.group_reduce.Mfold_negative_constant_fix_1 = proof
   intros
   rewrite p_ih1
   rewrite p_1
   exact refl
 
-group_reduce.Mencode_1 = proof
+Solver.group_reduce.Mencode_1 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl
 
-group_reduce.Mdecode_1 = proof
+Solver.group_reduce.Mdecode_1 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl
 
-group_reduce.Mcode_reduceM_andDecode_1 = proof
+Solver.group_reduce.Mcode_reduceM_andDecode_1 = proof
   intros
   rewrite (sym pEncode )
   rewrite (sym pReduce  )
   rewrite (sym pDecode )
   exact refl    
   
-group_reduce.Melim_plusInverse_1 = proof
+Solver.group_reduce.Melim_plusInverse_1 = proof
   intros
   rewrite p_e1'
   rewrite p_e2'
   mrefine refl
   
-group_reduce.Melim_plusInverse_2 = proof
+Solver.group_reduce.Melim_plusInverse_2 = proof
   intros
   rewrite (sym(right(Plus_inverse c2)))
   trivial
 
-group_reduce.Melim_plusInverse_3 = proof
+Solver.group_reduce.Melim_plusInverse_3 = proof
   intros
   rewrite p_e1'
   rewrite p_e2'
   mrefine refl   
   
-group_reduce.Melim_plusInverse_4 = proof
+Solver.group_reduce.Melim_plusInverse_4 = proof
   intros
   rewrite (sym(left(Plus_inverse c1)))
   mrefine refl  
 
-group_reduce.Melim_plusInverse_5 = proof
+Solver.group_reduce.Melim_plusInverse_5 = proof
   intros
   rewrite p_e1'
   rewrite p_e2'
   mrefine refl  
   
-group_reduce.Melim_plusInverse_6 = proof
+Solver.group_reduce.Melim_plusInverse_6 = proof
   intros
   rewrite p_e1' 
   rewrite p_e2'
   mrefine refl
   
-group_reduce.MplusInverse_assoc_1 = proof
+Solver.group_reduce.MplusInverse_assoc_1 = proof
   intros
   rewrite p_e3'
   rewrite (Plus_assoc c1 (Neg c1) c2)
   rewrite (sym(left(Plus_inverse c1)))
   mrefine Plus_neutral_1
 
-group_reduce.MplusInverse_assoc_2 = proof
+Solver.group_reduce.MplusInverse_assoc_2 = proof
   intros
   rewrite p_e1'
   rewrite p_e2'
   rewrite p_e3'
   mrefine refl
   
-group_reduce.MplusInverse_assoc_3 = proof
+Solver.group_reduce.MplusInverse_assoc_3 = proof
   intros
   rewrite p_e3'
   rewrite (Plus_assoc (Neg c1) c1 c3)
   rewrite (sym(right(Plus_inverse c1)))
   mrefine Plus_neutral_1  
 
-group_reduce.MplusInverse_assoc_4 = proof
+Solver.group_reduce.MplusInverse_assoc_4 = proof
   intros
   rewrite p_e1'
   rewrite p_e2'
   rewrite p_e3'
   mrefine refl
 
-group_reduce.MplusInverse_assoc_5 = proof
+Solver.group_reduce.MplusInverse_assoc_5 = proof
   intros
   rewrite p_e1'
   rewrite (sym(Plus_assoc c1 c2 (Neg c2)))
   rewrite (sym(left(Plus_inverse c2)))
   mrefine Plus_neutral_2
   
-group_reduce.MplusInverse_assoc_6 = proof
+Solver.group_reduce.MplusInverse_assoc_6 = proof
   intros
   rewrite p_e1'
   rewrite p_e2'
   rewrite p_e3'
   mrefine refl
 	
-group_reduce.MplusInverse_assoc_7 = proof
+Solver.group_reduce.MplusInverse_assoc_7 = proof
   intros
   rewrite p_e1'
   rewrite (sym(Plus_assoc c1 (Neg c2) c2))
   rewrite (sym(right(Plus_inverse c2)))
   mrefine Plus_neutral_2
 
-group_reduce.MplusInverse_assoc_8 = proof
+Solver.group_reduce.MplusInverse_assoc_8 = proof
   intros
   rewrite p_e1'
   rewrite p_e2'
   rewrite p_e3'
   mrefine refl
    
-group_reduce.MplusInverse_assoc_9 = proof
+Solver.group_reduce.MplusInverse_assoc_9 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   mrefine refl
   
-group_reduce.MplusInverse_assoc'_1 = proof
+Solver.group_reduce.MplusInverse_assoc'_1 = proof
   intros
   rewrite p_e1' 
   rewrite p_e4' 
@@ -527,7 +527,7 @@ group_reduce.MplusInverse_assoc'_1 = proof
   rewrite (sym(Plus_neutral_2  c1))
   exact refl
   
-group_reduce.MplusInverse_assoc'_2 = proof
+Solver.group_reduce.MplusInverse_assoc'_2 = proof
   intros
   rewrite p_e1' 
   rewrite p_e2' 
@@ -535,7 +535,7 @@ group_reduce.MplusInverse_assoc'_2 = proof
   rewrite p_e4' 
   exact refl
 
-group_reduce.MplusInverse_assoc'_3 = proof
+Solver.group_reduce.MplusInverse_assoc'_3 = proof
   intros
   rewrite p_e1' 
   rewrite p_e4' 
@@ -544,7 +544,7 @@ group_reduce.MplusInverse_assoc'_3 = proof
   rewrite (sym(Plus_neutral_2 c1))
   exact refl  
     
-group_reduce.MplusInverse_assoc'_4 = proof
+Solver.group_reduce.MplusInverse_assoc'_4 = proof
   intros
   rewrite p_e1' 
   rewrite p_e2' 
@@ -552,7 +552,7 @@ group_reduce.MplusInverse_assoc'_4 = proof
   rewrite p_e4' 
   exact refl
         
-group_reduce.Mpre_groupReduce_1 = proof
+Solver.group_reduce.Mpre_groupReduce_1 = proof
   intros
   rewrite p_8
   rewrite p_7
@@ -564,13 +564,13 @@ group_reduce.Mpre_groupReduce_1 = proof
   rewrite p_1
   exact refl 
   
-group_reduce.Mgroup_Reduce_1 = proof
+Solver.group_reduce.Mgroup_Reduce_1 = proof
   intros
   rewrite p''
   rewrite p'
   exact refl
     
-group_reduce.MbuildProofGroup = proof
+Solver.group_reduce.MbuildProofGroup = proof
   intros
   refine Just 
   rewrite (sym lp)

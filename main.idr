@@ -13,24 +13,24 @@
 
 module Main
 
-import tools
-import mathsResults
-import dataTypes
-import magma_reduce
-import semiGroup_reduce
-import monoid_reduce
-import commutativeMonoid_reduce -- NEW
-import group_reduce
-import commutativeGroup_reduce
+import Solver.tools
+import Solver.mathsResults
+import Solver.dataTypes
+import Solver.magma_reduce
+import Solver.semiGroup_reduce
+import Solver.monoid_reduce
+import Solver.commutativeMonoid_reduce -- NEW
+import Solver.group_reduce
+import Solver.commutativeGroup_reduce
 --import commRing_reduce
 --import testNat
 --import testZZ
-import magma_test
-import semiGroup_test
-import monoid_test
-import commutativeMonoid_test
-import group_test
-import commutativeGroup_test
+import Solver.magma_test
+import Solver.semiGroup_test
+import Solver.monoid_test
+import Solver.commutativeMonoid_test
+import Solver.group_test
+import Solver.commutativeGroup_test
 
 
 

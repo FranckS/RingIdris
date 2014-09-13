@@ -4,13 +4,13 @@
 -- test the normalization for monoid
 -------------------------------------------------------------------
 
-module monoid_test
+module Solver.monoid_test
 
 import Prelude.Vect
-import globalDef
-import dataTypes
-import monoid_reduce
-import semiGroup_test
+import Solver.globalDef
+import Solver.dataTypes
+import Solver.monoid_reduce
+import Solver.semiGroup_test
 
 
 instance ZeroC Nat where
@@ -42,14 +42,14 @@ proof_a_b x = let (Just ok) = compare_a_b x in ok
 
 
 ---------- Proofs ----------
-monoid_test.M_Nat_Monoid_1 = proof
+Solver.monoid_test.M_Nat_Monoid_1 = proof
   intro
   trivial
 
-monoid_test.M_Nat_Monoid_2 = proof
+Solver.monoid_test.M_Nat_Monoid_2 = proof
   trivial
 
-monoid_test.M_Nat_Monoid_3 = proof
+Solver.monoid_test.M_Nat_Monoid_3 = proof
   intros
   rewrite px
   trivial
