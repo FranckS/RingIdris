@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a commutative group
 -------------------------------------------------------------------
 
-module commutativeGroup_reduce
+module Solver.commutativeGroup_reduce
 
 import Decidable.Equality
-import dataTypes
-import group_reduce
-import tools
+import Solver.dataTypes
+import Solver.group_reduce
+import Solver.tools
 import Prelude.Vect
 
 -- Order : Variable (in order) and then constants
@@ -277,222 +277,222 @@ commutativeGroupDecideEq p e1 e2 =
 		
 		
 ---------- Proofs ----------
-commutativeGroup_reduce.Massoc_and_commute_1 = proof
+Solver.commutativeGroup_reduce.Massoc_and_commute_1 = proof
   intros
   rewrite (sym aux)
   mrefine Plus_comm
   
-commutativeGroup_reduce.Massoc_commute_and_assoc_1 = proof
+Solver.commutativeGroup_reduce.Massoc_commute_and_assoc_1 = proof
   intros
   rewrite (sym aux)
   rewrite (sym aux2)
   rewrite (sym aux3)
   exact refl  
 
-commutativeGroup_reduce.Massoc_and_neutral_1 = proof
+Solver.commutativeGroup_reduce.Massoc_and_neutral_1 = proof
   intros
   rewrite (sym aux)
   rewrite (sym aux2)
   rewrite (sym aux3)
   exact refl 
   
-commutativeGroup_reduce.Massoc_and_neutral_bis_1 = proof
+Solver.commutativeGroup_reduce.Massoc_and_neutral_bis_1 = proof
   intros
   rewrite (sym aux)
   rewrite (sym aux2)
   rewrite (sym aux3)
   exact refl  
     
-commutativeGroup_reduce.MputVarOnPlace_1 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_1 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc
   
-commutativeGroup_reduce.MputVarOnPlace_2 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_2 = proof
   intros
   mrefine Plus_comm 
 
-commutativeGroup_reduce.MputVarOnPlace_3 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_3 = proof
   intros
   mrefine Plus_comm 
   
-commutativeGroup_reduce.MputVarOnPlace_4 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_4 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc
   
-commutativeGroup_reduce.MputVarOnPlace_5 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_5 = proof
   intros
   mrefine Plus_comm 
 
-commutativeGroup_reduce.MputVarOnPlace_6 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_6 = proof
   intros
   mrefine Plus_comm
 
-commutativeGroup_reduce.MputVarOnPlace_7 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_7 = proof
   intros
   mrefine Plus_comm   
   
-commutativeGroup_reduce.MputVarOnPlace_8 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_8 = proof
   intros
   mrefine Plus_comm
 
-commutativeGroup_reduce.MputVarOnPlace_9 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_9 = proof
   intros
   mrefine Plus_comm 
     
-commutativeGroup_reduce.MputVarOnPlace_10 = proof
+Solver.commutativeGroup_reduce.MputVarOnPlace_10 = proof
   intros
   mrefine Plus_comm   
   
-commutativeGroup_reduce.MputConstantOnPlace_1 = proof
+Solver.commutativeGroup_reduce.MputConstantOnPlace_1 = proof
   intros
   mrefine assoc_commute_and_assoc 
   
-commutativeGroup_reduce.MputConstantOnPlace_2 = proof
+Solver.commutativeGroup_reduce.MputConstantOnPlace_2 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc
   
-commutativeGroup_reduce.MputConstantOnPlace_3 = proof
+Solver.commutativeGroup_reduce.MputConstantOnPlace_3 = proof
   intros
   mrefine assoc_commute_and_assoc    
 
-commutativeGroup_reduce.MputConstantOnPlace_4 = proof
+Solver.commutativeGroup_reduce.MputConstantOnPlace_4 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc 
 
-commutativeGroup_reduce.MputNegVarOnPlace_1 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_1 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc 
 
-commutativeGroup_reduce.MputNegVarOnPlace_2 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_2 = proof
   intros
   mrefine Plus_comm 
 
-commutativeGroup_reduce.MputNegVarOnPlace_3 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_3 = proof
   intros
   mrefine Plus_comm 
   
-commutativeGroup_reduce.MputNegVarOnPlace_4 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_4 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc
   
-commutativeGroup_reduce.MputNegVarOnPlace_5 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_5 = proof
   intros
   mrefine Plus_comm 
 
-commutativeGroup_reduce.MputNegVarOnPlace_6 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_6 = proof
   intros
   mrefine Plus_comm  
   
-commutativeGroup_reduce.MputNegVarOnPlace_7 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_7 = proof
   intros
   mrefine Plus_comm   
   
-commutativeGroup_reduce.MputNegVarOnPlace_8 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_8 = proof
   intros
   mrefine Plus_comm
 
-commutativeGroup_reduce.MputNegVarOnPlace_9 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_9 = proof
   intros
   mrefine Plus_comm 
     
-commutativeGroup_reduce.MputNegVarOnPlace_10 = proof
+Solver.commutativeGroup_reduce.MputNegVarOnPlace_10 = proof
   intros
   mrefine Plus_comm     
   
-commutativeGroup_reduce.MputNegConstantOnPlace_1 = proof
+Solver.commutativeGroup_reduce.MputNegConstantOnPlace_1 = proof
   intros
   mrefine assoc_commute_and_assoc 
 
-commutativeGroup_reduce.MputNegConstantOnPlace_2 = proof
+Solver.commutativeGroup_reduce.MputNegConstantOnPlace_2 = proof
   intros
   rewrite p_ihn 
   mrefine  Plus_assoc 
 
-commutativeGroup_reduce.MputNegConstantOnPlace_3 = proof
+Solver.commutativeGroup_reduce.MputNegConstantOnPlace_3 = proof
   intros
   mrefine assoc_commute_and_assoc 
   
-commutativeGroup_reduce.MputNegConstantOnPlace_4 = proof
+Solver.commutativeGroup_reduce.MputNegConstantOnPlace_4 = proof
   intros
   rewrite p_ihn 
   mrefine Plus_assoc 
 
-commutativeGroup_reduce.Mreorganize_1 = proof
+Solver.commutativeGroup_reduce.Mreorganize_1 = proof
   intros
   rewrite p_add 
   rewrite p_ihn 
   mrefine Plus_comm 
   
-commutativeGroup_reduce.Mreorganize_2 = proof
+Solver.commutativeGroup_reduce.Mreorganize_2 = proof
   intros
   rewrite p_add 
   rewrite p_ihn 
   mrefine Plus_comm 
 
-commutativeGroup_reduce.Mreorganize_3 = proof
+Solver.commutativeGroup_reduce.Mreorganize_3 = proof
   intros
   rewrite p_add
   rewrite p_ihn 
   mrefine Plus_comm  
   
-commutativeGroup_reduce.Mreorganize_4 = proof
+Solver.commutativeGroup_reduce.Mreorganize_4 = proof
   intros
   rewrite p_add 
   rewrite p_ihn 
   mrefine Plus_comm 
 
-commutativeGroup_reduce.MsimplifyAfterReorg_1 = proof
+Solver.commutativeGroup_reduce.MsimplifyAfterReorg_1 = proof
   intros
   rewrite p_ihn 
   mrefine assoc_and_neutral 
     
-commutativeGroup_reduce.MsimplifyAfterReorg_2 = proof
+Solver.commutativeGroup_reduce.MsimplifyAfterReorg_2 = proof
   intros
   rewrite p_ihn 
   mrefine assoc_and_neutral_bis  
   
-commutativeGroup_reduce.MsimplifyAfterReorg_3 = proof
+Solver.commutativeGroup_reduce.MsimplifyAfterReorg_3 = proof
   intros
   rewrite p_ihn 
   exact refl
   
-commutativeGroup_reduce.MsimplifyAfterReorg_4 = proof
+Solver.commutativeGroup_reduce.MsimplifyAfterReorg_4 = proof
   intros
   rewrite (sym (left (Plus_inverse (index_reverse i0 g))))
   exact refl
   
-commutativeGroup_reduce.MsimplifyAfterReorg_5 = proof
+Solver.commutativeGroup_reduce.MsimplifyAfterReorg_5 = proof
   intros
   rewrite (sym (right (Plus_inverse (index_reverse i0 g))))
   exact refl
   
-commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
+Solver.commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
   intros
   rewrite (sym p_1)
   rewrite (sym p_ih1)
   exact refl
   
-commutativeGroup_reduce.MelimZeroCG1 = proof
+Solver.commutativeGroup_reduce.MelimZeroCG1 = proof
   intros
   mrefine Plus_neutral_1
 
-commutativeGroup_reduce.MelimZeroCG2 = proof
+Solver.commutativeGroup_reduce.MelimZeroCG2 = proof
   intros
   mrefine Plus_neutral_2
   
-commutativeGroup_reduce.MelimZeroCG3 = proof
+Solver.commutativeGroup_reduce.MelimZeroCG3 = proof
   intros
   rewrite p_ih1
   rewrite p_ih2
   exact refl  
 
-commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
+Solver.commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
   intros
   rewrite p_6
   rewrite p_5
@@ -500,7 +500,7 @@ commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
   rewrite p_2
   exact refl  
   
-commutativeGroup_reduce.MbuildProofCommutativeGroup = proof
+Solver.commutativeGroup_reduce.MbuildProofCommutativeGroup = proof
   intros
   refine Just
   rewrite (sym lp)

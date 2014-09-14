@@ -5,12 +5,12 @@
 -- but nice enough for being formulated here
 ----------------------------------------------------------------------------------------------------------------------------------
 
-module mathsResults
+module Solver.mathsResults
 
 import Data.ZZ
-import globalDef
-import dataTypes
-import tools
+import Solver.globalDef
+import Solver.dataTypes
+import Solver.tools
 
 
 %default total
@@ -55,35 +55,35 @@ bad_push_negation_IMPLIES_commutativeGroup C p Hbad =
 
 
 ---------- Proofs ---------- 
-mathsResults.Mbad_swap_1 = proof
+Solver.mathsResults.Mbad_swap_1 = proof
   intros
   exact (push_negation C p x y)
   
-mathsResults.Mbad_swap_2 = proof
+Solver.mathsResults.Mbad_swap_2 = proof
   intros
   rewrite aux
   rewrite aux2
   mrefine refl
 
-mathsResults.Mbad_commutativity_1 = proof
+Solver.mathsResults.Mbad_commutativity_1 = proof
   intros
   rewrite aux
   rewrite aux2
   mrefine refl  
   
-mathsResults.Mbad_commutativity_2 = proof
+Solver.mathsResults.Mbad_commutativity_2 = proof
   intros
   rewrite aux4
   rewrite aux3
   mrefine refl
   
-mathsResults.Mbad_commutativity_3 = proof
+Solver.mathsResults.Mbad_commutativity_3 = proof
   intros
   rewrite aux
   rewrite aux2
   mrefine refl  
   
-mathsResults.Mbad_commutativity_4 = proof
+Solver.mathsResults.Mbad_commutativity_4 = proof
   intros
   rewrite (sym aux5)
   rewrite (sym aux6)
