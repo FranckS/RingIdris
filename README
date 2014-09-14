@@ -4,7 +4,7 @@
 -- (very) brief explanation about what's this stuff
 -------------------------------------------------------------------
 
-Version 0.2 (21/07/14)
+Version 0.3 (21/07/14)
 -----------------------
 
 This is the (early) implementation of a collection of tactics for Idris, 
@@ -19,7 +19,7 @@ only. If you wish to give a feedback, don't forget, that THIS IS STILL WORK IN
 PROGRESS. There may be bugs, the code is not clean, etc. 
 In definitive, you should not use it a for a "real" project right now.
 
-Current state (21/07/14) : 
+Current state (14/09/14) : 
 ------------------------------
 No axioms, no Meta-variable to solve
 
@@ -30,6 +30,10 @@ However, one remark :
    . We don't pass the totality checker at the moment
 
 - Monoid solver WORKS
+However, one remark :
+   . We don't pass the totality checker at the moment
+   
+- Commutative Monoid solver WORKS   
 However, one remark :
    . We don't pass the totality checker at the moment
 
@@ -50,7 +54,7 @@ How to compile it :
 Simply do :
 
 idris main.idr
-That will compiles the 5 tactics available yet + the tests for each of them.
+That will compiles the 6 tactics available yet + the tests for each of them.
 
 How to use it :
 ----------------
@@ -83,8 +87,7 @@ for a future bootstraping of Idris.
 don't "copy and paste" identic treatments at different levels : we convert our 
 terms between different structures, and we reuse every bit possible.
 For exemple, dealing with neutral elements (which appears for the first time at
-the Monoid level) is NOT reimplemented in the structures above (ie, only Group
-at the moment)
+the Monoid level) is NOT reimplemented in the structures above (ie, Group, CommutativeGroup...)
 
 About correctness and completeness :
 ----------------------------------
