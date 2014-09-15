@@ -38,8 +38,11 @@ class NegMinus c where
 -- Real stuff starts here   
 
 class Set c where
-    -- We just requires a (weak) decidable equality over the elements of the "set"
-    set_eq : (x:c) -> (y:c) -> Maybe (x=y)
+    -- We just requires a (weak) decidable relation over the elements of the "set"
+    -- which means that two elements are EQuivalent.
+    -- (Note : that's no longer an equality, but just a relation, since that's more general)
+    set_eq_undec : (x:c) -> (y:c) -> Type -- The (undecidable) relation
+    set_eq : (x:c) -> (y:c) -> Maybe(set_eq_undec x y) -- The "weak" decidable relation (week because only gives a proof when it holds)
         
 class Set c => Magma c where
     Plus : c -> c -> c -- A magma just has a plus operation, and we have no properties about it
@@ -123,25 +126,25 @@ cr_to_r_class p = %instance -- finds the instance automatically from p
 -- -----------------------------------------
 -- (getters) Equality as elements of set ---
 --------------------------------------------
-set_eq_as_elem_of_set : (Set c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+set_eq_as_elem_of_set : (Set c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
 set_eq_as_elem_of_set x = set_eq
 
 -- Magma
-magma_eq_as_elem_of_set : (Magma c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+magma_eq_as_elem_of_set : (Magma c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
 magma_eq_as_elem_of_set x = set_eq_as_elem_of_set (magma_to_set_class x)
 
 -- Semi group
 semiGroup_to_set : (SemiGroup c) -> (Set c)
 semiGroup_to_set x = (%instance)
 
-semiGroup_eq_as_elem_of_set : (SemiGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+semiGroup_eq_as_elem_of_set : (SemiGroup c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
 semiGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (semiGroup_to_set x)
 
 -- Monoid
 monoid_to_set : (dataTypes.Monoid c) -> (Set c)
 monoid_to_set x = (%instance)
 
-monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
 monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
 
 
@@ -149,7 +152,7 @@ monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
 commutativeMonoid_to_set : (CommutativeMonoid c) -> (Set c)
 commutativeMonoid_to_set x = (%instance)
 
-commutativeMonoid_eq_as_elem_of_set : (CommutativeMonoid c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+commutativeMonoid_eq_as_elem_of_set : (CommutativeMonoid c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
 commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid_to_set x)
 
 
@@ -157,7 +160,7 @@ commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid
 group_to_set : (dataTypes.Group c) -> (Set c)
 group_to_set x = (%instance)
 
-group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 
 
@@ -165,20 +168,20 @@ group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 commutativeGroup_to_set : (CommutativeGroup c) -> (Set c)
 commutativeGroup_to_set x = (%instance)
 
-commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> (Maybe (x=y)))
+commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
 commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_to_set x)
 
 -- ----------------------------
 -- ---- Reflected Terms ---- --
 -- ----------------------------
 
-data Variable : {c:Type} -> {n:Nat} -> (c_equal : (c1:c) -> (c2:c) -> Maybe(c1=c2)) -> (neg:c->c) -> (Vect n c) -> c -> Type where
-    RealVariable : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (index i g) -- neg is not used here
-    EncodingGroupTerm_var : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (neg (index i g)) -- neg is used here
+data Variable : {c:Type} -> {n:Nat} -> (c_equal : (c1:c) -> (c2:c) -> Maybe(set_eq_undec c1 c2)) -> (neg:c->c) -> (Vect n c) -> c -> Type where
+    RealVariable : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(set_eq_undec c1 c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (index i g) -- neg is not used here
+    EncodingGroupTerm_var : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(set_eq_undec c1 c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (neg (index i g)) -- neg is used here
     --EncodingGroupTerm_const : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> VariableA c_equal neg g (neg c1) -- and here
     -- Encoding fot constants is no longer needed since we can just put a constant of value (Neg c) : we can still use Neg during the conversion because we still have a Group, even though we convert to a Monoid !
 
-Variable_eq : {c:Type} -> {n:Nat} -> {c1:c} -> {c2:c} -> (c_equal:(cx:c)->(cy:c)->Maybe(cx=cy)) -> (neg:c->c) -> (g:Vect n c) -> (v1:Variable c_equal neg g c1) -> (v2:Variable c_equal neg g c2) -> Maybe (v1=v2)
+Variable_eq : {c:Type} -> {n:Nat} -> {c1:c} -> {c2:c} -> (c_equal:(cx:c)->(cy:c)->Maybe(set_eq_undec cx cy)) -> (neg:c->c) -> (g:Vect n c) -> (v1:Variable c_equal neg g c1) -> (v2:Variable c_equal neg g c2) -> Maybe (v1=v2)
 Variable_eq c_equal neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) with (decEq i1 i2)
     Variable_eq c_equal neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i1) | (Yes refl) = Just refl
     Variable_eq c_equal neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) | _ = Nothing
@@ -191,7 +194,7 @@ Variable_eq c_equal neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_va
 Variable_eq c_equal neg g _ _ = Nothing
    
       
-print_Variable : {c1:c} -> (f:c -> String) -> {c_equal:(cx:c)->(cy:c)->Maybe(cx=cy)} -> {neg:c->c} -> {g:Vect n c} -> Variable c_equal neg g c1 -> String
+print_Variable : {c1:c} -> (f:c -> String) -> {c_equal:(cx:c)->(cy:c)->Maybe Type} -> {neg:c->c} -> {g:Vect n c} -> Variable c_equal neg g c1 -> String
 print_Variable f (RealVariable _ _ _ i) = "Var " ++ (show (cast i))
 print_Variable f (EncodingGroupTerm_var _ _ _ i) = "[Encoding_var (" ++ (show(cast i)) ++ ") ]"
 --print_VariableA f (EncodingGroupTerm_const _ _ _ c1) = "[Encoding_const (" ++ (f c1) ++ ") ]"
@@ -203,16 +206,16 @@ data ExprMa : {c:Type} -> {n:Nat} -> Magma c -> (neg:c->c) -> (Vect n c) -> c ->
     PlusMa : {c:Type} -> {n:Nat} -> {p : Magma c} -> (neg:c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprMa p neg g c1 -> ExprMa p neg g c2 -> ExprMa p neg g (Plus c1 c2) 
     VarMa : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> {g:Vect n c} -> {c1:c} -> Variable (magma_eq_as_elem_of_set p) neg g c1 -> ExprMa p neg g c1
 
-exprMa_eq : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p neg g c1) -> (e2:ExprMa p neg g c2) -> (Maybe (e1=e2))
+exprMa_eq : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p neg g c1) -> (e2:ExprMa p neg g c2) -> Bool
 exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ x' y') with (exprMa_eq p neg g x x', exprMa_eq p neg g y y')
-    exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ x y) | (Just refl, Just refl) = Just refl
-    exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ _ _) | _ = Nothing
+    exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ x y) | (Just refl, Just refl) = True
+    exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ _ _) | _ = False
 exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v2) with (Variable_eq _ neg g v1 v2) -- Note : the "_" on the with clause correspond to (magma_eq_as_elem_of_set p) : both VarMo shares the same p, and given the definition of the type ExprMo, the argument c_equal is forced to be (magma_eq_as_elem_of_set p)
-    exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v1) | (Just refl) = Just refl
-    exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v2) | _ = Nothing      
+    exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v1) | (Just refl) = True
+    exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v2) | _ = False
 exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) with ((magma_eq_as_elem_of_set p) const1 const2)
-    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const1) | (Just refl) = Just refl -- Attention, the clause is with "Just refl", and not "Yes refl"
-    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) | _ = Nothing
+    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const1) | (Just refl) = True
+    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) | _ = False
 exprMa_eq p neg g e1 e2 = Nothing
 
 
