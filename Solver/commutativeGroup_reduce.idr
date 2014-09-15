@@ -464,12 +464,12 @@ Solver.commutativeGroup_reduce.MsimplifyAfterReorg_3 = proof
   
 Solver.commutativeGroup_reduce.MsimplifyAfterReorg_4 = proof
   intros
-  rewrite (sym (left (Plus_inverse (index_reverse i0 g))))
+  rewrite (sym (left (Plus_inverse (index i0 g))))
   exact refl
   
 Solver.commutativeGroup_reduce.MsimplifyAfterReorg_5 = proof
   intros
-  rewrite (sym (right (Plus_inverse (index_reverse i0 g))))
+  rewrite (sym (right (Plus_inverse (index i0 g))))
   exact refl
   
 Solver.commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof

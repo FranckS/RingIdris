@@ -19,8 +19,11 @@ eq_dec_fin (fS i') (fS j') with (eq_dec_fin i' j')
 	eq_dec_fin (fS i') (fS j') | Nothing = Nothing
 
 
+-- No longer needed : we're back to the orignal order
+{-
 index_reverse : {a:Type} -> {n:Nat} -> (Fin n) -> (Vect n a) -> a
 index_reverse j g = index j (reverse g)
+-}
 
 
 -- For technical reason : because in Idris this is not yet possible to talk about
@@ -170,8 +173,8 @@ commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_t
 -- ----------------------------
 
 data Variable : {c:Type} -> {n:Nat} -> (c_equal : (c1:c) -> (c2:c) -> Maybe(c1=c2)) -> (neg:c->c) -> (Vect n c) -> c -> Type where
-    RealVariable : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (index_reverse i g) -- neg is not used here
-    EncodingGroupTerm_var : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (neg (index_reverse i g)) -- neg is used here
+    RealVariable : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (index i g) -- neg is not used here
+    EncodingGroupTerm_var : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_equal neg g (neg (index i g)) -- neg is used here
     --EncodingGroupTerm_const : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> VariableA c_equal neg g (neg c1) -- and here
     -- Encoding fot constants is no longer needed since we can just put a constant of value (Neg c) : we can still use Neg during the conversion because we still have a Group, even though we convert to a Monoid !
 
@@ -261,7 +264,7 @@ exprMo_eq p neg g _ _  = Nothing
 data ExprCM : {c:Type} -> {n:Nat} -> (CommutativeMonoid c) -> (Vect n c) -> c -> Type where
     ConstCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> (g:Vect n c) -> (c1:c) -> ExprCM p g c1
     PlusCM : {c:Type} -> {n:Nat} -> {p : CommutativeMonoid c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCM p g c1 -> ExprCM p g c2 -> ExprCM p g (Plus c1 c2)
-    VarCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> {g:Vect n c} -> (i:Fin n) -> ExprCM p g (index_reverse i g)
+    VarCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> {g:Vect n c} -> (i:Fin n) -> ExprCM p g (index i g)
 
 exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p g c1) -> (e2:ExprCM p g c2) -> (Maybe (e1=e2))
 exprCM_eq p g (PlusCM x y) (PlusCM x' y') with (exprCM_eq p g x x', exprCM_eq p g y y')

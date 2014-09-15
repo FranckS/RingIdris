@@ -22,9 +22,8 @@ import Solver.monoid_reduce
 import Solver.commutativeMonoid_reduce -- NEW
 import Solver.group_reduce
 import Solver.commutativeGroup_reduce
---import commRing_reduce
---import testNat
---import testZZ
+import Solver.ring_reduce
+
 import Solver.magma_test
 import Solver.semiGroup_test
 import Solver.monoid_test

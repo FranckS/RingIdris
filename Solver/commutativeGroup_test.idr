@@ -55,17 +55,17 @@ compare_expA_expC x = commutativeGroupDecideEq (%instance) (expA x) (expC x)
 expD : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (((u + (x + (Neg y)))) + ((-x + z) + y))
 expD x y z u = PlusCG 
             (PlusCG
-                (VarCG _ (RealVariable _ _ _ fZ))
-                (PlusCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ))))) (NegCG (VarCG _ (RealVariable _ _ _ (fS (fS fZ)))))))
+                (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ)))))
+                (PlusCG (VarCG _ (RealVariable _ _ _ fZ)) (NegCG (VarCG _ (RealVariable _ _ _ (fS fZ))))))
             (PlusCG
-                (PlusCG (NegCG (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ)))))) (VarCG _ (RealVariable _ _ _ (fS fZ))))
-                (VarCG _ (RealVariable _ _ _ (fS (fS fZ)))))
+                (PlusCG (NegCG (VarCG _ (RealVariable _ _ _ fZ))) (VarCG _ (RealVariable _ _ _ (fS (fS fZ)))))
+                (VarCG _ (RealVariable _ _ _ (fS fZ))))
 
  
 expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (z + u)
 expE x y z y = PlusCG
-                (VarCG _ (RealVariable _ _ _ (fS fZ)))
-                (VarCG _ (RealVariable _ _ _ fZ))
+                (VarCG _ (RealVariable _ _ _ (fS (fS fZ))))
+                (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ)))))
 
 
 compare_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> Maybe (((u + (x + (-y)))) + ((-x + z) + y) = z + u)

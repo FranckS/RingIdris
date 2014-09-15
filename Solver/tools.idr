@@ -536,7 +536,7 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
 {- Not needed now
 --changeIeme : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (Vect n A)
 
---changeIeme_correct : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (a = index_reverse i (changeIeme g i a))
+--changeIeme_correct : {A:Type} -> {n:Nat} -> (g:Vect n A) -> (i:Fin n) -> (a:A) -> (a = index i (changeIeme g i a))
 -}
 
 -- F.1) index and reverse
@@ -613,7 +613,7 @@ concat_SubSet g1 (h2::t2) = let ih:SubSet g1 (t2++g1) = concat_SubSet g1 t2 in S
 {-  
 -- Says that ig g2 is a "superset" of g1, then the first element are the same
 postulate -- Will be proven later
-	indexReverse_of_convert : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (i:Fin n) -> {m:Nat} -> (g2:Vect (S m) c) -> (p: GTE (S m) n) -> (SubSet g1 g2) -> (index_reverse i g1 = index_reverse (pre_convertFin i m p) g2)
+	indexReverse_of_convert : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (i:Fin n) -> {m:Nat} -> (g2:Vect (S m) c) -> (p: GTE (S m) n) -> (SubSet g1 g2) -> (index i g1 = index (pre_convertFin i m p) g2)
 -}	
 	
 -- Subset and equality

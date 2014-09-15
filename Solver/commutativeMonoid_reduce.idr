@@ -30,7 +30,7 @@ assoc_commute_and_assoc' x y z = let aux : (Plus (Plus x y) z = Plus x (Plus y z
 putVarOnPlace_cm : {c:Type} -> (p:CommutativeMonoid c) -> {g:Vect n c} -> {c1:c} 
    -> (ExprCM p g c1)
    -> (i:Fin n)
-   -> (c2 ** (ExprCM p g c2, Plus c1 (index_reverse i g) = c2))
+   -> (c2 ** (ExprCM p g c2, Plus c1 (index i g) = c2))
 putVarOnPlace_cm p (PlusCM (VarCM p i0) e) (i) =
     if minusOrEqual_Fin i0 i 
         then let (r_ihn ** (e_ihn, p_ihn))= (putVarOnPlace_cm p e i) in

@@ -166,21 +166,21 @@ proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
 --        e2 = ((3 + (0-2))+x)
 --        e3 = 1+x
 termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
-termJ x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ fZ)) 
+termJ x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ (fS fZ))) 
                              (PlusG (PlusG (ConstG _ _ (Pos 3))
                                                (MinusG (ConstG _ _ (Pos 0)) (ConstG _ _ (Pos 2))))
-                                      (VarG _ (RealVariable _ _ _ (fS fZ)))))
-                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ (fS fZ)))))
+                                      (VarG _ (RealVariable _ _ _ fZ))))
+                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ fZ))))
 
 
 termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] y
-termK x y = VarG _ (RealVariable _ _ _ fZ)
+termK x y = VarG _ (RealVariable _ _ _ (fS fZ))
 
 termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + (1+x)) + (-(1+x)))
-termL x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ fZ)) 
+termL x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ (fS fZ))) 
                              (PlusG (ConstG _ _ (Pos 1))
-                                      (VarG _ (RealVariable _ _ _ (fS fZ)))))
-                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ (fS fZ)))))
+                                      (VarG _ (RealVariable _ _ _ fZ))))
+                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ fZ))))
 
 compare_termJ_termK : (x:ZZ) -> (y:ZZ) -> Maybe (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
 compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y) 
@@ -213,7 +213,7 @@ getC (ConstG p c1) = c1
 getC (PlusG e1 e2) = Plus (getC e1) (getC e2)
 getC (MinusG e1 e2) = Minus (getC e1) (getC e2)
 getC (NegG e) = Neg (getC e)
-getC (VarG p i b) = (index_reverse i g)
+getC (VarG p i b) = (index i g)
 -}
 
 
