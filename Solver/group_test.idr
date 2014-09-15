@@ -159,7 +159,6 @@ proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
 -- TEST 5 THAT SHOULD WORK
 -- ----------------------
 
--- CAREFUL : DONT FORGET THAT VARIABLES ARE DENOTED FROM RIGHT TO LEFT IN THE CONTEXT (but that could change again)
 
 -- Test for (e1 + e2) + -e3 when e2 = e3. It then gives e1.
 -- Here : e1 - y
@@ -186,7 +185,7 @@ compare_termJ_termK : (x:ZZ) -> (y:ZZ) -> Maybe (((y + ((3 + (0-2))+x)) + (-(1+x
 compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y) 
 
 -- Later, we will have a real tactic "Group" which can fail...
---  !!! THIS IS THE MOST COMPLICATED EXAMPLE THAT WE'VE GOT AT THE MOMENT !!!
+-- A quite complicated example
 proof_termJ_termK : (x:ZZ) -> (y:ZZ) -> (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
 proof_termJ_termK x y = let (Just ok) = compare_termJ_termK x y in ok
 -- RESULT : WORKS FOR ALL X AND Y !
