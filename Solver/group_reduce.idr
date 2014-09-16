@@ -159,9 +159,9 @@ mutual
 --------------------------------------------
 -- Simplify (+e) + (-e) at *one* level of +
 --------------------------------------------
-	elim_plusInverse : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
-	elim_plusInverse p g (ConstG _ _ const) = (_ ** (ConstG _ _ const, refl))
-	elim_plusInverse p g (VarG _ v) = (_ ** (VarG _ v, refl))
+	elim_plusInverse : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
+	elim_plusInverse p g (ConstG _ _ const) = (_ ** (ConstG _ _ const, set_eq_undec_refl const))
+	elim_plusInverse p g (VarG _ {c1=c1} v) = (_ ** (VarG _ v, set_eq_undec_refl c1))
 	-- Reminder : e1 and e2 can't be a Neg themselves, because you are suppose to call elimDoubleNeg before calling this function...
 	elim_plusInverse p g (PlusG (NegG e1) (NegG e2)) = 
 		let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
@@ -169,14 +169,14 @@ mutual
 		(_ ** ((PlusG (NegG e1') (NegG e2')), ?Melim_plusInverse_1))
 	-- If e2 is not a Neg !
 	elim_plusInverse p g (PlusG (NegG e1) e2) with (groupDecideEq p e1 e2) -- compare les versions simplifiees de e1 et de e2
-		elim_plusInverse p g (PlusG (NegG e1) e1) | (Just refl) = (_ ** ((ConstG _ _ Zero), ?Melim_plusInverse_2))
+		elim_plusInverse p g (PlusG (NegG e1) e2) | (Just e1_equiv_e2) = (_ ** ((ConstG _ _ Zero), ?Melim_plusInverse_2))
 		elim_plusInverse p g (PlusG (NegG e1) e2) | _ = 
 			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
 			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
 			(_ ** ((PlusG (NegG e1') e2'), ?Melim_plusInverse_2))
 	-- If e1 is not a Neg !
 	elim_plusInverse p g (PlusG e1 (NegG e2)) with (groupDecideEq p e1 e2) -- compare les versions simplifiees de e1 et de e2
-		elim_plusInverse p g (PlusG e1 (NegG e1)) | (Just refl) = (_ ** ((ConstG _ _ Zero), ?Melim_plusInverse_3))
+		elim_plusInverse p g (PlusG e1 (NegG e2)) | (Just e1_equiv_e2) = (_ ** ((ConstG _ _ Zero), ?Melim_plusInverse_3))
 		elim_plusInverse p g (PlusG e1 (NegG e2)) | _ = 
 			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
 			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
@@ -186,16 +186,16 @@ mutual
 		let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
 		let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
 		(_ ** ((PlusG e1' e2'), ?Melim_plusInverse_5))
-	elim_plusInverse p g e = (_ ** (e, refl))
+	elim_plusInverse p g {c1=c1} e = (_ ** (e, set_eq_undec_refl c1))
 		
             
 --------------------------------------------------------------------------
 -- Simplifying (+e) + (-e) with associativity (at two levels of +) !
 --------------------------------------------------------------------------
-	plusInverse_assoc : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+	plusInverse_assoc : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
 	-- (e1 + (-e2 + e3))
 	plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) with (groupDecideEq p e1 e2)
-		plusInverse_assoc p g (PlusG e1 (PlusG (NegG e1) e3)) | (Just refl) = 
+		plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) | (Just e1_equiv_e2) = 
 			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in
 				(_ ** (e3', ?MplusInverse_assoc_1))
 		plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) | _ = 
@@ -206,7 +206,7 @@ mutual
 	
 	-- (-e1 + (e2+e3))
 	plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) with (groupDecideEq p e1 e2)
-		plusInverse_assoc p g (PlusG (NegG e1) (PlusG e1 e3)) | (Just refl) = 
+		plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) | (Just e1_equiv_e2) = 
 			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in 
 				(_ ** (e3', ?MplusInverse_assoc_3))
 		plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) | _ = 
@@ -217,7 +217,7 @@ mutual
 	
 	-- ((e1+e2) + -e3))
 	plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) with (groupDecideEq p e2 e3)
-		plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e2)) | (Just refl) = 
+		plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) | (Just e2_equiv_e3) = 
 			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
 				(_ ** (e1', ?MplusInverse_assoc_5))
 		plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) | _ = 
@@ -228,7 +228,7 @@ mutual
 				
 	-- ((e1+(-e2)) + e3)		
 	plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) with (groupDecideEq p e2 e3)
-		plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e2) | (Just refl) = 
+		plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) | (Just e2_equiv_e3) = 
 			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
 				(_ ** (e1', ?MplusInverse_assoc_7))
 		plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) | _ = 
@@ -243,15 +243,15 @@ mutual
 			((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MplusInverse_assoc_9))
 			
 	-- Anything else
-	plusInverse_assoc p g e =
-		(_ ** (e, refl))
+	plusInverse_assoc p g {c1=c1} e =
+		(_ ** (e, set_eq_undec_refl c1))
 
 	
 	-- NEW : 3 levels of +
-	plusInverse_assoc' : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+	plusInverse_assoc' : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
 	-- (a+b) + ((-c)+d)
 	plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) with (groupDecideEq p e2 e3)
-		plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e2) e4)) | (Just refl) = 
+		plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) | (Just e2_equiv_e3) = 
 			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
 			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
 				(_ ** (PlusG e1' e4', ?MplusInverse_assoc'_1))
@@ -264,7 +264,7 @@ mutual
 				
 	-- (a+(-b)) + (c+d)
 	plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e3 e4)) with (groupDecideEq p e2 e3)
-		plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e2 e4)) | (Just refl) = 
+		plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e3 e4)) | (Just e2_equiv_e3) = 
 			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
 			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
 				(_ ** (PlusG e1' e4', ?MplusInverse_assoc'_3))
@@ -276,11 +276,11 @@ mutual
 				(_ ** ((PlusG (PlusG e1' (NegG e2')) (PlusG e3' e4')), ?MplusInverse_assoc'_4))
 				
 	-- Anything else
-	plusInverse_assoc' p g e =
-		(_ ** (e, refl))
+	plusInverse_assoc' p g {c1=c1} e =
+		(_ ** (e, set_eq_undec_refl c1))
 				
 			
-	pre_groupReduce : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+	pre_groupReduce : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
 	pre_groupReduce c p g e =
                 let (r_1 ** (e_1, p_1)) = elimMinus p e in
                 let (r_2 ** (e_2, p_2)) = propagateNeg_fix p e_1 in
@@ -300,7 +300,7 @@ mutual
 	-- That's needed because some simplification done at the monoid level could lead to new simplification.
 	-- Exemple : (0+(Y)) become (Y) at the Monoid level. And if this Y was encoding (-x), then at the toplevel we can have x + (-x) now,
 	-- which need a new simplification at the group level
-	groupReduce : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+	groupReduce : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
 	groupReduce p e = 
 		let (c' ** (e', p')) = pre_groupReduce _ p _ e in
 			case exprG_eq p _ e e' of 
@@ -310,13 +310,13 @@ mutual
 		
 			
         total
-	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p g c1) -> (ExprG p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p g c1) -> (ExprG p g c2) -> (set_eq_undec x c1) -> (set_eq_undec y c2) -> (Maybe (set_eq_undec x y))
 	buildProofGroup p e1 e2 lp rp with (exprG_eq p _ e1 e2)
-		buildProofGroup p e1 e1 lp rp | Just refl = ?MbuildProofGroup
+		buildProofGroup p e1 e1 lp rp | Just e1_equiv_e2 = ?MbuildProofGroup
 		buildProofGroup p e1 e2 lp rp | Nothing = Nothing
 
 		
-	groupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p g x) -> (ExprG p g y) -> Maybe (x = y)
+	groupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p g x) -> (ExprG p g y) -> (Maybe (set_eq_undec x y))
 	-- e1 is the left side, e2 is the right side
 	groupDecideEq p e1 e2 =
 		let (r_e1 ** (e_e1, p_e1)) = groupReduce p e1 in
@@ -421,17 +421,20 @@ Solver.group_reduce.Mcode_reduceM_andDecode_1 = proof
   rewrite (sym pReduce  )
   rewrite (sym pDecode )
   exact refl    
+
   
 Solver.group_reduce.Melim_plusInverse_1 = proof
   intros
-  rewrite p_e1'
-  rewrite p_e2'
-  mrefine refl
-  
+  (Plus_preserves_equiv (Neg_preserves_equiv p_e1') (Neg_preserves_equiv p_e2'))
+
+
+{-  
 Solver.group_reduce.Melim_plusInverse_2 = proof
   intros
   rewrite (sym(right(Plus_inverse c2)))
   trivial
+-}
+{-
 
 Solver.group_reduce.Melim_plusInverse_3 = proof
   intros
@@ -575,8 +578,13 @@ Solver.group_reduce.MbuildProofGroup = proof
   refine Just 
   rewrite (sym lp)
   rewrite (sym rp)
-  exact refl
+  exact e1_equiv_e2
     
+
+-}
+
+
+
 
 
 

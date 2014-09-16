@@ -106,13 +106,13 @@ semiGroupReduce p e =
 
 
 total
-buildProofSemiGroup : (p:SemiGroup c) -> {neg:c->c} -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprSG p neg g c1) -> (ExprSG p neg g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+buildProofSemiGroup : (p:SemiGroup c) -> {neg:c->c} -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprSG p neg g c1) -> (ExprSG p neg g c2) -> (x = c1) -> (y = c2) -> (Maybe (set_eq_undec x y))
 buildProofSemiGroup p e1 e2 lp rp with (exprSG_eq p _ _ e1 e2)
-    buildProofSemiGroup p e1 e1 lp rp | Just refl = ?MbuildProofSemiGroup
+    buildProofSemiGroup p e1 e1 lp rp | Just e1_equiv_e2 = ?MbuildProofSemiGroup
     buildProofSemiGroup p e1 e2 lp rp | Nothing = Nothing
 
 
-semiGroupDecideEq : (p:SemiGroup c) -> {neg:c->c} -> {g:Vect n c} -> (ExprSG p neg g x) -> (ExprSG p neg g y) -> Maybe (x = y)
+semiGroupDecideEq : (p:SemiGroup c) -> {neg:c->c} -> {g:Vect n c} -> (ExprSG p neg g x) -> (ExprSG p neg g y) -> (Maybe (set_eq_undec x y))
 -- e1 is the left side, e2 is the right side
 semiGroupDecideEq p e1 e2 =
     let (r_e1 ** (e_e1, p_e1)) = semiGroupReduce p e1 in
@@ -216,7 +216,7 @@ Solver.semiGroup_reduce.MbuildProofSemiGroup = proof {
   refine Just;
   rewrite( sym lp);
   rewrite( sym rp);
-  exact refl;
+  exact e1_equiv_e2;
 }
 
 

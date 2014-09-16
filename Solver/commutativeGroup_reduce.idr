@@ -50,7 +50,7 @@ assoc_and_neutral_bis x y = let aux : (Plus (Neg x) (Plus x y) = Plus (Plus (Neg
 -- The expression is already in the form a + (b + (c + ...)) where a,b,c can only be constants, variables, and negations of constants and variables
 putVarOnPlace : {c:Type} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} 
    -> (ExprCG p g c1) -> {varValue:c} 
-   -> (Variable (commutativeGroup_eq_as_elem_of_set p) Neg g varValue) 
+   -> (Variable (commutativeGroup_to_set p) Neg g varValue) 
    -> (c2 ** (ExprCG p g c2, Plus c1 varValue=c2))
 putVarOnPlace p (PlusCG (VarCG p (RealVariable _ _ _ i0)) e) (RealVariable _ _ _ i) = 
     if minusOrEqual_Fin i0 i 
@@ -101,7 +101,7 @@ putConstantOnPlace p (NegCG (VarCG p (RealVariable _ _ _ i0))) constValue = (_ *
 
 putNegVarOnPlace : {c:Type} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} 
    -> (ExprCG p g c1) -> {varValue:c} 
-   -> (Variable (commutativeGroup_eq_as_elem_of_set p) Neg g varValue) 
+   -> (Variable (commutativeGroup_to_set p) Neg g varValue) 
    -> (c2 ** (ExprCG p g c2, Plus c1 (Neg varValue)=c2))
 putNegVarOnPlace p (PlusCG (VarCG p (RealVariable _ _ _ i0)) e) (RealVariable _ _ _ i) = 
     if minusOrEqual_Fin i0 i 
@@ -235,10 +235,10 @@ getZero p = Zero
 elimZeroCG : {c:Type} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, c1=c2))
 elimZeroCG p (ConstCG p _ const) = (_ ** (ConstCG p _ const, refl))
 elimZeroCG p (PlusCG (ConstCG p _ const1) (VarCG p v)) with (commutativeGroup_eq_as_elem_of_set p Zero const1)
-    elimZeroCG p (PlusCG (ConstCG p _ (getZero p)) (VarCG p v)) | (Just refl) = (_ ** (VarCG p v, ?MelimZeroCG1))
+    elimZeroCG p (PlusCG (ConstCG p _ const1) (VarCG p v)) | (Just const1_eq_zero) = (_ ** (VarCG p v, ?MelimZeroCG1))
     elimZeroCG p (PlusCG (ConstCG p _ const1) (VarCG p v)) | _ = (_ ** (PlusCG (ConstCG p _ const1) (VarCG p v), refl))
 elimZeroCG p (PlusCG (VarCG _ v) (ConstCG _ _ const2)) with (commutativeGroup_eq_as_elem_of_set p Zero const2) 
-    elimZeroCG p (PlusCG (VarCG _ v) (ConstCG _ _ (getZero p))) | (Just refl) = (_ ** (VarCG _ v, ?MelimZeroCG2))
+    elimZeroCG p (PlusCG (VarCG _ v) (ConstCG _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarCG _ v, ?MelimZeroCG2))
     elimZeroCG p (PlusCG (VarCG _ v) (ConstCG _ _ const2)) | _ = (_ ** (PlusCG (VarCG _ v) (ConstCG _ _ const2), refl))
 elimZeroCG p (PlusCG e1 e2) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = (elimZeroCG p e1) in
@@ -251,7 +251,7 @@ elimZeroCG p e = (_ ** (e, refl))
 
 
 
-commutativeGroupReduce : (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, c1=c2))
+commutativeGroupReduce : (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, set_eq_undec c1 c2))
 commutativeGroupReduce p e =
     let e_1 = commutativeGroup_to_group e in
     let (r_2 ** (e_2, p_2)) = groupReduce _ e_1 in
@@ -262,13 +262,13 @@ commutativeGroupReduce p e =
             (_ ** (e_6, ?McommutativeGroupReduce_1))
 
 		
-buildProofCommutativeGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprCG p g c1) -> (ExprCG p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+buildProofCommutativeGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprCG p g c1) -> (ExprCG p g c2) -> (set_eq_undec x c1) -> (set_eq_undec y c2) -> (Maybe (set_eq_undec x y))
 buildProofCommutativeGroup p e1 e2 lp rp with (exprCG_eq p _ e1 e2)
-	buildProofCommutativeGroup p e1 e1 lp rp | Just refl = ?MbuildProofCommutativeGroup
+	buildProofCommutativeGroup p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofCommutativeGroup
 	buildProofCommutativeGroup p e1 e2 lp rp | Nothing = Nothing
 
 		
-commutativeGroupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprCG p g x) -> (ExprCG p g y) -> Maybe (x = y)
+commutativeGroupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprCG p g x) -> (ExprCG p g y) -> (Maybe (set_eq_undec x y))
 -- e1 is the left side, e2 is the right side
 commutativeGroupDecideEq p e1 e2 =
 	let (r_e1 ** (e_e1, p_e1)) = commutativeGroupReduce p e1 in
@@ -477,14 +477,18 @@ Solver.commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
   rewrite (sym p_1)
   rewrite (sym p_ih1)
   exact refl
-  
+
+{-  
 Solver.commutativeGroup_reduce.MelimZeroCG1 = proof
   intros
   mrefine Plus_neutral_1
+-}
 
+{-
 Solver.commutativeGroup_reduce.MelimZeroCG2 = proof
   intros
   mrefine Plus_neutral_2
+-}  
   
 Solver.commutativeGroup_reduce.MelimZeroCG3 = proof
   intros
@@ -492,21 +496,25 @@ Solver.commutativeGroup_reduce.MelimZeroCG3 = proof
   rewrite p_ih2
   exact refl  
 
+{-
 Solver.commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
   intros
   rewrite p_6
   rewrite p_5
   rewrite p_4
   rewrite p_2
-  exact refl  
+  trivial
+-}  
   
+  
+{-  
 Solver.commutativeGroup_reduce.MbuildProofCommutativeGroup = proof
   intros
   refine Just
   rewrite (sym lp)
   rewrite (sym rp)
-  exact refl  
-  
+  exact e1_equiv_e2  
+-}
 
 
 

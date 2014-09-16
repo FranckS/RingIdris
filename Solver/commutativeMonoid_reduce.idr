@@ -83,10 +83,10 @@ getZero_cm p = Zero
 elimZeroCM : {c:Type} -> (p:dataTypes.CommutativeMonoid c) -> {g:Vect n c} -> {c1:c} -> (ExprCM p g c1) -> (c2 ** (ExprCM p g c2, c1=c2))
 elimZeroCM p (ConstCM p _ const) = (_ ** (ConstCM p _ const, refl))
 elimZeroCM p (PlusCM (ConstCM p _ const1) (VarCM p v)) with (commutativeMonoid_eq_as_elem_of_set p Zero const1)
-    elimZeroCM p (PlusCM (ConstCM p _ (getZero_cm p)) (VarCM p v)) | (Just refl) = (_ ** (VarCM p v, ?MelimZeroCM1))
+    elimZeroCM p (PlusCM (ConstCM p _ const1) (VarCM p v)) | (Just const1_eq_zero) = (_ ** (VarCM p v, ?MelimZeroCM1))
     elimZeroCM p (PlusCM (ConstCM p _ const1) (VarCM p v)) | _ = (_ ** (PlusCM (ConstCM p _ const1) (VarCM p v), refl))
 elimZeroCM p (PlusCM (VarCM _ v) (ConstCM _ _ const2)) with (commutativeMonoid_eq_as_elem_of_set p Zero const2) 
-    elimZeroCM p (PlusCM (VarCM _ v) (ConstCM _ _ (getZero_cm p))) | (Just refl) = (_ ** (VarCM _ v, ?MelimZeroCM2))
+    elimZeroCM p (PlusCM (VarCM _ v) (ConstCM _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarCM _ v, ?MelimZeroCM2))
     elimZeroCM p (PlusCM (VarCM _ v) (ConstCM _ _ const2)) | _ = (_ ** (PlusCM (VarCM _ v) (ConstCM _ _ const2), refl))
 elimZeroCM p (PlusCM e1 e2) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = (elimZeroCM p e1) in
@@ -108,13 +108,13 @@ commutativeMonoidReduce p e =
             (_ ** (e_5, ?McommutativeMonoidReduce_1))
 
 
-buildProofCommutativeMonoid : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprCM p g c1) -> (ExprCM p g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+buildProofCommutativeMonoid : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprCM p g c1) -> (ExprCM p g c2) -> (x = c1) -> (y = c2) -> (Maybe (set_eq_undec x y))
 buildProofCommutativeMonoid p e1 e2 lp rp with (exprCM_eq p _ e1 e2)
-	buildProofCommutativeMonoid p e1 e1 lp rp | Just refl = ?MbuildProofCommutativeMonoid
+	buildProofCommutativeMonoid p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofCommutativeMonoid
 	buildProofCommutativeMonoid p e1 e2 lp rp | Nothing = Nothing
 
 
-commutativeMonoidDecideEq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprCM p g x) -> (ExprCM p g y) -> Maybe (x = y)
+commutativeMonoidDecideEq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprCM p g x) -> (ExprCM p g y) -> (Maybe (set_eq_undec x y))
 -- e1 is the left side, e2 is the right side
 commutativeMonoidDecideEq p e1 e2 =
 	let (r_e1 ** (e_e1, p_e1)) = commutativeMonoidReduce p e1 in
@@ -174,13 +174,17 @@ Solver.commutativeMonoid_reduce.Mreorganize_cm_2 = proof
   rewrite p_ihn
   mrefine Plus_comm'
 
+{-
 Solver.commutativeMonoid_reduce.MelimZeroCM1 = proof
   intros
   mrefine Plus_neutral_1
+-}
 
+{-
 Solver.commutativeMonoid_reduce.MelimZeroCM2 = proof
   intros
   mrefine Plus_neutral_2
+-}
 
 Solver.commutativeMonoid_reduce.MelimZeroCM3 = proof
   intros
@@ -200,7 +204,7 @@ Solver.commutativeMonoid_reduce.MbuildProofCommutativeMonoid = proof
   refine Just
   rewrite (sym lp)
   rewrite (sym rp)
-  exact refl
+  exact e1_equiv_e2
 
 
   

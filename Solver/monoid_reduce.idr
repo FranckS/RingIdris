@@ -24,10 +24,10 @@ elimZero c p neg g (ConstMo _ _ _ const) = (_ ** (ConstMo _ _ _ const, refl))
 elimZero c p neg g (PlusMo _ (ConstMo _ _ _ const1) (VarMo _ _ v)) with (monoid_eq_as_elem_of_set p Zero const1)
 --  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | with_pat = ?elimZero_rhs
 --  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | (Just prf) = ?elimZero_rhs_2
-    elimZero c p neg g (PlusMo _ (ConstMo _ _ _ dataTypes.Zero) (VarMo _ _ v)) | (Just refl) = (_ ** (VarMo _ _ v, ?MelimZero1))
+    elimZero c p neg g (PlusMo _ (ConstMo _ _ _ dataTypes.Zero) (VarMo _ _ v)) | (Just const1_eq_zero) = (_ ** (VarMo _ _ v, ?MelimZero1))
     elimZero c p neg g (PlusMo _ (ConstMo _ _ _ const1) (VarMo _ _ v)) | _ = (_ ** (PlusMo _ (ConstMo _ _ _ const1) (VarMo _ _ v), refl)) 
 elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ const2)) with (monoid_eq_as_elem_of_set p Zero const2) 
-    elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ dataTypes.Zero)) | (Just refl) = (_ ** (VarMo _ _ v, ?MelimZero2))
+    elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ dataTypes.Zero)) | (Just const2_eq_zero) = (_ ** (VarMo _ _ v, ?MelimZero2))
     elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ const2)) | _ = (_ ** (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ const2), refl))
 elimZero c p neg g (PlusMo _ e1 e2) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = (elimZero c p neg g e1) in
@@ -44,13 +44,13 @@ monoidReduce p e =
 
             
 total
-buildProofMonoid : (p:dataTypes.Monoid c) -> {neg:c->c} -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprMo p neg g c1) -> (ExprMo p neg g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+buildProofMonoid : (p:dataTypes.Monoid c) -> {neg:c->c} -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprMo p neg g c1) -> (ExprMo p neg g c2) -> (x = c1) -> (y = c2) -> (Maybe (set_eq_undec x y))
 buildProofMonoid p e1 e2 lp rp with (exprMo_eq p _ _ e1 e2)
-    buildProofMonoid p e1 e1 lp rp | Just refl = ?MbuildProofMonoid
+    buildProofMonoid p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofMonoid
     buildProofMonoid p e1 e2 lp rp | Nothing = Nothing
 
 
-monoidDecideEq : (p:dataTypes.Monoid c) -> {neg:c->c} -> {g:Vect n c} -> (ExprMo p neg g x) -> (ExprMo p neg g y) -> Maybe (x = y)
+monoidDecideEq : (p:dataTypes.Monoid c) -> {neg:c->c} -> {g:Vect n c} -> (ExprMo p neg g x) -> (ExprMo p neg g y) -> (Maybe (set_eq_undec x y))
 -- e1 is the left side, e2 is the right side
 monoidDecideEq p e1 e2 = 
     let (r_e1 ** (e_e1, p_e1)) = monoidReduce p e1 in
@@ -85,7 +85,7 @@ Solver.monoid_reduce.MbuildProofMonoid = proof
   refine Just;
   rewrite( sym lp);
   rewrite( sym rp);
-  exact refl;
+  exact e1_equiv_e2;
 
 
   

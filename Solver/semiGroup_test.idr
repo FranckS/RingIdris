@@ -110,9 +110,10 @@ print_test_c = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce (
 -- ok, as expected
 
 
+{-
 but_they_are_equal : (x:Nat) -> (y:Nat) -> Maybe (left (rightDep (semiGroupReduce (%instance) (test4' x y))) = (left (rightDep (semiGroupReduce (%instance) (test5' x y)))))
-but_they_are_equal = \x => \y => exprSG_eq (%instance) _ _ (left (rightDep (semiGroupReduce (%instance) (test4' x y)))) (left (rightDep (semiGroupReduce (%instance) (test5' x y))))
-
+but_they_are_equal = \x => \y => exprSG_eq {c=Nat} (%instance) _ _ (left (rightDep (semiGroupReduce (%instance) (test4' x y)))) (left (rightDep (semiGroupReduce (%instance) (test5' x y))))
+-}
 
 
 

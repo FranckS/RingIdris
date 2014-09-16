@@ -17,28 +17,30 @@ import Solver.magma_test
 
 
 instance dataTypes.Set ZZ where
+    -- The relation is just the equality
+    set_eq_undec x y = (x=y)
+
     set_eq x y with (decEq x y)
         set_eq x x | Yes refl = Just refl
         set_eq x y | _ = Nothing
+    
+    set_eq_undec_refl x = refl
 
 instance Magma ZZ where
     Plus x y = x + y 
     
+    Plus_preserves_equiv p1 p2 = ?MPlusZZ_preserves_equiv_1
+    
 instance SemiGroup ZZ where
     Plus_assoc c1 c2 c3 = sym (plusAssociativeZ c1 c2 c3)    
-        
- 
-instance ZeroC ZZ where
-    Zero = Pos Z
 
 instance dataTypes.Monoid ZZ where
+    Zero = Pos Z
+    
     Plus_neutral_1 c = plusZeroLeftNeutralZ c
     
     Plus_neutral_2 c = plusZeroRightNeutralZ c
  
-instance dataTypes.NegMinus ZZ where
-    Neg x = -x
-    Minus x y = x - y
 
     
 plus_Z_simpl : (x:ZZ) -> (y:ZZ) -> (x - y = x + (-y))
@@ -51,7 +53,7 @@ minusNat_Z_Zero : (x:Nat) -> (minusNatZ x x = Pos Z)
 minusNat_Z_Zero Z = refl
 minusNat_Z_Zero (S px) = minusNat_Z_Zero px
 
-plus_inverse : (x:ZZ) -> (Plus x (Neg x) = Pos Z, Plus (Neg x) x = the ZZ (Pos Z))
+plus_inverse : (x:ZZ) -> (x + (- x) = Pos Z, (- x) + x = the ZZ (Pos Z))
 plus_inverse (Pos Z) = (refl, refl)
 plus_inverse (Pos (S px)) = (minusNat_Z_Zero px, minusNat_Z_Zero px)
 plus_inverse (NegS Z) = (refl, refl)
@@ -60,6 +62,11 @@ plus_inverse (NegS (S py)) = (minusNat_Z_Zero py, minusNat_Z_Zero py)
 
     
 instance dataTypes.Group ZZ where
+    Neg x = -x
+    Minus x y = x - y
+    
+    Neg_preserves_equiv p = ?MNeg_preserves_equiv_1
+    
     Minus_simpl x y = plus_Z_simpl x y --Minus c1 c2 = Plus c1 (Neg c2) --Minus should not be primitive and should be simplifiable
     -- The most important stuff for a group is the following :
     Plus_inverse x = plus_inverse x --hasSymmetric c (%instance) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)    

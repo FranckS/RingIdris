@@ -23,13 +23,13 @@ magmaReduce (PlusMa neg e1 e2) =
 magmaReduce (VarMa p neg v) = (_ ** (VarMa p neg v, refl))
 
 
-buildProofMagma : {c:Type} -> {n:Nat} -> (p:Magma c) -> {neg:c->c} -> {g:Vect n c} -> {x:c} -> {y:c} -> {c1:c} -> {c2:c} -> (ExprMa p neg g c1) -> (ExprMa p neg g c2) -> (x = c1) -> (y = c2) -> (Maybe (x = y))
+buildProofMagma : {c:Type} -> {n:Nat} -> (p:Magma c) -> {neg:c->c} -> {g:Vect n c} -> {x:c} -> {y:c} -> {c1:c} -> {c2:c} -> (ExprMa p neg g c1) -> (ExprMa p neg g c2) -> (x = c1) -> (y = c2) -> (Maybe (set_eq_undec x y))
 buildProofMagma p e1 e2 lp rp with (exprMa_eq p _ _ e1 e2)
-    buildProofMagma p e1 e1 lp rp | Just refl = ?MbuildProofMagma
+    buildProofMagma p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofMagma
     buildProofMagma p e1 e2 lp rp | Nothing = Nothing
 
 
-magmaDecideEq : {c:Type} -> {n:Nat} -> (p:Magma c) -> {neg:c->c} -> {g:Vect n c} -> {x:c} -> {y:c} -> (ExprMa p neg g x) -> (ExprMa p neg g y) -> Maybe (x = y)
+magmaDecideEq : {c:Type} -> {n:Nat} -> (p:Magma c) -> {neg:c->c} -> {g:Vect n c} -> {x:c} -> {y:c} -> (ExprMa p neg g x) -> (ExprMa p neg g y) -> Maybe (set_eq_undec x y)
 -- e1 is the left side, e2 is the right side
 magmaDecideEq p e1 e2 = 
     let (r_e1 ** (e_e1, p_e1)) = magmaReduce e1 in
@@ -51,7 +51,7 @@ Solver.magma_reduce.MbuildProofMagma = proof {
   refine Just;
   rewrite( sym lp);
   rewrite( sym rp);
-  exact refl;
+  exact e1_equiv_e2;
 }
 
 

@@ -14,13 +14,21 @@ import Solver.magma_reduce
 
 
 instance Set Nat where
+    -- The relation is just the (syntactical) equality
+    set_eq_undec x y = (x = y)
+
     set_eq x y with (decEq x y)
         set_eq x x | Yes refl = Just refl
         set_eq x y | _ = Nothing
     
+    -- proof that the relation of equality is reflexive
+    set_eq_undec_refl x = refl
+    
 instance Magma Nat where
     Plus x y = plus x y
     
+    -- proof that this plus preserves the (syntactical) equality
+    Plus_preserves_equiv p1 p2 = ?MPlus_preserves_equiv_1
 
 
 test1 : (x:Nat) -> ExprMa (%instance) (\x =>x) [x] (Plus 2 (Plus 3 x))

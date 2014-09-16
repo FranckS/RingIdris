@@ -80,29 +80,29 @@ adding_preserves_equality_left : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (
 adding_preserves_equality_left x y z H = ?Madding_preserves_equality_left_1
 -}
 
-adding_preserves_equality : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (x=y) -> (Plus x z = Plus y z)
+adding_preserves_equality : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (set_eq_undec x y) -> (set_eq_undec (Plus x z) (Plus y z))
 adding_preserves_equality x y z H = ?Madding_preserves_equality_1
 
 
-move_other_side : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (Plus x y = z) -> (x = Plus z (Neg y))
+move_other_side : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (set_eq_undec (Plus x y) z) -> (set_eq_undec x (Plus z (Neg y)))
 move_other_side x y z H = 
-	let aux : (Plus (Plus x y) (Neg y) = Plus z (Neg y)) = adding_preserves_equality _ _ (Neg y) H in
-	let aux2 : (Plus (Plus x y) (Neg y) = Plus x (Plus y (Neg y))) = (Plus_assoc _ _ _) in
-	let aux3 : (Plus x (Plus y (Neg y)) = Plus z (Neg y)) = ?Mmove_other_side_1 in -- Just a rewriting in an hypothesis
-	let aux4 : (Plus y (Neg y) = Zero) = left (Plus_inverse _) in
-	let aux5 : (Plus x (Plus y (Neg y)) = x) = ?Mmove_other_side_2 in
+	let aux : (set_eq_undec (Plus (Plus x y) (Neg y)) (Plus z (Neg y))) = adding_preserves_equality _ _ (Neg y) H in
+	let aux2 : (set_eq_undec (Plus (Plus x y) (Neg y)) (Plus x (Plus y (Neg y)))) = (Plus_assoc _ _ _) in
+	let aux3 : (set_eq_undec (Plus x (Plus y (Neg y))) (Plus z (Neg y))) = ?Mmove_other_side_1 in -- Just a rewriting in an hypothesis
+	let aux4 : (set_eq_undec (Plus y (Neg y)) Zero) = (left (Plus_inverse _)) in
+	let aux5 : (set_eq_undec (Plus x (Plus y (Neg y))) x) = ?Mmove_other_side_2 in
 		?Mmove_other_side_3
 
 
-push_negation : (C:Type) -> (dataTypes.Group C) -> (x:C) -> (y:C) -> (Neg (Plus x y) = Plus (Neg y) (Neg x))
+push_negation : (C:Type) -> (dataTypes.Group C) -> (x:C) -> (y:C) -> (set_eq_undec (Neg (Plus x y)) (Plus (Neg y) (Neg x)))
 push_negation C p x y = 
-	let aux : (Plus (Neg (Plus x y)) (Plus x y) = Zero) = right (Plus_inverse (Plus x y)) in
-	let aux2 : (Plus (Neg (Plus x y)) (Plus x y) = Plus (Plus (Neg (Plus x y)) x) y) = sym (Plus_assoc (Neg (Plus x y)) x y) in
-	let aux3 : (Plus (Plus (Neg (Plus x y)) x) y = the C Zero) = ?Mpush_negation_1 in
-	let aux4 : ((Plus (Neg (Plus x y)) x) = Plus Zero (Neg y)) = move_other_side _ _ _ aux3 in
-	let aux5 : (Plus Zero (Neg y) = Neg y) = Plus_neutral_1 _ in
-	let aux6 : ((Plus (Neg (Plus x y)) x) = Neg y) = ?Mpush_negation_2 in
-	let aux7 : (Neg (Plus x y) = Plus (Neg y) (Neg x)) = move_other_side (Neg (Plus x y)) x (Neg y) aux6 in
+	let aux : (set_eq_undec (Plus (Neg (Plus x y)) (Plus x y)) Zero) = right (Plus_inverse (Plus x y)) in
+	let aux2 : (set_eq_undec (Plus (Neg (Plus x y)) (Plus x y)) (Plus (Plus (Neg (Plus x y)) x) y)) = sym (Plus_assoc (Neg (Plus x y)) x y) in
+	let aux3 : (set_eq_undec (Plus (Plus (Neg (Plus x y)) x) y) (the C Zero)) = ?Mpush_negation_1 in
+	let aux4 : (set_eq_undec (Plus (Neg (Plus x y)) x) (Plus Zero (Neg y))) = move_other_side _ _ _ aux3 in
+	let aux5 : (set_eq_undec (Plus Zero (Neg y)) (Neg y)) = Plus_neutral_1 _ in
+	let aux6 : (set_eq_undec (Plus (Neg (Plus x y)) x) (Neg y)) = ?Mpush_negation_2 in
+	let aux7 : (set_eq_undec (Neg (Plus x y)) (Plus (Neg y) (Neg x))) = move_other_side (Neg (Plus x y)) x (Neg y) aux6 in
             ?Mpush_negation_3
 	      
 {-

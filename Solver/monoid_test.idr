@@ -13,10 +13,10 @@ import Solver.monoid_reduce
 import Solver.semiGroup_test
 
 
-instance ZeroC Nat where
-    Zero = O
 
 instance dataTypes.Monoid Nat where
+    Zero = O
+    
     Plus_neutral_1 c = ?M_Nat_Monoid_1
     
     Plus_neutral_2 Z = ?M_Nat_Monoid_2
