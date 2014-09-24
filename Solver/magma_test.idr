@@ -15,14 +15,17 @@ import Solver.magma_reduce
 
 instance Set Nat where
     -- The relation is just the (syntactical) equality
-    set_eq_undec x y = (x = y)
+    (~=) x y = (x = y)
 
     set_eq x y with (decEq x y)
         set_eq x x | Yes refl = Just refl
         set_eq x y | _ = Nothing
     
-    -- proof that the relation of equality is reflexive
+    -- proof that the relation of equality is an equivalence relation
     set_eq_undec_refl x = refl
+    set_eq_undec_sym p = sym p
+    set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in refl
+    
     
 instance Magma Nat where
     Plus x y = plus x y

@@ -27,41 +27,53 @@ index_reverse j g = index j (reverse g)
 
 
 
-
+infixl 5 ~=
 class Set c where
     -- We just requires a (weak) decidable relation over the elements of the "set"
     -- which means that two elements are EQuivalent.
     -- (Note : that's no longer an equality, but just a relation, since that's more general)
-    set_eq_undec : (x:c) -> (y:c) -> Type -- The (undecidable) relation
-    set_eq : (x:c) -> (y:c) -> Maybe(set_eq_undec x y) -- The "weak" decidable relation (week because only gives a proof when it holds)
+    (~=) : (x:c) -> (y:c) -> Type -- The (undecidable) relation
+    set_eq : (x:c) -> (y:c) -> Maybe(x~=y) -- The "weak" decidable relation (week because only gives a proof when it holds)
     
-    -- The binary relation should be reflexive
-    set_eq_undec_refl : (x:c) -> set_eq_undec x x
+    -- The binary relation should be an equivalence relation, ie
+    -- Reflexive,
+    set_eq_undec_refl : (x:c) -> x~=x
+    -- Symmetric,
+    set_eq_undec_sym : {x:c} -> {y:c} -> (x~=y) -> (y~=x)
+    -- And transitive
+    set_eq_undec_trans : {x:c} -> {y:c} -> {z:c} -> (x~=y) -> (y~=z) -> (x~=z)
+    
+
+eq_preserves_eq : {c:Type} -> (Set c) -> (x:c) -> (y:c) -> (c1:c) -> (c2:c) -> (x~=c1) -> (y~=c2) -> (c1~=c2) -> (x~=y)
+eq_preserves_eq p x y c1 c2 p1 p2 p3 = 
+    let paux : (x~=c2) = ?Meq_preserves_eq_1 in
+    let paux2 : (c2~=y) = ?Meq_preserves_eq_2 in
+        ?Meq_preserves_eq_3
         
         
         
 class Set c => Magma c where
     Plus : c -> c -> c -- A magma just has a plus operation, and we have no properties about it
     -- Plus should preserve the equivalence defined at the Set level 
-    Plus_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (set_eq_undec c1 c1') -> (set_eq_undec c2 c2') -> (set_eq_undec (Plus c1 c2) (Plus c1' c2'))
+    Plus_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((Plus c1 c2) ~= (Plus c1' c2'))
 
 class Magma c => SemiGroup c where
-    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
+    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 ~= Plus c1 (Plus c2 c3))
 
 class SemiGroup c => Monoid c where
     Zero : c
     
-    Plus_neutral_1 : (c1:c) -> (set_eq_undec (Plus Zero c1) c1)    
-    Plus_neutral_2 : (c1:c) -> (set_eq_undec (Plus c1 Zero) c1)
+    Plus_neutral_1 : (c1:c) -> ((Plus Zero c1) ~= c1)    
+    Plus_neutral_2 : (c1:c) -> ((Plus c1 Zero) ~= c1)
 
--- NEW : That's something usefull for Nat for example, since we don't have negatives numbers
+-- NEW : That's something usefull for dealing with Nat for example, since we don't have negatives numbers
 class dataTypes.Monoid c => CommutativeMonoid c where
-    Plus_comm' : (c1:c) -> (c2:c) -> (set_eq_undec (Plus c1 c2) (Plus c2 c1))
+    Plus_comm' : (c1:c) -> (c2:c) -> ((Plus c1 c2) ~= (Plus c2 c1))
 
 
 -- We define the fact to have a symmetric as a notion on a monoid. And this will help to define the property of being a group
 hasSymmetric : (c:Type) -> (p:dataTypes.Monoid c) -> c -> c -> Type
-hasSymmetric c p a b = (set_eq_undec (Plus a b) Zero, set_eq_undec (Plus b a) (the c Zero))    
+hasSymmetric c p a b = ((Plus a b) ~= Zero, (Plus b a) ~= (the c Zero))    
     
 -- An abstract group
 --%logging 1    
@@ -70,9 +82,9 @@ class dataTypes.Monoid c => dataTypes.Group c where
     Minus : c -> c -> c 
     
     -- Neg should preserve the quivalence
-    Neg_preserves_equiv : {c1:c} -> {c2:c} -> (set_eq_undec c1 c2) -> (set_eq_undec (Neg c1) (Neg c2))
+    Neg_preserves_equiv : {c1:c} -> {c2:c} -> (c1 ~= c2) -> ((Neg c1) ~= (Neg c2))
 
-    Minus_simpl : (c1:c) -> (c2:c) -> set_eq_undec (Minus c1 c2) (Plus c1 (Neg c2)) --Minus should not be primitive and should be simplifiable
+    Minus_simpl : (c1:c) -> (c2:c) -> (Minus c1 c2) ~= (Plus c1 (Neg c2)) --Minus should not be primitive and should be simplifiable
     -- The most important stuff for a group is the following :
     Plus_inverse : (c1:c) -> hasSymmetric c (%instance) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
 --%logging 0
@@ -81,14 +93,14 @@ class dataTypes.Monoid c => dataTypes.Group c where
 
 -- We only ask the "user" for the proof that Neg preserves the quivalence, and we automatically deduce that Minus also preserves the equivalence (since Minus is defined by using Neg)
 Minus_preserves_equiv : {c:Type} -> (dataTypes.Group c)
-                        -> ((c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> (set_eq_undec c1 c1') -> (set_eq_undec c2 c2') -> (set_eq_undec (Minus c1 c2) (Minus c1' c2')))
+                        -> ((c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> (c1 ~= c1') -> (c2 ~= c2') -> ((Minus c1 c2) ~= (Minus c1' c2')))
 Minus_preserves_equiv ggj = ?MAAAAA
 
 
 
 -- An abstract commutative group
 class dataTypes.Group c => CommutativeGroup c where
-    Plus_comm : (c1:c) -> (c2:c) -> (set_eq_undec (Plus c1 c2) (Plus c2 c1))
+    Plus_comm : (c1:c) -> (c2:c) -> ((Plus c1 c2) ~= (Plus c2 c1))
     
 
 
@@ -97,14 +109,14 @@ class CommutativeGroup c => Ring c where
     One : c
     Mult : c -> c -> c
     
-    Mult_assoc : (c1:c) -> (c2:c) -> (c3:c) -> set_eq_undec (Mult (Mult c1 c2) c3) (Mult c1 (Mult c2 c3))
-    Mult_dist : (c1:c) -> (c2:c) -> (c3:c) -> set_eq_undec (Mult c1 (Plus c2 c3)) (Plus (Mult c1 c2) (Mult c1 c3))
-    Mult_dist_2 : (c1:c) -> (c2:c) -> (c3:c) -> set_eq_undec (Mult (Plus c1 c2) c3) (Plus (Mult c1 c3) (Mult c2 c3)) -- Needed because we don't have commutativity of * in a ring
-    Mult_neutral : (c1:c) -> ((set_eq_undec (Mult c1 One) (Mult One c1)), (set_eq_undec (Mult One c1) c1))
+    Mult_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Mult c1 c2) c3) ~= (Mult c1 (Mult c2 c3))
+    Mult_dist : (c1:c) -> (c2:c) -> (c3:c) -> (Mult c1 (Plus c2 c3)) ~= (Plus (Mult c1 c2) (Mult c1 c3))
+    Mult_dist_2 : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Plus c1 c2) c3) ~= (Plus (Mult c1 c3) (Mult c2 c3)) -- Needed because we don't have commutativity of * in a ring
+    Mult_neutral : (c1:c) -> ((Mult c1 One) ~= (Mult One c1), (Mult One c1) ~= c1)
 
 -- An abstract commutative ring    
 class dataTypes.Ring c => CommutativeRing c where
-    Mult_comm : (c1:c) -> (c2:c) -> (set_eq_undec (Mult c1 c2) (Mult c2 c1))
+    Mult_comm : (c1:c) -> (c2:c) -> ((Mult c1 c2) ~= (Mult c2 c1))
 
 ------------------------------
 -- Functions of conversion ---
@@ -142,25 +154,25 @@ cr_to_r_class p = %instance -- finds the instance automatically from p
 -- -----------------------------------------
 -- (getters) Equality as elements of set ---
 --------------------------------------------
-set_eq_as_elem_of_set : (Set c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
+set_eq_as_elem_of_set : (Set c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 set_eq_as_elem_of_set x = set_eq
 
 -- Magma
-magma_eq_as_elem_of_set : (Magma c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
+magma_eq_as_elem_of_set : (Magma c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 magma_eq_as_elem_of_set x = set_eq_as_elem_of_set (magma_to_set_class x)
 
 -- Semi group
 semiGroup_to_set : (SemiGroup c) -> (Set c)
 semiGroup_to_set x = (%instance)
 
-semiGroup_eq_as_elem_of_set : (SemiGroup c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
+semiGroup_eq_as_elem_of_set : (SemiGroup c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 semiGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (semiGroup_to_set x)
 
 -- Monoid
 monoid_to_set : (dataTypes.Monoid c) -> (Set c)
 monoid_to_set x = (%instance)
 
-monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
+monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
 
 
@@ -168,7 +180,7 @@ monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
 commutativeMonoid_to_set : (CommutativeMonoid c) -> (Set c)
 commutativeMonoid_to_set x = (%instance)
 
-commutativeMonoid_eq_as_elem_of_set : (CommutativeMonoid c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
+commutativeMonoid_eq_as_elem_of_set : (CommutativeMonoid c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid_to_set x)
 
 
@@ -176,7 +188,7 @@ commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid
 group_to_set : (dataTypes.Group c) -> (Set c)
 group_to_set x = (%instance)
 
-group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
+group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 
 
@@ -184,7 +196,7 @@ group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 commutativeGroup_to_set : (CommutativeGroup c) -> (Set c)
 commutativeGroup_to_set x = (%instance)
 
-commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> Maybe(set_eq_undec x y))
+commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_to_set x)
 
 -- ----------------------------
@@ -226,7 +238,7 @@ data ExprMa : {c:Type} -> {n:Nat} -> Magma c -> (neg:c->c) -> (Vect n c) -> c ->
 
 -- I wanted it to only produce a bool, which tells if the two expression are "syntactically equivalent" (that mean equal, appart for the constants where we only ask for the equivalence)
 -- BUT, we will need to prove a lemma which says that if two expressions are "syntactically equivalent" then (c_eq c1 c2). So instead, we directly produce a Maybe(c_eq c1 c2)
-exprMa_eq : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p neg g c1) -> (e2:ExprMa p neg g c2) -> Maybe(set_eq_undec c1 c2)
+exprMa_eq : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p neg g c1) -> (e2:ExprMa p neg g c2) -> Maybe(c1~=c2)
 exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ x' y') with (exprMa_eq p neg g x x', exprMa_eq p neg g y y')
     exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ _ _) | _ = Nothing
@@ -246,7 +258,7 @@ data ExprSG : {c:Type} -> {n:Nat} -> SemiGroup c -> (neg:c->c) -> (Vect n c) -> 
     PlusSG : {c:Type} -> {n:Nat} -> {p : SemiGroup c} -> (neg:c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprSG p neg g c1 -> ExprSG p neg g c2 -> ExprSG p neg g (Plus c1 c2)
     VarSG : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> {g:Vect n c} -> {c1:c} -> Variable (semiGroup_to_set p) neg g c1 -> ExprSG p neg g c1
 
-exprSG_eq : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprSG p neg g c1) -> (e2:ExprSG p neg g c2) -> Maybe(set_eq_undec c1 c2)
+exprSG_eq : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprSG p neg g c1) -> (e2:ExprSG p neg g c2) -> Maybe(c1~=c2)
 exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ x' y') with (exprSG_eq p neg g x x', exprSG_eq p neg g y y')
     exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ _ _) | _ = Nothing
@@ -271,7 +283,7 @@ data ExprMo : {c:Type} -> {n:Nat} -> dataTypes.Monoid c -> (neg:c->c) -> (Vect n
     PlusMo : {c:Type} -> {n:Nat} -> {p : dataTypes.Monoid c} -> (neg:c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprMo p neg g c1 -> ExprMo p neg g c2 -> ExprMo p neg g (Plus c1 c2)
     VarMo : {c:Type} -> {n:Nat} -> (p : dataTypes.Monoid c) -> (neg:c->c) -> {g:Vect n c} -> {c1:c} -> Variable (monoid_to_set p) neg g c1 -> ExprMo p neg g c1
 
-exprMo_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMo p neg g c1) -> (e2:ExprMo p neg g c2) -> Maybe(set_eq_undec c1 c2)
+exprMo_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMo p neg g c1) -> (e2:ExprMo p neg g c2) -> Maybe(c1~=c2)
 exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ x' y') with (exprMo_eq p neg g x x', exprMo_eq p neg g y y')
     exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ _ _) | _ = Nothing
@@ -290,7 +302,7 @@ data ExprCM : {c:Type} -> {n:Nat} -> (CommutativeMonoid c) -> (Vect n c) -> c ->
     PlusCM : {c:Type} -> {n:Nat} -> {p : CommutativeMonoid c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCM p g c1 -> ExprCM p g c2 -> ExprCM p g (Plus c1 c2)
     VarCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> {g:Vect n c} -> (i:Fin n) -> ExprCM p g (index i g)
 
-exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p g c1) -> (e2:ExprCM p g c2) -> Maybe(set_eq_undec c1 c2)
+exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p g c1) -> (e2:ExprCM p g c2) -> Maybe(c1~=c2)
 exprCM_eq p g (PlusCM x y) (PlusCM x' y') with (exprCM_eq p g x x', exprCM_eq p g y y')
     exprCM_eq p g (PlusCM x y) (PlusCM _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprCM_eq p g (PlusCM x y) (PlusCM _ _) | _ = Nothing
@@ -313,7 +325,7 @@ data ExprG :  {c:Type} -> {n:Nat} -> dataTypes.Group c -> (Vect n c) -> c -> Typ
     VarG : {c:Type} -> {n:Nat} -> (p : dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> Variable (group_to_set p) Neg g c1 -> ExprG p g c1
 
 
-exprG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> Maybe(set_eq_undec c1 c2)
+exprG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> Maybe(c1~=c2)
 exprG_eq p g (PlusG x y) (PlusG x' y') with (exprG_eq p g x x', exprG_eq p g y y')
         exprG_eq p g (PlusG x y) (PlusG _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
         exprG_eq p g (PlusG x y) (PlusG _ _) | _ = Nothing
@@ -482,5 +494,26 @@ r_to_cr p (VarR _ v) = VarCR p v
 
 
 
+
+
+
+---------- Proofs ----------
+
+Solver.dataTypes.Meq_preserves_eq_3 = proof
+  intros
+  exact (set_eq_undec_trans paux paux2)
+
+
+Solver.dataTypes.Meq_preserves_eq_2 = proof
+  intros
+  exact (set_eq_undec_sym p2)
+
+
+Solver.dataTypes.Meq_preserves_eq_1 = proof
+  intros
+  mrefine set_eq_undec_trans 
+  exact c1
+  exact p1
+  exact p3
 
 

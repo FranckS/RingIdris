@@ -51,9 +51,9 @@ rewriteIn C a p f = ?MrewriteIn_1
 -- ------------------------------------------------------------------------
 -- B.1/ This subpart is to obtain the lemma "group_doubleNeg" : - (-a) = a
 -- ------------------------------------------------------------------------
-group_unicity_symmetric : {C:Type} -> (p:dataTypes.Group C) -> (a:C) -> (b:C) -> (c:C) -> (hasSymmetric C (group_to_monoid_class p) a b) -> (hasSymmetric C (group_to_monoid_class p) a c) -> (b=c)
+group_unicity_symmetric : {C:Type} -> (p:dataTypes.Group C) -> (a:C) -> (b:C) -> (c:C) -> (hasSymmetric C (group_to_monoid_class p) a b) -> (hasSymmetric C (group_to_monoid_class p) a c) -> (b~=c)
 group_unicity_symmetric p a b c p1 p2 = let a = aux in ?MGroup_unicity_1
-  where aux : Plus (Plus b a) c = Plus b (Plus a c) 
+  where aux : Plus (Plus b a) c ~= Plus b (Plus a c) 
 	aux = ?MGroup_unicity_2
 	
 
@@ -65,7 +65,7 @@ plus_inverse_2 : {C:Type} -> (p:dataTypes.Group C) -> (c1:C) -> hasSymmetric C (
 plus_inverse_2 p c1 = ?Mplus_inverse_2	
 
 
-group_doubleNeg : (C:Type) -> (p:dataTypes.Group C) -> (a:C) -> ((Neg (Neg a)) = a) 
+group_doubleNeg : (C:Type) -> (p:dataTypes.Group C) -> (a:C) -> ((Neg (Neg a)) ~= a) 
 group_doubleNeg C p a = let a = aux in let b = aux2 in ?Mgroup_doubleNeg1
   where aux : hasSymmetric C (group_to_monoid_class p) (Neg a) a
 	aux = ?Mgroup_doubleNeg_2
@@ -80,30 +80,30 @@ adding_preserves_equality_left : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (
 adding_preserves_equality_left x y z H = ?Madding_preserves_equality_left_1
 -}
 
-adding_preserves_equality : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (set_eq_undec x y) -> (set_eq_undec (Plus x z) (Plus y z))
+adding_preserves_equality : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (x~=y) -> ((Plus x z) ~= (Plus y z))
 adding_preserves_equality x y z H = ?Madding_preserves_equality_1
 
 
-move_other_side : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (set_eq_undec (Plus x y) z) -> (set_eq_undec x (Plus z (Neg y)))
-move_other_side x y z H = 
-	let aux : (set_eq_undec (Plus (Plus x y) (Neg y)) (Plus z (Neg y))) = adding_preserves_equality _ _ (Neg y) H in
-	let aux2 : (set_eq_undec (Plus (Plus x y) (Neg y)) (Plus x (Plus y (Neg y)))) = (Plus_assoc _ _ _) in
-	let aux3 : (set_eq_undec (Plus x (Plus y (Neg y))) (Plus z (Neg y))) = ?Mmove_other_side_1 in -- Just a rewriting in an hypothesis
-	let aux4 : (set_eq_undec (Plus y (Neg y)) Zero) = (left (Plus_inverse _)) in
-	let aux5 : (set_eq_undec (Plus x (Plus y (Neg y))) x) = ?Mmove_other_side_2 in
-		?Mmove_other_side_3
+move_other_side : {C:Type} -> (dataTypes.Group C) -> (x:C) -> (y:C) -> (z:C) -> ((Plus x y) ~= z) -> (x ~= (Plus z (Neg y)))
+move_other_side p x y z H =
+    let aux : ((Plus (Plus x y) (Neg y)) ~= (Plus z (Neg y))) = adding_preserves_equality {p=p} _ _ (Neg y) H in
+    let aux2 : ((Plus (Plus x y) (Neg y)) ~= (Plus x (Plus y (Neg y)))) = (Plus_assoc _ _ _) in
+    let aux3 : ((Plus x (Plus y (Neg y))) ~= (Plus z (Neg y))) = ?Mmove_other_side_1 in -- Just a rewriting in an hypothesis
+    let aux4 : ((Plus y (Neg y)) ~= Zero) = (left (Plus_inverse _)) in
+    let aux5 : ((Plus x (Plus y (Neg y))) ~= x) = ?Mmove_other_side_2 in
+        ?Mmove_other_side_3
 
 
-push_negation : (C:Type) -> (dataTypes.Group C) -> (x:C) -> (y:C) -> (set_eq_undec (Neg (Plus x y)) (Plus (Neg y) (Neg x)))
+push_negation : (C:Type) -> (dataTypes.Group C) -> (x:C) -> (y:C) -> ((Neg (Plus x y)) ~= (Plus (Neg y) (Neg x)))
 push_negation C p x y = 
-	let aux : (set_eq_undec (Plus (Neg (Plus x y)) (Plus x y)) Zero) = right (Plus_inverse (Plus x y)) in
-	let aux2 : (set_eq_undec (Plus (Neg (Plus x y)) (Plus x y)) (Plus (Plus (Neg (Plus x y)) x) y)) = sym (Plus_assoc (Neg (Plus x y)) x y) in
-	let aux3 : (set_eq_undec (Plus (Plus (Neg (Plus x y)) x) y) (the C Zero)) = ?Mpush_negation_1 in
-	let aux4 : (set_eq_undec (Plus (Neg (Plus x y)) x) (Plus Zero (Neg y))) = move_other_side _ _ _ aux3 in
-	let aux5 : (set_eq_undec (Plus Zero (Neg y)) (Neg y)) = Plus_neutral_1 _ in
-	let aux6 : (set_eq_undec (Plus (Neg (Plus x y)) x) (Neg y)) = ?Mpush_negation_2 in
-	let aux7 : (set_eq_undec (Neg (Plus x y)) (Plus (Neg y) (Neg x))) = move_other_side (Neg (Plus x y)) x (Neg y) aux6 in
-            ?Mpush_negation_3
+    let aux : ((Plus (Neg (Plus x y)) (Plus x y)) ~= Zero) = right (Plus_inverse (Plus x y)) in
+    let aux2 : ((Plus (Neg (Plus x y)) (Plus x y)) ~= (Plus (Plus (Neg (Plus x y)) x) y)) = set_eq_undec_sym (Plus_assoc (Neg (Plus x y)) x y) in
+    let aux3 : ((Plus (Plus (Neg (Plus x y)) x) y) ~= the C Zero) = ?Mpush_negation_1 in
+    let aux4 : ((Plus (Neg (Plus x y)) x) ~= (Plus Zero (Neg y))) = move_other_side p _ _ _ aux3 in
+    let aux5 : ((Plus Zero (Neg y)) ~= (Neg y)) = Plus_neutral_1 _ in
+    let aux6 : ((Plus (Neg (Plus x y)) x) ~= (Neg y)) = ?Mpush_negation_2 in
+    let aux7 : ((Neg (Plus x y)) ~= (Plus (Neg y) (Neg x))) = move_other_side p (Neg (Plus x y)) x (Neg y) aux6 in
+        ?Mpush_negation_3
 	      
 {-
 And_True_neutral : (b:Bool) -> (True && b = b)
@@ -143,30 +143,30 @@ aux1 : O = plus O O
 
 -- C.1) For SemiGroup
 
-semiGroupAssoc_4terms_Aux1 : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 = Plus (Plus c1 c2) (Plus c3 c4))
+semiGroupAssoc_4terms_Aux1 : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 ~= Plus (Plus c1 c2) (Plus c3 c4))
 semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc _ _ _
 
-plusEqualLeft_SemiGroup : (C : Type) -> (SemiGroup C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x=x') -> (Plus x y = Plus x' y)
+plusEqualLeft_SemiGroup : (C : Type) -> (SemiGroup C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x~=x') -> (Plus x y ~= Plus x' y)
 plusEqualLeft_SemiGroup C p x x' y prEqual = ?MplusEqualLeft_SemiGroup_1
 
-semiGroupAssoc_4terms_Aux2 : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 = Plus (Plus (Plus c1 c2) c3) c4)
+semiGroupAssoc_4terms_Aux2 : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 ~= Plus (Plus (Plus c1 c2) c3) c4)
 semiGroupAssoc_4terms_Aux2 = ?MsemiGroupAssoc_4terms_Aux2_1
 
-semiGroupAssoc_4terms : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4  = Plus (Plus c1 c2) (Plus c3 c4))
+semiGroupAssoc_4terms : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 ~= Plus (Plus c1 c2) (Plus c3 c4))
 semiGroupAssoc_4terms C p c1 c2 c3 c4 = ?MsemiGroupAssoc_4terms_1
 
 -- C.2) For Group
 
-groupAssoc_4terms_Aux1 :  (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 = Plus (Plus c1 c2) (Plus c3 c4))
+groupAssoc_4terms_Aux1 :  (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 ~= Plus (Plus c1 c2) (Plus c3 c4))
 groupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc _ _ _
 
-plusEqualLeft_Group : (C : Type) -> (dataTypes.Group C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x=x') -> (Plus x y = Plus x' y)
+plusEqualLeft_Group : (C : Type) -> (dataTypes.Group C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x~=x') -> (Plus x y ~= Plus x' y)
 plusEqualLeft_Group C p x x' y prEqual = ?MplusEqualLeft_Group_1 
 
-groupAssoc_4terms_Aux2 : (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 = Plus (Plus (Plus c1 c2) c3) c4)
+groupAssoc_4terms_Aux2 : (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 ~= Plus (Plus (Plus c1 c2) c3) c4)
 groupAssoc_4terms_Aux2 = ?MgroupAssoc_4terms_Aux2_1
 
-groupAssoc_4terms : (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4  = Plus (Plus c1 c2) (Plus c3 c4))
+groupAssoc_4terms : (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus c1 (Plus c2 c3)) c4 ~= Plus (Plus c1 c2) (Plus c3 c4))
 groupAssoc_4terms C p c1 c2 c3 c4 = ?MgroupAssoc_4terms_1
 
 
@@ -674,10 +674,10 @@ Solver.tools.MGroup_unicity_1 = proof
   intro
   intro
   intro
-  rewrite (sym (right p1))
-  rewrite (sym (left p2))
-  rewrite (sym (Plus_neutral_1 c))
-  rewrite (sym (Plus_neutral_2 b))
+  rewrite (set_eq_undec_sym (right p1))
+  rewrite (set_eq_undec_sym (left p2))
+  rewrite (set_eq_undec_sym (Plus_neutral_1 c))
+  rewrite (set_eq_undec_sym (Plus_neutral_2 b))
   intro
   rewrite a1
   trivial
