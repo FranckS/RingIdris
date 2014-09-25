@@ -80,16 +80,17 @@ adding_preserves_equality_left : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (
 adding_preserves_equality_left x y z H = ?Madding_preserves_equality_left_1
 -}
 
+--adding_preserves_equality : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (x~=y) -> ((Plus x z) ~= (Plus y z))
 adding_preserves_equality : {C:Type} -> {p:dataTypes.Group C} -> (x:C) -> (y:C) -> (z:C) -> (x~=y) -> ((Plus x z) ~= (Plus y z))
 adding_preserves_equality x y z H = ?Madding_preserves_equality_1
 
 
 move_other_side : {C:Type} -> (dataTypes.Group C) -> (x:C) -> (y:C) -> (z:C) -> ((Plus x y) ~= z) -> (x ~= (Plus z (Neg y)))
 move_other_side p x y z H =
-    let aux : ((Plus (Plus x y) (Neg y)) ~= (Plus z (Neg y))) = adding_preserves_equality {p=p} _ _ (Neg y) H in
-    let aux2 : ((Plus (Plus x y) (Neg y)) ~= (Plus x (Plus y (Neg y)))) = (Plus_assoc _ _ _) in
+    let aux : ((Plus (Plus x y) (Neg y)) ~= (Plus z (Neg y))) = adding_preserves_equality {p=p} (Plus x y) z (Neg y) H in
+    let aux2 : ((Plus (Plus x y) (Neg y)) ~= (Plus x (Plus y (Neg y)))) = (Plus_assoc x y (Neg y)) in
     let aux3 : ((Plus x (Plus y (Neg y))) ~= (Plus z (Neg y))) = ?Mmove_other_side_1 in -- Just a rewriting in an hypothesis
-    let aux4 : ((Plus y (Neg y)) ~= Zero) = (left (Plus_inverse _)) in
+    let aux4 : ((Plus y (Neg y)) ~= Zero) = (left (Plus_inverse y)) in
     let aux5 : ((Plus x (Plus y (Neg y))) ~= x) = ?Mmove_other_side_2 in
         ?Mmove_other_side_3
 
@@ -97,10 +98,10 @@ move_other_side p x y z H =
 push_negation : (C:Type) -> (dataTypes.Group C) -> (x:C) -> (y:C) -> ((Neg (Plus x y)) ~= (Plus (Neg y) (Neg x)))
 push_negation C p x y = 
     let aux : ((Plus (Neg (Plus x y)) (Plus x y)) ~= Zero) = right (Plus_inverse (Plus x y)) in
-    let aux2 : ((Plus (Neg (Plus x y)) (Plus x y)) ~= (Plus (Plus (Neg (Plus x y)) x) y)) = set_eq_undec_sym (Plus_assoc (Neg (Plus x y)) x y) in
+    let aux2 : ((Plus (Neg (Plus x y)) (Plus x y)) ~= (Plus (Plus (Neg (Plus x y)) x) y)) = set_eq_undec_sym {x=Plus (Plus (Neg (Plus x y)) x) y} {y=Plus (Neg (Plus x y)) (Plus x y)} (Plus_assoc (Neg (Plus x y)) x y) in
     let aux3 : ((Plus (Plus (Neg (Plus x y)) x) y) ~= the C Zero) = ?Mpush_negation_1 in
-    let aux4 : ((Plus (Neg (Plus x y)) x) ~= (Plus Zero (Neg y))) = move_other_side p _ _ _ aux3 in
-    let aux5 : ((Plus Zero (Neg y)) ~= (Neg y)) = Plus_neutral_1 _ in
+    let aux4 : ((Plus (Neg (Plus x y)) x) ~= (Plus Zero (Neg y))) = move_other_side p (Plus (Neg (Plus x y)) x) y Zero aux3 in
+    let aux5 : ((Plus Zero (Neg y)) ~= (Neg y)) = Plus_neutral_1 (Neg y) in
     let aux6 : ((Plus (Neg (Plus x y)) x) ~= (Neg y)) = ?Mpush_negation_2 in
     let aux7 : ((Neg (Plus x y)) ~= (Plus (Neg y) (Neg x))) = move_other_side p (Neg (Plus x y)) x (Neg y) aux6 in
         ?Mpush_negation_3
@@ -667,20 +668,13 @@ Solver.tools.Mf_equal = proof
 
 
 Solver.tools.MGroup_unicity_1 = proof
-  intro
-  intro
-  intro
-  intro
-  intro
-  intro
-  intro
-  rewrite (set_eq_undec_sym (right p1))
-  rewrite (set_eq_undec_sym (left p2))
-  rewrite (set_eq_undec_sym (Plus_neutral_1 c))
-  rewrite (set_eq_undec_sym (Plus_neutral_2 b))
-  intro
-  rewrite a1
-  trivial
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus b (Plus a c))
+  exact (Plus (Plus b a) c)
+  exact (set_eq_undec_sym (add_zero_right _ (Plus a c) b (left p2)))
+  exact (set_eq_undec_sym (add_zero_left _ (Plus b a) c (right p1)))
+  exact (set_eq_undec_sym a1)
 
 Solver.tools.MGroup_unicity_2 = proof
   intros
@@ -701,7 +695,7 @@ Solver.tools.Mplus_inverse_2 = proof
 
 Solver.tools.Mgroup_doubleNeg1 = proof
   intros
-  exact (sym (group_unicity_symmetric p (Neg a) a (Neg (Neg a)) a1 b))
+  exact (set_eq_undec_sym (group_unicity_symmetric p (Neg a) a (Neg (Neg a)) a1 b))
   
 Solver.tools.Mgroup_doubleNeg_2 = proof
   intros
@@ -715,8 +709,7 @@ Solver.tools.Mgroup_doubleNeg_3 = proof
   
 Solver.tools.Madding_preserves_equality_1 = proof
   intros
-  rewrite H
-  mrefine refl
+  exact (Plus_preserves_equiv H (set_eq_undec_refl z))
 
 {-  
 Solver.tools.Madding_preserves_equality_left_1 = proof
@@ -727,71 +720,95 @@ Solver.tools.Madding_preserves_equality_left_1 = proof
   
 Solver.tools.Mmove_other_side_1 = proof
   intros
-  rewrite aux2
-  exact aux  
+  mrefine eq_preserves_eq 
+  exact (Plus (Plus x y) (Neg y))
+  exact (Plus z (Neg y))
+  exact (set_eq_undec_sym aux2)
+  exact (set_eq_undec_refl (Plus z (Neg y)))
+  exact aux
   
 Solver.tools.Mmove_other_side_2 = proof
   intros
-  rewrite (sym aux4)
-  mrefine Plus_neutral_2
+  mrefine eq_preserves_eq 
+  exact (Plus x Zero)
+  exact x
+  mrefine Plus_preserves_equiv 
+  exact (set_eq_undec_refl x)
+  exact (Plus_neutral_2 x)
+  exact (set_eq_undec_refl x)
+  exact (left (Plus_inverse y))
 
 Solver.tools.Mmove_other_side_3 = proof
   intros
-  rewrite aux5
-  exact aux3 
+  mrefine eq_preserves_eq 
+  exact x
+  exact (Plus x (Plus y (Neg y)))
+  exact (set_eq_undec_refl x)
+  exact (set_eq_undec_sym aux3)
+  exact (set_eq_undec_sym aux5)
   
 Solver.tools.Mpush_negation_1 = proof
   intros
-  rewrite aux2
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg (Plus x y)) (Plus x y))
+  exact (the C Zero)
+  exact (set_eq_undec_sym aux2)
+  exact (set_eq_undec_refl Zero)
   exact aux  
   
 Solver.tools.Mpush_negation_2 = proof
   intros
-  rewrite aux5
+  mrefine eq_preserves_eq 
+  exact (Plus Zero (Neg y))
+  exact (Neg y)
   exact aux4
-     
+  exact (set_eq_undec_refl (Neg y))
+  exact aux5
+  
 Solver.tools.Mpush_negation_3 = proof
   intros
-  rewrite aux7
-  mrefine refl  
+  exact aux7  
+     
+Solver.tools.MplusEqualLeft_SemiGroup_1 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact prEqual 
+  exact (set_eq_undec_refl y) 
 
-Solver.tools.MplusEqualLeft_SemiGroup_1 = proof {
-  intros;
-  rewrite prEqual;
-  trivial;
-}
-
-Solver.tools.MsemiGroupAssoc_4terms_Aux2_1 = proof {
-  intros;
-  mrefine plusEqualLeft_SemiGroup;
-  rewrite (Plus_assoc c1 c2 c3);
-  trivial;
-}
+Solver.tools.MsemiGroupAssoc_4terms_Aux2_1 = proof
+  intros
+  mrefine plusEqualLeft_SemiGroup 
+  exact (set_eq_undec_sym (Plus_assoc c1 c2 c3))
 
 Solver.tools.MsemiGroupAssoc_4terms_1 = proof
   intros
-  rewrite (semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4)
-  rewrite (semiGroupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
-  exact refl
+  mrefine eq_preserves_eq 
+  exact (Plus (Plus (Plus c1 c2) c3) c4)
+  exact (Plus (Plus (Plus c1 c2) c3) c4)
+  exact (semiGroupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
+  exact (set_eq_undec_sym (semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4))
+  exact (set_eq_undec_refl (Plus (Plus (Plus c1 c2) c3) c4))
 
-Solver.tools.MplusEqualLeft_Group_1 = proof {
-  intros;
-  rewrite prEqual;
-  trivial;
-}
+Solver.tools.MplusEqualLeft_Group_1 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact prEqual 
+  exact (set_eq_undec_refl y)
 
 Solver.tools.MgroupAssoc_4terms_Aux2_1 = proof
   intros
   mrefine plusEqualLeft_Group 
-  rewrite (Plus_assoc c1 c2 c3)
-  exact refl
+  exact (set_eq_undec_sym(Plus_assoc c1 c2 c3))
 
 Solver.tools.MgroupAssoc_4terms_1 = proof
   intros
-  rewrite (groupAssoc_4terms_Aux1 C p c1 c2 c3 c4)
-  rewrite (groupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
-  mrefine refl
-    
+  mrefine eq_preserves_eq 
+  exact (Plus (Plus (Plus c1 c2) c3) c4)
+  exact (Plus (Plus (Plus c1 c2) c3) c4)
+  exact (groupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
+  exact (set_eq_undec_sym (groupAssoc_4terms_Aux1 C p c1 c2 c3 c4))
+  exact (set_eq_undec_refl (Plus (Plus (Plus c1 c2) c3) c4))
+  
 {-
 Solver.tools.aux1 = proof {
   compute;

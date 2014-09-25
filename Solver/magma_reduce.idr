@@ -45,15 +45,15 @@ Solver.magma_reduce.MmagmaReduce1 = proof
   exact p_ih1
   exact p_ih2
 
-{-
-Solver.magma_reduce.MbuildProofMagma = proof {
-  intros;
-  refine Just;
-  rewrite( sym lp);
-  rewrite( sym rp);
-  exact e1_equiv_e2;
-}
--}
+Solver.magma_reduce.MbuildProofMagma = proof
+  intros
+  refine Just
+  mrefine eq_preserves_eq 
+  exact c1
+  exact c2
+  exact lp
+  exact rp
+  exact e1_equiv_e2 
 
 
 

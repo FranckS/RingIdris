@@ -57,6 +57,7 @@ class Set c => Magma c where
     -- Plus should preserve the equivalence defined at the Set level 
     Plus_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((Plus c1 c2) ~= (Plus c1' c2'))
 
+
 class Magma c => SemiGroup c where
     Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Plus (Plus c1 c2) c3 ~= Plus c1 (Plus c2 c3))
 
@@ -65,6 +66,15 @@ class SemiGroup c => Monoid c where
     
     Plus_neutral_1 : (c1:c) -> ((Plus Zero c1) ~= c1)    
     Plus_neutral_2 : (c1:c) -> ((Plus c1 Zero) ~= c1)
+    
+    
+    
+add_zero_left : {c:Type} -> (dataTypes.Monoid c) -> (x:c) -> (y:c) -> (x~=Zero) -> (Plus x y ~= y)
+add_zero_left p x y H = ?Madd_zero_left_1
+
+add_zero_right : {c:Type} -> (dataTypes.Monoid c) -> (x:c) -> (y:c) -> (x~=Zero) -> (Plus y x ~= y)
+add_zero_right p x y H = ?Madd_zero_right_1
+
 
 -- NEW : That's something usefull for dealing with Nat for example, since we don't have negatives numbers
 class dataTypes.Monoid c => CommutativeMonoid c where
@@ -90,11 +100,10 @@ class dataTypes.Monoid c => dataTypes.Group c where
 --%logging 0
 
 
-
 -- We only ask the "user" for the proof that Neg preserves the quivalence, and we automatically deduce that Minus also preserves the equivalence (since Minus is defined by using Neg)
 Minus_preserves_equiv : {c:Type} -> (dataTypes.Group c)
-                        -> ((c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> (c1 ~= c1') -> (c2 ~= c2') -> ((Minus c1 c2) ~= (Minus c1' c2')))
-Minus_preserves_equiv ggj = ?MAAAAA
+                        -> {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1 ~= c1') -> (c2 ~= c2') -> ((Minus c1 c2) ~= (Minus c1' c2'))
+Minus_preserves_equiv p H1 H2 = ?MMinus_preserves_equiv_1
 
 
 
@@ -111,7 +120,7 @@ class CommutativeGroup c => Ring c where
     
     Mult_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Mult c1 c2) c3) ~= (Mult c1 (Mult c2 c3))
     Mult_dist : (c1:c) -> (c2:c) -> (c3:c) -> (Mult c1 (Plus c2 c3)) ~= (Plus (Mult c1 c2) (Mult c1 c3))
-    Mult_dist_2 : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Plus c1 c2) c3) ~= (Plus (Mult c1 c3) (Mult c2 c3)) -- Needed because we don't have commutativity of * in a ring
+    Mult_dist_2 : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Plus c1 c2) c3) ~= (Plus (Mult c1 c3) (Mult c2 c3)) -- Needed because we don't have commutativity of * in a ring (in general)
     Mult_neutral : (c1:c) -> ((Mult c1 One) ~= (Mult One c1), (Mult One c1) ~= c1)
 
 -- An abstract commutative ring    
@@ -310,7 +319,7 @@ exprCM_eq p g (VarCM _ i1) (VarCM _ i2) with (eq_dec_fin i1 i2)
     exprCM_eq p g (VarCM _ i1) (VarCM _ i1) | (Just refl) = Just (set_eq_undec_refl (index i1 g))
     exprCM_eq p g (VarCM _ i1) (VarCM _ i2) | _ = Nothing
 exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) with ((commutativeMonoid_eq_as_elem_of_set p) const1 const2)
-    exprCM_eq p g (ConstCM _ _  const1) (ConstCM _ _ const1) | (Just const_eq) = Just ?MCCC
+    exprCM_eq p g (ConstCM _ _  const1) (ConstCM _ _ const1) | (Just const_eq) = Just const_eq
     exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) | _ = Nothing
 exprCM_eq p g _ _  = Nothing
 
@@ -333,13 +342,13 @@ exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v2) with (Variable_eq Neg g v1 v2)
         exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarG _ v1) (VarG _ v2) | _ = Nothing
 exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) with ((group_eq_as_elem_of_set p) const1 const2)
-        exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const1) | (Just const_eq) = Just ?MDDDDD
+        exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const1) | (Just const_eq) = Just const_eq
         exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) | _ = Nothing
 exprG_eq p g (NegG e1) (NegG e2) with (exprG_eq p g e1 e2)
-        exprG_eq p g (NegG e1) (NegG _) | (Just p1) = Just ?MX
+        exprG_eq p g (NegG e1) (NegG _) | (Just p1) = Just (Neg_preserves_equiv p1)
         exprG_eq p g (NegG e1) (NegG e2) | _ = Nothing
 exprG_eq p g (MinusG x y) (MinusG x' y') with (exprG_eq p g x x', exprG_eq p g y y')
-        exprG_eq p g (MinusG x y) (MinusG _ _) | (Just p1, Just p2) = Just ?MY
+        exprG_eq p g (MinusG x y) (MinusG _ _) | (Just p1, Just p2) = ?MexprG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
         exprG_eq p g (MinusG x y) (MinusG _ _) | _ = Nothing	
 exprG_eq p g _ _  = Nothing
     
@@ -361,21 +370,21 @@ data ExprCG : {c:Type} -> {n:Nat} -> CommutativeGroup c -> (Vect n c) -> c -> Ty
     VarCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> Variable (commutativeGroup_to_set p) Neg g c1 -> ExprCG p g c1
     
     
-exprCG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCG p g c1) -> (e2:ExprCG p g c2) -> (Maybe (c1=c2))
+exprCG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCG p g c1) -> (e2:ExprCG p g c2) -> (Maybe (c1~=c2))
 exprCG_eq p g (PlusCG x y) (PlusCG x' y') with (exprCG_eq p g x x', exprCG_eq p g y y')
-        exprG_eq p g (PlusCG x y) (PlusCG x y) | (Just refl, Just refl) = Just refl
+        exprG_eq p g (PlusCG x y) (PlusCG _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
         exprG_eq p g (PlusCG x y) (PlusCG _ _) | _ = Nothing
-exprCG_eq p g (VarCG _ v1) (VarCG _ v2) with (Variable_eq Neg g v1 v2)
-        exprG_eq p g (VarCG _ v1) (VarCG _ v1) | (Just refl) = Just refl
+exprCG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v2) with (Variable_eq Neg g v1 v2)
+        exprG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarCG _ v1) (VarCG _ v2) | _ = Nothing
 exprCG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
-        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const1) | (Just const_eq) = Just ?MEEEEE
+        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const1) | (Just const_eq) = Just const_eq
         exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) | _ = Nothing
 exprCG_eq p g (NegCG e1) (NegCG e2) with (exprCG_eq p g e1 e2)
-        exprG_eq p g (NegCG e1) (NegCG e1) | (Just refl) = Just refl
+        exprG_eq p g (NegCG e1) (NegCG _) | (Just p1) = Just (Neg_preserves_equiv p1)
         exprG_eq p g (NegCG e1) (NegCG e2) | _ = Nothing
 exprCG_eq p g (MinusCG x y) (MinusCG x' y') with (exprCG_eq p g x x', exprCG_eq p g y y')
-        exprG_eq p g (MinusCG x y) (MinusCG x y) | (Just refl, Just refl) = Just refl
+        exprG_eq p g (MinusCG x y) (MinusCG _ _) | (Just p1, Just p2) = ?MexprCG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
         exprG_eq p g (MinusCG x y) (MinusCG _ _) | _ = Nothing	
 exprCG_eq p g _ _  = Nothing
 
@@ -494,20 +503,7 @@ r_to_cr p (VarR _ v) = VarCR p v
 
 
 
-
-
-
 ---------- Proofs ----------
-
-Solver.dataTypes.Meq_preserves_eq_3 = proof
-  intros
-  exact (set_eq_undec_trans paux paux2)
-
-
-Solver.dataTypes.Meq_preserves_eq_2 = proof
-  intros
-  exact (set_eq_undec_sym p2)
-
 
 Solver.dataTypes.Meq_preserves_eq_1 = proof
   intros
@@ -516,4 +512,62 @@ Solver.dataTypes.Meq_preserves_eq_1 = proof
   exact p1
   exact p3
 
+Solver.dataTypes.Meq_preserves_eq_2 = proof
+  intros
+  exact (set_eq_undec_sym p2)
 
+Solver.dataTypes.Meq_preserves_eq_3 = proof
+  intros
+  exact (set_eq_undec_trans paux paux2)
+
+Solver.dataTypes.Madd_zero_left_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus Zero y)
+  exact y
+  mrefine Plus_preserves_equiv 
+  exact (set_eq_undec_refl y)
+  exact (Plus_neutral_1 y)
+  exact H
+  exact (set_eq_undec_refl y)
+  
+Solver.dataTypes.Madd_zero_right_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus y Zero)
+  exact y
+  mrefine Plus_preserves_equiv 
+  exact (set_eq_undec_refl y)
+  exact (Plus_neutral_2 y)
+  exact (set_eq_undec_refl y)
+  exact H
+  
+Solver.dataTypes.MMinus_preserves_equiv_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Neg c2))
+  exact (Plus c1' (Neg c2'))
+  exact (Minus_simpl c1 c2)
+  exact (Minus_simpl c1' c2')
+  mrefine Plus_preserves_equiv 
+  exact H1
+  mrefine Neg_preserves_equiv 
+  exact H2  
+    
+Solver.dataTypes.MexprG_eq_1 = proof
+  intros
+  mrefine Just
+  mrefine Minus_preserves_equiv 
+  exact p1
+  exact p2
+  
+Solver.dataTypes.MexprCG_eq_1 = proof
+  intros
+  mrefine Just
+  mrefine Minus_preserves_equiv 
+  exact p1
+  exact p2  
+  
+  
+  
+  
