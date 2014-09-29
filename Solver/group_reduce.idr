@@ -422,11 +422,11 @@ Solver.group_reduce.Mcode_reduceM_andDecode_1 = proof
   rewrite (sym pDecode )
   exact refl    
 
-  
+{-
 Solver.group_reduce.Melim_plusInverse_1 = proof
   intros
   (Plus_preserves_equiv (Neg_preserves_equiv p_e1') (Neg_preserves_equiv p_e2'))
-
+-}
 
 {-  
 Solver.group_reduce.Melim_plusInverse_2 = proof
