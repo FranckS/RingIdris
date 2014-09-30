@@ -18,13 +18,15 @@ import Solver.magma_test
 
 instance dataTypes.Set ZZ where
     -- The relation is just the equality
-    set_eq_undec x y = (x=y)
+    (~=) x y = (x=y)
 
     set_eq x y with (decEq x y)
         set_eq x x | Yes refl = Just refl
         set_eq x y | _ = Nothing
     
     set_eq_undec_refl x = refl
+    set_eq_undec_sym p = sym p
+    set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in refl
 
 instance Magma ZZ where
     Plus x y = x + y 

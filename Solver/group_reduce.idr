@@ -16,13 +16,13 @@ import Prelude.Vect
 
 
 total
-elimMinus : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
-elimMinus p (ConstG _ _ const) = (_ ** (ConstG _ _ const, refl))
+elimMinus : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
+elimMinus p (ConstG _ _ const) = (_ ** (ConstG _ _ const, set_eq_undec_refl _))
 elimMinus p (PlusG e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p e2) in
     ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimMinus1))
-elimMinus p (VarG _ v) = (_ ** (VarG _ v, refl))    
+elimMinus p (VarG _ v) = (_ ** (VarG _ v, set_eq_undec_refl _))    
 elimMinus p (MinusG e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p e2) in
@@ -34,7 +34,7 @@ elimMinus p (NegG e1) =
   
 -- Ex : -(a+b) becomes (-b) + (-a)
 -- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
-propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 propagateNeg p (NegG (PlusG e1 e2)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p (NegG e1)) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p (NegG e2)) in
@@ -47,11 +47,11 @@ propagateNeg p (PlusG e1 e2) =
   let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p e2) in
     ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MpropagateNeg_3))
 propagateNeg p e =
-  (_ ** (e, refl)) 
+  (_ ** (e, set_eq_undec_refl _)) 
   
 
 -- Needed because calling propagateNeg on -(-(a+b)) gives - [-b + -a] : we may need other passes
-propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 propagateNeg_fix p e = 
 	let (r_1 ** (e_1, p_1)) = propagateNeg p e in
 		case exprG_eq p _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
@@ -61,7 +61,7 @@ propagateNeg_fix p e =
   
 
 total
-elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 elimDoubleNeg p (NegG (NegG e1)) =
   let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p e1 in
     (_ ** (e_ih1, ?MelimDoubleNeg_1))
@@ -73,14 +73,14 @@ elimDoubleNeg p (PlusG e1 e2) =
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg p e2) in
     ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimDoubleNeg_3))        
 elimDoubleNeg p e1 = 
-    (_ ** (e1, refl))
+    (_ ** (e1, set_eq_undec_refl _))
     
 
 -- Ex : -5 + -8 becomes -13
 -- it's needed because before reaching the level of computations (magma), negative constants will be wrapped into fake variables, and
 -- that will prevent computations to happen if we don't do this first simplification here.
 total
-fold_negative_constant : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+fold_negative_constant : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 fold_negative_constant p (PlusG (NegG (ConstG _ _ c1)) (NegG (ConstG _ _ c2))) = (_ ** (NegG (ConstG _ _ (Plus c2 c1)), ?Mfold_negative_constant_1)) -- -- carefull here to the order which has to be reversed : -(a+b) is (-b + -a) but not (-a + -b) in the general case (when it's not an abelian (commutative) group)
 fold_negative_constant p (NegG e) = 
     let (r_ih ** (e_ih, p_ih)) = fold_negative_constant p e in
@@ -93,11 +93,11 @@ fold_negative_constant p (PlusG e1 e2) =
         ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?Mfold_negative_constant_3)) 
 -- Note : not needed to do it recursively for MinusG, since they have already been removed at this point
 fold_negative_constant p e = 
-    (_ ** (e, refl))
+    (_ ** (e, set_eq_undec_refl _))
 
 
 -- As for propagateNeg, we need the fixpoint
-fold_negative_constant_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+fold_negative_constant_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 fold_negative_constant_fix p e = 
 	let (r_1 ** (e_1, p_1)) = fold_negative_constant p e in
 		case exprG_eq p _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
@@ -111,17 +111,17 @@ fold_negative_constant_fix p e =
 ------------------------------------------------------------------------   
 
 -- Can't be tagged as total because of the missing cases (like one for Minus) (they have been deleted when we reach this point)
-encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo {n=n} (group_to_monoid_class p) Neg g c2, c1=c2))
-encode c p g (ConstG _ _ c1) = (c1 ** (ConstMo (group_to_monoid_class p) _ _ c1, refl))
+encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo {n=n} (group_to_monoid_class p) Neg g c2, c1~=c2))
+encode c p g (ConstG _ _ c1) = (c1 ** (ConstMo (group_to_monoid_class p) _ _ c1, set_eq_undec_refl _))
 encode c p g (PlusG e1 e2) = 
     let (c2_ih1 ** (e_ih1, p_ih1)) = encode c p g e1 in 
     let (c2_ih2 ** (e_ih2, p_ih2)) = encode c p g e2 in 
     (_ ** (PlusMo _ e_ih1 e_ih2, ?Mencode_1))
-encode c p g (VarG _ v) = (_ ** ((VarMo (group_to_monoid_class p) _ v), refl))
+encode c p g (VarG _ v) = (_ ** ((VarMo (group_to_monoid_class p) _ v), set_eq_undec_refl _))
 -- For the (NegG e) (where e can only be a variable or a constant), we encode the variable or the constant
 --encode c p g (NegG _ (ConstG _ _ _ c1)) = ((Neg c1) ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_const _ _ _ c1), refl))
-encode c p g (NegG (ConstG _ _ c1)) = ((Neg c1) ** (ConstMo _ _ _ (Neg c1), refl)) 
-encode c p g (NegG (VarG _ (RealVariable _ _ _ i))) = (_ ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_var _ _ _ i), refl))
+encode c p g (NegG (ConstG _ _ c1)) = ((Neg c1) ** (ConstMo _ _ _ (Neg c1), set_eq_undec_refl _)) 
+encode c p g (NegG (VarG _ (RealVariable _ _ _ i))) = (_ ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_var _ _ _ i), set_eq_undec_refl _))
 {-
 -- We should not have the two cases just under : we create the "groupTermEncoding", so they are not supposed to be already here
 encode c n p g (NegG _ (VarG _ _ (EncodingGroupTerm_const _ _ _ c1))) = ?total_test_1
@@ -134,11 +134,11 @@ encode c n p g (MinusG _ e1 e2) = ?total_test_4
 
 
 total
-decode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) Neg g c1) -> (c2 ** (ExprG {n=n} p g c2, c1=c2))
-decode p g (ConstMo _ _ _ c1) = (c1 ** (ConstG p g c1, refl))
-decode p g (VarMo _ _ (RealVariable _ _ _ i)) = (_ ** (VarG _ (RealVariable _ _ _ i), refl))
+decode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) Neg g c1) -> (c2 ** (ExprG {n=n} p g c2, c1~=c2))
+decode p g (ConstMo _ _ _ c1) = (c1 ** (ConstG p g c1, set_eq_undec_refl _))
+decode p g (VarMo _ _ (RealVariable _ _ _ i)) = (_ ** (VarG _ (RealVariable _ _ _ i), set_eq_undec_refl _))
 --decode p g (VarMo _ _ (EncodingGroupTerm_const _ _ _ c1)) = (_ ** (NegG _ (ConstG _ _ _ c1), refl))
-decode p g (VarMo _ _ (EncodingGroupTerm_var _ _ _ i)) = (_ ** (NegG (VarG _ (RealVariable _ _ _ i)), refl))
+decode p g (VarMo _ _ (EncodingGroupTerm_var _ _ _ i)) = (_ ** (NegG (VarG _ (RealVariable _ _ _ i)), set_eq_undec_refl _))
 decode p g (PlusMo _ e1 e2) = 
 	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p g e1 in 
 	let (c2_ih2 ** ((e_ih2, p_ih2))) = decode p g e2 in 
@@ -146,7 +146,7 @@ decode p g (PlusMo _ e1 e2) =
 
 
 
-code_reduceM_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1=c2))
+code_reduceM_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 code_reduceM_andDecode p g e = 
 	let (c2 ** (e2, pEncode)) = encode _ _ _ e in
 	let (c3 ** (e3, pReduce)) = monoidReduce (group_to_monoid_class p) e2 in
@@ -159,7 +159,7 @@ mutual
 --------------------------------------------
 -- Simplify (+e) + (-e) at *one* level of +
 --------------------------------------------
-	elim_plusInverse : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
+	elim_plusInverse : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 	elim_plusInverse p g (ConstG _ _ const) = (_ ** (ConstG _ _ const, set_eq_undec_refl const))
 	elim_plusInverse p g (VarG _ {c1=c1} v) = (_ ** (VarG _ v, set_eq_undec_refl c1))
 	-- Reminder : e1 and e2 can't be a Neg themselves, because you are suppose to call elimDoubleNeg before calling this function...
@@ -192,7 +192,7 @@ mutual
 --------------------------------------------------------------------------
 -- Simplifying (+e) + (-e) with associativity (at two levels of +) !
 --------------------------------------------------------------------------
-	plusInverse_assoc : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
+	plusInverse_assoc : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 	-- (e1 + (-e2 + e3))
 	plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) with (groupDecideEq p e1 e2)
 		plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) | (Just e1_equiv_e2) = 
@@ -248,7 +248,7 @@ mutual
 
 	
 	-- NEW : 3 levels of +
-	plusInverse_assoc' : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
+	plusInverse_assoc' : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 	-- (a+b) + ((-c)+d)
 	plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) with (groupDecideEq p e2 e3)
 		plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) | (Just e2_equiv_e3) = 
@@ -280,7 +280,7 @@ mutual
 		(_ ** (e, set_eq_undec_refl c1))
 				
 			
-	pre_groupReduce : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
+	pre_groupReduce : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 	pre_groupReduce c p g e =
                 let (r_1 ** (e_1, p_1)) = elimMinus p e in
                 let (r_2 ** (e_2, p_2)) = propagateNeg_fix p e_1 in
@@ -300,7 +300,7 @@ mutual
 	-- That's needed because some simplification done at the monoid level could lead to new simplification.
 	-- Exemple : (0+(Y)) become (Y) at the Monoid level. And if this Y was encoding (-x), then at the toplevel we can have x + (-x) now,
 	-- which need a new simplification at the group level
-	groupReduce : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, set_eq_undec c1 c2))
+	groupReduce : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
 	groupReduce p e = 
 		let (c' ** (e', p')) = pre_groupReduce _ p _ e in
 			case exprG_eq p _ e e' of 
@@ -310,13 +310,13 @@ mutual
 		
 			
         total
-	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p g c1) -> (ExprG p g c2) -> (set_eq_undec x c1) -> (set_eq_undec y c2) -> (Maybe (set_eq_undec x y))
+	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p g c1) -> (ExprG p g c2) -> (x~=c1) -> (y~=c2) -> (Maybe (x~=y))
 	buildProofGroup p e1 e2 lp rp with (exprG_eq p _ e1 e2)
 		buildProofGroup p e1 e1 lp rp | Just e1_equiv_e2 = ?MbuildProofGroup
 		buildProofGroup p e1 e2 lp rp | Nothing = Nothing
 
 		
-	groupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p g x) -> (ExprG p g y) -> (Maybe (set_eq_undec x y))
+	groupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p g x) -> (ExprG p g y) -> (Maybe (x~=y))
 	-- e1 is the left side, e2 is the right side
 	groupDecideEq p e1 e2 =
 		let (r_e1 ** (e_e1, p_e1)) = groupReduce p e1 in
@@ -328,150 +328,246 @@ mutual
 ---------- Proofs ----------
 Solver.group_reduce.MelimMinus1 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  trivial
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
 
 Solver.group_reduce.MelimMinus2 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  mrefine Minus_simpl
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Neg c2))
+  exact (Plus c1 (Neg c2))
+  mrefine Minus_simpl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym -- Dammit, I can't do (exact (set_eq_undec_sym p_ih1)) because of some instances resolutions of typeclass, which is just a bug to me.
+  mrefine Neg_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_sym -- Same remark here
+  exact p_ih2
   
 Solver.group_reduce.MelimMinus3 = proof
   intros
-  rewrite p_ih1 
-  trivial
+  mrefine Neg_preserves_equiv 
+  exact p_ih1 
   
 Solver.group_reduce.MpropagateNeg_1 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  mrefine push_negation
-  
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg c2) (Neg c1))
+  exact (Plus (Neg c2) (Neg c1))
+  mrefine push_negation 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_sym 
+  exact p_ih2
+  exact p_ih1
+
 Solver.group_reduce.MpropagateNeg_2 = proof
   intros
-  rewrite p_ih1 
-  mrefine refl
-  
+  mrefine Neg_preserves_equiv 
+  exact p_ih1  
+
 Solver.group_reduce.MpropagateNeg_3 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  mrefine refl
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
   
 Solver.group_reduce.MpropagateNeg_fix_1 = proof
   intros
-  rewrite p_ih1 
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_1
   exact p_1
-   
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  exact p_ih1 
+
 Solver.group_reduce.MelimDoubleNeg_1 = proof
   intros
-  rewrite p_ih1
-  mrefine group_doubleNeg
-  
+  mrefine eq_preserves_eq 
+  exact c1
+  exact c1
+  mrefine group_doubleNeg 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  exact p_ih1
+   
 Solver.group_reduce.MelimDoubleNeg_2 = proof
   intros
-  rewrite p_ih1
-  mrefine refl
-  
+  mrefine Neg_preserves_equiv 
+  exact p_ih1   
+   
 Solver.group_reduce.MelimDoubleNeg_3 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  mrefine refl  
-
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+  
 Solver.group_reduce.Mfold_negative_constant_1 = proof
   intros
-  mrefine sym
+  mrefine set_eq_undec_sym 
   mrefine push_negation
   
 Solver.group_reduce.Mfold_negative_constant_2 = proof
   intros
-  rewrite p_ih
-  exact refl
+  mrefine Neg_preserves_equiv 
+  exact p_ih      
 
 Solver.group_reduce.Mfold_negative_constant_3 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  exact refl
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
 
 Solver.group_reduce.Mfold_negative_constant_fix_1 = proof
   intros
-  rewrite p_ih1
-  rewrite p_1
-  exact refl
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_1
+  exact p_1
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  exact p_ih1
 
 Solver.group_reduce.Mencode_1 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  exact refl
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
 
 Solver.group_reduce.Mdecode_1 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  exact refl
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
 
 Solver.group_reduce.Mcode_reduceM_andDecode_1 = proof
   intros
-  rewrite (sym pEncode )
-  rewrite (sym pReduce  )
-  rewrite (sym pDecode )
-  exact refl    
+  mrefine eq_preserves_eq 
+  exact c2
+  exact c2
+  exact pEncode 
+  mrefine eq_preserves_eq 
+  mrefine set_eq_undec_refl 
+  exact c3
+  exact c3
+  mrefine set_eq_undec_sym 
+  exact pReduce 
+  mrefine set_eq_undec_refl 
+  exact pDecode   
 
-{-
 Solver.group_reduce.Melim_plusInverse_1 = proof
   intros
-  (Plus_preserves_equiv (Neg_preserves_equiv p_e1') (Neg_preserves_equiv p_e2'))
--}
+  mrefine Plus_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  exact p_e1'
+  exact p_e2'
 
-{-  
 Solver.group_reduce.Melim_plusInverse_2 = proof
   intros
-  rewrite (sym(right(Plus_inverse c2)))
-  trivial
--}
-{-
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg c1) c1)
+  exact (Plus (Neg c1) c1)
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine right
+  exact e1_equiv_e2 
+  exact (Plus c1 (Neg c1) ~= Zero)
+  mrefine Plus_inverse 
 
 Solver.group_reduce.Melim_plusInverse_3 = proof
   intros
-  rewrite p_e1'
-  rewrite p_e2'
-  mrefine refl   
-  
+  mrefine Plus_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  exact p_e2'
+  exact p_e1' 
+
 Solver.group_reduce.Melim_plusInverse_4 = proof
   intros
-  rewrite (sym(left(Plus_inverse c1)))
-  mrefine refl  
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Neg c1))
+  exact (Plus c1 (Neg c1))
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_refl
+  mrefine Neg_preserves_equiv 
+  mrefine left
+  mrefine set_eq_undec_sym 
+  exact (Plus (Neg c1) c1 ~= Zero)
+  mrefine Plus_inverse 
+  mrefine e1_equiv_e2 
 
 Solver.group_reduce.Melim_plusInverse_5 = proof
   intros
-  rewrite p_e1'
-  rewrite p_e2'
-  mrefine refl  
-  
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine Neg_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine p_e2'
+  exact p_e1'
+
 Solver.group_reduce.Melim_plusInverse_6 = proof
   intros
-  rewrite p_e1' 
-  rewrite p_e2'
-  mrefine refl
+  mrefine Plus_preserves_equiv 
+  exact p_e1'
+  exact p_e2'
   
 Solver.group_reduce.MplusInverse_assoc_1 = proof
   intros
-  rewrite p_e3'
-  rewrite (Plus_assoc c1 (Neg c1) c2)
-  rewrite (sym(left(Plus_inverse c1)))
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Plus (Neg c1) c2))
+  exact (Plus c1 (Plus (Neg c1) c2))
+  mrefine Plus_preserves_equiv 
+  mrefine eq_preserves_eq 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  exact c2
+  exact c2
+  mrefine set_eq_undec_sym 
+  mrefine eq_preserves_eq 
+  mrefine set_eq_undec_refl
+  mrefine Neg_preserves_equiv 
+  mrefine set_eq_undec_refl
+  exact p_e3'
+  exact (Plus (Plus c1 (Neg c1)) c2)
+  exact (Plus (Plus c1 (Neg c1)) c2)
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_sym 
+  mrefine Plus_assoc 
+  mrefine eq_preserves_eq 
+  mrefine  e1_equiv_e2 
+  exact (Plus Zero c2)
+  exact (Plus Zero c2)
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine left
+  mrefine set_eq_undec_refl 
   mrefine Plus_neutral_1
+  exact (Plus (Neg c1) c1 ~= Zero)
+  mrefine Plus_inverse   
 
 Solver.group_reduce.MplusInverse_assoc_2 = proof
   intros
-  rewrite p_e1'
-  rewrite p_e2'
-  rewrite p_e3'
-  mrefine refl
+  mrefine Plus_preserves_equiv 
+  exact p_e1'
+  mrefine Plus_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  exact p_e3'
+  exact p_e2'
+
+{-
   
 Solver.group_reduce.MplusInverse_assoc_3 = proof
   intros
@@ -572,16 +668,18 @@ Solver.group_reduce.Mgroup_Reduce_1 = proof
   rewrite p''
   rewrite p'
   exact refl
+  
+-}  
     
 Solver.group_reduce.MbuildProofGroup = proof
   intros
-  refine Just 
-  rewrite (sym lp)
-  rewrite (sym rp)
-  exact e1_equiv_e2
-    
-
--}
+  refine Just
+  mrefine eq_preserves_eq 
+  exact c1
+  exact c2
+  exact lp
+  exact rp
+  exact e1_equiv_e2 
 
 
 
