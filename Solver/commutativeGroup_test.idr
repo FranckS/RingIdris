@@ -92,6 +92,3 @@ expE' x y z u = left (rightDep (commutativeGroupReduce _ (expE x y z u)))
 
 
 
-
-
-

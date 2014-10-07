@@ -233,8 +233,17 @@ termJ_norm x y = groupReduce _ _ [x, y] (termJ x y)
 
 
 
+---------- Proofs ----------  
+Solver.group_test.MPlusZZ_preserves_equiv_1 = proof
+  intros
+  rewrite p1
+  rewrite p2
+  exact refl
 
-
+Solver.group_test.MNeg_preserves_equiv_1 = proof
+  intros
+  rewrite p
+  exact refl
 
 
 

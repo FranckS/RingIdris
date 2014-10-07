@@ -81,8 +81,12 @@ result_termX_termX x = let (Just pr) = magmaDecideEq (%instance) (termX x) (term
 
 
 
-
-
+---------- Proofs ----------  
+Solver.magma_test.MPlus_preserves_equiv_1 = proof
+  intros
+  rewrite p1
+  rewrite p2
+  exact refl
 
 
 
