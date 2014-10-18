@@ -1,7 +1,7 @@
 -- Edwin Brady, Franck Slama
 -- University of St Andrews
 -- File ring_reduce.idr
--- Normalize an expression set_eq_undec_refl _ecting an element in a ring
+-- Normalize an expression reflecting an element in a ring
 -------------------------------------------------------------------
 
 module Solver.ring_reduce
