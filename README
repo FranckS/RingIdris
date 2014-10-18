@@ -4,7 +4,7 @@
 -- (very) brief explanation about what's this stuff
 -------------------------------------------------------------------
 
-Version 0.3 (14/09/14)
+Version 0.4 (18/10/14)
 -----------------------
 
 This is the (early) implementation of a collection of tactics for Idris, 
@@ -19,9 +19,16 @@ only. If you wish to give a feedback, don't forget, that THIS IS STILL WORK IN
 PROGRESS. There may be bugs, the code is not clean, etc. 
 In definitive, you should not use it a for a "real" project right now.
 
-Current state (14/09/14) : 
+Current state (18/10/14) : 
 ------------------------------
-No axioms, no Meta-variable to solve
+
+____________________
+New with version 0.4: Each solver can now deal with any equivalence relation, instead of just
+the syntactical equality (Leibniz's equality).
+____________________
+
+
+No axioms, no Meta-variable to solve.
 
 - Magma solver WORKS
 
@@ -33,7 +40,7 @@ However, one remark :
 However, one remark :
    . We don't pass the totality checker at the moment
    
-- Commutative Monoid solver WORKS   
+- Commutative Monoid solver WORKS  [Added with version 0.3] 
 However, one remark :
    . We don't pass the totality checker at the moment
 
@@ -54,15 +61,28 @@ How to compile it :
 Simply do :
 
 idris main.idr
-That will compiles the 6 tactics available yet + the tests for each of them.
+That will compiles the 6 tactics available yet + the tests (which includes instances
+of the corresponding typeclass) for each of them.
 
 How to use it :
 ----------------
 
-- Automatic metaification is not yet implemented. That means that you will have 
+- Automatic metaification (or reflexion) is not yet implemented. That means that you will have 
 to encode by hand the two sides of your equality you wish to prove.
 
 See in commutativeGroup_test.idr and group_test.idr (and the other test files) for detailed examples.
+
+
+A fairly big example
+---------------------
+
+Can be found in the file myBinary_new.idr.
+Simply run : 
+idris ./Solver/myBinary_new.idr
+That will compile the tactics and that will generate the proof required (in the term goal_aux).
+
+Note that because there is no automatic reflexion at the moment, this file can be seen as a horrific monster.
+That will not be the case for a long time.
 
 About the technique :
 ----------------------
