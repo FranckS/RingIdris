@@ -240,42 +240,71 @@ Solver.commutativeMonoid_reduce.MelimZeroCM1 = proof
   mrefine set_eq_undec_refl
   exact const1_eq_zero 
 
-  
-  
-{-
 Solver.commutativeMonoid_reduce.MelimZeroCM2 = proof
   intros
-  mrefine Plus_neutral_2
--}
+  mrefine eq_preserves_eq 
+  exact (Plus (index v g) Zero)
+  exact (index v g)
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine add_zero_right 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym
+  mrefine set_eq_undec_refl 
+  exact const2_eq_zero   
 
-
-{-
 Solver.commutativeMonoid_reduce.MelimZeroCM3 = proof
   intros
-  rewrite p_ih1
-  rewrite p_ih2
-  exact refl
-
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2  
+  
 Solver.commutativeMonoid_reduce.McommutativeMonoidReduce_1 = proof
   intros
-  rewrite p_5
-  rewrite p_4
-  rewrite p_2
-  exact refl
+  mrefine eq_preserves_eq 
+  exact r_2
+  exact r_5
+  exact p_2 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact r_4
+  exact r_5
+  exact p_4
+  mrefine set_eq_undec_refl 
+  exact p_5   
 
 Solver.commutativeMonoid_reduce.MbuildProofCommutativeMonoid = proof
   intros
   refine Just
-  rewrite (sym lp)
-  rewrite (sym rp)
-  exact e1_equiv_e2
-  -}
+  mrefine eq_preserves_eq 
+  exact c1
+  exact c2
+  exact lp
+  exact rp
+  exact e1_equiv_e2   
+  
 
   
   
   
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
-  
-  
-  
+
+
+
+
+
 
