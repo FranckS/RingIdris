@@ -208,6 +208,15 @@ commutativeGroup_to_set x = (%instance)
 commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_to_set x)
 
+
+-- Ring
+ring_to_set : (dataTypes.Ring c) -> (Set c)
+ring_to_set x = (%instance)
+
+ring_eq_as_elem_of_set : (dataTypes.Ring c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
+ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
+
+
 -- ----------------------------
 -- ---- Reflected Terms ---- --
 -- ----------------------------
@@ -397,22 +406,28 @@ print_ExprCG c_print (VarCG _ v) = print_Variable c_print v
 print_ExprCG c_print (NegCG e) = "(-" ++ (print_ExprCG c_print e) ++ ")"
 
     
-{-
--- Reflected terms in a ring       
-        data ExprR : dataTypes.Ring c -> (Vect n c) -> c -> Type where
-            ConstR : (p:dataTypes.Ring c) -> (c1:c) -> ExprR p g c1  
-            --ZeroR : ExprR p g Zero
-            --OneR : ExprR p g One
-            PlusR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Plus c1 c2)
-            MultR : {p:dataTypes.Ring c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
-            VarR : (p:dataTypes.Ring c) -> {c1:c} -> VariableA g c1 -> ExprR p g c1
 
-        print_ExprR : {p:dataTypes.Ring c} -> {r1:c} -> (c -> String) -> ExprR p g r1 -> String
-        print_ExprR c_print (ConstR p const) = c_print const
-        print_ExprR c_print (PlusR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") + (" ++ (print_ExprR c_print e2) ++ ")"
-        print_ExprR c_print (MultR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") * (" ++ (print_ExprR c_print e2) ++ ")"
-        print_ExprR c_print (VarR p v) = print_VariableA c_print v
-      
+-- Reflected terms in a ring       
+data ExprR : {c:Type} -> {n:Nat} -> dataTypes.Ring c -> (Vect n c) -> c -> Type where
+    ConstR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> (c1:c) -> ExprR p g c1
+    PlusR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Plus c1 c2)
+    MultR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
+    MinusR: {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Minus c1 c2)
+    NegR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> ExprR p g c1 -> ExprR p g (Neg c1)
+    VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg g c1 -> ExprR p g c1
+   
+   
+   
+print_ExprR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {r1:c} -> (c -> String) -> {g:Vect n c} -> ExprR p g r1 -> String
+print_ExprR c_print (ConstR _ _ const) = c_print const
+print_ExprR c_print (PlusR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") + (" ++ (print_ExprR c_print e2) ++ ")"
+print_ExprR c_print (MultR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") * (" ++ (print_ExprR c_print e2) ++ ")"
+print_ExprR c_print (MinusR e1 e2) = "(" ++ (print_ExprR c_print e1) ++ ") --- (" ++ (print_ExprR c_print e2) ++ ")"
+print_ExprR c_print (VarR _ v) = print_Variable c_print v
+print_ExprR c_print (NegR e) = "(-" ++ (print_ExprR c_print e) ++ ")"
+
+    
+{-
 -- Reflected terms in a commutative ring   
         data ExprCR : CommutativeRing c -> (Vect n c) -> c -> Type where
             ConstCR : (p:CommutativeRing c) -> (c1:c) -> ExprCR p g c1   
