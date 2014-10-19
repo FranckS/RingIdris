@@ -118,6 +118,9 @@ class CommutativeGroup c => Ring c where
     One : c
     Mult : c -> c -> c
     
+    -- The new Mult operation should preserve the quivalence
+    Mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((Mult c1 c2) ~= (Mult c1' c2'))
+    
     Mult_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Mult c1 c2) c3) ~= (Mult c1 (Mult c2 c3))
     Mult_dist : (c1:c) -> (c2:c) -> (c3:c) -> (Mult c1 (Plus c2 c3)) ~= (Plus (Mult c1 c2) (Mult c1 c3))
     Mult_dist_2 : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Plus c1 c2) c3) ~= (Plus (Mult c1 c3) (Mult c2 c3)) -- Needed because we don't have commutativity of * in a ring (in general)
@@ -416,6 +419,27 @@ data ExprR : {c:Type} -> {n:Nat} -> dataTypes.Ring c -> (Vect n c) -> c -> Type 
     NegR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> ExprR p g c1 -> ExprR p g (Neg c1)
     VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg g c1 -> ExprR p g c1
    
+
+exprR_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprR p g c1) -> (e2:ExprR p g c2) -> (Maybe (c1~=c2))
+exprR_eq p g (PlusR x y) (PlusR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
+        exprG_eq p g (PlusR x y) (PlusR _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+        exprG_eq p g (PlusR x y) (PlusR _ _) | _ = Nothing
+exprR_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) with (Variable_eq Neg g v1 v2)
+        exprG_eq p g (VarR _ {c1=c1} v1) (VarR _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
+        exprG_eq p g (VarR _ v1) (VarR _ v2) | _ = Nothing
+exprR_eq p g (ConstR _ _ const1) (ConstR _ _ const2) with ((ring_eq_as_elem_of_set p) const1 const2)
+        exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const1) | (Just const_eq) = Just const_eq
+        exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const2) | _ = Nothing
+exprR_eq p g (NegR e1) (NegR e2) with (exprR_eq p g e1 e2)
+        exprG_eq p g (NegR e1) (NegR _) | (Just p1) = Just (Neg_preserves_equiv p1)
+        exprG_eq p g (NegR e1) (NegR e2) | _ = Nothing
+exprR_eq p g (MinusR x y) (MinusR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
+        exprG_eq p g (MinusR x y) (MinusR _ _) | (Just p1, Just p2) = ?MexprR_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
+        exprG_eq p g (MinusR x y) (MinusR _ _) | _ = Nothing
+exprR_eq p g (MultR x y) (MultR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
+        exprG_eq p g (MultR x y) (MultR _ _) | (Just p1, Just p2) = ?MexprR_eq_2 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
+        exprG_eq p g (MultR x y) (MultR _ _) | _ = Nothing
+exprR_eq p g _ _  = Nothing   
    
    
 print_ExprR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {r1:c} -> (c -> String) -> {g:Vect n c} -> ExprR p g r1 -> String
