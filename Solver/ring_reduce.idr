@@ -14,7 +14,7 @@ import Prelude.Vect
 
 
 --%logging 2
--- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 pattern matched cases
+-- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 patterncases
 --total
 develop : {c:Type} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 --develop (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl _))
