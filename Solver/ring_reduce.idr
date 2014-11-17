@@ -14,23 +14,27 @@ import Prelude.Vect
 
 
 --%logging 2
--- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 patterncases
+-- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 pattern matched cases
 --total
 develop : {c:Type} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
---develop (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl _))
+develop (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl _))
 develop (VarR p v) = (_ ** (VarR p v, set_eq_undec_refl _))
 develop (PlusR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (develop e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (develop e2) in
     ((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?Mdevelop_1))
+-- Because Idris can't handle 41 cases, we remove this one, which means we'll have to simplify the Minus before calling this function   
+{-
 develop (MinusR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (develop e1) in	
   let (r_ih2 ** (e_ih2, p_ih2)) = (develop e2) in
-    ((Minus r_ih1 r_ih2) ** (MinusR e_ih1 e_ih2, ?Mdevelop_2))    
+    ((Minus r_ih1 r_ih2) ** (MinusR e_ih1 e_ih2, ?Mdevelop_2))
+-}
 develop (NegR e) = 
   let (r_ih ** (e_ih, p_ih)) = (develop e) in
     (r_ih ** (e_ih, ?Mdevelop_3))
 
+      
 develop (MultR (ConstR _ _ c1) (ConstR _ _ c2)) = (_ ** (MultR (ConstR _ _ c1) (ConstR _ _ c2), set_eq_undec_refl _))     
 develop (MultR (ConstR _ _ c1) (VarR p v)) = (_ ** (MultR (ConstR _ _ c1) (VarR p v), set_eq_undec_refl _))
 develop (MultR (ConstR _ _ c1) (PlusR e21 e22)) = 
@@ -255,8 +259,11 @@ develop_fix p e =
 	
 	
 	
-	
-	
+ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+ring_reduce p e = 
+  let (r_1 ** (e_1, p_1)) = removeMinus e in
+  let (r_2 ** (e_2, p_2)) = develop e_1 in
+  let (r_3 ** (
 	
 	
 	
