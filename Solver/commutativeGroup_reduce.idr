@@ -178,7 +178,7 @@ reorganize p e = (_ ** (e, set_eq_undec_refl _))
 simplifyAfterReorg : {c:Type} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> (ExprCG p g c1) -> (c2 ** (ExprCG p g c2, c1~=c2))
 -- var + (-var + e)
 simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i1))) e)) with (eq_dec_fin i0 i1)
-	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e)) | (Just refl) = 
+	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) e)) | (Just Refl) = 
 		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p e in
 			(_ ** (e_ihn, ?MsimplifyAfterReorg_1))
 	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i1))) e)) | (Nothing) = 
@@ -187,7 +187,7 @@ simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (PlusCG (NegCG (V
 
 -- (-var) + (var + e)
 simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (PlusCG (VarCG p (RealVariable _ _ _ i1)) e)) with (eq_dec_fin i0 i1)
-	simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (PlusCG (VarCG p (RealVariable _ _ _ i0)) e)) | (Just refl) = 
+	simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (PlusCG (VarCG p (RealVariable _ _ _ i0)) e)) | (Just Refl) = 
 		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p e in
 			(_ ** (e_ihn, ?MsimplifyAfterReorg_3))
 	simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (PlusCG (VarCG p (RealVariable _ _ _ i1)) e)) | (Nothing) = 	
@@ -202,13 +202,13 @@ simplifyAfterReorg p (PlusCG t1 (PlusCG t2 exp)) =
 
 -- Just a plus with two terms
 simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (NegCG (VarCG p (RealVariable _ _ _ i1)))) with (eq_dec_fin i0 i1)
-	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (NegCG (VarCG p (RealVariable _ _ _ i0)))) | (Just refl) =
+	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (NegCG (VarCG p (RealVariable _ _ _ i0)))) | (Just Refl) =
 		(_ ** (ConstCG _ _ Zero, ?MsimplifyAfterReorg_6))
 	simplifyAfterReorg p (PlusCG (VarCG p (RealVariable _ _ _ i0)) (NegCG (VarCG p (RealVariable _ _ _ i1)))) | (Nothing) =
 		(_ ** (PlusCG (VarCG p (RealVariable _ _ _ i0)) (NegCG (VarCG p (RealVariable _ _ _ i1))), set_eq_undec_refl _))
 		
 simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p (RealVariable _ _ _ i1))) with (eq_dec_fin i0 i1)
-	simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p (RealVariable _ _ _ i0))) | (Just refl) =
+	simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p (RealVariable _ _ _ i0))) | (Just Refl) =
 		(_ ** (ConstCG _ _ Zero, ?MsimplifyAfterReorg_7))
 	simplifyAfterReorg p (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p (RealVariable _ _ _ i1))) | (Nothing) =
 		(_ ** (PlusCG (NegCG (VarCG p (RealVariable _ _ _ i0))) (VarCG p (RealVariable _ _ _ i1)), set_eq_undec_refl _))

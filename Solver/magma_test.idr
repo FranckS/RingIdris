@@ -18,13 +18,13 @@ instance Set Nat where
     (~=) x y = (x = y)
 
     set_eq x y with (decEq x y)
-        set_eq x x | Yes refl = Just refl
+        set_eq x x | Yes Refl = Just Refl
         set_eq x y | _ = Nothing
     
     -- proof that the relation of equality is an equivalence relation
-    set_eq_undec_refl x = refl
+    set_eq_undec_refl x = Refl
     set_eq_undec_sym p = sym p
-    set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in refl
+    set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in Refl
     
     
 instance Magma Nat where
@@ -35,13 +35,13 @@ instance Magma Nat where
 
 
 test1 : (x:Nat) -> ExprMa (%instance) (\x =>x) [x] (Plus 2 (Plus 3 x))
-test1 x = PlusMa _ (ConstMa _ _ _ 2) (PlusMa _ (ConstMa _ _ _ 3) (VarMa _ _ (RealVariable _ _ _ fZ)))
+test1 x = PlusMa _ (ConstMa _ _ _ 2) (PlusMa _ (ConstMa _ _ _ 3) (VarMa _ _ (RealVariable _ _ _ FZ)))
 
 test2 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
-test2 x = PlusMa _ (PlusMa _ (ConstMa _ _ _ 2) (ConstMa _ _ _ 3)) (VarMa _ _ (RealVariable _ _ _ fZ))
+test2 x = PlusMa _ (PlusMa _ (ConstMa _ _ _ 2) (ConstMa _ _ _ 3)) (VarMa _ _ (RealVariable _ _ _ FZ))
 
 test3 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
-test3 x = PlusMa _ (ConstMa _ _ _ 5) (VarMa _ _ (RealVariable _ _ _ fZ))
+test3 x = PlusMa _ (ConstMa _ _ _ 5) (VarMa _ _ (RealVariable _ _ _ FZ))
 
 --First test : 2 + (3 + x) =\= 5 + x
 total -- cool !
@@ -86,7 +86,7 @@ Solver.magma_test.MPlus_preserves_equiv_1 = proof
   intros
   rewrite p1
   rewrite p2
-  exact refl
+  exact Refl
 
 
 

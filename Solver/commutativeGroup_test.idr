@@ -15,12 +15,12 @@ instance dataTypes.CommutativeGroup ZZ where
 
 -- x + (-x)
 expA : (x:ZZ) -> ExprCG (%instance) [x] (x + (- x))
-expA x = PlusCG (VarCG _ (RealVariable _ _ _ fZ)) (NegCG (VarCG _ (RealVariable _ _ _ fZ)))
+expA x = PlusCG (VarCG _ (RealVariable _ _ _ FZ)) (NegCG (VarCG _ (RealVariable _ _ _ FZ)))
 
 
 -- (-x) + x
 expB : (x:ZZ) -> ExprCG (%instance) [x] ((-x) + x)
-expB x = PlusCG (NegCG (VarCG _ (RealVariable _ _ _ fZ))) (VarCG _ (RealVariable _ _ _ fZ))
+expB x = PlusCG (NegCG (VarCG _ (RealVariable _ _ _ FZ))) (VarCG _ (RealVariable _ _ _ FZ))
 
 
 -- 0
@@ -55,17 +55,17 @@ compare_expA_expC x = commutativeGroupDecideEq (%instance) (expA x) (expC x)
 expD : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (((u + (x + (Neg y)))) + ((-x + z) + y))
 expD x y z u = PlusCG 
             (PlusCG
-                (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ)))))
-                (PlusCG (VarCG _ (RealVariable _ _ _ fZ)) (NegCG (VarCG _ (RealVariable _ _ _ (fS fZ))))))
+                (VarCG _ (RealVariable _ _ _ (FS (FS (FS FZ)))))
+                (PlusCG (VarCG _ (RealVariable _ _ _ FZ)) (NegCG (VarCG _ (RealVariable _ _ _ (FS FZ))))))
             (PlusCG
-                (PlusCG (NegCG (VarCG _ (RealVariable _ _ _ fZ))) (VarCG _ (RealVariable _ _ _ (fS (fS fZ)))))
-                (VarCG _ (RealVariable _ _ _ (fS fZ))))
+                (PlusCG (NegCG (VarCG _ (RealVariable _ _ _ FZ))) (VarCG _ (RealVariable _ _ _ (FS (FS FZ)))))
+                (VarCG _ (RealVariable _ _ _ (FS FZ))))
 
  
 expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (z + u)
 expE x y z y = PlusCG
-                (VarCG _ (RealVariable _ _ _ (fS (fS fZ))))
-                (VarCG _ (RealVariable _ _ _ (fS (fS (fS fZ)))))
+                (VarCG _ (RealVariable _ _ _ (FS (FS FZ))))
+                (VarCG _ (RealVariable _ _ _ (FS (FS (FS FZ)))))
 
 
 compare_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> Maybe (((u + (x + (-y)))) + ((-x + z) + y) = z + u)

@@ -108,30 +108,30 @@ push_negation C p x y =
 	      
 {-
 And_True_neutral : (b:Bool) -> (True && b = b)
-And_True_neutral _ = refl
+And_True_neutral _ = Refl
 
 And_False_absorbent : (b:Bool) -> (False && b = False)
-And_False_absorbent _ = refl
+And_False_absorbent _ = Refl
   
 And_assoc : (a:Bool) -> (b:Bool) -> (c:Bool) -> ((a && (b && c)) = ((a && b) && c))
-And_assoc True True True = refl
-And_assoc True True False = refl
-And_assoc True False True = refl
-And_assoc True False False = refl
-And_assoc False True True = refl
-And_assoc False True False = refl
-And_assoc False False True = refl
-And_assoc False False False = refl
+And_assoc True True True = Refl
+And_assoc True True False = Refl
+And_assoc True False True = Refl
+And_assoc True False False = Refl
+And_assoc False True True = Refl
+And_assoc False True False = Refl
+And_assoc False False True = Refl
+And_assoc False False False = Refl
 
 And_assoc2 : (a:Bool) -> (b:Bool) -> (c:Bool) -> (((a && b) && c) = (a && (b && c)))
-And_assoc2 True True True = refl
-And_assoc2 True True False = refl
-And_assoc2 True False True = refl
-And_assoc2 True False False = refl
-And_assoc2 False True True = refl
-And_assoc2 False True False = refl
-And_assoc2 False False True = refl
-And_assoc2 False False False = refl
+And_assoc2 True True True = Refl
+And_assoc2 True True False = Refl
+And_assoc2 True False True = Refl
+And_assoc2 True False False = Refl
+And_assoc2 False True True = Refl
+And_assoc2 False True False = Refl
+And_assoc2 False False True = Refl
+And_assoc2 False False False = Refl
 
 aux1 : O = plus O O
 
@@ -178,10 +178,10 @@ groupAssoc_4terms C p c1 c2 c3 c4 = ?MgroupAssoc_4terms_1
 -- D.1) Arith for Nat
 
 lower_value : (x:Nat) -> (y:Nat) -> (LTE x y) -> LTE x (S y)
-lower_value Z Z lteZero = lteZero
-lower_value (S px) Z lteZero impossible
-lower_value (S px) (S py) (lteSucc p) = lteSucc (lower_value _ _ p)
-lower_value Z (S py) p = lteZero
+lower_value Z Z LTEZero = LTEZero
+lower_value (S px) Z LTEZero impossible
+lower_value (S px) (S py) (LTESucc p) = LTESucc (lower_value _ _ p)
+lower_value Z (S py) p = LTEZero
 
 
 bigger_value : (x:Nat) -> (y:Nat) -> (GTE x y) -> GTE (S x) y
@@ -189,8 +189,8 @@ bigger_value x y p = lower_value _ _ p
 
 
 greater_than_succ : (x:Nat) -> (y:Nat) -> (GTE x (S y)) -> (GTE x y)
-greater_than_succ (S px) Z (lteSucc p) = lteZero
-greater_than_succ (S px) (S py) (lteSucc p) = lower_value (S py) px p
+greater_than_succ (S px) Z (LTESucc p) = LTEZero
+greater_than_succ (S px) (S py) (LTESucc p) = lower_value (S py) px p
                                                 
 
 S_both_side : (x:Nat) -> (y:Nat) -> (x=y) -> (S x = S y)
@@ -204,40 +204,40 @@ using (A:Type, B:Type)
 
         
 LTE_0_one_case : (n:Nat) -> (LTE n Z) -> (n=Z)
-LTE_0_one_case Z lteZero = refl
-LTE_0_one_case (S pn) (lteSucc p) impossible
+LTE_0_one_case Z LTEZero = Refl
+LTE_0_one_case (S pn) (LTESucc p) impossible
 
 
 -- (1 >= n) -> (n=0) or (n=1)     
 GTE_1_two_cases : (n:Nat) -> (GTE (S Z) n) -> or (n=Z) (n=(S Z))
 -- case 1>=0 (which is 0<=1 by def of >=)
-GTE_1_two_cases Z (lteZero {right=S Z}) = Left refl
-GTE_1_two_cases (S pn) (lteSucc n) = let pn_is_zero : (pn=Z) = ?M_GTE_1_two_cases_1 in
+GTE_1_two_cases Z (LTEZero {right=S Z}) = Left Refl
+GTE_1_two_cases (S pn) (LTESucc n) = let pn_is_zero : (pn=Z) = ?M_GTE_1_two_cases_1 in
                                         ?M_GTE_1_two_cases_2
 
                                         
 GTE_S : (a:Nat) -> (b:Nat) -> (GTE a b) -> (GTE (S a) (S b))
-GTE_S a b p = lteSucc p 
+GTE_S a b p = LTESucc p 
 
 
 LTE_same : (a:Nat) -> LTE a a
-LTE_same Z = lteZero
-LTE_same (S pa) = lteSucc (LTE_same pa)
+LTE_same Z = LTEZero
+LTE_same (S pa) = LTESucc (LTE_same pa)
 
 
 a_plus_zero : (a:Nat) -> (a+Z = a)
-a_plus_zero Z = refl
+a_plus_zero Z = Refl
 a_plus_zero (S pa) = S_both_side _ _ (a_plus_zero pa)
 
 
 plus_succ_right : (a:Nat) -> (b:Nat) -> (S(a+b) = a + (S b))
-plus_succ_right Z b = refl
+plus_succ_right Z b = Refl
 plus_succ_right (S pa) b = let auxP : (S(pa + b) = pa + (S b)) = plus_succ_right pa b in ?Mplus_succ_right_1
 
 
 plus_succ_left : (a:Nat) -> (b:Nat) -> (S(a+b) = (S a) + b)
-plus_succ_left Z b = refl
-plus_succ_left (S pa) b = refl
+plus_succ_left Z b = Refl
+plus_succ_left (S pa) b = Refl
 
 
 GTE_plus : (a:Nat) -> (b:Nat) -> GTE (a+b) a
@@ -245,30 +245,30 @@ GTE_plus : (a:Nat) -> (b:Nat) -> GTE (a+b) a
 GTE_plus a Z = let a_plus_zero_is_a : (a+Z = a) = a_plus_zero a in
                 -- this is just (LTE_same a) but with a rewriting for the goal
                 ?MGTE_plus_1
-GTE_plus Z (S pb) = lteZero
-GTE_plus (S pa) (S pb) = lteSucc (GTE_plus pa (S pb))
+GTE_plus Z (S pb) = LTEZero
+GTE_plus (S pa) (S pb) = LTESucc (GTE_plus pa (S pb))
 
 
 GTE_deleteSucc : (a:Nat) -> (b:Nat) -> (GTE (S a) (S b)) -> GTE a b
 -- This proof is just a case analysis and not a proof by induction (there's no recursive call)
-GTE_deleteSucc Z Z p = lteZero
---impossible but can't tag it as it : GTE_deleteSucc Z (S Z) lteZero = ?M1
-GTE_deleteSucc Z (S (S ppb)) (lteSucc lteZero) impossible
-GTE_deleteSucc Z (S (S ppb)) (lteSucc (lteSucc p)) impossible
-GTE_deleteSucc Z (S pb) (lteSucc lteZero) impossible
-GTE_deleteSucc (S pa) Z p = lteZero
---impossible but can't be tag as it : GTE_deleteSucc (S pa) (S pb) lteZero = ?M1
-GTE_deleteSucc (S pa) (S pb) (lteSucc p) = p
+GTE_deleteSucc Z Z p = LTEZero
+--impossible but can't tag it as it : GTE_deleteSucc Z (S Z) LTEZero = ?M1
+GTE_deleteSucc Z (S (S ppb)) (LTESucc LTEZero) impossible
+GTE_deleteSucc Z (S (S ppb)) (LTESucc (LTESucc p)) impossible
+GTE_deleteSucc Z (S pb) (LTESucc LTEZero) impossible
+GTE_deleteSucc (S pa) Z p = LTEZero
+--impossible but can't be tag as it : GTE_deleteSucc (S pa) (S pb) LTEZero = ?M1
+GTE_deleteSucc (S pa) (S pb) (LTESucc p) = p
 
 
 plus_one_equals_succ : (n:Nat) -> (n+1 = S n)
-plus_one_equals_succ Z = refl
+plus_one_equals_succ Z = Refl
 plus_one_equals_succ (S pn) = let p_ihn : (pn + 1 = S pn) = plus_one_equals_succ pn in ?Mplus_one_equals_succ_1
 
 
 moveSucc : (a:Nat) -> (b:Nat) -> (c:Nat) -> ((a+(S b))+c = ((a+b)+(S c)))
-moveSucc Z Z Z = refl
-moveSucc Z Z (S pc) = refl
+moveSucc Z Z Z = Refl
+moveSucc Z Z (S pc) = Refl
 moveSucc Z (S pb) Z = ?MmoveSucc_2
 moveSucc Z (S pb) (S pc) = ?MmoveSucc_3
 moveSucc (S pa) Z Z = ?MmoveSucc_4
@@ -278,21 +278,21 @@ moveSucc (S pa) (S pb) (S pc) = ?MmoveSucc_7
 
 
 minusFirst : (x:Nat) -> (a:Nat) -> (b:Nat) -> (plusZ (Pos x) (minusNatZ a b) = minusNatZ (plus x a) b)
-minusFirst Z Z Z = refl
-minusFirst Z Z (S pb) = refl
-minusFirst Z (S pa) Z = refl
+minusFirst Z Z Z = Refl
+minusFirst Z Z (S pb) = Refl
+minusFirst Z (S pa) Z = Refl
 minusFirst Z (S pa) (S pc) = ?MminusFirst_1
-minusFirst (S px) Z Z = refl
+minusFirst (S px) Z Z = Refl
 minusFirst (S px) Z (S pb) = ?MminusFirst_2
-minusFirst (S px) (S pa) Z = refl
+minusFirst (S px) (S pa) Z = Refl
 minusFirst (S px) (S pa) (S pc) = rewrite (sym(plus_succ_right px pa)) in (minusFirst (S px) pa pc)
 
 
 plus_minus_succ : (a:Nat) -> (b:Nat) -> (c:Nat) -> minusNatZ (plus a (S b)) (S c) = minusNatZ (plus a b) c
-plus_minus_succ Z Z Z = refl
-plus_minus_succ Z Z (S pc) = refl
-plus_minus_succ Z (S pb) Z = refl
-plus_minus_succ Z (S pb) (S pc) = refl
+plus_minus_succ Z Z Z = Refl
+plus_minus_succ Z Z (S pc) = Refl
+plus_minus_succ Z (S pb) Z = Refl
+plus_minus_succ Z (S pb) (S pc) = Refl
 plus_minus_succ (S pa) Z Z = ?Mplus_minus_succ_1
 plus_minus_succ (S pa) Z (S pc) = (plus_minus_succ pa Z pc)
 plus_minus_succ (S pa) (S pb) Z = ?Mplus_minus_succ_2
@@ -300,58 +300,58 @@ plus_minus_succ (S pa) (S pb) (S pc) = (plus_minus_succ pa (S pb) pc)
 
 
 minusOne : (a:Nat) -> (b:Nat) -> (minusNatZ a (S b) = plusZ (minusNatZ a b) (NegS Z))
-minusOne Z Z = refl
+minusOne Z Z = Refl
 minusOne Z (S pb) = ?MminusOne_1
-minusOne (S pa) Z = refl
+minusOne (S pa) Z = Refl
 minusOne (S pa) (S pb) = minusOne pa pb -- Recursive call here with strictly lower first and second arguments
 
 
 minusSucc : (a:Nat) -> (b:Nat) -> (c:Nat) -> (minusNatZ a (plus b (S c)) = plusZ (minusNatZ a b) (NegS c))
-minusSucc Z Z Z = refl
-minusSucc Z Z (S pc) = refl
+minusSucc Z Z Z = Refl
+minusSucc Z Z (S pc) = Refl
 minusSucc Z (S pb) Z = ?MminusSucc_1
 minusSucc Z (S pb) (S pc) = ?MminusSucc_2
-minusSucc (S pa) Z Z = refl
-minusSucc (S pa) Z (S pc) = refl
+minusSucc (S pa) Z Z = Refl
+minusSucc (S pa) Z (S pc) = Refl
 minusSucc (S pa) (S pb) Z = minusSucc pa pb Z
 minusSucc (S pa) (S pb) (S pc) = (minusSucc pa pb (S pc)) -- Recursive call here with strictly lower first and second arguments
 
 
 plusPos : (a:Nat) -> (b:Nat) -> (c:Nat) -> (minusNatZ (plus a b) c = plusZ (minusNatZ a c) (Pos b))
-plusPos Z Z Z = refl
-plusPos Z Z (S pc) = refl
-plusPos Z (S pb) Z = refl
-plusPos Z (S pb) (S pc) = refl
-plusPos (S pa) Z Z = refl
+plusPos Z Z Z = Refl
+plusPos Z Z (S pc) = Refl
+plusPos Z (S pb) Z = Refl
+plusPos Z (S pb) (S pc) = Refl
+plusPos (S pa) Z Z = Refl
 plusPos (S pa) Z (S pc) = (plusPos pa Z pc) -- Recursive call here with first and third arguments stricly lower
-plusPos (S pa) (S pb) Z = refl
+plusPos (S pa) (S pb) Z = Refl
 plusPos (S pa) (S pb) (S pc) = (plusPos pa (S pb) pc) -- Recursive call here with first and third arguments stricly lower
 
 
 minusNegS : (a:Nat) -> (b:Nat) -> (c:Nat) -> (plusZ (minusNatZ a (S b)) (NegS c) = plusZ (minusNatZ a b) (NegS (S c)))
-minusNegS Z Z Z = refl
-minusNegS Z Z (S pc) = refl
+minusNegS Z Z Z = Refl
+minusNegS Z Z (S pc) = Refl
 minusNegS Z (S pb) Z = ?MminusNegS_1
 minusNegS Z (S pb) (S pc) = ?MminusNegS_2
-minusNegS (S pa) Z Z = refl
-minusNegS (S pa) Z (S pc) = refl
+minusNegS (S pa) Z Z = Refl
+minusNegS (S pa) Z (S pc) = Refl
 minusNegS (S pa) (S pb) Z = (minusNegS pa pb Z) -- Recursive call here with first and second arguments stricly lower
 minusNegS (S pa) (S pb) (S pc) = (minusNegS pa pb (S pc)) -- Recursive call here with first and second arguments stricly lower
 
 
 switch_negS : (a:Nat) -> (b:Nat) -> (c:Nat) -> plusZ (minusNatZ a b) (NegS c) = plusZ (minusNatZ a c) (NegS b)
-switch_negS Z Z Z = refl
+switch_negS Z Z Z = Refl
 switch_negS Z Z (S pc) = ?Mswitch_negS_1
 switch_negS Z (S pb) Z = ?Mswitch_negS_2
 switch_negS Z (S pb) (S pc) = ?Mswitch_negS_3
-switch_negS (S pa) Z Z = refl
+switch_negS (S pa) Z Z = Refl
 switch_negS (S pa) Z (S pc) = ?Mswitch_negS_4
 switch_negS (S pa) (S pb) Z = ?Mswitch_negS_5
 switch_negS (S pa) (S pb) (S pc) = rewrite (sym (minusNegS pa pc pb)) in (switch_negS pa pb (S pc)) 
 
 
 switch_double_succ : (a:Nat) -> (b:Nat) -> plus a (S (S b)) = plus b (S (S a))
-switch_double_succ Z Z = refl
+switch_double_succ Z Z = Refl
 switch_double_succ Z (S pb) = ?Mswitch_double_succ_1
 switch_double_succ (S pa) Z = ?Mswitch_double_succ_2
 switch_double_succ (S pa) (S pb) = let ih = switch_double_succ pa (S pb) in ?Mswitch_double_succ_3
@@ -359,12 +359,12 @@ switch_double_succ (S pa) (S pb) = let ih = switch_double_succ pa (S pb) in ?Msw
 -- D.2) Arith for Z
 
 zero_plusZ_a : (a:ZZ) -> ((Pos Z) + a = a)
-zero_plusZ_a (Pos x) = refl
-zero_plusZ_a (NegS x) = refl
+zero_plusZ_a (Pos x) = Refl
+zero_plusZ_a (NegS x) = Refl
 
 a_plusZ_zero : (a:ZZ) -> (a + (Pos Z) = a)
 a_plusZ_zero (Pos x) = ?Ma_plusZ_zero_1
-a_plusZ_zero (NegS x) = refl
+a_plusZ_zero (NegS x) = Refl
 
 
 -- To add in the depository for Idris
@@ -372,19 +372,19 @@ plusAssociativeZ : (left : ZZ) -> (centre : ZZ) -> (right : ZZ) ->
   left + (centre + right) = (left + centre) + right
 -- start with POS
 -- Pos - Pos - Pos
-plusAssociativeZ (Pos Z) (Pos Z) (Pos Z) = refl
-plusAssociativeZ (Pos Z) (Pos Z) (Pos (S pw)) = refl
-plusAssociativeZ (Pos Z) (Pos (S pv)) (Pos Z) = refl
-plusAssociativeZ (Pos Z) (Pos (S pv)) (Pos (S pw)) = refl
+plusAssociativeZ (Pos Z) (Pos Z) (Pos Z) = Refl
+plusAssociativeZ (Pos Z) (Pos Z) (Pos (S pw)) = Refl
+plusAssociativeZ (Pos Z) (Pos (S pv)) (Pos Z) = Refl
+plusAssociativeZ (Pos Z) (Pos (S pv)) (Pos (S pw)) = Refl
 plusAssociativeZ (Pos (S pu)) (Pos Z) (Pos Z) = ?MplusAssociativeZ_1_2 --done
 plusAssociativeZ (Pos (S pu)) (Pos Z) (Pos (S pw)) = ?MplusAssociativeZ_1_3 --done
 plusAssociativeZ (Pos (S pu)) (Pos (S pv)) (Pos Z) = ?MplusAssociativeZ_1_4 --done
 plusAssociativeZ (Pos (S pu)) (Pos (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_1_5 --done
 
 -- Pos - Pos - Neg
-plusAssociativeZ (Pos Z) (Pos Z) (NegS Z) = refl
-plusAssociativeZ (Pos Z) (Pos Z) (NegS (S pw)) = refl
-plusAssociativeZ (Pos Z) (Pos (S pv)) (NegS Z) = refl
+plusAssociativeZ (Pos Z) (Pos Z) (NegS Z) = Refl
+plusAssociativeZ (Pos Z) (Pos Z) (NegS (S pw)) = Refl
+plusAssociativeZ (Pos Z) (Pos (S pv)) (NegS Z) = Refl
 plusAssociativeZ (Pos Z) (Pos (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_2_1 --done
 plusAssociativeZ (Pos (S pu)) (Pos Z) (NegS Z) = ?MplusAssociativeZ_2_2 --done
 plusAssociativeZ (Pos (S pu)) (Pos Z) (NegS (S pw)) = ?MplusAssociativeZ_2_3 --done
@@ -392,9 +392,9 @@ plusAssociativeZ (Pos (S pu)) (Pos (S pv)) (NegS Z) = ?MplusAssociativeZ_2_4 --d
 plusAssociativeZ (Pos (S pu)) (Pos (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_2_5 --done
 
 -- Pos - Neg - Pos
-plusAssociativeZ (Pos Z) (NegS Z) (Pos Z) = refl
-plusAssociativeZ (Pos Z) (NegS Z) (Pos (S pw)) = refl
-plusAssociativeZ (Pos Z) (NegS (S pv)) (Pos Z) = refl
+plusAssociativeZ (Pos Z) (NegS Z) (Pos Z) = Refl
+plusAssociativeZ (Pos Z) (NegS Z) (Pos (S pw)) = Refl
+plusAssociativeZ (Pos Z) (NegS (S pv)) (Pos Z) = Refl
 plusAssociativeZ (Pos Z) (NegS (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_3_1 --done
 plusAssociativeZ (Pos (S pu)) (NegS Z) (Pos Z) = ?MplusAssociativeZ_3_2 --done
 plusAssociativeZ (Pos (S pu)) (NegS Z) (Pos (S pw)) = ?MplusAssociativeZ_3_3 --done
@@ -402,51 +402,51 @@ plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (Pos Z) = ?MplusAssociativeZ_3_4 --d
 plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_3_5 -- done
 
 -- Pos - Neg - Neg
-plusAssociativeZ (Pos Z) (NegS Z) (NegS Z) = refl
-plusAssociativeZ (Pos Z) (NegS Z) (NegS (S pw)) = refl
-plusAssociativeZ (Pos Z) (NegS (S pv)) (NegS Z) = refl
-plusAssociativeZ (Pos Z) (NegS (S pv)) (NegS (S pw)) = refl
-plusAssociativeZ (Pos (S pu)) (NegS Z) (NegS Z) = refl
-plusAssociativeZ (Pos (S pu)) (NegS Z) (NegS (S pw)) = refl
+plusAssociativeZ (Pos Z) (NegS Z) (NegS Z) = Refl
+plusAssociativeZ (Pos Z) (NegS Z) (NegS (S pw)) = Refl
+plusAssociativeZ (Pos Z) (NegS (S pv)) (NegS Z) = Refl
+plusAssociativeZ (Pos Z) (NegS (S pv)) (NegS (S pw)) = Refl
+plusAssociativeZ (Pos (S pu)) (NegS Z) (NegS Z) = Refl
+plusAssociativeZ (Pos (S pu)) (NegS Z) (NegS (S pw)) = Refl
 plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (NegS Z) = ?MplusAssociativeZ_4_4 -- done
 plusAssociativeZ (Pos (S pu)) (NegS (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_4_5 --done
 
 -- start with NEG
 -- Neg - Pos - Pos
-plusAssociativeZ (NegS Z) (Pos Z) (Pos Z) = refl
-plusAssociativeZ (NegS Z) (Pos Z) (Pos (S pw)) = refl
-plusAssociativeZ (NegS Z) (Pos (S pv)) (Pos Z) = refl
-plusAssociativeZ (NegS Z) (Pos (S pv)) (Pos (S pw)) = refl
-plusAssociativeZ (NegS (S pu)) (Pos Z) (Pos Z) = refl
-plusAssociativeZ (NegS (S pu)) (Pos Z) (Pos (S pw)) = refl
+plusAssociativeZ (NegS Z) (Pos Z) (Pos Z) = Refl
+plusAssociativeZ (NegS Z) (Pos Z) (Pos (S pw)) = Refl
+plusAssociativeZ (NegS Z) (Pos (S pv)) (Pos Z) = Refl
+plusAssociativeZ (NegS Z) (Pos (S pv)) (Pos (S pw)) = Refl
+plusAssociativeZ (NegS (S pu)) (Pos Z) (Pos Z) = Refl
+plusAssociativeZ (NegS (S pu)) (Pos Z) (Pos (S pw)) = Refl
 plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (Pos Z) = ?MplusAssociativeZ_5_4 --done
 plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_5_5 -- done
 
 -- Neg - Pos - Neg
-plusAssociativeZ (NegS Z) (Pos Z) (NegS Z) = refl
-plusAssociativeZ (NegS Z) (Pos Z) (NegS (S pw)) = refl
-plusAssociativeZ (NegS Z) (Pos (S pv)) (NegS Z) = refl
+plusAssociativeZ (NegS Z) (Pos Z) (NegS Z) = Refl
+plusAssociativeZ (NegS Z) (Pos Z) (NegS (S pw)) = Refl
+plusAssociativeZ (NegS Z) (Pos (S pv)) (NegS Z) = Refl
 plusAssociativeZ (NegS Z) (Pos (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_6_1 -- done
-plusAssociativeZ (NegS (S pu)) (Pos Z) (NegS Z) = refl
-plusAssociativeZ (NegS (S pu)) (Pos Z) (NegS (S pw)) = refl
+plusAssociativeZ (NegS (S pu)) (Pos Z) (NegS Z) = Refl
+plusAssociativeZ (NegS (S pu)) (Pos Z) (NegS (S pw)) = Refl
 plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (NegS Z) = ?MplusAssociativeZ_6_4 -- done
 plusAssociativeZ (NegS (S pu)) (Pos (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_6_5 -- done
 
 -- Neg - Neg - Pos
-plusAssociativeZ (NegS Z) (NegS Z) (Pos Z) = refl
-plusAssociativeZ (NegS Z) (NegS Z) (Pos (S pw)) = refl
-plusAssociativeZ (NegS Z) (NegS (S pv)) (Pos Z) = refl
+plusAssociativeZ (NegS Z) (NegS Z) (Pos Z) = Refl
+plusAssociativeZ (NegS Z) (NegS Z) (Pos (S pw)) = Refl
+plusAssociativeZ (NegS Z) (NegS (S pv)) (Pos Z) = Refl
 plusAssociativeZ (NegS Z) (NegS (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_7_1 -- done
-plusAssociativeZ (NegS (S pu)) (NegS Z) (Pos Z) = refl
+plusAssociativeZ (NegS (S pu)) (NegS Z) (Pos Z) = Refl
 plusAssociativeZ (NegS (S pu)) (NegS Z) (Pos (S pw)) = ?MplusAssociativeZ_7_3 --done
-plusAssociativeZ (NegS (S pu)) (NegS (S pv)) (Pos Z) = refl
+plusAssociativeZ (NegS (S pu)) (NegS (S pv)) (Pos Z) = Refl
 plusAssociativeZ (NegS (S pu)) (NegS (S pv)) (Pos (S pw)) = ?MplusAssociativeZ_7_5 -- done
 
 -- Neg - Neg - Neg
-plusAssociativeZ (NegS Z) (NegS Z) (NegS Z) = refl
-plusAssociativeZ (NegS Z) (NegS Z) (NegS (S pw)) = refl
-plusAssociativeZ (NegS Z) (NegS (S pv)) (NegS Z) = refl
-plusAssociativeZ (NegS Z) (NegS (S pv)) (NegS (S pw)) = refl
+plusAssociativeZ (NegS Z) (NegS Z) (NegS Z) = Refl
+plusAssociativeZ (NegS Z) (NegS Z) (NegS (S pw)) = Refl
+plusAssociativeZ (NegS Z) (NegS (S pv)) (NegS Z) = Refl
+plusAssociativeZ (NegS Z) (NegS (S pv)) (NegS (S pw)) = Refl
 plusAssociativeZ (NegS (S pu)) (NegS Z) (NegS Z) = ?MplusAssociativeZ_8_2 -- done
 plusAssociativeZ (NegS (S pu)) (NegS Z) (NegS (S pw)) = ?MplusAssociativeZ_8_3 -- done
 plusAssociativeZ (NegS (S pu)) (NegS (S pv)) (NegS Z) = ?MplusAssociativeZ_8_4 -- done
@@ -458,32 +458,32 @@ plusAssociativeZ (NegS (S pu)) (NegS (S pv)) (NegS (S pw)) = ?MplusAssociativeZ_
 -- E) FIN TOOLS
 -- -----------------------------------
 minusOrEqual_Fin : {n:Nat} -> (i:Fin n) -> (j:Fin m) -> Bool
-minusOrEqual_Fin fZ fZ = True
-minusOrEqual_Fin fZ (fS j') = True
-minusOrEqual_Fin (fS i') fZ = False
-minusOrEqual_Fin (fS i') (fS j') = minusOrEqual_Fin i' j'
+minusOrEqual_Fin FZ FZ = True
+minusOrEqual_Fin FZ (FS j') = True
+minusOrEqual_Fin (FS i') FZ = False
+minusOrEqual_Fin (FS i') (FS j') = minusOrEqual_Fin i' j'
 
 	
 -- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
 total
 pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
 -- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
-pre_convertFin {n=Z} (fZ) m (lteZero) impossible
-pre_convertFin {n=Z} (fS x) m _ impossible
+pre_convertFin {n=Z} (FZ) m (LTEZero) impossible
+pre_convertFin {n=Z} (FS x) m _ impossible
 -- case n= Sk, which includes two cases
-  -- case fZ
-pre_convertFin {n=S k} (fZ {k=k}) m p = fZ {k=m}
-  -- case fS x, where x is an element of Fin k
-pre_convertFin {n=S k} (fS x) (S pm) p = let m_gte_k : GTE (S pm) k = GTE_deleteSucc _ _ p in
+  -- case FZ
+pre_convertFin {n=S k} (FZ {k=k}) m p = FZ {k=m}
+  -- case FS x, where x is an element of Fin k
+pre_convertFin {n=S k} (FS x) (S pm) p = let m_gte_k : GTE (S pm) k = GTE_deleteSucc _ _ p in
 											 let x_conv : Fin (S pm) = pre_convertFin x pm m_gte_k in
-												fS x_conv
+												FS x_conv
 -- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
--- there is only one element to convert : fZ {k=0}. But we're having an fS, and not an fZ...
-pre_convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
-    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, Yes refl) impossible
-    pre_convertFin {n=S k} (fS x) Z p | (Yes refl, No p2) impossible
-    pre_convertFin {n=S k} (fS x) Z p | (No p1, Yes refl) impossible
-    pre_convertFin {n=S k} (fS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
+-- there is only one element to convert : FZ {k=0}. But we're having an FS, and not an FZ...
+pre_convertFin {n=S k} (FS x) Z p with (decEq k Z, decEq k (S Z))
+    pre_convertFin {n=S k} (FS x) Z p | (Yes Refl, Yes Refl) impossible
+    pre_convertFin {n=S k} (FS x) Z p | (Yes Refl, No p2) impossible
+    pre_convertFin {n=S k} (FS x) Z p | (No p1, Yes Refl) impossible
+    pre_convertFin {n=S k} (FS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
                                                             case k_is_zero_or_one of
                                                             Left k_is_zero => ?Mpre_convertFin_1
                                                             Right k_is_one => ?Mpre_convertFin_2
@@ -492,38 +492,38 @@ pre_convertFin {n=S k} (fS x) Z p with (decEq k Z, decEq k (S Z))
 -- can't be zero (otherwise we would have an inhabitant of Fin 0)
 convertFin : (n:Nat) -> (i:Fin n) -> (x:Nat) -> Fin (n+x)
 -- n can't be zero
-convertFin Z fZ x impossible
-convertFin Z (fS pi) x impossible
+convertFin Z FZ x impossible
+convertFin Z (FS pi) x impossible
 convertFin (S pn) i x = let proofGTE : (GTE (S(pn+x)) (S pn)) = ?MconvertFin_1 in
                         pre_convertFin i (pn+x) proofGTE
 
 
 
 testconversion1 : Fin 6
-testconversion1 = pre_convertFin {n=3} (fZ {k=2}) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+testconversion1 = pre_convertFin {n=3} (FZ {k=2}) 5 (LTESucc (LTESucc (LTESucc LTEZero)))
 -- test ok
 
 testconversion2 : Fin 6
-testconversion2 = pre_convertFin {n=3} (fS (fZ {k=1})) 5 (lteSucc (lteSucc (lteSucc lteZero)))
+testconversion2 = pre_convertFin {n=3} (FS (FZ {k=1})) 5 (LTESucc (LTESucc (LTESucc LTEZero)))
 -- test ok
 
 -- Computes the next element of a given element in a set of n element. If the
 -- current element is already the last one of the set, we return it back.
 nextElement : (n:Nat) -> (i:Fin n) -> Fin n
 -- n can't be zero
-nextElement Z fZ impossible
-nextElement Z (fS pi) impossible
--- case where this is a fZ, and we've not yet reached the final element of the set
-nextElement (S (S ppn)) (fZ {k=S ppn}) = fS (fZ {k=ppn})
--- case where this is a fZ, and we've reached the final element of the set. We give back the same fZ. This enables to always loop on the last element of a set if we ask for the next element.
-nextElement (S Z) (fZ {k=Z}) = fZ {k=Z}
--- case where this is a (fS pi).
-nextElement (S pn) (fS {k=pn} pi) = fS (nextElement pn pi)
+nextElement Z FZ impossible
+nextElement Z (FS pi) impossible
+-- case where this is a FZ, and we've not yet reached the final element of the set
+nextElement (S (S ppn)) (FZ {k=S ppn}) = FS (FZ {k=ppn})
+-- case where this is a FZ, and we've reached the final element of the set. We give back the same FZ. This enables to always loop on the last element of a set if we ask for the next element.
+nextElement (S Z) (FZ {k=Z}) = FZ {k=Z}
+-- case where this is a (FS pi).
+nextElement (S pn) (FS {k=pn} pi) = FS (nextElement pn pi)
 
 
 lastElement : (pn:Nat) -> Fin (S pn)
-lastElement Z = fZ
-lastElement (S ppn) = fS (lastElement ppn)
+lastElement Z = FZ
+lastElement (S ppn) = FS (lastElement ppn)
 
 lastElement' : (pn:Nat) -> Fin(pn+1)
 lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_succ pn in
@@ -544,8 +544,8 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
 
 -- No longer needed !
 {-
-lastElement_of_reverse_is_first' : (g : Vect (S pn) a) -> (index (fZ {k=pn}) g = index (lastElement pn) (reverse g))
-lastElement_of_reverse_is_first' (h::Nil) = refl
+lastElement_of_reverse_is_first' : (g : Vect (S pn) a) -> (index (FZ {k=pn}) g = index (lastElement pn) (reverse g))
+lastElement_of_reverse_is_first' (h::Nil) = Refl
 lastElement_of_reverse_is_first' (h::(h2::t2)) = let ih = lastElement_of_reverse_is_first' (h2::t2) in ?MA
 -}
 
@@ -559,10 +559,10 @@ lastElement_of_reverse_is_first (h::t) = ?MB
 
 {-
 vectorAppend_assoc : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (g1++(g2++g3) = (g1 ++ g2)++g3)
-vectorAppend_assoc Nil Nil Nil = refl
-vectorAppend_assoc Nil Nil (h3::t3) = refl
-vectorAppend_assoc Nil (h2::t2) Nil = refl
-vectorAppend_assoc Nil (h2::t2) (h3::t3) = refl
+vectorAppend_assoc Nil Nil Nil = Refl
+vectorAppend_assoc Nil Nil (h3::t3) = Refl
+vectorAppend_assoc Nil (h2::t2) Nil = Refl
+vectorAppend_assoc Nil (h2::t2) (h3::t3) = Refl
 vectorAppend_assoc (h1::t1) Nil Nil = 
 	let ih : (t1 ++ (Nil) = (t1 ++ Nil) ++ Nil) = vectorAppend_assoc t1 Nil Nil in 
 	vectConsCong h1 (t1++[]) ((t1++[])++[]) ih 
@@ -619,7 +619,7 @@ postulate -- Will be proven later
 	
 -- Subset and equality
 SubSet_rewriteRight : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (SubSet g1 g2) -> (g2=g3) -> (SubSet g1 g3)
-SubSet_rewriteRight g1 g2 g2 psub refl = psub -- ?MSubSet_rewriteRight_1
+SubSet_rewriteRight g1 g2 g2 psub Refl = psub -- ?MSubSet_rewriteRight_1
 
 
 -- F.4) Removing elements
@@ -644,11 +644,11 @@ remove_first_x_subset x g = ?Mremove_first_x_subset_1
 -- 	2) The result is a Maybe, instead of Dec (a proof is only provided if they are equal)
 total
 vect_eq : {a:Type} -> (a_eq : (a1:a)->(a2:a)->Maybe(a1=a2)) -> (n:Nat) -> (m:Nat) -> (g1:Vect n a) -> (g2:Vect m a) -> Maybe (g1=g2)
-vect_eq a_eq _ _ Nil Nil = Just refl
+vect_eq a_eq _ _ Nil Nil = Just Refl
 vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) with (decEq pn pm)
-	vect_eq a_eq (S pn) (S pn) (h1::t1) (h2::t2) | (Yes refl) with (a_eq h1 h2, vect_eq a_eq pn pn t1 t2)
-		vect_eq a_eq _ _ (h1::t1) (h1::t1) | (Yes refl) | (Just refl, Just refl) = Just refl
-		vect_eq a_eq _ _ (h1::t1) _ | (Yes refl) | _ = Nothing
+	vect_eq a_eq (S pn) (S pn) (h1::t1) (h2::t2) | (Yes Refl) with (a_eq h1 h2, vect_eq a_eq pn pn t1 t2)
+		vect_eq a_eq _ _ (h1::t1) (h1::t1) | (Yes Refl) | (Just Refl, Just Refl) = Just Refl
+		vect_eq a_eq _ _ (h1::t1) _ | (Yes Refl) | _ = Nothing
 	vect_eq a_eq (S pn) (S pm) (h1::t1) (h2::t2) | (No _) = Nothing
 vect_eq a_eq _ _ _ _ = Nothing
 -}
@@ -659,7 +659,7 @@ vect_eq a_eq _ _ _ _ = Nothing
 Solver.tools.Mf_equal = proof
   intros
   rewrite p
-  exact refl
+  exact Refl
   
   
 -- Part B) : Groups
@@ -715,7 +715,7 @@ Solver.tools.Madding_preserves_equality_1 = proof
 Solver.tools.Madding_preserves_equality_left_1 = proof
   intros
   rewrite H
-  mrefine refl  
+  mrefine Refl  
 -}
   
 Solver.tools.Mmove_other_side_1 = proof
@@ -823,7 +823,7 @@ Solver.tools.aux1 = proof {
 Solver.tools.M_S_both_side_1 = proof
   intros
   rewrite P
-  mrefine refl
+  mrefine Refl
   
 Solver.tools.M_GTE_1_two_cases_1 = proof
   intro pn, p
@@ -839,7 +839,7 @@ Solver.tools.M_GTE_1_two_cases_2 = proof
 Solver.tools.Mplus_succ_right_1 = proof
   intros
   rewrite auxP
-  exact refl
+  exact Refl
 
 Solver.tools.MGTE_plus_1 = proof
   intros
@@ -849,44 +849,44 @@ Solver.tools.MGTE_plus_1 = proof
 Solver.tools.Mplus_one_equals_succ_1 = proof
   intros
   rewrite p_ihn 
-  exact refl
+  exact Refl
   
 Solver.tools.MmoveSucc_2 = proof
   intros
   rewrite (plus_succ_right pb 0)
-  exact refl
+  exact Refl
   
 Solver.tools.MmoveSucc_3 = proof
   intros
   rewrite (plus_succ_right pb (S pc))
-  exact refl
+  exact Refl
   
 Solver.tools.MmoveSucc_4 = proof
   intros
   rewrite (sym (a_plus_zero (plus pa 1)))
   rewrite (sym (a_plus_zero pa))
-  exact refl
+  exact Refl
 
 Solver.tools.MmoveSucc_5 = proof
   intros
   rewrite (plus_succ_right pa 0)
   rewrite (plus_succ_right (plus pa 0) (S pc))
   compute
-  exact refl  
+  exact Refl  
 
 Solver.tools.MmoveSucc_6 = proof
   intros
   rewrite (plus_succ_right pa (S pb))
   rewrite (plus_succ_right (plus pa (S pb)) 0)
   compute
-  exact refl
+  exact Refl
   
 Solver.tools.MmoveSucc_7 = proof
   intros
   rewrite (plus_succ_right pa (S pb))
   rewrite (plus_succ_right (plus pa (S pb)) (S pc))
   compute
-  exact refl
+  exact Refl
 
 Solver.tools.MminusFirst_1 = proof
   intros
@@ -896,84 +896,84 @@ Solver.tools.MminusFirst_1 = proof
 Solver.tools.MminusFirst_2 = proof
   intros
   rewrite (a_plus_zero px)
-  exact refl
+  exact Refl
   
 Solver.tools.Mplus_minus_succ_1 = proof
   intros
   rewrite (sym(plus_succ_right pa Z))
-  exact refl
+  exact Refl
 
 Solver.tools.Mplus_minus_succ_2 = proof
   intros
   rewrite (sym(plus_succ_right pa (S pb)))
-  exact refl  
+  exact Refl  
 
 Solver.tools.MminusOne_1 = proof
   intros
   rewrite (a_plus_zero pb)
-  exact refl
+  exact Refl
 
 Solver.tools.MminusSucc_1 = proof
   intros
   rewrite (sym(plus_succ_right pb Z))
-  exact refl
+  exact Refl
   
 Solver.tools.MminusSucc_2 = proof
   intros
   rewrite (sym(plus_succ_right pb (S pc)))
-  exact refl
+  exact Refl
 
 Solver.tools.MminusNegS_1 = proof
   intros
   rewrite (plus_succ_right pb Z)
-  exact refl
+  exact Refl
   
 Solver.tools.MminusNegS_2 = proof
   intros
   rewrite (plus_succ_right pb (S pc))
-  exact refl
+  exact Refl
 
  
 
 Solver.tools.Mswitch_negS_1 = proof
   intros
   rewrite (a_plus_zero pc)
-  exact refl
+  exact Refl
 
 Solver.tools.Mswitch_negS_2 = proof
   intros
   rewrite (a_plus_zero pb)
-  exact refl
+  exact Refl
 
 Solver.tools.Mswitch_negS_3 = proof
   intros
   rewrite (sym(plusCommutative pb (S pc)))
   rewrite (sym( plus_succ_right pc pb))
-  exact refl  
+  exact Refl  
 
 Solver.tools.Mswitch_negS_4 = proof
   intros
   rewrite (plus_one_equals_succ pc)
   rewrite (sym(minusSucc pa pc Z))
-  exact refl 
+  exact Refl 
 
 Solver.tools.Mswitch_negS_5 = proof
   intros
   rewrite (minusSucc pa pb Z)
   rewrite (plus_one_equals_succ pb)
-  exact refl  
+  exact Refl  
   
 Solver.tools.Mswitch_double_succ_1 = proof
   intros
   rewrite (plus_one_equals_succ pb)
   rewrite (plus_succ_right pb (S Z))
-  exact refl
+  exact Refl
   
 Solver.tools.Mswitch_double_succ_2 = proof
   intros
   rewrite (plus_one_equals_succ pa)
   rewrite (plus_succ_right pa (S Z))
-  exact refl
+  exact Refl
 
 Solver.tools.Mswitch_double_succ_3 = proof
   intros
@@ -985,77 +985,77 @@ Solver.tools.Mswitch_double_succ_3 = proof
 Solver.tools.Ma_plusZ_zero_1 = proof
   intros
   rewrite (a_plus_zero x)
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_1_2 = proof
   intros
   rewrite (a_plus_zero (plus pu 0))
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_1_3 = proof
   intros
   rewrite (a_plus_zero pu)
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_1_4 = proof
   intros
   rewrite (sym (a_plus_zero (pv)))
   rewrite (sym (a_plus_zero (plus pu (S pv))))
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_1_5 = proof
   intros
   rewrite (sym(plus_succ_right pv (S pw)))
   rewrite (sym (plusAssociative pu pv (S (S pw))))
   rewrite (moveSucc pu pv (S pw))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_2_1 = proof
   intros
   rewrite (zero_plusZ_a (minusNatZ pv (S pw)))
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_2_2 = proof
   intros
   rewrite (a_plus_zero pu)
-  exact refl
+  exact Refl
   
 
 Solver.tools.MplusAssociativeZ_2_3 = proof
   intros
   rewrite (a_plus_zero pu)
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_2_4 = proof
   intros
   rewrite (plus_succ_right pu pv)
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_2_5 = proof
   intros
   rewrite (sym(minusFirst (S pu) pv (S pw)))
   rewrite (sym(plus_minus_succ pu pv pw))
-  exact refl  
+  exact Refl  
 
 Solver.tools.MplusAssociativeZ_3_1 = proof
   intros
   rewrite (zero_plusZ_a (minusNatZ pw (S pv)))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_3_2 = proof
   intros
   rewrite (a_plus_zero pu)
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_3_3 = proof
   intros
   rewrite (plus_succ_right pu pw)
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_3_4 = proof
   intros
   rewrite (a_plusZ_zero (minusNatZ pu (S pv)))
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_3_5 = proof
   intros
@@ -1065,59 +1065,59 @@ Solver.tools.MplusAssociativeZ_3_5 = proof
   rewrite(sym(minusFirst (S pw) pu (S pv)))
   rewrite (sym(plus_minus_succ pu pw pv))
   rewrite (plusCommutative pw pu)
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_4_4 = proof
   intros
   rewrite (sym(a_plus_zero pv))
   rewrite (sym(minusOne pu (S pv)))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_4_5 = proof
   intros
   rewrite (minusSucc pu (S pv) (S pw))
   rewrite (sym(plus_succ_right pv (S pw)))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_5_4 = proof
   intros
   rewrite (sym(a_plus_zero pv))
   rewrite (a_plusZ_zero (minusNatZ pv (S pu)))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_5_5 = proof
   intros
   rewrite (sym(plusPos pv (S pw) (S pu)))
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_6_1 = proof
   intros
   rewrite (plusCommutativeZ (NegS Z) (minusNatZ pv (S pw)))
   rewrite (sym(plusCommutativeZ (NegS Z) (minusNatZ pv (S pw))))
   rewrite (minusOne pv (S pw))
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_6_4 = proof
   intros
   rewrite (sym(minusOne pv (S pu)))
-  exact refl    
+  exact Refl    
 
 Solver.tools.MplusAssociativeZ_6_5 = proof
   intros
   rewrite (sym(plusCommutativeZ (NegS (S pu)) (minusNatZ pv (S pw))))
   rewrite (sym( switch_negS pv (S pw) (S pu)))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_7_1 = proof
   intros
   rewrite (sym(plusCommutativeZ (NegS Z) (minusNatZ pw (S pv))))
   rewrite (sym(switch_negS pw (S pv) Z))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_7_3 = proof
   intros
   rewrite (a_plus_zero pu)
-  exact refl
+  exact Refl
   
 Solver.tools.MplusAssociativeZ_7_5 = proof
   intros
@@ -1125,26 +1125,26 @@ Solver.tools.MplusAssociativeZ_7_5 = proof
   rewrite (minusSucc pw (S pv) (S pu))
   rewrite (sym(plus_succ_right pu (S pv)))
   rewrite (switch_double_succ pv pu)
-  exact refl  
+  exact Refl  
 
 Solver.tools.MplusAssociativeZ_8_2 = proof
   intros
   rewrite (sym (a_plus_zero pu))
   rewrite (sym(plus_succ_right pu 0))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_8_3 = proof
   intros
   rewrite (sym(a_plus_zero pu))
   rewrite (sym(plus_succ_right pu (S pw)))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_8_4 = proof
   intros
   rewrite (sym(a_plus_zero pv))
   rewrite (plus_succ_right pu (S pv))
   rewrite (sym (a_plus_zero (plus pu (S pv))))
-  exact refl
+  exact Refl
 
 Solver.tools.MplusAssociativeZ_8_5 = proof
   intros
@@ -1157,19 +1157,19 @@ Solver.tools.MplusAssociativeZ_8_5 = proof
   rewrite (sym(plus_succ_left pv (S (S pw))))
   rewrite (sym (plus_succ_left pv (S (S pw))))
   rewrite (plusAssociative pu (S pv) (S (S pw)))
-  exact refl
+  exact Refl
 
 -- Part E : Fin tools
 
 Solver.tools.Mpre_convertFin_1 = proof
   intros
-  mrefine FalseElim
+  mrefine void -- is the eliminator of false, previously called FalseElim (which was a better name for the logical side :-( )
   mrefine p1
   mrefine k_is_zero
 
 Solver.tools.Mpre_convertFin_2 = proof
   intros
-  mrefine FalseElim
+  mrefine void
   mrefine p2
   mrefine k_is_one
 

@@ -11,12 +11,12 @@ module Solver.dataTypes
 
 
 eq_dec_fin : {n:Nat} -> (i:Fin n) -> (j:Fin n) -> (Maybe (i=j))
-eq_dec_fin fZ fZ = Just refl
-eq_dec_fin fZ (fS j') = Nothing
-eq_dec_fin (fS i') fZ = Nothing
-eq_dec_fin (fS i') (fS j') with (eq_dec_fin i' j')
-	eq_dec_fin (fS i') (fS i') | (Just refl) = Just refl
-	eq_dec_fin (fS i') (fS j') | Nothing = Nothing
+eq_dec_fin FZ FZ = Just Refl
+eq_dec_fin FZ (FS j') = Nothing
+eq_dec_fin (FS i') FZ = Nothing
+eq_dec_fin (FS i') (FS j') with (eq_dec_fin i' j')
+	eq_dec_fin (FS i') (FS i') | (Just Refl) = Just Refl
+	eq_dec_fin (FS i') (FS j') | Nothing = Nothing
 
 
 -- No longer needed : we're back to the orignal order
@@ -233,13 +233,13 @@ data Variable : {c:Type} -> (c_set: Set c) -> {n:Nat} -> (neg:c->c) -> (Vect n c
 
 Variable_eq : {c:Type} -> {c_set:Set c} -> {n:Nat} -> {c1:c} -> {c2:c} -> (neg:c->c) -> (g:Vect n c) -> (v1:Variable c_set neg g c1) -> (v2:Variable c_set neg g c2) -> Maybe (v1=v2)
 Variable_eq neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) with (decEq i1 i2)
-    Variable_eq neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i1) | (Yes refl) = Just refl
+    Variable_eq neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i1) | (Yes Refl) = Just Refl
     Variable_eq neg g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) | _ = Nothing
 Variable_eq neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i2) with (decEq i1 i2) 
-    Variable_eq neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i1) | (Yes refl) = Just refl
+    Variable_eq neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i1) | (Yes Refl) = Just Refl
     Variable_eq neg g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i2) | _ = Nothing
 --Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) with (c_equal c1 c2)
---    Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c1) | (Just refl) = Just refl
+--    Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c1) | (Just Refl) = Just Refl
 --    Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) | _ = Nothing
 Variable_eq neg g _ _ = Nothing
    
@@ -264,7 +264,7 @@ exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ x' y') with (exprMa_eq p neg g x x', 
     exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprMa_eq p neg g (PlusMa _ x y) (PlusMa _ _ _) | _ = Nothing
 exprMa_eq p neg g (VarMa _ _ {c1=c1} v1) (VarMa _ _ v2) with (Variable_eq neg g v1 v2) 
-    exprMa_eq p neg g (VarMa _ _ {c1=c1} v1) (VarMa _ _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
+    exprMa_eq p neg g (VarMa _ _ {c1=c1} v1) (VarMa _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
     exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v2) | _ = Nothing
 exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) with ((magma_eq_as_elem_of_set p) const1 const2)
     exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const1) | (Just const_eq) = Just const_eq
@@ -284,7 +284,7 @@ exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ x' y') with (exprSG_eq p neg g x x', 
     exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ _ _) | _ = Nothing
 exprSG_eq p neg g (VarSG _ _ {c1=c1} v1) (VarSG _ _ v2) with (Variable_eq neg g v1 v2)
-    exprSG_eq p neg g (VarSG _ _ {c1=c1} v1) (VarSG _ _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
+    exprSG_eq p neg g (VarSG _ _ {c1=c1} v1) (VarSG _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
     exprSG_eq p neg g (VarSG _ _ v1) (VarSG _ _ v2) | _ = Nothing
 exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const2) with ((semiGroup_eq_as_elem_of_set p) const1 const2)
     exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const1) | (Just const_eq) = Just const_eq
@@ -309,7 +309,7 @@ exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ x' y') with (exprMo_eq p neg g x x', 
     exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ _ _) | _ = Nothing
 exprMo_eq p neg g (VarMo _ _ {c1=c1} v1) (VarMo _ _ v2) with (Variable_eq neg g v1 v2)
-    exprMo_eq p neg g (VarMo _ _ {c1=c1} v1) (VarMo _ _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
+    exprMo_eq p neg g (VarMo _ _ {c1=c1} v1) (VarMo _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
     exprMo_eq p neg g (VarMo _ _ v1) (VarMo _ _ v2) | _ = Nothing
 exprMo_eq p neg g (ConstMo _ _ _ const1) (ConstMo _ _ _ const2) with ((monoid_eq_as_elem_of_set p) const1 const2)
     exprMo_eq p neg g (ConstMo _ _ _  const1) (ConstMo _ _ _ const1) | (Just const_eq) = Just const_eq
@@ -328,7 +328,7 @@ exprCM_eq p g (PlusCM x y) (PlusCM x' y') with (exprCM_eq p g x x', exprCM_eq p 
     exprCM_eq p g (PlusCM x y) (PlusCM _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
     exprCM_eq p g (PlusCM x y) (PlusCM _ _) | _ = Nothing
 exprCM_eq p g (VarCM _ i1) (VarCM _ i2) with (eq_dec_fin i1 i2)
-    exprCM_eq p g (VarCM _ i1) (VarCM _ i1) | (Just refl) = Just (set_eq_undec_refl (index i1 g))
+    exprCM_eq p g (VarCM _ i1) (VarCM _ i1) | (Just Refl) = Just (set_eq_undec_refl (index i1 g))
     exprCM_eq p g (VarCM _ i1) (VarCM _ i2) | _ = Nothing
 exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) with ((commutativeMonoid_eq_as_elem_of_set p) const1 const2)
     exprCM_eq p g (ConstCM _ _  const1) (ConstCM _ _ const1) | (Just const_eq) = Just const_eq
@@ -351,7 +351,7 @@ exprG_eq p g (PlusG x y) (PlusG x' y') with (exprG_eq p g x x', exprG_eq p g y y
         exprG_eq p g (PlusG x y) (PlusG _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
         exprG_eq p g (PlusG x y) (PlusG _ _) | _ = Nothing
 exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v2) with (Variable_eq Neg g v1 v2)
-        exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
+        exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarG _ v1) (VarG _ v2) | _ = Nothing
 exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) with ((group_eq_as_elem_of_set p) const1 const2)
         exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const1) | (Just const_eq) = Just const_eq
@@ -387,7 +387,7 @@ exprCG_eq p g (PlusCG x y) (PlusCG x' y') with (exprCG_eq p g x x', exprCG_eq p 
         exprG_eq p g (PlusCG x y) (PlusCG _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
         exprG_eq p g (PlusCG x y) (PlusCG _ _) | _ = Nothing
 exprCG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v2) with (Variable_eq Neg g v1 v2)
-        exprG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
+        exprG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarCG _ v1) (VarCG _ v2) | _ = Nothing
 exprCG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
         exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const1) | (Just const_eq) = Just const_eq
@@ -425,7 +425,7 @@ exprR_eq p g (PlusR x y) (PlusR x' y') with (exprR_eq p g x x', exprR_eq p g y y
         exprG_eq p g (PlusR x y) (PlusR _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
         exprG_eq p g (PlusR x y) (PlusR _ _) | _ = Nothing
 exprR_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) with (Variable_eq Neg g v1 v2)
-        exprG_eq p g (VarR _ {c1=c1} v1) (VarR _ v1) | (Just refl) = Just (set_eq_undec_refl c1)
+        exprG_eq p g (VarR _ {c1=c1} v1) (VarR _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarR _ v1) (VarR _ v2) | _ = Nothing
 exprR_eq p g (ConstR _ _ const1) (ConstR _ _ const2) with ((ring_eq_as_elem_of_set p) const1 const2)
         exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const1) | (Just const_eq) = Just const_eq
@@ -606,7 +606,20 @@ Solver.dataTypes.MexprCG_eq_1 = proof
   mrefine Minus_preserves_equiv 
   exact p1
   exact p2  
+
+Solver.dataTypes.MexprR_eq_1 = proof
+  intros
+  mrefine Just
+  mrefine Minus_preserves_equiv 
+  exact p1
+  exact p2  
   
-  
+Solver.dataTypes.MexprR_eq_2 = proof
+  intros
+  mrefine Just
+  mrefine Mult_preserves_equiv 
+  exact p1
+  exact p2
+
   
   

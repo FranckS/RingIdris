@@ -22,7 +22,7 @@ import Solver.monoid_reduce
 import Solver.commutativeMonoid_reduce -- NEW
 import Solver.group_reduce
 import Solver.commutativeGroup_reduce
-import Solver.ring_reduce
+--import Solver.ring_reduce
 
 import Solver.magma_test
 import Solver.semiGroup_test
@@ -52,6 +52,13 @@ bla x = Just (rewrite (a_plus_zero x) in refl)
 
 
 ---------- Proofs ----------
+
+
+
+
+
+
+
 
 
 

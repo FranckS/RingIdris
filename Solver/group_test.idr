@@ -21,12 +21,12 @@ instance dataTypes.Set ZZ where
     (~=) x y = (x=y)
 
     set_eq x y with (decEq x y)
-        set_eq x x | Yes refl = Just refl
+        set_eq x x | Yes Refl = Just Refl
         set_eq x y | _ = Nothing
     
-    set_eq_undec_refl x = refl
+    set_eq_undec_refl x = Refl
     set_eq_undec_sym p = sym p
-    set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in refl
+    set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in Refl
 
 instance Magma ZZ where
     Plus x y = x + y 
@@ -46,19 +46,19 @@ instance dataTypes.Monoid ZZ where
 
     
 plus_Z_simpl : (x:ZZ) -> (y:ZZ) -> (x - y = x + (-y))
-plus_Z_simpl x (Pos Z) = refl
-plus_Z_simpl x (Pos (S x)) = refl
-plus_Z_simpl x (NegS Z) = refl
-plus_Z_simpl x (NegS (S x)) = refl
+plus_Z_simpl x (Pos Z) = Refl
+plus_Z_simpl x (Pos (S x)) = Refl
+plus_Z_simpl x (NegS Z) = Refl
+plus_Z_simpl x (NegS (S x)) = Refl
 
 minusNat_Z_Zero : (x:Nat) -> (minusNatZ x x = Pos Z)
-minusNat_Z_Zero Z = refl
+minusNat_Z_Zero Z = Refl
 minusNat_Z_Zero (S px) = minusNat_Z_Zero px
 
 plus_inverse : (x:ZZ) -> (x + (- x) = Pos Z, (- x) + x = the ZZ (Pos Z))
-plus_inverse (Pos Z) = (refl, refl)
+plus_inverse (Pos Z) = (Refl, Refl)
 plus_inverse (Pos (S px)) = (minusNat_Z_Zero px, minusNat_Z_Zero px)
-plus_inverse (NegS Z) = (refl, refl)
+plus_inverse (NegS Z) = (Refl, Refl)
 plus_inverse (NegS (S py)) = (minusNat_Z_Zero py, minusNat_Z_Zero py)
 
 
@@ -82,10 +82,10 @@ instance dataTypes.Group ZZ where
 termC : (x:ZZ) -> ExprG (%instance) [x] ((2 + (0-2))+x)
 termC x = PlusG (PlusG (ConstG _ _ (Pos 2))
                                          (MinusG (ConstG _ _ (Pos 0)) (ConstG _ _ (Pos 2))))
-				(VarG _ (RealVariable _ _ _ fZ))
+				(VarG _ (RealVariable _ _ _ FZ))
 
 termD : (x:ZZ) -> ExprG (%instance) [x] x
-termD x = VarG _ (RealVariable _ _ _ fZ)
+termD x = VarG _ (RealVariable _ _ _ FZ)
 
 
 -- Normalisation of ((2 + (0-2))+x) that should give x, since now we are working on a group
@@ -103,14 +103,14 @@ proof_termC_termD x = let (Just ok) = compare_termC_termD x in ok
 termE : (x:ZZ) -> ExprG (%instance) [x] ((3 + (0-2))+x)
 termE x = PlusG (PlusG (ConstG _ _ (Pos 3))
                            (MinusG (ConstG _ _ (Pos 0)) (ConstG _ _ (Pos 2))))
-                  (VarG _ (RealVariable _ _ _ fZ))
+                  (VarG _ (RealVariable _ _ _ FZ))
 
 termF : (x:ZZ) -> ExprG (%instance) [x] (1+x)
-termF x = PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ fZ))
+termF x = PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ FZ))
 
 
 termG : (x:ZZ) -> ExprG (%instance) [x] x
-termG x = VarG _ (RealVariable _ _ _fZ)
+termG x = VarG _ (RealVariable _ _ _FZ)
 
 -- ----------------------
 -- TEST 2 THAT SHOULD WORK
@@ -150,7 +150,7 @@ proof_termE_termG x = let (Just ok) = compare_termE_termG x in ok
 termH : (x:ZZ) -> ExprG (%instance) [x] ((-2 + (0 + (-(-2)))) + x)
 termH x = PlusG (PlusG (NegG (ConstG _ _ (Pos 2)))
                            (PlusG (ConstG _ _ (Pos 0)) (NegG (NegG (ConstG _ _ (Pos 2))))))
-                  (VarG _ (RealVariable _ _ _ fZ))
+                  (VarG _ (RealVariable _ _ _ FZ))
 
 
 -- Reminder : termG represents just "x"
@@ -174,21 +174,21 @@ proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
 --        e2 = ((3 + (0-2))+x)
 --        e3 = 1+x
 termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
-termJ x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ (fS fZ))) 
+termJ x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ (FS FZ))) 
                              (PlusG (PlusG (ConstG _ _ (Pos 3))
                                                (MinusG (ConstG _ _ (Pos 0)) (ConstG _ _ (Pos 2))))
-                                      (VarG _ (RealVariable _ _ _ fZ))))
-                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ fZ))))
+                                      (VarG _ (RealVariable _ _ _ FZ))))
+                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ FZ))))
 
 
 termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] y
-termK x y = VarG _ (RealVariable _ _ _ (fS fZ))
+termK x y = VarG _ (RealVariable _ _ _ (FS FZ))
 
 termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) [x, y] ((y + (1+x)) + (-(1+x)))
-termL x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ (fS fZ))) 
+termL x y = PlusG (PlusG (VarG _ (RealVariable _ _ _ (FS FZ))) 
                              (PlusG (ConstG _ _ (Pos 1))
-                                      (VarG _ (RealVariable _ _ _ fZ))))
-                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ fZ))))
+                                      (VarG _ (RealVariable _ _ _ FZ))))
+                    (NegG (PlusG (ConstG _ _ (Pos 1)) (VarG _ (RealVariable _ _ _ FZ))))
 
 compare_termJ_termK : (x:ZZ) -> (y:ZZ) -> Maybe (((y + ((3 + (0-2))+x)) + (-(1+x))) = y)
 compare_termJ_termK x y = groupDecideEq (%instance) (termJ x y) (termK x y) 
@@ -238,12 +238,12 @@ Solver.group_test.MPlusZZ_preserves_equiv_1 = proof
   intros
   rewrite p1
   rewrite p2
-  exact refl
+  exact Refl
 
 Solver.group_test.MNeg_preserves_equiv_1 = proof
   intros
   rewrite p
-  exact refl
+  exact Refl
 
 
 
