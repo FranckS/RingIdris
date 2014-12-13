@@ -4,7 +4,7 @@
 -- (very) brief explanation about what's this stuff
 -------------------------------------------------------------------
 
-Version 0.4 (18/10/14)
+Version 0.5 (12/12/14)
 -----------------------
 
 This is the (early) implementation of a collection of tactics for Idris, 
@@ -19,8 +19,12 @@ only. If you wish to give a feedback, don't forget, that THIS IS STILL WORK IN
 PROGRESS. There may be bugs, the code is not clean, etc. 
 In definitive, you should not use it a for a "real" project right now.
 
-Current state (18/10/14) : 
+Current state (12/12/14) : 
 ------------------------------
+
+____________________
+New with version 0.5 : Compiles with Idris 0.9.15.1 amongst other things
+____________________
 
 ____________________
 New with version 0.4: Each solver can now deal with any equivalence relation, instead of just
@@ -78,7 +82,7 @@ A fairly big example
 
 Can be found in the file myBinary_new.idr.
 Simply run : 
-idris ./Solver/myBinary_new.idr
+idris ./Provers/myBinary_new.idr
 That will compile the tactics and that will generate the proof required (in the term goal_aux).
 
 Note that because there is no automatic reflexion at the moment, this file can be seen as a horrific monster.

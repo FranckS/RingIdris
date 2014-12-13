@@ -29,7 +29,7 @@ pad (num # x) = pad num # x
 
 
 pattern syntax bitpair [x] [y] = (_ ** (_ ** (x, y, _)))
-term syntax bitpair [x] [y] = (_ ** (_ ** (x, y, refl)))
+term syntax bitpair [x] [y] = (_ ** (_ ** (x, y, Refl)))
 
 addBit : Bit x -> Bit y -> Bit c ->
           (bX ** (bY ** (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
@@ -67,15 +67,15 @@ LHSreflected : (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
                                 )
                         )
 LHSreflected c bit0 bit1 x x1 v v1 = 
-        PlusCM (VarCM _ (fS (fS( (fS (fS fZ))))))
+        PlusCM (VarCM _ (FS (FS( (FS (FS FZ))))))
                (PlusCM
                         (PlusCM
-                            (PlusCM (VarCM _ (fS (fS (fS fZ)))) (VarCM _ (fS (fS (fS (fS (fS fZ)))))))
-                            (VarCM _ (fS(fS(fS(fS(fS(fS fZ))))))))
+                            (PlusCM (VarCM _ (FS (FS (FS FZ)))) (VarCM _ (FS (FS (FS (FS (FS FZ)))))))
+                            (VarCM _ (FS(FS(FS(FS(FS(FS FZ))))))))
                         (PlusCM
                             (PlusCM
-                                (PlusCM (VarCM _ (fS (fS (fS fZ)))) (VarCM _ (fS (fS (fS (fS (fS fZ)))))))
-                                (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))))
+                                (PlusCM (VarCM _ (FS (FS (FS FZ)))) (VarCM _ (FS (FS (FS (FS (FS FZ)))))))
+                                (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))))
                             (ConstCM _ _ Z))
                 )
         
@@ -94,10 +94,10 @@ LHSreflected' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeMonoidReduce _ 
 LHSreflected'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
                -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (v1+(v1+(v+(v+(x1+(x+x))))))
-LHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))) (PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))) 
-					  (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ)))))) (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ)))))) 
-					    (PlusCM (VarCM _ (fS (fS (fS (fS fZ))))) (PlusCM (VarCM _ (fS (fS (fS fZ)))) 
-                                                        (VarCM _ (fS (fS (fS fZ)))))))))
+LHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) 
+					  (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) 
+					    (PlusCM (VarCM _ (FS (FS (FS (FS FZ))))) (PlusCM (VarCM _ (FS (FS (FS FZ)))) 
+                                                        (VarCM _ (FS (FS (FS FZ)))))))))
          
         
         
@@ -120,15 +120,15 @@ RHSreflected : (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
                          )
 RHSreflected c bit0 bit1 x x1 v v1 = 
                 PlusCM
-                    (PlusCM (VarCM _ fZ)
-                            (PlusCM (VarCM _ (fS fZ))
-                                   (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ))))))
-                                          (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ)))))) (ConstCM _ _ Z))
+                    (PlusCM (VarCM _ FZ)
+                            (PlusCM (VarCM _ (FS FZ))
+                                   (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ))))))
+                                          (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) (ConstCM _ _ Z))
                                    )
                             )
                     )
-                    (PlusCM (VarCM _ (fS  (fS fZ)))
-                            (PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))) (PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))) (ConstCM _ _ Z)))
+                    (PlusCM (VarCM _ (FS  (FS FZ)))
+                            (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (ConstCM _ _ Z)))
                     )
             
             
@@ -137,10 +137,10 @@ RHSreflected c bit0 bit1 x x1 v v1 =
 RHSreflected'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
                -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus v1 (plus v1 (plus v (plus v (plus bit1 (plus bit0 c))))))
-RHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))) (PlusCM (VarCM _ (fS (fS (fS (fS (fS (fS fZ))))))) 
-					  (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ)))))) (PlusCM (VarCM _ (fS (fS (fS (fS (fS fZ)))))) 
-					    (PlusCM (VarCM _ (fS (fS fZ))) (PlusCM (VarCM _ (fS fZ)) 
-                                                                                                (VarCM _ fZ))))))
+RHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) 
+					  (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) 
+					    (PlusCM (VarCM _ (FS (FS FZ))) (PlusCM (VarCM _ (FS FZ)) 
+                                                                                                (VarCM _ FZ))))))
 														  
   
             
@@ -151,8 +151,8 @@ leftKnown : (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
                -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1]
                     (plus (plus c bit0) bit1)
 leftKnown c bit0 bit1 x x1 v v1 = PlusCM
-                                    (PlusCM (VarCM _ fZ) (VarCM _ (fS fZ)))
-                                    (VarCM _ (fS (fS fZ)))
+                                    (PlusCM (VarCM _ FZ) (VarCM _ (FS FZ)))
+                                    (VarCM _ (FS (FS FZ)))
                     
                     
                     
@@ -161,8 +161,8 @@ leftKnown c bit0 bit1 x x1 v v1 = PlusCM
 leftKnown'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
                -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus bit1 (plus bit0 c))
-leftKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS fZ))) 
-					  (PlusCM (VarCM _ (fS fZ)) (VarCM _ fZ))
+leftKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS FZ))) 
+					  (PlusCM (VarCM _ (FS FZ)) (VarCM _ FZ))
 
 
                     
@@ -172,8 +172,8 @@ rightKnown : (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
                -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1]
                     (plus x1
                           (plus x (plus x Z)))
-rightKnown c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS (fS (fS fZ)))))
-                                          (PlusCM (VarCM _ (fS (fS (fS fZ)))) (PlusCM (VarCM _ (fS (fS (fS fZ)))) (ConstCM _ _ Z))) 
+rightKnown c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS FZ)))))
+                                          (PlusCM (VarCM _ (FS (FS (FS FZ)))) (PlusCM (VarCM _ (FS (FS (FS FZ)))) (ConstCM _ _ Z))) 
       
       
       
@@ -181,8 +181,8 @@ rightKnown c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS (fS (fS fZ)))))
 rightKnown'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
                -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus x1 (plus x x))
-rightKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (fS (fS (fS (fS fZ)))))
-                                          (PlusCM (VarCM _ (fS (fS (fS fZ)))) (VarCM _ (fS (fS (fS fZ)))))
+rightKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS FZ)))))
+                                          (PlusCM (VarCM _ (FS (FS (FS FZ)))) (VarCM _ (FS (FS (FS FZ)))))
            
       
       
@@ -357,7 +357,7 @@ Main.Mgoal_1 = proof
   rewrite leftKnown_equals_leftKnown'bis
   rewrite rightKnown_equals_rightKnown'bis
   rewrite known
-  exact refl
+  exact Refl
 
 Main.Mgoal_2 = proof
   intros
@@ -365,7 +365,7 @@ Main.Mgoal_2 = proof
   rewrite (sym LHS_equals_LHS'bis) 
   rewrite (sym RHS_equals_RHS'bis) 
   rewrite newKnownEquality 
-  exact refl
+  exact Refl
 
 Main.Mgoal_aux_1 = proof
   intros
