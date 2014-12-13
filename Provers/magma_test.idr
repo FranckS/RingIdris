@@ -4,12 +4,12 @@
 -- test the normalization for magma
 -------------------------------------------------------------------
 
-module Solver.magma_test
+module Provers.magma_test
 
 import Prelude.Vect
-import Solver.globalDef
-import Solver.dataTypes
-import Solver.magma_reduce
+import Provers.globalDef
+import Provers.dataTypes
+import Provers.magma_reduce
 
 
 
@@ -82,7 +82,7 @@ result_termX_termX x = let (Just pr) = magmaDecideEq (%instance) (termX x) (term
 
 
 ---------- Proofs ----------  
-Solver.magma_test.MPlus_preserves_equiv_1 = proof
+Provers.magma_test.MPlus_preserves_equiv_1 = proof
   intros
   rewrite p1
   rewrite p2

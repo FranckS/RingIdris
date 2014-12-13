@@ -4,7 +4,7 @@
 module Main
 
 
-import Solver.commutativeMonoid_test -- For the instance (CommutativeMonoid Nat)
+import Provers.commutativeMonoid_test -- For the instance (CommutativeMonoid Nat)
 
 
 data Bit : Nat -> Type where

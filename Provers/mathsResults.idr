@@ -5,12 +5,12 @@
 -- but nice enough for being formulated here
 ----------------------------------------------------------------------------------------------------------------------------------
 
-module Solver.mathsResults
+module Provers.mathsResults
 
 import Data.ZZ
-import Solver.globalDef
-import Solver.dataTypes
-import Solver.tools
+import Provers.globalDef
+import Provers.dataTypes
+import Provers.tools
 
 
 %default total
@@ -55,11 +55,11 @@ bad_push_negation_IMPLIES_commutativeGroup C p Hbad =
 
 
 ---------- Proofs ---------- 
-Solver.mathsResults.Mbad_swap_1 = proof
+Provers.mathsResults.Mbad_swap_1 = proof
   intros
   exact (push_negation C p x y)
   
-Solver.mathsResults.Mbad_swap_2 = proof
+Provers.mathsResults.Mbad_swap_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg x) (Neg y))
@@ -70,7 +70,7 @@ Solver.mathsResults.Mbad_swap_2 = proof
   exact aux2
   exact aux
 
-Solver.mathsResults.Mbad_commutativity_1 = proof
+Provers.mathsResults.Mbad_commutativity_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_sym 
@@ -78,7 +78,7 @@ Solver.mathsResults.Mbad_commutativity_1 = proof
   exact aux
   exact aux2
 
-Solver.mathsResults.Mbad_commutativity_2 = proof
+Provers.mathsResults.Mbad_commutativity_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus x y)
@@ -88,7 +88,7 @@ Solver.mathsResults.Mbad_commutativity_2 = proof
   exact aux3
   exact aux4  
   
-Solver.mathsResults.Mbad_commutativity_3 = proof
+Provers.mathsResults.Mbad_commutativity_3 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_sym 
@@ -96,7 +96,7 @@ Solver.mathsResults.Mbad_commutativity_3 = proof
   exact aux2
   exact aux 
   
-Solver.mathsResults.Mbad_commutativity_4 = proof
+Provers.mathsResults.Mbad_commutativity_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg (Neg y)) (Neg (Neg x)))

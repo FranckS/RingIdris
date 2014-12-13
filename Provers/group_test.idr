@@ -4,15 +4,15 @@
 -- test the normalization for group
 -------------------------------------------------------------------
 
-module Solver.group_test
+module Provers.group_test
 
 import Prelude.Vect
-import Solver.globalDef
-import Solver.dataTypes
-import Solver.group_reduce
-import Solver.monoid_reduce
-import Solver.monoid_test
-import Solver.magma_test
+import Provers.globalDef
+import Provers.dataTypes
+import Provers.group_reduce
+import Provers.monoid_reduce
+import Provers.monoid_test
+import Provers.magma_test
 --import Data.ZZ
 
 
@@ -234,13 +234,13 @@ termJ_norm x y = groupReduce _ _ [x, y] (termJ x y)
 
 
 ---------- Proofs ----------  
-Solver.group_test.MPlusZZ_preserves_equiv_1 = proof
+Provers.group_test.MPlusZZ_preserves_equiv_1 = proof
   intros
   rewrite p1
   rewrite p2
   exact Refl
 
-Solver.group_test.MNeg_preserves_equiv_1 = proof
+Provers.group_test.MNeg_preserves_equiv_1 = proof
   intros
   rewrite p
   exact Refl

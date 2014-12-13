@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a commutative monoid
 -------------------------------------------------------------------
 
-module Solver.commutativeMonoid_reduce
+module Provers.commutativeMonoid_reduce
 
 import Decidable.Equality
-import Solver.dataTypes
-import Solver.monoid_reduce
-import Solver.tools
+import Provers.dataTypes
+import Provers.monoid_reduce
+import Provers.tools
 import Prelude.Vect
 
 
@@ -124,13 +124,13 @@ commutativeMonoidDecideEq p e1 e2 =
 
 
 ---------- Proofs ----------  
-Solver.commutativeMonoid_reduce.Massoc_commute_and_assoc'_1 = proof
+Provers.commutativeMonoid_reduce.Massoc_commute_and_assoc'_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl
   mrefine Plus_comm'
   
-Solver.commutativeMonoid_reduce.Massoc_commute_and_assoc'_2 = proof
+Provers.commutativeMonoid_reduce.Massoc_commute_and_assoc'_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus x (Plus y z))
@@ -145,7 +145,7 @@ Solver.commutativeMonoid_reduce.Massoc_commute_and_assoc'_2 = proof
   exact aux2
   exact aux3 
   
-Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_1 = proof
+Provers.commutativeMonoid_reduce.MputVarOnPlace_cm_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (index i0 g) c2) (index i g))
@@ -157,27 +157,27 @@ Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_1 = proof
   mrefine set_eq_undec_sym 
   exact p_ihn   
      
-Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_2 = proof
+Provers.commutativeMonoid_reduce.MputVarOnPlace_cm_2 = proof
   intros
   mrefine Plus_comm'
         
-Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_3 = proof
+Provers.commutativeMonoid_reduce.MputVarOnPlace_cm_3 = proof
   intros
   mrefine Plus_comm'
 
-Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_4 = proof
+Provers.commutativeMonoid_reduce.MputVarOnPlace_cm_4 = proof
   intros
   mrefine Plus_comm'
         
-Solver.commutativeMonoid_reduce.MputVarOnPlace_cm_5 = proof
+Provers.commutativeMonoid_reduce.MputVarOnPlace_cm_5 = proof
   intros
   mrefine Plus_comm'
 
-Solver.commutativeMonoid_reduce.MputConstantOnPlace_cm_1 = proof
+Provers.commutativeMonoid_reduce.MputConstantOnPlace_cm_1 = proof
   intros
   mrefine assoc_commute_and_assoc'
 
-Solver.commutativeMonoid_reduce.MputConstantOnPlace_cm_2 = proof
+Provers.commutativeMonoid_reduce.MputConstantOnPlace_cm_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (index i0 g) c2) constValue)
@@ -189,7 +189,7 @@ Solver.commutativeMonoid_reduce.MputConstantOnPlace_cm_2 = proof
   mrefine set_eq_undec_sym
   exact p_ihn 
 
-Solver.commutativeMonoid_reduce.Mreorganize_cm_1 = proof
+Provers.commutativeMonoid_reduce.Mreorganize_cm_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (index i0 g) r_ihn)
@@ -207,7 +207,7 @@ Solver.commutativeMonoid_reduce.Mreorganize_cm_1 = proof
   mrefine set_eq_undec_refl
   exact p_add  
 
-Solver.commutativeMonoid_reduce.Mreorganize_cm_2 = proof
+Provers.commutativeMonoid_reduce.Mreorganize_cm_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c0 r_ihn)
@@ -223,7 +223,7 @@ Solver.commutativeMonoid_reduce.Mreorganize_cm_2 = proof
   mrefine set_eq_undec_refl
   exact p_add
 
-Solver.commutativeMonoid_reduce.MelimZeroCM1 = proof
+Provers.commutativeMonoid_reduce.MelimZeroCM1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus Zero (index v g))
@@ -240,7 +240,7 @@ Solver.commutativeMonoid_reduce.MelimZeroCM1 = proof
   mrefine set_eq_undec_refl
   exact const1_eq_zero 
 
-Solver.commutativeMonoid_reduce.MelimZeroCM2 = proof
+Provers.commutativeMonoid_reduce.MelimZeroCM2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (index v g) Zero)
@@ -253,13 +253,13 @@ Solver.commutativeMonoid_reduce.MelimZeroCM2 = proof
   mrefine set_eq_undec_refl 
   exact const2_eq_zero   
 
-Solver.commutativeMonoid_reduce.MelimZeroCM3 = proof
+Provers.commutativeMonoid_reduce.MelimZeroCM3 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2  
   
-Solver.commutativeMonoid_reduce.McommutativeMonoidReduce_1 = proof
+Provers.commutativeMonoid_reduce.McommutativeMonoidReduce_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_2
@@ -273,7 +273,7 @@ Solver.commutativeMonoid_reduce.McommutativeMonoidReduce_1 = proof
   mrefine set_eq_undec_refl 
   exact p_5   
 
-Solver.commutativeMonoid_reduce.MbuildProofCommutativeMonoid = proof
+Provers.commutativeMonoid_reduce.MbuildProofCommutativeMonoid = proof
   intros
   refine Just
   mrefine eq_preserves_eq 

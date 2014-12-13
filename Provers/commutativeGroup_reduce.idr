@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a commutative group
 -------------------------------------------------------------------
 
-module Solver.commutativeGroup_reduce
+module Provers.commutativeGroup_reduce
 
 import Decidable.Equality
-import Solver.dataTypes
-import Solver.group_reduce
-import Solver.tools
+import Provers.dataTypes
+import Provers.group_reduce
+import Provers.tools
 import Prelude.Vect
 
 -- Order : Variable (in order) and then constants
@@ -277,7 +277,7 @@ commutativeGroupDecideEq p e1 e2 =
 		
 		
 ---------- Proofs ----------
-Solver.commutativeGroup_reduce.Massoc_and_commute_1 = proof
+Provers.commutativeGroup_reduce.Massoc_and_commute_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus x y) z)
@@ -286,7 +286,7 @@ Solver.commutativeGroup_reduce.Massoc_and_commute_1 = proof
   mrefine Plus_comm
   exact aux
 
-Solver.commutativeGroup_reduce.Massoc_commute_and_assoc_1 = proof
+Provers.commutativeGroup_reduce.Massoc_commute_and_assoc_1 = proof
   intros
   mrefine set_eq_undec_sym 
   mrefine eq_preserves_eq 
@@ -305,7 +305,7 @@ Solver.commutativeGroup_reduce.Massoc_commute_and_assoc_1 = proof
   mrefine set_eq_undec_refl
   mrefine Plus_comm
 
-Solver.commutativeGroup_reduce.Massoc_commute_and_assoc_2 = proof
+Provers.commutativeGroup_reduce.Massoc_commute_and_assoc_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus x (Plus y z))
@@ -319,7 +319,7 @@ Solver.commutativeGroup_reduce.Massoc_commute_and_assoc_2 = proof
   mrefine set_eq_undec_refl 
   exact aux3
 
-Solver.commutativeGroup_reduce.Massoc_and_neutral_1 = proof
+Provers.commutativeGroup_reduce.Massoc_and_neutral_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus x (Neg x)) y)
@@ -335,7 +335,7 @@ Solver.commutativeGroup_reduce.Massoc_and_neutral_1 = proof
   exact aux2
   mrefine set_eq_undec_refl
   
-Solver.commutativeGroup_reduce.Massoc_and_neutral_bis_1 = proof
+Provers.commutativeGroup_reduce.Massoc_and_neutral_bis_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Neg x) x) y)
@@ -351,7 +351,7 @@ Solver.commutativeGroup_reduce.Massoc_and_neutral_bis_1 = proof
   exact aux2
   mrefine set_eq_undec_refl 
     
-Solver.commutativeGroup_reduce.MputVarOnPlace_1 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (index i0 g) c2) (index i g))
@@ -363,15 +363,15 @@ Solver.commutativeGroup_reduce.MputVarOnPlace_1 = proof
   mrefine set_eq_undec_sym
   exact p_ihn
   
-Solver.commutativeGroup_reduce.MputVarOnPlace_2 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_2 = proof
   intros
   mrefine Plus_comm 
 
-Solver.commutativeGroup_reduce.MputVarOnPlace_3 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_3 = proof
   intros
   mrefine Plus_comm 
   
-Solver.commutativeGroup_reduce.MputVarOnPlace_4 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Neg (index i0 g)) c2) (index i g))
@@ -383,35 +383,35 @@ Solver.commutativeGroup_reduce.MputVarOnPlace_4 = proof
   mrefine set_eq_undec_sym
   exact p_ihn
 
-Solver.commutativeGroup_reduce.MputVarOnPlace_5 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_5 = proof
   intros
   mrefine Plus_comm 
 
-Solver.commutativeGroup_reduce.MputVarOnPlace_6 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_6 = proof
   intros
   mrefine Plus_comm
 
-Solver.commutativeGroup_reduce.MputVarOnPlace_7 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_7 = proof
   intros
   mrefine Plus_comm   
   
-Solver.commutativeGroup_reduce.MputVarOnPlace_8 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_8 = proof
   intros
   mrefine Plus_comm
 
-Solver.commutativeGroup_reduce.MputVarOnPlace_9 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_9 = proof
   intros
   mrefine Plus_comm 
     
-Solver.commutativeGroup_reduce.MputVarOnPlace_10 = proof
+Provers.commutativeGroup_reduce.MputVarOnPlace_10 = proof
   intros
   mrefine Plus_comm   
   
-Solver.commutativeGroup_reduce.MputConstantOnPlace_1 = proof
+Provers.commutativeGroup_reduce.MputConstantOnPlace_1 = proof
   intros
   mrefine assoc_commute_and_assoc 
   
-Solver.commutativeGroup_reduce.MputConstantOnPlace_2 = proof
+Provers.commutativeGroup_reduce.MputConstantOnPlace_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (index i0 g) c2) constValue)
@@ -423,11 +423,11 @@ Solver.commutativeGroup_reduce.MputConstantOnPlace_2 = proof
   mrefine set_eq_undec_sym
   exact p_ihn
   
-Solver.commutativeGroup_reduce.MputConstantOnPlace_3 = proof
+Provers.commutativeGroup_reduce.MputConstantOnPlace_3 = proof
   intros
   mrefine assoc_commute_and_assoc    
 
-Solver.commutativeGroup_reduce.MputConstantOnPlace_4 = proof
+Provers.commutativeGroup_reduce.MputConstantOnPlace_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Neg (index i0 g)) c2) constValue)
@@ -439,7 +439,7 @@ Solver.commutativeGroup_reduce.MputConstantOnPlace_4 = proof
   mrefine set_eq_undec_sym
   exact p_ihn 
 
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_1 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (index i0 g) c2) (Neg (index i g)))
@@ -451,15 +451,15 @@ Solver.commutativeGroup_reduce.MputNegVarOnPlace_1 = proof
   mrefine set_eq_undec_sym
   exact p_ihn 
 
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_2 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_2 = proof
   intros
   mrefine Plus_comm 
 
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_3 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_3 = proof
   intros
   mrefine Plus_comm 
   
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_4 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Neg (index i0 g)) c2) (Neg (index i g)))
@@ -471,35 +471,35 @@ Solver.commutativeGroup_reduce.MputNegVarOnPlace_4 = proof
   mrefine set_eq_undec_sym
   exact p_ihn 
   
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_5 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_5 = proof
   intros
   mrefine Plus_comm 
 
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_6 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_6 = proof
   intros
   mrefine Plus_comm  
   
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_7 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_7 = proof
   intros
   mrefine Plus_comm   
   
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_8 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_8 = proof
   intros
   mrefine Plus_comm
 
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_9 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_9 = proof
   intros
   mrefine Plus_comm 
     
-Solver.commutativeGroup_reduce.MputNegVarOnPlace_10 = proof
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_10 = proof
   intros
   mrefine Plus_comm     
   
-Solver.commutativeGroup_reduce.MputNegConstantOnPlace_1 = proof
+Provers.commutativeGroup_reduce.MputNegConstantOnPlace_1 = proof
   intros
   mrefine assoc_commute_and_assoc 
 
-Solver.commutativeGroup_reduce.MputNegConstantOnPlace_2 = proof
+Provers.commutativeGroup_reduce.MputNegConstantOnPlace_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (index i0 g) c2) (Neg constValue))
@@ -511,11 +511,11 @@ Solver.commutativeGroup_reduce.MputNegConstantOnPlace_2 = proof
   mrefine set_eq_undec_sym
   exact p_ihn 
 
-Solver.commutativeGroup_reduce.MputNegConstantOnPlace_3 = proof
+Provers.commutativeGroup_reduce.MputNegConstantOnPlace_3 = proof
   intros
   mrefine assoc_commute_and_assoc
   
-Solver.commutativeGroup_reduce.MputNegConstantOnPlace_4 = proof
+Provers.commutativeGroup_reduce.MputNegConstantOnPlace_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Neg (index i0 g)) c2) (Neg constValue))
@@ -527,7 +527,7 @@ Solver.commutativeGroup_reduce.MputNegConstantOnPlace_4 = proof
   mrefine set_eq_undec_sym
   exact p_ihn   
   
-Solver.commutativeGroup_reduce.Mreorganize_1 = proof
+Provers.commutativeGroup_reduce.Mreorganize_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (index i0 g) c2)
@@ -548,7 +548,7 @@ Solver.commutativeGroup_reduce.Mreorganize_1 = proof
   exact p_ihn 
   mrefine set_eq_undec_refl 
   
-Solver.commutativeGroup_reduce.Mreorganize_2 = proof
+Provers.commutativeGroup_reduce.Mreorganize_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg (index i0 g)) r_ihn )
@@ -564,7 +564,7 @@ Solver.commutativeGroup_reduce.Mreorganize_2 = proof
   mrefine set_eq_undec_refl 
   exact p_add
 
-Solver.commutativeGroup_reduce.Mreorganize_3 = proof
+Provers.commutativeGroup_reduce.Mreorganize_3 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c0 r_ihn)
@@ -580,7 +580,7 @@ Solver.commutativeGroup_reduce.Mreorganize_3 = proof
   mrefine set_eq_undec_refl 
   exact p_add
   
-Solver.commutativeGroup_reduce.Mreorganize_4 = proof
+Provers.commutativeGroup_reduce.Mreorganize_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg c0) r_ihn)
@@ -596,7 +596,7 @@ Solver.commutativeGroup_reduce.Mreorganize_4 = proof
   mrefine set_eq_undec_refl 
   exact p_add
 
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_1 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact c2
@@ -605,13 +605,13 @@ Solver.commutativeGroup_reduce.MsimplifyAfterReorg_1 = proof
   mrefine set_eq_undec_refl 
   exact p_ihn
     
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_2 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_2 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   exact p_ihn 
   
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_3 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_3 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg (index i0 g)) (Plus (index i0 g) r_ihn))
@@ -624,7 +624,7 @@ Solver.commutativeGroup_reduce.MsimplifyAfterReorg_3 = proof
   mrefine set_eq_undec_refl 
   exact p_ihn 
   
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_4 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg (index i0 g)) r_ihn)
@@ -635,25 +635,25 @@ Solver.commutativeGroup_reduce.MsimplifyAfterReorg_4 = proof
   mrefine set_eq_undec_refl 
   exact p_ihn 
   
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_5 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_5 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   exact p_ihn
   
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_6 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_6 = proof
   intros
   mrefine left
   exact (Plus (Neg (index i0 g)) (index i0 g) ~= Zero)
   mrefine Plus_inverse  
   
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_7 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_7 = proof
   intros
   mrefine right
   exact (Plus (index i0 g) (Neg (index i0 g)) ~= Zero)
   mrefine Plus_inverse 
 
-Solver.commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_1
@@ -663,25 +663,25 @@ Solver.commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
   mrefine set_eq_undec_refl
   exact p_ih1
 
-Solver.commutativeGroup_reduce.MelimZeroCG1 = proof
+Provers.commutativeGroup_reduce.MelimZeroCG1 = proof
   intros
   mrefine add_zero_left 
   mrefine set_eq_undec_sym 
   exact const1_eq_zero 
 
-Solver.commutativeGroup_reduce.MelimZeroCG2 = proof
+Provers.commutativeGroup_reduce.MelimZeroCG2 = proof
   intros
   mrefine add_zero_right 
   mrefine set_eq_undec_sym 
   exact const2_eq_zero 
   
-Solver.commutativeGroup_reduce.MelimZeroCG3 = proof
+Provers.commutativeGroup_reduce.MelimZeroCG3 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
   
-Solver.commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
+Provers.commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_2
@@ -700,7 +700,7 @@ Solver.commutativeGroup_reduce.McommutativeGroupReduce_1 = proof
   mrefine set_eq_undec_refl 
   exact p_6
   
-Solver.commutativeGroup_reduce.MbuildProofCommutativeGroup = proof
+Provers.commutativeGroup_reduce.MbuildProofCommutativeGroup = proof
   intros
   refine Just
   mrefine eq_preserves_eq 

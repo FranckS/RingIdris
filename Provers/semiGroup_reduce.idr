@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a semi-group
 -------------------------------------------------------------------
 
-module Solver.semiGroup_reduce
+module Provers.semiGroup_reduce
 
 import Decidable.Equality
-import Solver.dataTypes
-import Solver.magma_reduce
-import Solver.tools
+import Provers.dataTypes
+import Provers.magma_reduce
+import Provers.tools
 
 
 --%default total
@@ -124,7 +124,7 @@ semiGroupDecideEq p e1 e2 =
 ---------- Proofs ----------
 -- NOTE : Idris is doing a strange job when proving the goal G by using something which requires you to prove the goal G' (ie, you've used G' -> G). 
 -- Instead of immediately having to prove G' (ie, G' becomes at the top of the stack of things remaining to be proven), you will have to prove G' after all the other waiting subgoals  
-Solver.semiGroup_reduce.Massoc1 = proof
+Provers.semiGroup_reduce.Massoc1 = proof
   intro n, c, p, neg, g, c1, e1, const1, const2, c2, e2, r_ih1, e_ih1, p_ih1, r_ih2, e_ih2, p_ih2, r_3, e_3, p_3, e_3'
   mrefine eq_preserves_eq
   exact (Plus (Plus c1 const1) (Plus const2 c2))
@@ -141,7 +141,7 @@ Solver.semiGroup_reduce.Massoc1 = proof
   exact p_ih1
   exact p_3
 
-Solver.semiGroup_reduce.Massoc2 = proof
+Provers.semiGroup_reduce.Massoc2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c1 (Plus const1 const2))
@@ -152,7 +152,7 @@ Solver.semiGroup_reduce.Massoc2 = proof
   exact p_ih1
   exact p_2
   
-Solver.semiGroup_reduce.Massoc3 = proof
+Provers.semiGroup_reduce.Massoc3 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus const1 const2) c2)
@@ -164,12 +164,12 @@ Solver.semiGroup_reduce.Massoc3 = proof
   exact p_2
   exact p_ih1
 
-Solver.semiGroup_reduce.Massoc4 = proof {
+Provers.semiGroup_reduce.Massoc4 = proof {
   intros
   trivial
 }
 
-Solver.semiGroup_reduce.Massoc5 = proof
+Provers.semiGroup_reduce.Massoc5 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus r_3 r_4)
@@ -181,7 +181,7 @@ Solver.semiGroup_reduce.Massoc5 = proof
   exact p_4
   mrefine set_eq_undec_refl
 
-Solver.semiGroup_reduce.MaddAfter1 = proof
+Provers.semiGroup_reduce.MaddAfter1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus c1 c2) c3)
@@ -198,19 +198,19 @@ Solver.semiGroup_reduce.MaddAfter1 = proof
   exact p_ih1
   exact (Plus_assoc c1 c2 c3)
 
-Solver.semiGroup_reduce.MshuffleRight1 = proof
+Provers.semiGroup_reduce.MshuffleRight1 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   exact p_ih1
 
-Solver.semiGroup_reduce.MshuffleRight2 = proof
+Provers.semiGroup_reduce.MshuffleRight2 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   exact p_ih1
 
-Solver.semiGroup_reduce.MshuffleRight3 = proof
+Provers.semiGroup_reduce.MshuffleRight3 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus c1 c2) const2)
@@ -228,7 +228,7 @@ Solver.semiGroup_reduce.MshuffleRight3 = proof
   mrefine set_eq_undec_sym
   exact p_ih1
   
-Solver.semiGroup_reduce.MshuffleRight4 = proof
+Provers.semiGroup_reduce.MshuffleRight4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus r_ih1 c3)
@@ -239,7 +239,7 @@ Solver.semiGroup_reduce.MshuffleRight4 = proof
   exact p_ih1
   mrefine set_eq_undec_refl 
 
-Solver.semiGroup_reduce.MshuffleRight5 = proof
+Provers.semiGroup_reduce.MshuffleRight5 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus r_ih1 r_ih2)
@@ -250,7 +250,7 @@ Solver.semiGroup_reduce.MshuffleRight5 = proof
   exact p_ih1
   exact p_ih2
 
-Solver.semiGroup_reduce.MsemiGroupReduce1 = proof
+Provers.semiGroup_reduce.MsemiGroupReduce1 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_assoc 
@@ -260,7 +260,7 @@ Solver.semiGroup_reduce.MsemiGroupReduce1 = proof
   mrefine set_eq_undec_refl 
   exact p_shuffle 
 
-Solver.semiGroup_reduce.MbuildProofSemiGroup = proof
+Provers.semiGroup_reduce.MbuildProofSemiGroup = proof
   intros
   refine Just
   mrefine eq_preserves_eq 

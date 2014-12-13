@@ -1,10 +1,10 @@
-module Solver.commutativeGroup_test
+module Provers.commutativeGroup_test
 
 import Prelude.Vect
-import Solver.globalDef
-import Solver.dataTypes
-import Solver.commutativeGroup_reduce
-import Solver.group_test
+import Provers.globalDef
+import Provers.dataTypes
+import Provers.commutativeGroup_reduce
+import Provers.group_test
 -- import Data.ZZ
 
 

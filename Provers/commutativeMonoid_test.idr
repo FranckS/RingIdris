@@ -4,13 +4,13 @@
 -- test the normalization for commutative monoid
 -------------------------------------------------------------------
 
-module Solver.commutativeMonoid_test
+module Provers.commutativeMonoid_test
 
 import Prelude.Vect
-import Solver.globalDef
-import Solver.dataTypes
-import Solver.commutativeMonoid_reduce
-import Solver.monoid_test -- For the instance of the level under (Monoid Nat)
+import Provers.globalDef
+import Provers.dataTypes
+import Provers.commutativeMonoid_reduce
+import Provers.monoid_test -- For the instance of the level under (Monoid Nat)
 --import Data.ZZ
 
 

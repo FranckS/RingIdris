@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a monoid
 -------------------------------------------------------------------
 
-module Solver.monoid_reduce
+module Provers.monoid_reduce
 
 import Decidable.Equality
-import Solver.dataTypes
-import Solver.semiGroup_reduce
-import Solver.tools
+import Provers.dataTypes
+import Provers.semiGroup_reduce
+import Provers.tools
 
 
 --%default total
@@ -59,7 +59,7 @@ monoidDecideEq p e1 e2 =
 
 
 ---------- Proofs ----------
-Solver.monoid_reduce.MmonoidReduce1 = proof
+Provers.monoid_reduce.MmonoidReduce1 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_SGred
@@ -69,21 +69,21 @@ Solver.monoid_reduce.MmonoidReduce1 = proof
   mrefine set_eq_undec_refl
   exact p_elim 
 
-Solver.monoid_reduce.MelimZero1 = proof
+Provers.monoid_reduce.MelimZero1 = proof
   intros
   mrefine Plus_neutral_1
 
-Solver.monoid_reduce.MelimZero2 = proof
+Provers.monoid_reduce.MelimZero2 = proof
   intros
   mrefine Plus_neutral_2
   
-Solver.monoid_reduce.MelimZero3 = proof
+Provers.monoid_reduce.MelimZero3 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2 
 
-Solver.monoid_reduce.MbuildProofMonoid = proof
+Provers.monoid_reduce.MbuildProofMonoid = proof
   intros
   refine Just
   mrefine eq_preserves_eq 

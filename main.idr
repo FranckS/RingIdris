@@ -13,23 +13,23 @@
 
 module Main
 
-import Solver.tools
-import Solver.mathsResults
-import Solver.dataTypes
-import Solver.magma_reduce
-import Solver.semiGroup_reduce
-import Solver.monoid_reduce
-import Solver.commutativeMonoid_reduce -- NEW
-import Solver.group_reduce
-import Solver.commutativeGroup_reduce
---import Solver.ring_reduce
+import Provers.tools
+import Provers.mathsResults
+import Provers.dataTypes
+import Provers.magma_reduce
+import Provers.semiGroup_reduce
+import Provers.monoid_reduce
+import Provers.commutativeMonoid_reduce -- NEW
+import Provers.group_reduce
+import Provers.commutativeGroup_reduce
+--import Provers.ring_reduce
 
-import Solver.magma_test
-import Solver.semiGroup_test
-import Solver.monoid_test
-import Solver.commutativeMonoid_test
-import Solver.group_test
-import Solver.commutativeGroup_test
+import Provers.magma_test
+import Provers.semiGroup_test
+import Provers.monoid_test
+import Provers.commutativeMonoid_test
+import Provers.group_test
+import Provers.commutativeGroup_test
 
 
 

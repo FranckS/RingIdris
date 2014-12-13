@@ -4,7 +4,7 @@
 -- Groups, commutative groups, rings, commutative rings, and corresponding reflected terms
 -------------------------------------------------------------------
 
-module Solver.dataTypes
+module Provers.dataTypes
 
 
 %default total
@@ -544,22 +544,22 @@ r_to_cr p (VarR _ v) = VarCR p v
 
 ---------- Proofs ----------
 
-Solver.dataTypes.Meq_preserves_eq_1 = proof
+Provers.dataTypes.Meq_preserves_eq_1 = proof
   intros
   mrefine set_eq_undec_trans 
   exact c1
   exact p1
   exact p3
 
-Solver.dataTypes.Meq_preserves_eq_2 = proof
+Provers.dataTypes.Meq_preserves_eq_2 = proof
   intros
   exact (set_eq_undec_sym p2)
 
-Solver.dataTypes.Meq_preserves_eq_3 = proof
+Provers.dataTypes.Meq_preserves_eq_3 = proof
   intros
   exact (set_eq_undec_trans paux paux2)
 
-Solver.dataTypes.Madd_zero_left_1 = proof
+Provers.dataTypes.Madd_zero_left_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus Zero y)
@@ -570,7 +570,7 @@ Solver.dataTypes.Madd_zero_left_1 = proof
   exact H
   exact (set_eq_undec_refl y)
   
-Solver.dataTypes.Madd_zero_right_1 = proof
+Provers.dataTypes.Madd_zero_right_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus y Zero)
@@ -581,7 +581,7 @@ Solver.dataTypes.Madd_zero_right_1 = proof
   exact (set_eq_undec_refl y)
   exact H
   
-Solver.dataTypes.MMinus_preserves_equiv_1 = proof
+Provers.dataTypes.MMinus_preserves_equiv_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c1 (Neg c2))
@@ -593,28 +593,28 @@ Solver.dataTypes.MMinus_preserves_equiv_1 = proof
   mrefine Neg_preserves_equiv 
   exact H2  
     
-Solver.dataTypes.MexprG_eq_1 = proof
+Provers.dataTypes.MexprG_eq_1 = proof
   intros
   mrefine Just
   mrefine Minus_preserves_equiv 
   exact p1
   exact p2
   
-Solver.dataTypes.MexprCG_eq_1 = proof
+Provers.dataTypes.MexprCG_eq_1 = proof
   intros
   mrefine Just
   mrefine Minus_preserves_equiv 
   exact p1
   exact p2  
 
-Solver.dataTypes.MexprR_eq_1 = proof
+Provers.dataTypes.MexprR_eq_1 = proof
   intros
   mrefine Just
   mrefine Minus_preserves_equiv 
   exact p1
   exact p2  
   
-Solver.dataTypes.MexprR_eq_2 = proof
+Provers.dataTypes.MexprR_eq_2 = proof
   intros
   mrefine Just
   mrefine Mult_preserves_equiv 

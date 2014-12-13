@@ -4,12 +4,12 @@
 -- Various tools needed for the implementation of the ring tactic for Idris
 -------------------------------------------------------------------
 
-module Solver.tools
+module Provers.tools
 
 import Data.ZZ
 
-import Solver.globalDef
-import Solver.dataTypes
+import Provers.globalDef
+import Provers.dataTypes
 
 
 %default total
@@ -656,7 +656,7 @@ vect_eq a_eq _ _ _ _ = Nothing
 ---------- Proofs ----------  
 -- Part A) : Pairs, dependent pairs, and functions
 
-Solver.tools.Mf_equal = proof
+Provers.tools.Mf_equal = proof
   intros
   rewrite p
   exact Refl
@@ -667,7 +667,7 @@ Solver.tools.Mf_equal = proof
 -- B.1/ This subpart is to obtain the lemma "group_doubleNeg" : - (-a) = a
 
 
-Solver.tools.MGroup_unicity_1 = proof
+Provers.tools.MGroup_unicity_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus b (Plus a c))
@@ -676,11 +676,11 @@ Solver.tools.MGroup_unicity_1 = proof
   exact (set_eq_undec_sym (add_zero_left _ (Plus b a) c (right p1)))
   exact (set_eq_undec_sym a1)
 
-Solver.tools.MGroup_unicity_2 = proof
+Provers.tools.MGroup_unicity_2 = proof
   intros
   mrefine Plus_assoc  
   
-Solver.tools.MhasSymmetric_sym = proof
+Provers.tools.MhasSymmetric_sym = proof
   intro
   intro
   intro
@@ -688,37 +688,37 @@ Solver.tools.MhasSymmetric_sym = proof
   intro H
   exact (right H, left H)  
   
-Solver.tools.Mplus_inverse_2 = proof
+Provers.tools.Mplus_inverse_2 = proof
   intros
   mrefine hasSymmetric_sym
   mrefine Plus_inverse  
 
-Solver.tools.Mgroup_doubleNeg1 = proof
+Provers.tools.Mgroup_doubleNeg1 = proof
   intros
   exact (set_eq_undec_sym (group_unicity_symmetric p (Neg a) a (Neg (Neg a)) a1 b))
   
-Solver.tools.Mgroup_doubleNeg_2 = proof
+Provers.tools.Mgroup_doubleNeg_2 = proof
   intros
   exact (right(Plus_inverse a), left(Plus_inverse a))
   
-Solver.tools.Mgroup_doubleNeg_3 = proof
+Provers.tools.Mgroup_doubleNeg_3 = proof
   intros
   exact (left (Plus_inverse (Neg a)), right(Plus_inverse (Neg a)))  
 
 -- B.2/ This part is to obtain the lemma "push_negation" : -(a+b) = (-b) + (-a)
   
-Solver.tools.Madding_preserves_equality_1 = proof
+Provers.tools.Madding_preserves_equality_1 = proof
   intros
   exact (Plus_preserves_equiv H (set_eq_undec_refl z))
 
 {-  
-Solver.tools.Madding_preserves_equality_left_1 = proof
+Provers.tools.Madding_preserves_equality_left_1 = proof
   intros
   rewrite H
   mrefine Refl  
 -}
   
-Solver.tools.Mmove_other_side_1 = proof
+Provers.tools.Mmove_other_side_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus x y) (Neg y))
@@ -727,7 +727,7 @@ Solver.tools.Mmove_other_side_1 = proof
   exact (set_eq_undec_refl (Plus z (Neg y)))
   exact aux
   
-Solver.tools.Mmove_other_side_2 = proof
+Provers.tools.Mmove_other_side_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus x Zero)
@@ -738,7 +738,7 @@ Solver.tools.Mmove_other_side_2 = proof
   exact (set_eq_undec_refl x)
   exact (left (Plus_inverse y))
 
-Solver.tools.Mmove_other_side_3 = proof
+Provers.tools.Mmove_other_side_3 = proof
   intros
   mrefine eq_preserves_eq 
   exact x
@@ -747,7 +747,7 @@ Solver.tools.Mmove_other_side_3 = proof
   exact (set_eq_undec_sym aux3)
   exact (set_eq_undec_sym aux5)
   
-Solver.tools.Mpush_negation_1 = proof
+Provers.tools.Mpush_negation_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg (Plus x y)) (Plus x y))
@@ -756,7 +756,7 @@ Solver.tools.Mpush_negation_1 = proof
   exact (set_eq_undec_refl Zero)
   exact aux  
   
-Solver.tools.Mpush_negation_2 = proof
+Provers.tools.Mpush_negation_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus Zero (Neg y))
@@ -765,22 +765,22 @@ Solver.tools.Mpush_negation_2 = proof
   exact (set_eq_undec_refl (Neg y))
   exact aux5
   
-Solver.tools.Mpush_negation_3 = proof
+Provers.tools.Mpush_negation_3 = proof
   intros
   exact aux7  
      
-Solver.tools.MplusEqualLeft_SemiGroup_1 = proof
+Provers.tools.MplusEqualLeft_SemiGroup_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact prEqual 
   exact (set_eq_undec_refl y) 
 
-Solver.tools.MsemiGroupAssoc_4terms_Aux2_1 = proof
+Provers.tools.MsemiGroupAssoc_4terms_Aux2_1 = proof
   intros
   mrefine plusEqualLeft_SemiGroup 
   exact (set_eq_undec_sym (Plus_assoc c1 c2 c3))
 
-Solver.tools.MsemiGroupAssoc_4terms_1 = proof
+Provers.tools.MsemiGroupAssoc_4terms_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Plus c1 c2) c3) c4)
@@ -789,18 +789,18 @@ Solver.tools.MsemiGroupAssoc_4terms_1 = proof
   exact (set_eq_undec_sym (semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4))
   exact (set_eq_undec_refl (Plus (Plus (Plus c1 c2) c3) c4))
 
-Solver.tools.MplusEqualLeft_Group_1 = proof
+Provers.tools.MplusEqualLeft_Group_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact prEqual 
   exact (set_eq_undec_refl y)
 
-Solver.tools.MgroupAssoc_4terms_Aux2_1 = proof
+Provers.tools.MgroupAssoc_4terms_Aux2_1 = proof
   intros
   mrefine plusEqualLeft_Group 
   exact (set_eq_undec_sym(Plus_assoc c1 c2 c3))
 
-Solver.tools.MgroupAssoc_4terms_1 = proof
+Provers.tools.MgroupAssoc_4terms_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Plus c1 c2) c3) c4)
@@ -810,7 +810,7 @@ Solver.tools.MgroupAssoc_4terms_1 = proof
   exact (set_eq_undec_refl (Plus (Plus (Plus c1 c2) c3) c4))
   
 {-
-Solver.tools.aux1 = proof {
+Provers.tools.aux1 = proof {
   compute;
   trivial;
 }
@@ -820,244 +820,244 @@ Solver.tools.aux1 = proof {
 
 -- D.1) Arith for Nat
 
-Solver.tools.M_S_both_side_1 = proof
+Provers.tools.M_S_both_side_1 = proof
   intros
   rewrite P
   mrefine Refl
   
-Solver.tools.M_GTE_1_two_cases_1 = proof
+Provers.tools.M_GTE_1_two_cases_1 = proof
   intro pn, p
   mrefine LTE_0_one_case 
   mrefine p
   
-Solver.tools.M_GTE_1_two_cases_2 = proof
+Provers.tools.M_GTE_1_two_cases_2 = proof
   intros
   mrefine Right
   mrefine S_both_side
   mrefine pn_is_zero 
 
-Solver.tools.Mplus_succ_right_1 = proof
+Provers.tools.Mplus_succ_right_1 = proof
   intros
   rewrite auxP
   exact Refl
 
-Solver.tools.MGTE_plus_1 = proof
+Provers.tools.MGTE_plus_1 = proof
   intros
   rewrite (sym a_plus_zero_is_a)
   mrefine LTE_same
 
-Solver.tools.Mplus_one_equals_succ_1 = proof
+Provers.tools.Mplus_one_equals_succ_1 = proof
   intros
   rewrite p_ihn 
   exact Refl
   
-Solver.tools.MmoveSucc_2 = proof
+Provers.tools.MmoveSucc_2 = proof
   intros
   rewrite (plus_succ_right pb 0)
   exact Refl
   
-Solver.tools.MmoveSucc_3 = proof
+Provers.tools.MmoveSucc_3 = proof
   intros
   rewrite (plus_succ_right pb (S pc))
   exact Refl
   
-Solver.tools.MmoveSucc_4 = proof
+Provers.tools.MmoveSucc_4 = proof
   intros
   rewrite (sym (a_plus_zero (plus pa 1)))
   rewrite (sym (a_plus_zero pa))
   exact Refl
 
-Solver.tools.MmoveSucc_5 = proof
+Provers.tools.MmoveSucc_5 = proof
   intros
   rewrite (plus_succ_right pa 0)
   rewrite (plus_succ_right (plus pa 0) (S pc))
   compute
   exact Refl  
 
-Solver.tools.MmoveSucc_6 = proof
+Provers.tools.MmoveSucc_6 = proof
   intros
   rewrite (plus_succ_right pa (S pb))
   rewrite (plus_succ_right (plus pa (S pb)) 0)
   compute
   exact Refl
   
-Solver.tools.MmoveSucc_7 = proof
+Provers.tools.MmoveSucc_7 = proof
   intros
   rewrite (plus_succ_right pa (S pb))
   rewrite (plus_succ_right (plus pa (S pb)) (S pc))
   compute
   exact Refl
 
-Solver.tools.MminusFirst_1 = proof
+Provers.tools.MminusFirst_1 = proof
   intros
   rewrite (sym(plusCommutativeZ (Pos Z) (minusNatZ pa pc))) 
   exact (plusZeroRightNeutralZ (minusNatZ pa pc))
 
-Solver.tools.MminusFirst_2 = proof
+Provers.tools.MminusFirst_2 = proof
   intros
   rewrite (a_plus_zero px)
   exact Refl
   
-Solver.tools.Mplus_minus_succ_1 = proof
+Provers.tools.Mplus_minus_succ_1 = proof
   intros
   rewrite (sym(plus_succ_right pa Z))
   exact Refl
 
-Solver.tools.Mplus_minus_succ_2 = proof
+Provers.tools.Mplus_minus_succ_2 = proof
   intros
   rewrite (sym(plus_succ_right pa (S pb)))
   exact Refl  
 
-Solver.tools.MminusOne_1 = proof
+Provers.tools.MminusOne_1 = proof
   intros
   rewrite (a_plus_zero pb)
   exact Refl
 
-Solver.tools.MminusSucc_1 = proof
+Provers.tools.MminusSucc_1 = proof
   intros
   rewrite (sym(plus_succ_right pb Z))
   exact Refl
   
-Solver.tools.MminusSucc_2 = proof
+Provers.tools.MminusSucc_2 = proof
   intros
   rewrite (sym(plus_succ_right pb (S pc)))
   exact Refl
 
-Solver.tools.MminusNegS_1 = proof
+Provers.tools.MminusNegS_1 = proof
   intros
   rewrite (plus_succ_right pb Z)
   exact Refl
   
-Solver.tools.MminusNegS_2 = proof
+Provers.tools.MminusNegS_2 = proof
   intros
   rewrite (plus_succ_right pb (S pc))
   exact Refl
 
  
 
-Solver.tools.Mswitch_negS_1 = proof
+Provers.tools.Mswitch_negS_1 = proof
   intros
   rewrite (a_plus_zero pc)
   exact Refl
 
-Solver.tools.Mswitch_negS_2 = proof
+Provers.tools.Mswitch_negS_2 = proof
   intros
   rewrite (a_plus_zero pb)
   exact Refl
 
-Solver.tools.Mswitch_negS_3 = proof
+Provers.tools.Mswitch_negS_3 = proof
   intros
   rewrite (sym(plusCommutative pb (S pc)))
   rewrite (sym( plus_succ_right pc pb))
   exact Refl  
 
-Solver.tools.Mswitch_negS_4 = proof
+Provers.tools.Mswitch_negS_4 = proof
   intros
   rewrite (plus_one_equals_succ pc)
   rewrite (sym(minusSucc pa pc Z))
   exact Refl 
 
-Solver.tools.Mswitch_negS_5 = proof
+Provers.tools.Mswitch_negS_5 = proof
   intros
   rewrite (minusSucc pa pb Z)
   rewrite (plus_one_equals_succ pb)
   exact Refl  
   
-Solver.tools.Mswitch_double_succ_1 = proof
+Provers.tools.Mswitch_double_succ_1 = proof
   intros
   rewrite (plus_one_equals_succ pb)
   rewrite (plus_succ_right pb (S Z))
   exact Refl
   
-Solver.tools.Mswitch_double_succ_2 = proof
+Provers.tools.Mswitch_double_succ_2 = proof
   intros
   rewrite (plus_one_equals_succ pa)
   rewrite (plus_succ_right pa (S Z))
   exact Refl
 
-Solver.tools.Mswitch_double_succ_3 = proof
+Provers.tools.Mswitch_double_succ_3 = proof
   intros
   rewrite (plus_succ_right pb (S (S pa)))
   exact (f_equal (\x => S x) _ _ ih)  
   
 -- D.2) Arith for Z
 
-Solver.tools.Ma_plusZ_zero_1 = proof
+Provers.tools.Ma_plusZ_zero_1 = proof
   intros
   rewrite (a_plus_zero x)
   exact Refl
   
-Solver.tools.MplusAssociativeZ_1_2 = proof
+Provers.tools.MplusAssociativeZ_1_2 = proof
   intros
   rewrite (a_plus_zero (plus pu 0))
   exact Refl
   
-Solver.tools.MplusAssociativeZ_1_3 = proof
+Provers.tools.MplusAssociativeZ_1_3 = proof
   intros
   rewrite (a_plus_zero pu)
   exact Refl
   
-Solver.tools.MplusAssociativeZ_1_4 = proof
+Provers.tools.MplusAssociativeZ_1_4 = proof
   intros
   rewrite (sym (a_plus_zero (pv)))
   rewrite (sym (a_plus_zero (plus pu (S pv))))
   exact Refl
   
-Solver.tools.MplusAssociativeZ_1_5 = proof
+Provers.tools.MplusAssociativeZ_1_5 = proof
   intros
   rewrite (sym(plus_succ_right pv (S pw)))
   rewrite (sym (plusAssociative pu pv (S (S pw))))
   rewrite (moveSucc pu pv (S pw))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_2_1 = proof
+Provers.tools.MplusAssociativeZ_2_1 = proof
   intros
   rewrite (zero_plusZ_a (minusNatZ pv (S pw)))
   exact Refl
   
-Solver.tools.MplusAssociativeZ_2_2 = proof
+Provers.tools.MplusAssociativeZ_2_2 = proof
   intros
   rewrite (a_plus_zero pu)
   exact Refl
   
 
-Solver.tools.MplusAssociativeZ_2_3 = proof
+Provers.tools.MplusAssociativeZ_2_3 = proof
   intros
   rewrite (a_plus_zero pu)
   exact Refl
 
-Solver.tools.MplusAssociativeZ_2_4 = proof
+Provers.tools.MplusAssociativeZ_2_4 = proof
   intros
   rewrite (plus_succ_right pu pv)
   exact Refl
   
-Solver.tools.MplusAssociativeZ_2_5 = proof
+Provers.tools.MplusAssociativeZ_2_5 = proof
   intros
   rewrite (sym(minusFirst (S pu) pv (S pw)))
   rewrite (sym(plus_minus_succ pu pv pw))
   exact Refl  
 
-Solver.tools.MplusAssociativeZ_3_1 = proof
+Provers.tools.MplusAssociativeZ_3_1 = proof
   intros
   rewrite (zero_plusZ_a (minusNatZ pw (S pv)))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_3_2 = proof
+Provers.tools.MplusAssociativeZ_3_2 = proof
   intros
   rewrite (a_plus_zero pu)
   exact Refl
 
-Solver.tools.MplusAssociativeZ_3_3 = proof
+Provers.tools.MplusAssociativeZ_3_3 = proof
   intros
   rewrite (plus_succ_right pu pw)
   exact Refl
 
-Solver.tools.MplusAssociativeZ_3_4 = proof
+Provers.tools.MplusAssociativeZ_3_4 = proof
   intros
   rewrite (a_plusZ_zero (minusNatZ pu (S pv)))
   exact Refl
   
-Solver.tools.MplusAssociativeZ_3_5 = proof
+Provers.tools.MplusAssociativeZ_3_5 = proof
   intros
   rewrite (sym(minusFirst (S pu) pw (S pv)))
   rewrite (plus_minus_succ  pu pw pv)
@@ -1067,59 +1067,59 @@ Solver.tools.MplusAssociativeZ_3_5 = proof
   rewrite (plusCommutative pw pu)
   exact Refl
   
-Solver.tools.MplusAssociativeZ_4_4 = proof
+Provers.tools.MplusAssociativeZ_4_4 = proof
   intros
   rewrite (sym(a_plus_zero pv))
   rewrite (sym(minusOne pu (S pv)))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_4_5 = proof
+Provers.tools.MplusAssociativeZ_4_5 = proof
   intros
   rewrite (minusSucc pu (S pv) (S pw))
   rewrite (sym(plus_succ_right pv (S pw)))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_5_4 = proof
+Provers.tools.MplusAssociativeZ_5_4 = proof
   intros
   rewrite (sym(a_plus_zero pv))
   rewrite (a_plusZ_zero (minusNatZ pv (S pu)))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_5_5 = proof
+Provers.tools.MplusAssociativeZ_5_5 = proof
   intros
   rewrite (sym(plusPos pv (S pw) (S pu)))
   exact Refl
   
-Solver.tools.MplusAssociativeZ_6_1 = proof
+Provers.tools.MplusAssociativeZ_6_1 = proof
   intros
   rewrite (plusCommutativeZ (NegS Z) (minusNatZ pv (S pw)))
   rewrite (sym(plusCommutativeZ (NegS Z) (minusNatZ pv (S pw))))
   rewrite (minusOne pv (S pw))
   exact Refl
   
-Solver.tools.MplusAssociativeZ_6_4 = proof
+Provers.tools.MplusAssociativeZ_6_4 = proof
   intros
   rewrite (sym(minusOne pv (S pu)))
   exact Refl    
 
-Solver.tools.MplusAssociativeZ_6_5 = proof
+Provers.tools.MplusAssociativeZ_6_5 = proof
   intros
   rewrite (sym(plusCommutativeZ (NegS (S pu)) (minusNatZ pv (S pw))))
   rewrite (sym( switch_negS pv (S pw) (S pu)))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_7_1 = proof
+Provers.tools.MplusAssociativeZ_7_1 = proof
   intros
   rewrite (sym(plusCommutativeZ (NegS Z) (minusNatZ pw (S pv))))
   rewrite (sym(switch_negS pw (S pv) Z))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_7_3 = proof
+Provers.tools.MplusAssociativeZ_7_3 = proof
   intros
   rewrite (a_plus_zero pu)
   exact Refl
   
-Solver.tools.MplusAssociativeZ_7_5 = proof
+Provers.tools.MplusAssociativeZ_7_5 = proof
   intros
   rewrite (sym(plusCommutativeZ (NegS (S pu)) (minusNatZ pw (S pv))))
   rewrite (minusSucc pw (S pv) (S pu))
@@ -1127,26 +1127,26 @@ Solver.tools.MplusAssociativeZ_7_5 = proof
   rewrite (switch_double_succ pv pu)
   exact Refl  
 
-Solver.tools.MplusAssociativeZ_8_2 = proof
+Provers.tools.MplusAssociativeZ_8_2 = proof
   intros
   rewrite (sym (a_plus_zero pu))
   rewrite (sym(plus_succ_right pu 0))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_8_3 = proof
+Provers.tools.MplusAssociativeZ_8_3 = proof
   intros
   rewrite (sym(a_plus_zero pu))
   rewrite (sym(plus_succ_right pu (S pw)))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_8_4 = proof
+Provers.tools.MplusAssociativeZ_8_4 = proof
   intros
   rewrite (sym(a_plus_zero pv))
   rewrite (plus_succ_right pu (S pv))
   rewrite (sym (a_plus_zero (plus pu (S pv))))
   exact Refl
 
-Solver.tools.MplusAssociativeZ_8_5 = proof
+Provers.tools.MplusAssociativeZ_8_5 = proof
   intros
   rewrite (plus_succ_right pu (S (S (plus pv (S pw)))))
   rewrite (sym(plus_succ_right pu (S (S (plus pv (S pw))))))
@@ -1161,24 +1161,24 @@ Solver.tools.MplusAssociativeZ_8_5 = proof
 
 -- Part E : Fin tools
 
-Solver.tools.Mpre_convertFin_1 = proof
+Provers.tools.Mpre_convertFin_1 = proof
   intros
   mrefine void -- is the eliminator of false, previously called FalseElim (which was a better name for the logical side :-( )
   mrefine p1
   mrefine k_is_zero
 
-Solver.tools.Mpre_convertFin_2 = proof
+Provers.tools.Mpre_convertFin_2 = proof
   intros
   mrefine void
   mrefine p2
   mrefine k_is_one
 
-Solver.tools.MconvertFin_1 = proof
+Provers.tools.MconvertFin_1 = proof
   intros
   mrefine GTE_S
   mrefine GTE_plus
 
-Solver.tools.MlastElement'_1 = proof
+Provers.tools.MlastElement'_1 = proof
   intros
   rewrite pn_plus_1_equals_Spn 
   rewrite (sym pn_plus_1_equals_Spn)

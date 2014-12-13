@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a ring
 -------------------------------------------------------------------
 
-module Solver.ring_reduce
+module Provers.ring_reduce
 
 import Decidable.Equality
-import Solver.dataTypes
-import Solver.commutativeGroup_reduce
-import Solver.tools
+import Provers.dataTypes
+import Provers.commutativeGroup_reduce
+import Provers.tools
 import Prelude.Vect
 
 

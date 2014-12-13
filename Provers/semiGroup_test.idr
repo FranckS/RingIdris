@@ -4,13 +4,13 @@
 -- test the normalization for semiGroup
 -------------------------------------------------------------------
 
-module Solver.semiGroup_test
+module Provers.semiGroup_test
 
 import Prelude.Vect
-import Solver.globalDef
-import Solver.dataTypes
-import Solver.semiGroup_reduce
-import Solver.magma_test
+import Provers.globalDef
+import Provers.dataTypes
+import Provers.semiGroup_reduce
+import Provers.magma_test
 
 
 instance SemiGroup Nat where

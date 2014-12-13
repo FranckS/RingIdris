@@ -4,12 +4,12 @@
 -- Normalize an expression reflecting an element in a group
 -------------------------------------------------------------------
 
-module Solver.group_reduce
+module Provers.group_reduce
 
 import Decidable.Equality
-import Solver.dataTypes
-import Solver.monoid_reduce
-import Solver.tools
+import Provers.dataTypes
+import Provers.monoid_reduce
+import Provers.tools
 import Prelude.Vect
 
 --%default total
@@ -326,13 +326,13 @@ mutual
 
   
 ---------- Proofs ----------
-Solver.group_reduce.MelimMinus1 = proof
+Provers.group_reduce.MelimMinus1 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
 
-Solver.group_reduce.MelimMinus2 = proof
+Provers.group_reduce.MelimMinus2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c1 (Neg c2))
@@ -346,12 +346,12 @@ Solver.group_reduce.MelimMinus2 = proof
   mrefine set_eq_undec_sym -- Same remark here
   exact p_ih2
   
-Solver.group_reduce.MelimMinus3 = proof
+Provers.group_reduce.MelimMinus3 = proof
   intros
   mrefine Neg_preserves_equiv 
   exact p_ih1 
   
-Solver.group_reduce.MpropagateNeg_1 = proof
+Provers.group_reduce.MpropagateNeg_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg c2) (Neg c1))
@@ -364,18 +364,18 @@ Solver.group_reduce.MpropagateNeg_1 = proof
   exact p_ih2
   exact p_ih1
 
-Solver.group_reduce.MpropagateNeg_2 = proof
+Provers.group_reduce.MpropagateNeg_2 = proof
   intros
   mrefine Neg_preserves_equiv 
   exact p_ih1  
 
-Solver.group_reduce.MpropagateNeg_3 = proof
+Provers.group_reduce.MpropagateNeg_3 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
   
-Solver.group_reduce.MpropagateNeg_fix_1 = proof
+Provers.group_reduce.MpropagateNeg_fix_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_1
@@ -385,7 +385,7 @@ Solver.group_reduce.MpropagateNeg_fix_1 = proof
   mrefine set_eq_undec_refl 
   exact p_ih1 
 
-Solver.group_reduce.MelimDoubleNeg_1 = proof
+Provers.group_reduce.MelimDoubleNeg_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact c1
@@ -395,34 +395,34 @@ Solver.group_reduce.MelimDoubleNeg_1 = proof
   mrefine set_eq_undec_refl
   exact p_ih1
    
-Solver.group_reduce.MelimDoubleNeg_2 = proof
+Provers.group_reduce.MelimDoubleNeg_2 = proof
   intros
   mrefine Neg_preserves_equiv 
   exact p_ih1   
    
-Solver.group_reduce.MelimDoubleNeg_3 = proof
+Provers.group_reduce.MelimDoubleNeg_3 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
   
-Solver.group_reduce.Mfold_negative_constant_1 = proof
+Provers.group_reduce.Mfold_negative_constant_1 = proof
   intros
   mrefine set_eq_undec_sym 
   mrefine push_negation
   
-Solver.group_reduce.Mfold_negative_constant_2 = proof
+Provers.group_reduce.Mfold_negative_constant_2 = proof
   intros
   mrefine Neg_preserves_equiv 
   exact p_ih      
 
-Solver.group_reduce.Mfold_negative_constant_3 = proof
+Provers.group_reduce.Mfold_negative_constant_3 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
 
-Solver.group_reduce.Mfold_negative_constant_fix_1 = proof
+Provers.group_reduce.Mfold_negative_constant_fix_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_1
@@ -432,19 +432,19 @@ Solver.group_reduce.Mfold_negative_constant_fix_1 = proof
   mrefine set_eq_undec_refl 
   exact p_ih1
 
-Solver.group_reduce.Mencode_1 = proof
+Provers.group_reduce.Mencode_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
 
-Solver.group_reduce.Mdecode_1 = proof
+Provers.group_reduce.Mdecode_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
 
-Solver.group_reduce.Mcode_reduceM_andDecode_1 = proof
+Provers.group_reduce.Mcode_reduceM_andDecode_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact c2
@@ -459,7 +459,7 @@ Solver.group_reduce.Mcode_reduceM_andDecode_1 = proof
   mrefine set_eq_undec_refl 
   exact pDecode   
 
-Solver.group_reduce.Melim_plusInverse_1 = proof
+Provers.group_reduce.Melim_plusInverse_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine Neg_preserves_equiv 
@@ -467,7 +467,7 @@ Solver.group_reduce.Melim_plusInverse_1 = proof
   exact p_e1'
   exact p_e2'
 
-Solver.group_reduce.Melim_plusInverse_2 = proof
+Provers.group_reduce.Melim_plusInverse_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg c1) c1)
@@ -482,14 +482,14 @@ Solver.group_reduce.Melim_plusInverse_2 = proof
   exact (Plus c1 (Neg c1) ~= Zero)
   mrefine Plus_inverse 
 
-Solver.group_reduce.Melim_plusInverse_3 = proof
+Provers.group_reduce.Melim_plusInverse_3 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine Neg_preserves_equiv 
   exact p_e2'
   exact p_e1' 
 
-Solver.group_reduce.Melim_plusInverse_4 = proof
+Provers.group_reduce.Melim_plusInverse_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c1 (Neg c1))
@@ -505,7 +505,7 @@ Solver.group_reduce.Melim_plusInverse_4 = proof
   mrefine Plus_inverse 
   mrefine e1_equiv_e2 
 
-Solver.group_reduce.Melim_plusInverse_5 = proof
+Provers.group_reduce.Melim_plusInverse_5 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_sym 
@@ -514,13 +514,13 @@ Solver.group_reduce.Melim_plusInverse_5 = proof
   mrefine p_e2'
   exact p_e1'
 
-Solver.group_reduce.Melim_plusInverse_6 = proof
+Provers.group_reduce.Melim_plusInverse_6 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_e1'
   exact p_e2'
   
-Solver.group_reduce.MplusInverse_assoc_1 = proof
+Provers.group_reduce.MplusInverse_assoc_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c1 (Plus (Neg c1) c3))
@@ -558,7 +558,7 @@ Solver.group_reduce.MplusInverse_assoc_1 = proof
   exact (Plus (Neg c1) c1 ~= Zero)
   mrefine Plus_inverse   
 
-Solver.group_reduce.MplusInverse_assoc_2 = proof
+Provers.group_reduce.MplusInverse_assoc_2 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_e1'
@@ -567,7 +567,7 @@ Solver.group_reduce.MplusInverse_assoc_2 = proof
   exact p_e3'
   exact p_e2'
 
-Solver.group_reduce.MplusInverse_assoc_3 = proof
+Provers.group_reduce.MplusInverse_assoc_3 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus (Neg c2) c2) c3)
@@ -605,7 +605,7 @@ Solver.group_reduce.MplusInverse_assoc_3 = proof
   mrefine set_eq_undec_sym 
   exact e1_equiv_e2 
 
-Solver.group_reduce.MplusInverse_assoc_4 = proof
+Provers.group_reduce.MplusInverse_assoc_4 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine Neg_preserves_equiv 
@@ -614,7 +614,7 @@ Solver.group_reduce.MplusInverse_assoc_4 = proof
   exact p_e2'
   exact p_e3'
 
-Solver.group_reduce.MplusInverse_assoc_5 = proof
+Provers.group_reduce.MplusInverse_assoc_5 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c1 (Plus c2 (Neg c2)))
@@ -649,7 +649,7 @@ Solver.group_reduce.MplusInverse_assoc_5 = proof
   exact (Plus (Neg c2) c2 ~= Zero)
   mrefine Plus_inverse 
   
-Solver.group_reduce.MplusInverse_assoc_6 = proof
+Provers.group_reduce.MplusInverse_assoc_6 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine Plus_preserves_equiv 
@@ -658,7 +658,7 @@ Solver.group_reduce.MplusInverse_assoc_6 = proof
   exact p_e2'
   exact p_e3'
 	
-Solver.group_reduce.MplusInverse_assoc_7 = proof
+Provers.group_reduce.MplusInverse_assoc_7 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus c1 (Plus (Neg c2) c3))
@@ -692,7 +692,7 @@ Solver.group_reduce.MplusInverse_assoc_7 = proof
   exact (Plus c2 (Neg c2) ~= Zero)
   mrefine Plus_inverse 
   
-Solver.group_reduce.MplusInverse_assoc_8 = proof
+Provers.group_reduce.MplusInverse_assoc_8 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine Plus_preserves_equiv 
@@ -701,13 +701,13 @@ Solver.group_reduce.MplusInverse_assoc_8 = proof
   mrefine Neg_preserves_equiv 
   exact p_e2'
   
-Solver.group_reduce.MplusInverse_assoc_9 = proof
+Provers.group_reduce.MplusInverse_assoc_9 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
   
-Solver.group_reduce.MplusInverse_assoc'_1 = proof
+Provers.group_reduce.MplusInverse_assoc'_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus c1 c2) (Plus (Neg c2) c4))
@@ -749,7 +749,7 @@ Solver.group_reduce.MplusInverse_assoc'_1 = proof
   exact (Plus (Neg c2) c2 ~= Zero)
   mrefine Plus_inverse 
 
-Solver.group_reduce.MplusInverse_assoc'_2 = proof
+Provers.group_reduce.MplusInverse_assoc'_2 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine Plus_preserves_equiv 
@@ -760,7 +760,7 @@ Solver.group_reduce.MplusInverse_assoc'_2 = proof
   exact p_e4' 
   exact p_e3' 
 
-Solver.group_reduce.MplusInverse_assoc'_3 = proof
+Provers.group_reduce.MplusInverse_assoc'_3 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Plus c1 (Neg c2)) (Plus c2 c4))
@@ -801,7 +801,7 @@ Solver.group_reduce.MplusInverse_assoc'_3 = proof
   exact (Plus c2 (Neg c2) ~= Zero)
   mrefine Plus_inverse 
   
-Solver.group_reduce.MplusInverse_assoc'_4 = proof
+Provers.group_reduce.MplusInverse_assoc'_4 = proof
   intros
   mrefine Plus_preserves_equiv 
   mrefine Plus_preserves_equiv 
@@ -812,7 +812,7 @@ Solver.group_reduce.MplusInverse_assoc'_4 = proof
   exact p_e4'
   exact p_e2'
         
-Solver.group_reduce.Mpre_groupReduce_1 = proof
+Provers.group_reduce.Mpre_groupReduce_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact c1
@@ -858,7 +858,7 @@ Solver.group_reduce.Mpre_groupReduce_1 = proof
   exact p_1
   exact p_2
 
-Solver.group_reduce.Mgroup_Reduce_1 = proof
+Provers.group_reduce.Mgroup_Reduce_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact c'
@@ -868,7 +868,7 @@ Solver.group_reduce.Mgroup_Reduce_1 = proof
   mrefine set_eq_undec_refl
   exact p'' 
     
-Solver.group_reduce.MbuildProofGroup = proof
+Provers.group_reduce.MbuildProofGroup = proof
   intros
   refine Just
   mrefine eq_preserves_eq 
