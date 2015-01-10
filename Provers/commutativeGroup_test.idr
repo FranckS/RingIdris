@@ -1,6 +1,8 @@
 module Provers.commutativeGroup_test
 
-import Prelude.Vect
+import Data.ZZ
+import Data.Vect
+import Data.Fin
 import Provers.globalDef
 import Provers.dataTypes
 import Provers.commutativeGroup_reduce
@@ -12,7 +14,7 @@ instance dataTypes.CommutativeGroup ZZ where
     Plus_comm x y = plusCommutativeZ x y
     
     
-
+{-
 -- x + (-x)
 expA : (x:ZZ) -> ExprCG (%instance) [x] (x + (- x))
 expA x = PlusCG (VarCG _ (RealVariable _ _ _ FZ)) (NegCG (VarCG _ (RealVariable _ _ _ FZ)))
@@ -78,6 +80,8 @@ proof_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> (((u + (x + (-y)))) + 
 proof_expD_expE x y z u = let (Just ok) = compare_expD_expE x y z u in ok
 -- RESULT : Ok, works for all x !
 
+-}
+
 {-
 -- Debugging
 
@@ -92,3 +96,6 @@ expE' x y z u = left (rightDep (commutativeGroupReduce _ (expE x y z u)))
 
 
 
+
+ 
+ 

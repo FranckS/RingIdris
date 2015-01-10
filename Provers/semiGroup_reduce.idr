@@ -108,7 +108,7 @@ semiGroupReduce p e =
 total
 buildProofSemiGroup : (p:SemiGroup c) -> {neg:c->c} -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprSG p neg g c1) -> (ExprSG p neg g c2) -> (x ~= c1) -> (y ~= c2) -> (Maybe (x~=y))
 buildProofSemiGroup p e1 e2 lp rp with (exprSG_eq p _ _ e1 e2)
-    buildProofSemiGroup p e1 e1 lp rp | Just e1_equiv_e2 = ?MbuildProofSemiGroup
+    buildProofSemiGroup p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofSemiGroup
     buildProofSemiGroup p e1 e2 lp rp | Nothing = Nothing
 
 
@@ -125,7 +125,7 @@ semiGroupDecideEq p e1 e2 =
 -- NOTE : Idris is doing a strange job when proving the goal G by using something which requires you to prove the goal G' (ie, you've used G' -> G). 
 -- Instead of immediately having to prove G' (ie, G' becomes at the top of the stack of things remaining to be proven), you will have to prove G' after all the other waiting subgoals  
 Provers.semiGroup_reduce.Massoc1 = proof
-  intro n, c, p, neg, g, c1, e1, const1, const2, c2, e2, r_ih1, e_ih1, p_ih1, r_ih2, e_ih2, p_ih2, r_3, e_3, p_3, e_3'
+  intros
   mrefine eq_preserves_eq
   exact (Plus (Plus c1 const1) (Plus const2 c2))
   exact (Plus (Plus c1 (Plus const1 const2)) c2)

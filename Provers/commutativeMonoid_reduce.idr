@@ -7,10 +7,11 @@
 module Provers.commutativeMonoid_reduce
 
 import Decidable.Equality
+import Data.Vect
+import Data.Fin
 import Provers.dataTypes
 import Provers.monoid_reduce
 import Provers.tools
-import Prelude.Vect
 
 
 

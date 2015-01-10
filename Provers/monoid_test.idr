@@ -6,24 +6,32 @@
 
 module Provers.monoid_test
 
-import Prelude.Vect
+import Data.Vect
+import Data.Fin
 import Provers.globalDef
 import Provers.dataTypes
+import Provers.tools
 import Provers.monoid_reduce
 import Provers.semiGroup_test
 
 
 
 instance dataTypes.Monoid Nat where
-    Zero = O
+    Zero = Z
     
     Plus_neutral_1 c = ?M_Nat_Monoid_1
     
+    
     Plus_neutral_2 Z = ?M_Nat_Monoid_2
     Plus_neutral_2 (S pc) = let px = Plus_neutral_2 pc in ?M_Nat_Monoid_3
+    
+
+    
+    
 
 a : (x:Nat) -> ExprMo (%instance) (\x => x) [x] (2 + (0 + x)) 
 a x = PlusMo _ (ConstMo _ _ _ 2) (PlusMo _ (ConstMo _ _ _ 0) (VarMo _ _ (RealVariable _ _ _ FZ)))
+
 
 b : (x:Nat) -> ExprMo (%instance) (\x => x) [x] (2 + x)
 b x = PlusMo _ (ConstMo _ _ _ 2) (VarMo _ _ (RealVariable _ _ _ FZ))
@@ -39,6 +47,7 @@ compare_a_b x = monoidDecideEq (%instance) (a x) (b x)
 proof_a_b : (x:Nat) -> (2 + (0 + x) = 2 + x)
 proof_a_b x = let (Just ok) = compare_a_b x in ok
 -- WORKS FOR ALL X !!
+
 
 
 ---------- Proofs ----------

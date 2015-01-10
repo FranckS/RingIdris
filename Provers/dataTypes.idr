@@ -6,6 +6,8 @@
 
 module Provers.dataTypes
 
+import Data.Fin
+import Data.Vect
 
 %default total
 
@@ -267,7 +269,7 @@ exprMa_eq p neg g (VarMa _ _ {c1=c1} v1) (VarMa _ _ v2) with (Variable_eq neg g 
     exprMa_eq p neg g (VarMa _ _ {c1=c1} v1) (VarMa _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
     exprMa_eq p neg g (VarMa _ _ v1) (VarMa _ _ v2) | _ = Nothing
 exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) with ((magma_eq_as_elem_of_set p) const1 const2)
-    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const1) | (Just const_eq) = Just const_eq
+    exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) | (Just const_eq) = Just const_eq
     exprMa_eq p neg g (ConstMa _ _ _ const1) (ConstMa _ _ _ const2) | _ = Nothing
 exprMa_eq p neg g e1 e2 = Nothing
 
@@ -287,7 +289,7 @@ exprSG_eq p neg g (VarSG _ _ {c1=c1} v1) (VarSG _ _ v2) with (Variable_eq neg g 
     exprSG_eq p neg g (VarSG _ _ {c1=c1} v1) (VarSG _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
     exprSG_eq p neg g (VarSG _ _ v1) (VarSG _ _ v2) | _ = Nothing
 exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const2) with ((semiGroup_eq_as_elem_of_set p) const1 const2)
-    exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const1) | (Just const_eq) = Just const_eq
+    exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const2) | (Just const_eq) = Just const_eq
     exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const2) | _ = Nothing
 exprSG_eq p neg g _ _ = Nothing
 
@@ -312,7 +314,7 @@ exprMo_eq p neg g (VarMo _ _ {c1=c1} v1) (VarMo _ _ v2) with (Variable_eq neg g 
     exprMo_eq p neg g (VarMo _ _ {c1=c1} v1) (VarMo _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
     exprMo_eq p neg g (VarMo _ _ v1) (VarMo _ _ v2) | _ = Nothing
 exprMo_eq p neg g (ConstMo _ _ _ const1) (ConstMo _ _ _ const2) with ((monoid_eq_as_elem_of_set p) const1 const2)
-    exprMo_eq p neg g (ConstMo _ _ _  const1) (ConstMo _ _ _ const1) | (Just const_eq) = Just const_eq
+    exprMo_eq p neg g (ConstMo _ _ _  const1) (ConstMo _ _ _ const2) | (Just const_eq) = Just const_eq
     exprMo_eq p neg g (ConstMo _ _ _ const1) (ConstMo _ _ _ const2) | _ = Nothing
 exprMo_eq p neg g _ _  = Nothing
 
@@ -331,7 +333,7 @@ exprCM_eq p g (VarCM _ i1) (VarCM _ i2) with (eq_dec_fin i1 i2)
     exprCM_eq p g (VarCM _ i1) (VarCM _ i1) | (Just Refl) = Just (set_eq_undec_refl (index i1 g))
     exprCM_eq p g (VarCM _ i1) (VarCM _ i2) | _ = Nothing
 exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) with ((commutativeMonoid_eq_as_elem_of_set p) const1 const2)
-    exprCM_eq p g (ConstCM _ _  const1) (ConstCM _ _ const1) | (Just const_eq) = Just const_eq
+    exprCM_eq p g (ConstCM _ _  const1) (ConstCM _ _ const2) | (Just const_eq) = Just const_eq
     exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) | _ = Nothing
 exprCM_eq p g _ _  = Nothing
 
@@ -354,7 +356,7 @@ exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v2) with (Variable_eq Neg g v1 v2)
         exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarG _ v1) (VarG _ v2) | _ = Nothing
 exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) with ((group_eq_as_elem_of_set p) const1 const2)
-        exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const1) | (Just const_eq) = Just const_eq
+        exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) | (Just const_eq) = Just const_eq
         exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) | _ = Nothing
 exprG_eq p g (NegG e1) (NegG e2) with (exprG_eq p g e1 e2)
         exprG_eq p g (NegG e1) (NegG _) | (Just p1) = Just (Neg_preserves_equiv p1)
@@ -390,7 +392,7 @@ exprCG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v2) with (Variable_eq Neg g v1 v2)
         exprG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarCG _ v1) (VarCG _ v2) | _ = Nothing
 exprCG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
-        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const1) | (Just const_eq) = Just const_eq
+        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) | (Just const_eq) = Just const_eq
         exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) | _ = Nothing
 exprCG_eq p g (NegCG e1) (NegCG e2) with (exprCG_eq p g e1 e2)
         exprG_eq p g (NegCG e1) (NegCG _) | (Just p1) = Just (Neg_preserves_equiv p1)
@@ -428,7 +430,7 @@ exprR_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) with (Variable_eq Neg g v1 v2)
         exprG_eq p g (VarR _ {c1=c1} v1) (VarR _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
         exprG_eq p g (VarR _ v1) (VarR _ v2) | _ = Nothing
 exprR_eq p g (ConstR _ _ const1) (ConstR _ _ const2) with ((ring_eq_as_elem_of_set p) const1 const2)
-        exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const1) | (Just const_eq) = Just const_eq
+        exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const2) | (Just const_eq) = Just const_eq
         exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const2) | _ = Nothing
 exprR_eq p g (NegR e1) (NegR e2) with (exprR_eq p g e1 e2)
         exprG_eq p g (NegR e1) (NegR _) | (Just p1) = Just (Neg_preserves_equiv p1)

@@ -6,9 +6,11 @@
 
 module Provers.semiGroup_test
 
-import Prelude.Vect
+import Data.Vect
+import Data.Fin
 import Provers.globalDef
 import Provers.dataTypes
+import Provers.tools
 import Provers.semiGroup_reduce
 import Provers.magma_test
 

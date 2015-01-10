@@ -6,7 +6,8 @@
 
 module Provers.magma_test
 
-import Prelude.Vect
+import Data.Vect
+import Data.Fin
 import Provers.globalDef
 import Provers.dataTypes
 import Provers.magma_reduce

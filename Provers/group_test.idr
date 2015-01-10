@@ -6,14 +6,17 @@
 
 module Provers.group_test
 
-import Prelude.Vect
+import Data.ZZ
+import Data.Vect
+import Data.Fin
 import Provers.globalDef
 import Provers.dataTypes
+import Provers.tools
 import Provers.group_reduce
-import Provers.monoid_reduce
-import Provers.monoid_test
-import Provers.magma_test
---import Data.ZZ
+--import Provers.monoid_reduce
+--import Provers.monoid_test
+--import Provers.magma_test
+
 
 
 instance dataTypes.Set ZZ where
@@ -47,9 +50,9 @@ instance dataTypes.Monoid ZZ where
     
 plus_Z_simpl : (x:ZZ) -> (y:ZZ) -> (x - y = x + (-y))
 plus_Z_simpl x (Pos Z) = Refl
-plus_Z_simpl x (Pos (S x)) = Refl
+plus_Z_simpl x (Pos (S y)) = Refl
 plus_Z_simpl x (NegS Z) = Refl
-plus_Z_simpl x (NegS (S x)) = Refl
+plus_Z_simpl x (NegS (S y)) = Refl
 
 minusNat_Z_Zero : (x:Nat) -> (minusNatZ x x = Pos Z)
 minusNat_Z_Zero Z = Refl

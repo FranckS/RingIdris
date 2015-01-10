@@ -3,7 +3,8 @@
 
 module Main
 
-
+import Data.Fin
+import Provers.dataTypes
 import Provers.commutativeMonoid_test -- For the instance (CommutativeMonoid Nat)
 
 

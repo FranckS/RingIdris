@@ -6,11 +6,13 @@
 
 module Provers.group_reduce
 
+import Data.Vect
+import Data.Fin
 import Decidable.Equality
 import Provers.dataTypes
 import Provers.monoid_reduce
 import Provers.tools
-import Prelude.Vect
+
 
 --%default total
 
@@ -312,7 +314,7 @@ mutual
         total
 	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p g c1) -> (ExprG p g c2) -> (x~=c1) -> (y~=c2) -> (Maybe (x~=y))
 	buildProofGroup p e1 e2 lp rp with (exprG_eq p _ e1 e2)
-		buildProofGroup p e1 e1 lp rp | Just e1_equiv_e2 = ?MbuildProofGroup
+		buildProofGroup p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofGroup
 		buildProofGroup p e1 e2 lp rp | Nothing = Nothing
 
 		

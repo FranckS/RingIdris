@@ -10,7 +10,7 @@ import Decidable.Equality
 import Provers.dataTypes
 import Provers.commutativeGroup_reduce
 import Provers.tools
-import Prelude.Vect
+import Data.Vect
 
 
 --%logging 2
@@ -262,7 +262,7 @@ develop_fix p e =
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
   let (r_1 ** (e_1, p_1)) = removeMinus e in
-  let (r_2 ** (e_2, p_2)) = develop e_1 in
+  let (r_2 ** (e_2, p_2)) = develop_fix e_1 in
   let (r_3 ** (
 	
 	

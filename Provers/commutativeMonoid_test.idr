@@ -6,7 +6,7 @@
 
 module Provers.commutativeMonoid_test
 
-import Prelude.Vect
+import Data.Vect
 import Provers.globalDef
 import Provers.dataTypes
 import Provers.commutativeMonoid_reduce

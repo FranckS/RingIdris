@@ -7,6 +7,7 @@
 module Provers.tools
 
 import Data.ZZ
+import Data.Fin
 
 import Provers.globalDef
 import Provers.dataTypes
@@ -576,6 +577,8 @@ vectorAppend_assoc (h1::t1) (h2::t2) g3 =
 
 -- F.3) "Subsets"
 
+-- No longer needed !
+{-
 using (c:Type, n:Nat, m:Nat)
     data SubSet : Vect n c -> Vect m c -> Type where
         SubSet_same : (g:Vect n c) -> SubSet g g
@@ -596,13 +599,9 @@ SubSet_trans g1 (h2::t2) _ (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_same _) = SubS
 SubSet_trans g1 (h2::t2) (h3::t3) (SubSet_add h2 g1 t2 g1_in_t2) (SubSet_add h3 _ t3 h2_cons_t2_in_t3) = 
     let t2_in_t3 : SubSet t2 t3 = SubSet_wkn t2 t3 h2 h2_cons_t2_in_t3 in 
         SubSet_add h3 g1 t3 (SubSet_trans g1 t2 t3 g1_in_t2 t2_in_t3)    
-  
-  
--- No longer needed !
-{-
-postulate    
-	SubSet_size : {c:Type} -> (n:Nat) -> (m:Nat) -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 g2) -> (GTE m n)
--}    
+
+
+
 
 concat_SubSet : {c:Type} -> {n:Nat} -> {m:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (SubSet g1 (g2++g1))
 concat_SubSet Nil Nil = SubSet_same _
@@ -611,15 +610,15 @@ concat_SubSet g1 (h2::t2) = let ih:SubSet g1 (t2++g1) = concat_SubSet g1 t2 in S
 
   
 -- No longer needed !
-{-  
--- Says that ig g2 is a "superset" of g1, then the first element are the same
+-- Says that if g2 is a "superset" of g1, then the first element are the same
 postulate -- Will be proven later
 	indexReverse_of_convert : {c:Type} -> {n:Nat} -> (g1:Vect n c) -> (i:Fin n) -> {m:Nat} -> (g2:Vect (S m) c) -> (p: GTE (S m) n) -> (SubSet g1 g2) -> (index i g1 = index (pre_convertFin i m p) g2)
--}	
+	
 	
 -- Subset and equality
 SubSet_rewriteRight : {c:Type} -> {n:Nat} -> {m:Nat} -> {p:Nat} -> (g1:Vect n c) -> (g2:Vect m c) -> (g3:Vect p c) -> (SubSet g1 g2) -> (g2=g3) -> (SubSet g1 g3)
 SubSet_rewriteRight g1 g2 g2 psub Refl = psub -- ?MSubSet_rewriteRight_1
+-}
 
 
 -- F.4) Removing elements

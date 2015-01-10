@@ -24,10 +24,10 @@ elimZero c p neg g (ConstMo _ _ _ const) = (_ ** (ConstMo _ _ _ const, set_eq_un
 elimZero c p neg g (PlusMo _ (ConstMo _ _ _ const1) (VarMo _ _ v)) with (monoid_eq_as_elem_of_set p Zero const1)
 --  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | with_pat = ?elimZero_rhs~~
 --  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | (Just prf) = ?elimZero_rhs_2
-    elimZero c p neg g (PlusMo _ (ConstMo _ _ _ dataTypes.Zero) (VarMo _ _ v)) | (Just const1_eq_zero) = (_ ** (VarMo _ _ v, ?MelimZero1))
+    elimZero c p neg g (PlusMo _ (ConstMo _ _ _ const1) (VarMo _ _ v)) | (Just const1_eq_zero) = (_ ** (VarMo _ _ v, ?MelimZero1))
     elimZero c p neg g (PlusMo _ (ConstMo _ _ _ const1) (VarMo _ _ v)) | _ = (_ ** (PlusMo _ (ConstMo _ _ _ const1) (VarMo _ _ v), set_eq_undec_refl _)) 
 elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ const2)) with (monoid_eq_as_elem_of_set p Zero const2) 
-    elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ dataTypes.Zero)) | (Just const2_eq_zero) = (_ ** (VarMo _ _ v, ?MelimZero2))
+    elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarMo _ _ v, ?MelimZero2))
     elimZero c p neg g (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ const2)) | _ = (_ ** (PlusMo _ (VarMo _ _ v) (ConstMo _ _ _ const2), set_eq_undec_refl _))
 elimZero c p neg g (PlusMo _ e1 e2) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = (elimZero c p neg g e1) in
@@ -71,11 +71,27 @@ Provers.monoid_reduce.MmonoidReduce1 = proof
 
 Provers.monoid_reduce.MelimZero1 = proof
   intros
+  mrefine eq_preserves_eq 
+  exact (Plus Zero c2)
+  exact c2
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
   mrefine Plus_neutral_1
+  mrefine set_eq_undec_sym
+  mrefine set_eq_undec_refl 
+  exact const1_eq_zero 
 
 Provers.monoid_reduce.MelimZero2 = proof
   intros
+  mrefine eq_preserves_eq 
+  exact (Plus c1 Zero)
+  exact c1
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
   mrefine Plus_neutral_2
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym
+  exact const2_eq_zero 
   
 Provers.monoid_reduce.MelimZero3 = proof
   intros

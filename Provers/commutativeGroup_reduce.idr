@@ -7,10 +7,11 @@
 module Provers.commutativeGroup_reduce
 
 import Decidable.Equality
+import Data.Vect
+import Data.Fin
 import Provers.dataTypes
-import Provers.group_reduce
 import Provers.tools
-import Prelude.Vect
+import Provers.group_reduce
 
 -- Order : Variable (in order) and then constants
 
