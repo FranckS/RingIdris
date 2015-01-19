@@ -5,16 +5,19 @@ import Data.Vect
 import Data.Fin
 import Provers.globalDef
 import Provers.dataTypes
+import Provers.tools
 import Provers.commutativeGroup_reduce
 import Provers.group_test
--- import Data.ZZ
+import Provers.monoid_test
+import Provers.semiGroup_test
+import Provers.magma_test
 
 
 instance dataTypes.CommutativeGroup ZZ where
     Plus_comm x y = plusCommutativeZ x y
     
     
-{-
+
 -- x + (-x)
 expA : (x:ZZ) -> ExprCG (%instance) [x] (x + (- x))
 expA x = PlusCG (VarCG _ (RealVariable _ _ _ FZ)) (NegCG (VarCG _ (RealVariable _ _ _ FZ)))
@@ -65,7 +68,7 @@ expD x y z u = PlusCG
 
  
 expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (z + u)
-expE x y z y = PlusCG
+expE x y z u = PlusCG
                 (VarCG _ (RealVariable _ _ _ (FS (FS FZ))))
                 (VarCG _ (RealVariable _ _ _ (FS (FS (FS FZ)))))
 
@@ -80,7 +83,7 @@ proof_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> (((u + (x + (-y)))) + 
 proof_expD_expE x y z u = let (Just ok) = compare_expD_expE x y z u in ok
 -- RESULT : Ok, works for all x !
 
--}
+
 
 {-
 -- Debugging

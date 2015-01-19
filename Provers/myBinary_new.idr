@@ -5,14 +5,16 @@ module Main
 
 import Data.Fin
 import Provers.dataTypes
+import Provers.commutativeMonoid_reduce -- For the appropriate reduction procedure
 import Provers.commutativeMonoid_test -- For the instance (CommutativeMonoid Nat)
+import Provers.monoid_test
+import Provers.semiGroup_test
+import Provers.magma_test
 
 
 data Bit : Nat -> Type where
      b0 : Bit Z
      b1 : Bit (S Z)
-     
-
 
      
 infixl 5 #     

@@ -13,6 +13,7 @@ import Provers.dataTypes
 import Provers.tools
 import Provers.monoid_reduce
 import Provers.semiGroup_test
+import Provers.magma_test
 
 
 

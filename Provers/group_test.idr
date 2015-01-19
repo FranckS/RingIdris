@@ -13,9 +13,9 @@ import Provers.globalDef
 import Provers.dataTypes
 import Provers.tools
 import Provers.group_reduce
---import Provers.monoid_reduce
---import Provers.monoid_test
---import Provers.magma_test
+import Provers.monoid_test
+import Provers.semiGroup_test
+import Provers.magma_test
 
 
 

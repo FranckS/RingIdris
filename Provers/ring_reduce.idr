@@ -8,8 +8,9 @@ module Provers.ring_reduce
 
 import Decidable.Equality
 import Provers.dataTypes
-import Provers.commutativeGroup_reduce
 import Provers.tools
+import Provers.commutativeGroup_reduce
+
 import Data.Vect
 
 
