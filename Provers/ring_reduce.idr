@@ -257,15 +257,147 @@ develop_fix p e =
 						  (r_ih1 ** (e_ih1, ?Mdevelop_fix_1))	 
 	 
 	 
+-- same as elimMinus, but typed for an element of a Ring instead of a Group	 
+total
+elimMinus' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+elimMinus' p (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl _))
+elimMinus' p (PlusR e1 e2) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
+  let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
+    ((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?Melim'Minus1))
+elimMinus' p (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl _))    
+elimMinus' p (MinusR e1 e2) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
+  let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
+    ((Plus r_ih1 (Neg r_ih2)) ** (PlusR e_ih1 (NegR e_ih2), ?MelimMinus'2)) 
+elimMinus' p (NegR e1) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
+    (_ ** (NegR e_ih1, ?MelimMinus'3))
+elimMinus' p (MultR e1 e2) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
+  let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
+    ((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?Melim'Minus1))
+
+
+
+-- Not tagged as total since we have no case for Minus (but they have been all removed at the previous step)
+multAfter : (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (ExprR p g c1) -> (ExprR p g c2) -> (c3 ** (ExprR p g c3, c3~=Mult c1 c2))
+multAfter p g (ConstR _ _ const1) e = (_ ** (MultR (ConstR _ _ const1) e, set_eq_undec_refl _))
+multAfter p g (VarR _ v) e = (_ ** (MultR (VarR _ v) e, set_eq_undec_refl _))
+multAfter p g (PlusR e11 e12) e2 = (_ ** (MultR (PlusR e11 e12) e2, set_eq_undec_refl _))
+multAfter p g (NegR e1) e2 = (_ ** (MultR (NegR e1) e2, set_eq_undec_refl _))
+multAfter p g (MultR e11 e12) e2 = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = multAfter p g e12 e2
+    in (_ ** (MultR e11 e_ih1, ?MmultAfter1))
+
+
+
+shuffleProductRight : (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+shuffleProductRight p g (ConstR _ _ const1) = (_ ** (ConstR _ _ const1, set_eq_undec_refl _))
+shuffleProductRight p g (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl _))
+shuffleProductRight p g (NegR e) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e) in
+    (_ ** (e_ih1, ?MshuffleProductRight1))
+shuffleProductRight p g (PlusR e1 e2) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g e1 in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g e2 in
+    (_ ** (PlusR e_ih1 e_ih2, ?MshuffleProductRight2))
+
+shuffleProductRight p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = (_ ** (MultR (ConstR _ _ const1) (ConstR _ _ const2), set_eq_undec_refl _))
+shuffleProductRight p g (MultR (ConstR _ _ const1) (VarR _ v)) = (_ ** (MultR (ConstR _ _ const1) (VarR _ v), set_eq_undec_refl _))
+shuffleProductRight p g (MultR (ConstR _ _ const1) (PlusR e21 e22)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e21 e22) in -- Will do it for e21 and e22 separately during the recursive call
+    (_ ** (MultR (ConstR _ _ const1) e_ih1, ?MshuffleProductRight3))
+shuffleProductRight p g (MultR (ConstR _ _ const1) (NegR e)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e) in
+    (_ ** (MultR (ConstR _ _ const1) e_ih1, ?MshuffleProductRight4))
+shuffleProductRight p g (MultR (ConstR _ _ const1) (MultR e21 e22)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (MultR e21 e22) in
+    (_ ** (MultR (ConstR _ _ const1) e_ih1, ?MshuffleProductRight5))
+
+
+shuffleProductRight p g (MultR (VarR _ v1) (ConstR _ _ const2)) = (_ ** (MultR (VarR _ v1) (ConstR _ _ const2), set_eq_undec_refl _))
+shuffleProductRight p g (MultR (VarR _ v1) (VarR _ v2)) = (_ ** (MultR (VarR _ v1) (VarR _ v2), set_eq_undec_refl _))
+shuffleProductRight p g (MultR (VarR _ v1) (PlusR e21 e22)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e21 e22) in -- Will do it for e21 and e22 separately during the recursive call
+    (_ ** (MultR (VarR _ v1) e_ih1, ?MshuffleProductRight6))
+shuffleProductRight p g (MultR (VarR _ v1) (NegR e)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e) in
+    (_ ** (MultR (VarR _ v1) e_ih1, ?MshuffleProductRight7))
+shuffleProductRight p g (MultR (VarR _ v1) (MultR e21 e22)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (MultR e21 e22) in
+    (_ ** (MultR (VarR _ v1) e_ih1, ?MshuffleProductRight8))
+    
+shuffleProductRight p g (MultR (PlusR e11 e12) (ConstR _ _ const2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e11 e12) in
+    (_ ** (MultR e_ih1 (ConstR _ _ const2), ?MshuffleProductRight9))
+shuffleProductRight p g (MultR (PlusR e11 e12) (VarR _ v2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e11 e12) in
+    (_ ** (MultR e_ih1 (VarR _ v2), ?MshuffleProductRight10))
+shuffleProductRight p g (MultR (PlusR e11 e12) (PlusR e21 e22)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e11 e12) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (PlusR e21 e22) in
+    (_ ** (MultR e_ih1 e_ih2, ?MshuffleProductRight11))
+shuffleProductRight p g (MultR (PlusR e11 e12) (NegR e2)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e11 e12) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (NegR e2) in
+    (_ ** (MultR e_ih1 e_ih2, ?MshuffleProductRight12))    
+shuffleProductRight p g (MultR (PlusR e11 e12) (MultR e21 e22)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e11 e12) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (MultR e21 e22) in
+    (_ ** (MultR e_ih1 e_ih2, ?MshuffleProductRight13))
+    
+shuffleProductRight p g (MultR (NegR e1) (ConstR _ _ const2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e1) in
+    (_ ** (MultR e_ih1 (ConstR _ _ const2), ?MshuffleProductRight14))
+shuffleProductRight p g (MultR (NegR e1) (VarR _ v2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e1) in
+    (_ ** (MultR e_ih1 (VarR _ v2), ?MshuffleProductRight15))
+shuffleProductRight p g (MultR (NegR e1) (PlusR e21 e22)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (PlusR e21 e22) in
+    (_ ** (MultR e_ih1 e_ih2, ?MshuffleProductRight16))
+shuffleProductRight p g (MultR (NegR e1) (NegR e2)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (NegR e2) in
+    (_ ** (MultR e_ih1 e_ih2, ?MshuffleProductRight17))    
+shuffleProductRight p g (MultR (NegR e1) (MultR e21 e22)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e1) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (MultR e21 e22) in
+    (_ ** (MultR e_ih1 e_ih2, ?MshuffleProductRight18))
+      
+shuffleProductRight p g (MultR (MultR e11 e12) (ConstR _ _ const2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (MultR e11 e12) in
+    let (r_2 ** (e_2, p_2)) = multAfter p g e_ih1 (ConstR _ _ const2) in
+    (_ ** (e_2, ?MshuffleProductRight19))
+shuffleProductRight p g (MultR (MultR e11 e12) (VarR _ v2)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (MultR e11 e12) in
+    let (r_2 ** (e_2, p_2)) = multAfter p g e_ih1 (VarR _ v2) in
+    (_ ** (e_2, ?MshuffleProductRight20))
+shuffleProductRight p g (MultR (MultR e11 e12) (PlusR e21 e22)) =
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (MultR e11 e12) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (PlusR e21 e22) in
+    let (r_3 ** (e_3, p_3)) = multAfter p g e_ih1 e_ih2 in
+    (_ ** (e_3, ?MshuffleProductRight21))
+shuffleProductRight p g (MultR (MultR e11 e12) (NegR e2)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (MultR e11 e12) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (NegR e2) in
+    let (r_3 ** (e_3, p_3)) = multAfter p g e_ih1 e_ih2 in
+    (_ ** (e_3, ?MshuffleProductRight22))    
+shuffleProductRight p g (MultR (MultR e11 e12) (MultR e21 e22)) = 
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (MultR e11 e12) in
+    let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (MultR e21 e22) in
+    let (r_3 ** (e_3, p_3)) = multAfter p g e_ih1 e_ih2 in
+    (_ ** (e_3, ?MshuffleProductRight23))
+
 	
-	
-	
+{-
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
   let (r_1 ** (e_1, p_1)) = removeMinus e in
   let (r_2 ** (e_2, p_2)) = develop_fix e_1 in
   let (r_3 ** (
-	
+-}	
 	
 	
 	
