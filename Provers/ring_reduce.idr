@@ -7,6 +7,8 @@
 module Provers.ring_reduce
 
 import Decidable.Equality
+import Data.Fin
+import Data.Vect
 import Provers.dataTypes
 import Provers.tools
 import Provers.commutativeGroup_reduce
@@ -389,6 +391,9 @@ shuffleProductRight p g (MultR (MultR e11 e12) (MultR e21 e22)) =
     let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g (MultR e21 e22) in
     let (r_3 ** (e_3, p_3)) = multAfter p g e_ih1 e_ih2 in
     (_ ** (e_3, ?MshuffleProductRight23))
+
+
+
 
 	
 {-
