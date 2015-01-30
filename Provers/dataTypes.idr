@@ -338,47 +338,47 @@ exprMa_eq p neg mult g e1 e2 = Nothing
 
 
 -- Reflected terms in semigroup
-data ExprSG : {c:Type} -> {n:Nat} -> SemiGroup c -> (neg:c->c) -> (Vect n c) -> c -> Type where
-    ConstSG : {c:Type} -> {n:Nat} -> (p : SemiGroup c) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> ExprSG p neg g c1
-    PlusSG : {c:Type} -> {n:Nat} -> {p : SemiGroup c} -> (neg:c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprSG p neg g c1 -> ExprSG p neg g c2 -> ExprSG p neg g (Plus c1 c2)
-    VarSG : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> {g:Vect n c} -> {c1:c} -> Variable (semiGroup_to_set p) neg g c1 -> ExprSG p neg g c1
+data ExprSG : {c:Type} -> {n:Nat} -> SemiGroup c -> (neg:c->c) -> (mult:c->c->c) -> (Vect n c) -> c -> Type where
+    ConstSG : {c:Type} -> {n:Nat} -> (p : SemiGroup c) -> (neg:c->c) -> (mult:c->c->c) -> (g:Vect n c) -> (c1:c) -> ExprSG p neg mult g c1
+    PlusSG : {c:Type} -> {n:Nat} -> {p : SemiGroup c} -> (neg:c->c) -> (mult:c->c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprSG p neg mult g c1 -> ExprSG p neg mult g c2 -> ExprSG p neg mult g (Plus c1 c2)
+    VarSG : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> Variable (semiGroup_to_set p) neg mult g c1 -> ExprSG p neg mult g c1
 
-exprSG_eq : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprSG p neg g c1) -> (e2:ExprSG p neg g c2) -> Maybe(c1~=c2)
-exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ x' y') with (exprSG_eq p neg g x x', exprSG_eq p neg g y y')
-    exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
-    exprSG_eq p neg g (PlusSG _ x y) (PlusSG _ _ _) | _ = Nothing
-exprSG_eq p neg g (VarSG _ _ {c1=c1} v1) (VarSG _ _ v2) with (Variable_eq neg g v1 v2)
-    exprSG_eq p neg g (VarSG _ _ {c1=c1} v1) (VarSG _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
-    exprSG_eq p neg g (VarSG _ _ v1) (VarSG _ _ v2) | _ = Nothing
-exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const2) with ((semiGroup_eq_as_elem_of_set p) const1 const2)
-    exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const2) | (Just const_eq) = Just const_eq
-    exprSG_eq p neg g (ConstSG _ _ _ const1) (ConstSG _ _ _ const2) | _ = Nothing
-exprSG_eq p neg g _ _ = Nothing
+exprSG_eq : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> (mult:c->c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprSG p neg mult g c1) -> (e2:ExprSG p neg mult g c2) -> Maybe(c1~=c2)
+exprSG_eq p neg mult g (PlusSG _ _ x y) (PlusSG _ _ x' y') with (exprSG_eq p neg mult g x x', exprSG_eq p neg mult g y y')
+    exprSG_eq p neg mult g (PlusSG _ _ x y) (PlusSG _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+    exprSG_eq p neg mult g (PlusSG _ _ x y) (PlusSG _ _ _ _) | _ = Nothing
+exprSG_eq p neg mult g (VarSG _ _ _ {c1=c1} v1) (VarSG _ _ _ v2) with (Variable_eq neg mult g v1 v2)
+    exprSG_eq p neg mult g (VarSG _ _ _ {c1=c1} v1) (VarSG _ _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
+    exprSG_eq p neg mult g (VarSG _ _ _ v1) (VarSG _ _ _ v2) | _ = Nothing
+exprSG_eq p neg mult g (ConstSG _ _ _ _ const1) (ConstSG _ _ _ _ const2) with ((semiGroup_eq_as_elem_of_set p) const1 const2)
+    exprSG_eq p neg mult g (ConstSG _ _ _ _ const1) (ConstSG _ _ _ _ const2) | (Just const_eq) = Just const_eq
+    exprSG_eq p neg mult g (ConstSG _ _ _ _ const1) (ConstSG _ _ _ _ const2) | _ = Nothing
+exprSG_eq p neg mult g _ _ = Nothing
 
 
-print_ExprSG : {c:Type} -> {n:Nat} -> {p:SemiGroup c} -> {r1:c} -> (c -> String) -> {neg:c->c} -> {g:Vect n c} -> ExprSG p neg g r1 -> String
-print_ExprSG c_print (ConstSG _ _ _ const) = c_print const
-print_ExprSG c_print (PlusSG _ e1 e2) = "(" ++ (print_ExprSG c_print e1) ++ ") + (" ++ (print_ExprSG c_print e2) ++ ")"
-print_ExprSG c_print (VarSG _ _ v) = print_Variable c_print v
+print_ExprSG : {c:Type} -> {n:Nat} -> {p:SemiGroup c} -> {r1:c} -> (c -> String) -> {neg:c->c} -> {mult:c->c->c} -> {g:Vect n c} -> ExprSG p neg mult g r1 -> String
+print_ExprSG c_print (ConstSG _ _ _ _ const) = c_print const
+print_ExprSG c_print (PlusSG _ _ e1 e2) = "(" ++ (print_ExprSG c_print e1) ++ ") + (" ++ (print_ExprSG c_print e2) ++ ")"
+print_ExprSG c_print (VarSG _ _ _ v) = print_Variable c_print v
 
 
 -- Reflected terms in a monoid
-data ExprMo : {c:Type} -> {n:Nat} -> dataTypes.Monoid c -> (neg:c->c) -> (Vect n c) -> c -> Type where
-    ConstMo : {c:Type} -> {n:Nat} -> (p : dataTypes.Monoid c) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> ExprMo p neg g c1
-    PlusMo : {c:Type} -> {n:Nat} -> {p : dataTypes.Monoid c} -> (neg:c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprMo p neg g c1 -> ExprMo p neg g c2 -> ExprMo p neg g (Plus c1 c2)
-    VarMo : {c:Type} -> {n:Nat} -> (p : dataTypes.Monoid c) -> (neg:c->c) -> {g:Vect n c} -> {c1:c} -> Variable (monoid_to_set p) neg g c1 -> ExprMo p neg g c1
+data ExprMo : {c:Type} -> {n:Nat} -> dataTypes.Monoid c -> (neg:c->c) -> (mult:c->c->c) -> (Vect n c) -> c -> Type where
+    ConstMo : {c:Type} -> {n:Nat} -> (p : dataTypes.Monoid c) -> (neg:c->c) -> (mult:c->c->c) -> (g:Vect n c) -> (c1:c) -> ExprMo p neg mult g c1
+    PlusMo : {c:Type} -> {n:Nat} -> {p : dataTypes.Monoid c} -> (neg:c->c) -> (mult:c->c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprMo p neg mult g c1 -> ExprMo p neg mult g c2 -> ExprMo p neg mult g (Plus c1 c2)
+    VarMo : {c:Type} -> {n:Nat} -> (p : dataTypes.Monoid c) -> (neg:c->c) -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> Variable (monoid_to_set p) neg mult g c1 -> ExprMo p neg mult g c1
 
-exprMo_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> (neg:c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMo p neg g c1) -> (e2:ExprMo p neg g c2) -> Maybe(c1~=c2)
-exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ x' y') with (exprMo_eq p neg g x x', exprMo_eq p neg g y y')
-    exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
-    exprMo_eq p neg g (PlusMo _ x y) (PlusMo _ _ _) | _ = Nothing
-exprMo_eq p neg g (VarMo _ _ {c1=c1} v1) (VarMo _ _ v2) with (Variable_eq neg g v1 v2)
-    exprMo_eq p neg g (VarMo _ _ {c1=c1} v1) (VarMo _ _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
-    exprMo_eq p neg g (VarMo _ _ v1) (VarMo _ _ v2) | _ = Nothing
-exprMo_eq p neg g (ConstMo _ _ _ const1) (ConstMo _ _ _ const2) with ((monoid_eq_as_elem_of_set p) const1 const2)
-    exprMo_eq p neg g (ConstMo _ _ _  const1) (ConstMo _ _ _ const2) | (Just const_eq) = Just const_eq
-    exprMo_eq p neg g (ConstMo _ _ _ const1) (ConstMo _ _ _ const2) | _ = Nothing
-exprMo_eq p neg g _ _  = Nothing
+exprMo_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> (neg:c->c) -> (mult:c->c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMo p neg mult g c1) -> (e2:ExprMo p neg mult g c2) -> Maybe(c1~=c2)
+exprMo_eq p neg mult g (PlusMo _ _ x y) (PlusMo _ _ x' y') with (exprMo_eq p neg mult g x x', exprMo_eq p neg mult g y y')
+    exprMo_eq p neg mult g (PlusMo _ _ x y) (PlusMo _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+    exprMo_eq p neg mult g (PlusMo _ _ x y) (PlusMo _ _ _ _) | _ = Nothing
+exprMo_eq p neg mult g (VarMo _ _ _ {c1=c1} v1) (VarMo _ _ _ v2) with (Variable_eq neg mult g v1 v2)
+    exprMo_eq p neg mult g (VarMo _ _ _ {c1=c1} v1) (VarMo _ _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
+    exprMo_eq p neg mult g (VarMo _ _ _ v1) (VarMo _ _ _ v2) | _ = Nothing
+exprMo_eq p neg mult g (ConstMo _ _ _ _ const1) (ConstMo _ _ _ _ const2) with ((monoid_eq_as_elem_of_set p) const1 const2)
+    exprMo_eq p neg mult g (ConstMo _ _ _ _  const1) (ConstMo _ _ _ _ const2) | (Just const_eq) = Just const_eq
+    exprMo_eq p neg mult g (ConstMo _ _ _ _ const1) (ConstMo _ _ _ _ const2) | _ = Nothing
+exprMo_eq p neg mult g _ _  = Nothing
 
 
 -- Reflected terms in a commutative monoid
@@ -402,75 +402,75 @@ exprCM_eq p g _ _  = Nothing
 
 
 -- Reflected terms in a group  
-data ExprG :  {c:Type} -> {n:Nat} -> dataTypes.Group c -> (Vect n c) -> c -> Type where
-    ConstG : {c:Type} -> {n:Nat} -> (p : dataTypes.Group c) -> (g:Vect n c) -> (c1:c) -> ExprG p g c1
-    PlusG : {c:Type} -> {n:Nat} -> {p : dataTypes.Group c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Plus c1 c2)
-    MinusG : {c:Type} -> {n:Nat} -> {p : dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprG p g c1 -> ExprG p g c2 -> ExprG p g (Minus c1 c2)
-    NegG : {c:Type} -> {n:Nat} -> {p : dataTypes.Group c} -> {g:Vect n c} -> {c1:c} -> ExprG p g c1 -> ExprG p g (Neg c1)
-    VarG : {c:Type} -> {n:Nat} -> (p : dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> Variable (group_to_set p) Neg g c1 -> ExprG p g c1
+data ExprG :  {c:Type} -> {n:Nat} -> dataTypes.Group c -> (mult:c->c->c) -> (Vect n c) -> c -> Type where
+    ConstG : {c:Type} -> {n:Nat} -> (p : dataTypes.Group c) -> (mult:c->c->c) -> (g:Vect n c) -> (c1:c) -> ExprG p mult g c1
+    PlusG : {c:Type} -> {n:Nat} -> {p : dataTypes.Group c} -> (mult:c->c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprG p mult g c1 -> ExprG p mult g c2 -> ExprG p mult g (Plus c1 c2)
+    MinusG : {c:Type} -> {n:Nat} -> {p : dataTypes.Group c} -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprG p mult g c1 -> ExprG p mult g c2 -> ExprG p mult g (Minus c1 c2)
+    NegG : {c:Type} -> {n:Nat} -> {p : dataTypes.Group c} -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> ExprG p mult g c1 -> ExprG p mult g (Neg c1)
+    VarG : {c:Type} -> {n:Nat} -> (p : dataTypes.Group c) -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> Variable (group_to_set p) Neg mult g c1 -> ExprG p mult g c1
 
 
-exprG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprG p g c1) -> (e2:ExprG p g c2) -> Maybe(c1~=c2)
-exprG_eq p g (PlusG x y) (PlusG x' y') with (exprG_eq p g x x', exprG_eq p g y y')
-        exprG_eq p g (PlusG x y) (PlusG _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
-        exprG_eq p g (PlusG x y) (PlusG _ _) | _ = Nothing
-exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v2) with (Variable_eq Neg g v1 v2)
-        exprG_eq p g (VarG _ {c1=c1} v1) (VarG _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
-        exprG_eq p g (VarG _ v1) (VarG _ v2) | _ = Nothing
-exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) with ((group_eq_as_elem_of_set p) const1 const2)
-        exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) | (Just const_eq) = Just const_eq
-        exprG_eq p g (ConstG _ _ const1) (ConstG _ _ const2) | _ = Nothing
-exprG_eq p g (NegG e1) (NegG e2) with (exprG_eq p g e1 e2)
-        exprG_eq p g (NegG e1) (NegG _) | (Just p1) = Just (Neg_preserves_equiv p1)
-        exprG_eq p g (NegG e1) (NegG e2) | _ = Nothing
-exprG_eq p g (MinusG x y) (MinusG x' y') with (exprG_eq p g x x', exprG_eq p g y y')
-        exprG_eq p g (MinusG x y) (MinusG _ _) | (Just p1, Just p2) = ?MexprG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
-        exprG_eq p g (MinusG x y) (MinusG _ _) | _ = Nothing	
-exprG_eq p g _ _  = Nothing
+exprG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (mult:c->c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprG p mult g c1) -> (e2:ExprG p mult g c2) -> Maybe(c1~=c2)
+exprG_eq p mult g (PlusG _ x y) (PlusG _ x' y') with (exprG_eq p mult g x x', exprG_eq p mult g y y')
+        exprG_eq p mult g (PlusG _ x y) (PlusG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+        exprG_eq p mult g (PlusG _ x y) (PlusG _ _ _) | _ = Nothing
+exprG_eq p mult g (VarG _ _ {c1=c1} v1) (VarG _ _ v2) with (Variable_eq Neg mult g v1 v2)
+        exprG_eq p mult g (VarG _ _ {c1=c1} v1) (VarG _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
+        exprG_eq p mult g (VarG _ _ v1) (VarG _ _ v2) | _ = Nothing
+exprG_eq p mult g (ConstG _ _ _ const1) (ConstG _ _ _ const2) with ((group_eq_as_elem_of_set p) const1 const2)
+        exprG_eq p mult g (ConstG _ _ _ const1) (ConstG _ _ _ const2) | (Just const_eq) = Just const_eq
+        exprG_eq p mult g (ConstG _ _ _ const1) (ConstG _ _ _ const2) | _ = Nothing
+exprG_eq p mult g (NegG _ e1) (NegG _ e2) with (exprG_eq p mult g e1 e2)
+        exprG_eq p mult g (NegG _ e1) (NegG _ _) | (Just p1) = Just (Neg_preserves_equiv p1)
+        exprG_eq p mult g (NegG _ e1) (NegG _ e2) | _ = Nothing
+exprG_eq p mult g (MinusG _ x y) (MinusG _ x' y') with (exprG_eq p mult g x x', exprG_eq p mult g y y')
+        exprG_eq p mult g (MinusG _ x y) (MinusG _ _ _) | (Just p1, Just p2) = ?MexprG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
+        exprG_eq p mult g (MinusG _ x y) (MinusG _ _ _) | _ = Nothing	
+exprG_eq p mult g _ _  = Nothing
     
     
-print_ExprG : {c:Type} -> {n:Nat} -> {p:dataTypes.Group c} -> {r1:c} -> (c -> String) -> {g:Vect n c} -> ExprG p g r1 -> String
-print_ExprG c_print (ConstG _ _ const) = c_print const
-print_ExprG c_print (PlusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") + (" ++ (print_ExprG c_print e2) ++ ")"
-print_ExprG c_print (MinusG e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") - (" ++ (print_ExprG c_print e2) ++ ")"
-print_ExprG c_print (VarG _ v) = print_Variable c_print v
-print_ExprG c_print (NegG e) = "(-" ++ (print_ExprG c_print e) ++ ")"
+print_ExprG : {c:Type} -> {n:Nat} -> {p:dataTypes.Group c} -> {mult:c->c->c} -> {r1:c} -> (c -> String) -> {g:Vect n c} -> ExprG p mult g r1 -> String
+print_ExprG c_print (ConstG _ _ _ const) = c_print const
+print_ExprG c_print (PlusG _ e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") + (" ++ (print_ExprG c_print e2) ++ ")"
+print_ExprG c_print (MinusG _ e1 e2) = "(" ++ (print_ExprG c_print e1) ++ ") - (" ++ (print_ExprG c_print e2) ++ ")"
+print_ExprG c_print (VarG _ _ v) = print_Variable c_print v
+print_ExprG c_print (NegG _ e) = "(-" ++ (print_ExprG c_print e) ++ ")"
 
 
 -- Reflected terms in a commutative group       
-data ExprCG : {c:Type} -> {n:Nat} -> CommutativeGroup c -> (Vect n c) -> c -> Type where
-    ConstCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> (g:Vect n c) -> (c1:c) -> ExprCG p g c1
-    PlusCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Plus c1 c2)
-    MinusCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprCG p g c1 -> ExprCG p g c2 -> ExprCG p g (Minus c1 c2)
-    NegCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> ExprCG p g c1 -> ExprCG p g (Neg c1)
-    VarCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> Variable (commutativeGroup_to_set p) Neg g c1 -> ExprCG p g c1
+data ExprCG : {c:Type} -> {n:Nat} -> CommutativeGroup c -> (mult:c->c->c) -> (Vect n c) -> c -> Type where
+    ConstCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> (mult:c->c->c) -> (g:Vect n c) -> (c1:c) -> ExprCG p mult g c1
+    PlusCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> (mult:c->c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCG p mult g c1 -> ExprCG p mult g c2 -> ExprCG p mult g (Plus c1 c2)
+    MinusCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprCG p mult g c1 -> ExprCG p mult g c2 -> ExprCG p mult g (Minus c1 c2)
+    NegCG : {c:Type} -> {n:Nat} -> {p:CommutativeGroup c} -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> ExprCG p mult g c1 -> ExprCG p mult g (Neg c1)
+    VarCG : {c:Type} -> {n:Nat} -> (p:CommutativeGroup c) -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> Variable (commutativeGroup_to_set p) Neg mult g c1 -> ExprCG p mult g c1
     
     
-exprCG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCG p g c1) -> (e2:ExprCG p g c2) -> (Maybe (c1~=c2))
-exprCG_eq p g (PlusCG x y) (PlusCG x' y') with (exprCG_eq p g x x', exprCG_eq p g y y')
-        exprG_eq p g (PlusCG x y) (PlusCG _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
-        exprG_eq p g (PlusCG x y) (PlusCG _ _) | _ = Nothing
-exprCG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v2) with (Variable_eq Neg g v1 v2)
-        exprG_eq p g (VarCG _ {c1=c1} v1) (VarCG _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
-        exprG_eq p g (VarCG _ v1) (VarCG _ v2) | _ = Nothing
-exprCG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
-        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) | (Just const_eq) = Just const_eq
-        exprG_eq p g (ConstCG _ _ const1) (ConstCG _ _ const2) | _ = Nothing
-exprCG_eq p g (NegCG e1) (NegCG e2) with (exprCG_eq p g e1 e2)
-        exprG_eq p g (NegCG e1) (NegCG _) | (Just p1) = Just (Neg_preserves_equiv p1)
-        exprG_eq p g (NegCG e1) (NegCG e2) | _ = Nothing
-exprCG_eq p g (MinusCG x y) (MinusCG x' y') with (exprCG_eq p g x x', exprCG_eq p g y y')
-        exprG_eq p g (MinusCG x y) (MinusCG _ _) | (Just p1, Just p2) = ?MexprCG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
-        exprG_eq p g (MinusCG x y) (MinusCG _ _) | _ = Nothing	
-exprCG_eq p g _ _  = Nothing
+exprCG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> (mult:c->c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCG p mult g c1) -> (e2:ExprCG p mult g c2) -> (Maybe (c1~=c2))
+exprCG_eq p mult g (PlusCG _ x y) (PlusCG _ x' y') with (exprCG_eq p mult g x x', exprCG_eq p mult g y y')
+        exprG_eq p mult g (PlusCG _ x y) (PlusCG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+        exprG_eq p mult g (PlusCG _ x y) (PlusCG _ _ _) | _ = Nothing
+exprCG_eq p mult g (VarCG _ _ {c1=c1} v1) (VarCG _ _ v2) with (Variable_eq Neg mult g v1 v2)
+	exprG_eq p mult g (VarCG _ _ {g=g} {c1=c1} v1) (VarCG _ _ {g=g} v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
+	exprG_eq p mult g (VarCG _ _ {g=g} v1) (VarCG _ _ {g=g} v2) | _ = Nothing
+exprCG_eq p mult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
+        exprG_eq p mult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) | (Just const_eq) = Just const_eq
+        exprG_eq p mult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) | _ = Nothing
+exprCG_eq p mult g (NegCG _ e1) (NegCG _ e2) with (exprCG_eq p mult g e1 e2)
+        exprG_eq p mult g (NegCG _ e1) (NegCG _ _) | (Just p1) = Just (Neg_preserves_equiv p1)
+        exprG_eq p mult g (NegCG _ e1) (NegCG _ e2) | _ = Nothing
+exprCG_eq p mult g (MinusCG _ x y) (MinusCG _ x' y') with (exprCG_eq p mult g x x', exprCG_eq p mult g y y')
+        exprG_eq p mult g (MinusCG _ x y) (MinusCG _ _ _) | (Just p1, Just p2) = ?MexprCG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
+        exprG_eq p mult g (MinusCG _ x y) (MinusCG _ _ _) | _ = Nothing	
+exprCG_eq p mult g _ _  = Nothing
 
 
-print_ExprCG : {c:Type} -> {n:Nat} -> {p:dataTypes.CommutativeGroup c} -> {r1:c} -> (c -> String) -> {g:Vect n c} -> ExprCG p g r1 -> String
-print_ExprCG c_print (ConstCG _ _ const) = c_print const
-print_ExprCG c_print (PlusCG e1 e2) = "(" ++ (print_ExprCG c_print e1) ++ ") + (" ++ (print_ExprCG c_print e2) ++ ")"
-print_ExprCG c_print (MinusCG e1 e2) = "(" ++ (print_ExprCG c_print e1) ++ ") --- (" ++ (print_ExprCG c_print e2) ++ ")"
-print_ExprCG c_print (VarCG _ v) = print_Variable c_print v
-print_ExprCG c_print (NegCG e) = "(-" ++ (print_ExprCG c_print e) ++ ")"
+print_ExprCG : {c:Type} -> {n:Nat} -> {p:dataTypes.CommutativeGroup c} -> {mult:c->c->c} -> {r1:c} -> (c -> String) -> {g:Vect n c} -> ExprCG p mult g r1 -> String
+print_ExprCG c_print (ConstCG _ _ _ const) = c_print const
+print_ExprCG c_print (PlusCG _ e1 e2) = "(" ++ (print_ExprCG c_print e1) ++ ") + (" ++ (print_ExprCG c_print e2) ++ ")"
+print_ExprCG c_print (MinusCG _ e1 e2) = "(" ++ (print_ExprCG c_print e1) ++ ") --- (" ++ (print_ExprCG c_print e2) ++ ")"
+print_ExprCG c_print (VarCG _ _ v) = print_Variable c_print v
+print_ExprCG c_print (NegCG _ e) = "(-" ++ (print_ExprCG c_print e) ++ ")"
 
     
 
@@ -481,15 +481,15 @@ data ExprR : {c:Type} -> {n:Nat} -> dataTypes.Ring c -> (Vect n c) -> c -> Type 
     MultR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
     MinusR: {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Minus c1 c2)
     NegR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> ExprR p g c1 -> ExprR p g (Neg c1)
-    VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg g c1 -> ExprR p g c1
+    VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg Mult g c1 -> ExprR p g c1
    
 
 exprR_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprR p g c1) -> (e2:ExprR p g c2) -> (Maybe (c1~=c2))
 exprR_eq p g (PlusR x y) (PlusR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
         exprG_eq p g (PlusR x y) (PlusR _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
         exprG_eq p g (PlusR x y) (PlusR _ _) | _ = Nothing
-exprR_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) with (Variable_eq Neg g v1 v2)
-        exprG_eq p g (VarR _ {c1=c1} v1) (VarR _ v1) | (Just Refl) = Just (set_eq_undec_refl c1)
+exprR_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) with (Variable_eq Neg Mult g v1 v2)
+        exprG_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
         exprG_eq p g (VarR _ v1) (VarR _ v2) | _ = Nothing
 exprR_eq p g (ConstR _ _ const1) (ConstR _ _ const2) with ((ring_eq_as_elem_of_set p) const1 const2)
         exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const2) | (Just const_eq) = Just const_eq

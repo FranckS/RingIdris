@@ -10,8 +10,9 @@ import Decidable.Equality
 import Data.Vect
 import Data.Fin
 import Provers.dataTypes
-import Provers.monoid_reduce
 import Provers.tools
+import Provers.monoid_reduce
+
 
 
 
