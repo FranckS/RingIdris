@@ -451,8 +451,8 @@ exprCG_eq p mult g (PlusCG _ x y) (PlusCG _ x' y') with (exprCG_eq p mult g x x'
         exprG_eq p mult g (PlusCG _ x y) (PlusCG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
         exprG_eq p mult g (PlusCG _ x y) (PlusCG _ _ _) | _ = Nothing
 exprCG_eq p mult g (VarCG _ _ {c1=c1} v1) (VarCG _ _ v2) with (Variable_eq Neg mult g v1 v2)
-	exprG_eq p mult g (VarCG _ _ {g=g} {c1=c1} v1) (VarCG _ _ {g=g} v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
-	exprG_eq p mult g (VarCG _ _ {g=g} v1) (VarCG _ _ {g=g} v2) | _ = Nothing
+        exprG_eq p mult g (VarCG _ _ {g=g} {c1=c1} v1) (VarCG _ _ {g=g} v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
+        exprG_eq p mult g (VarCG _ _ {g=g} v1) (VarCG _ _ {g=g} v2) | _ = Nothing
 exprCG_eq p mult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
         exprG_eq p mult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) | (Just const_eq) = Just const_eq
         exprG_eq p mult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) | _ = Nothing
