@@ -293,13 +293,13 @@ data Variable : {c:Type} -> (c_set: Set c) -> {n:Nat} -> (neg:c->c) -> (mult:c->
 
 Variable_eq : {c:Type} -> {c_set:Set c} -> {n:Nat} -> {c1:c} -> {c2:c} -> (neg:c->c) -> (mult:c->c->c) -> (g:Vect n c) -> (v1:Variable c_set neg mult g c1) -> (v2:Variable c_set neg mult g c2) -> Maybe (c1~=c2)
 Variable_eq neg mult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i2) with (decEq i1 i2)
-    Variable_eq neg mult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i1) | (Yes Refl) = ?MXXX
+    Variable_eq neg mult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
     Variable_eq neg mult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i2) | _ = Nothing
 Variable_eq neg mult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i2) with (decEq i1 i2) 
-    Variable_eq neg mult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i1) | (Yes Refl) = ?MYYY
+    Variable_eq neg mult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
     Variable_eq neg mult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i2) | _ = Nothing
 Variable_eq neg mult g (EncodingProductOfMonomials _ _ _ _ prod1) (EncodingProductOfMonomials _ _ _ _ prod2) with (productOfMonomials_eq mult prod1 prod2)
-    Variable_eq neg mult g (EncodingProductOfMonomials _ _ _ _ prod1) (EncodingProductOfMonomials _ _ _ _ prod2) | (Just prod1_equiv_prod2) = ?MZZZ
+    Variable_eq neg mult g (EncodingProductOfMonomials _ _ _ _ prod1) (EncodingProductOfMonomials _ _ _ _ prod2) | (Just prod1_equiv_prod2) = Just (prod1_equiv_prod2)
     Variable_eq neg mult g (EncodingProductOfMonomials _ _ _ _ prod1) (EncodingProductOfMonomials _ _ _ _ prod2) | _ = Nothing
 --Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) with (c_equal c1 c2)
 --    Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c1) | (Just Refl) = Just Refl
@@ -382,22 +382,22 @@ exprMo_eq p neg mult g _ _  = Nothing
 
 
 -- Reflected terms in a commutative monoid
-data ExprCM : {c:Type} -> {n:Nat} -> (CommutativeMonoid c) -> (Vect n c) -> c -> Type where
-    ConstCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> (g:Vect n c) -> (c1:c) -> ExprCM p g c1
-    PlusCM : {c:Type} -> {n:Nat} -> {p : CommutativeMonoid c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCM p g c1 -> ExprCM p g c2 -> ExprCM p g (Plus c1 c2)
-    VarCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> {g:Vect n c} -> (i:Fin n) -> ExprCM p g (index i g)
+data ExprCM : {c:Type} -> {n:Nat} -> (CommutativeMonoid c) -> (mult:c->c->c) -> (Vect n c) -> c -> Type where
+    ConstCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> (mult:c->c->c) -> (g:Vect n c) -> (c1:c) -> ExprCM p mult g c1
+    PlusCM : {c:Type} -> {n:Nat} -> {p : CommutativeMonoid c} -> (mult:c->c->c) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCM p mult g c1 -> ExprCM p mult g c2 -> ExprCM p mult g (Plus c1 c2)
+    VarCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> (mult:c->c->c) -> {g:Vect n c} -> {c1:c} -> Variable (commutativeMonoid_to_set p) (\x=>x) mult g c1 -> ExprCM p mult g c1
 
-exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p g c1) -> (e2:ExprCM p g c2) -> Maybe(c1~=c2)
-exprCM_eq p g (PlusCM x y) (PlusCM x' y') with (exprCM_eq p g x x', exprCM_eq p g y y')
-    exprCM_eq p g (PlusCM x y) (PlusCM _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
-    exprCM_eq p g (PlusCM x y) (PlusCM _ _) | _ = Nothing
-exprCM_eq p g (VarCM _ i1) (VarCM _ i2) with (eq_dec_fin i1 i2)
-    exprCM_eq p g (VarCM _ i1) (VarCM _ i1) | (Just Refl) = Just (set_eq_undec_refl (index i1 g))
-    exprCM_eq p g (VarCM _ i1) (VarCM _ i2) | _ = Nothing
-exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) with ((commutativeMonoid_eq_as_elem_of_set p) const1 const2)
-    exprCM_eq p g (ConstCM _ _  const1) (ConstCM _ _ const2) | (Just const_eq) = Just const_eq
-    exprCM_eq p g (ConstCM _ _ const1) (ConstCM _ _ const2) | _ = Nothing
-exprCM_eq p g _ _  = Nothing
+exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (mult:c->c->c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p mult g c1) -> (e2:ExprCM p mult g c2) -> Maybe(c1~=c2)
+exprCM_eq p mult g (PlusCM _ x y) (PlusCM _ x' y') with (exprCM_eq p mult g x x', exprCM_eq p mult g y y')
+    exprCM_eq p mult g (PlusCM _ x y) (PlusCM _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+    exprCM_eq p mult g (PlusCM _ x y) (PlusCM _ _ _) | _ = Nothing
+exprCM_eq p mult g (VarCM _ _ v1) (VarCM _ _ v2) with (Variable_eq (\x=>x) mult g v1 v2)
+    exprCM_eq p mult g (VarCM _ _ v1) (VarCM _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
+    exprCM_eq p mult g (VarCM _ _ v1) (VarCM _ _ v2) | _ = Nothing
+exprCM_eq p mult g (ConstCM _ _ _ const1) (ConstCM _ _ _ const2) with ((commutativeMonoid_eq_as_elem_of_set p) const1 const2)
+    exprCM_eq p mult g (ConstCM _ _ _  const1) (ConstCM _ _ _ const2) | (Just const_eq) = Just const_eq
+    exprCM_eq p mult g (ConstCM _ _ _ const1) (ConstCM _ _ _ const2) | _ = Nothing
+exprCM_eq p mult g _ _  = Nothing
 
 
 
@@ -532,58 +532,56 @@ print_ExprR c_print (NegR e) = "(-" ++ (print_ExprR c_print e) ++ ")"
 -- ----------------------------------------
 
 -- SemiGroup -> Magma
-semiGroup_to_magma : {c:Type} -> {n:Nat} -> {p:SemiGroup c} -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprSG p neg g c1 -> ExprMa (semiGroup_to_magma_class p) neg g c1
-semiGroup_to_magma (ConstSG p _ _ cst) = ConstMa (semiGroup_to_magma_class p) _ _ cst
-semiGroup_to_magma (PlusSG _ e1 e2) = PlusMa _ (semiGroup_to_magma e1) (semiGroup_to_magma e2)
-semiGroup_to_magma (VarSG p _ v) = VarMa (semiGroup_to_magma_class p) _ v
+semiGroup_to_magma : {c:Type} -> {n:Nat} -> {p:SemiGroup c} -> {neg:c->c} -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprSG p neg mult g c1 -> ExprMa (semiGroup_to_magma_class p) neg mult g c1
+semiGroup_to_magma (ConstSG p _ _ _ cst) = ConstMa (semiGroup_to_magma_class p) _ _ _ cst
+semiGroup_to_magma (PlusSG _ _ e1 e2) = PlusMa _ _ (semiGroup_to_magma e1) (semiGroup_to_magma e2)
+semiGroup_to_magma (VarSG p _ _ v) = VarMa (semiGroup_to_magma_class p) _ _ v
 
-magma_to_semiGroup : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) neg g c1 -> ExprSG p neg g c1
-magma_to_semiGroup p (ConstMa _ _ _ cst) = ConstSG p _ _ cst
-magma_to_semiGroup p (PlusMa _ e1 e2) = PlusSG _ (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
-magma_to_semiGroup p (VarMa _ _ v) = VarSG p _ v
+magma_to_semiGroup : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> {neg:c->c} -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprMa (semiGroup_to_magma_class p) neg mult g c1 -> ExprSG p neg mult g c1
+magma_to_semiGroup p (ConstMa _ _ _ _ cst) = ConstSG p _ _ _ cst
+magma_to_semiGroup p (PlusMa _ _ e1 e2) = PlusSG _ _ (magma_to_semiGroup p e1) (magma_to_semiGroup p e2)
+magma_to_semiGroup p (VarMa _ _ _ v) = VarSG p _ _ v
 
 
 -- Monoid -> SemiGroup
-monoid_to_semiGroup : {c:Type} -> {n:Nat} -> {p:dataTypes.Monoid c} -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprMo p neg g c1 -> ExprSG (monoid_to_semiGroup_class p) neg g c1
-monoid_to_semiGroup (ConstMo p _ _ cst) = ConstSG (monoid_to_semiGroup_class p) _ _ cst
-monoid_to_semiGroup (PlusMo _ e1 e2) = PlusSG _ (monoid_to_semiGroup e1) (monoid_to_semiGroup e2)
-monoid_to_semiGroup (VarMo p _ v) = VarSG (monoid_to_semiGroup_class p) _ v
+monoid_to_semiGroup : {c:Type} -> {n:Nat} -> {p:dataTypes.Monoid c} -> {neg:c->c} -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprMo p neg mult g c1 -> ExprSG (monoid_to_semiGroup_class p) neg mult g c1
+monoid_to_semiGroup (ConstMo p _ _ _ cst) = ConstSG (monoid_to_semiGroup_class p) _ _ _ cst
+monoid_to_semiGroup (PlusMo _ _ e1 e2) = PlusSG _ _ (monoid_to_semiGroup e1) (monoid_to_semiGroup e2)
+monoid_to_semiGroup (VarMo p _ _ v) = VarSG (monoid_to_semiGroup_class p) _ _ v
 
-semiGroup_to_monoid : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> {neg:c->c} -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) neg g c1 -> ExprMo p neg g c1
-semiGroup_to_monoid p (ConstSG _ _ _ cst) = ConstMo p _ _ cst
-semiGroup_to_monoid p (PlusSG _ e1 e2) = PlusMo _ (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
-semiGroup_to_monoid p (VarSG _ _ v) = VarMo p _ v
+semiGroup_to_monoid : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> {neg:c->c} -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprSG (monoid_to_semiGroup_class p) neg mult g c1 -> ExprMo p neg mult g c1
+semiGroup_to_monoid p (ConstSG _ _ _ _ cst) = ConstMo p _ _ _ cst
+semiGroup_to_monoid p (PlusSG _ _ e1 e2) = PlusMo _ _ (semiGroup_to_monoid p e1) (semiGroup_to_monoid p e2)
+semiGroup_to_monoid p (VarSG _ _ _ v) = VarMo p _ _ v
 
 
 -- CommutativeMonoid -> Monoid
 -- NEW
-commutativeMonoid_to_monoid : {c:Type} -> {n:Nat} -> {p:CommutativeMonoid c} -> {g:Vect n c} -> {c1:c} -> ExprCM p g c1 -> ExprMo (commutativeMonoid_to_monoid_class p) (\x => x) g c1 -- there is no negations to encode, that's why we use the identity function here
-commutativeMonoid_to_monoid (ConstCM p _ cst) = ConstMo (commutativeMonoid_to_monoid_class p) _ _ cst
-commutativeMonoid_to_monoid (PlusCM e1 e2) = PlusMo _ (commutativeMonoid_to_monoid e1) (commutativeMonoid_to_monoid e2)
-commutativeMonoid_to_monoid (VarCM p v) = VarMo (commutativeMonoid_to_monoid_class p) _ (RealVariable _ (\x => x) _ v)
+commutativeMonoid_to_monoid : {c:Type} -> {n:Nat} -> {p:CommutativeMonoid c} -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprCM p mult g c1 -> ExprMo (commutativeMonoid_to_monoid_class p) (\x=>x) mult g c1 -- there is no negations to encode, that's why we use the identity function here
+commutativeMonoid_to_monoid (ConstCM p _ _ cst) = ConstMo (commutativeMonoid_to_monoid_class p) _ _ _ cst
+commutativeMonoid_to_monoid (PlusCM _ e1 e2) = PlusMo _ _ (commutativeMonoid_to_monoid e1) (commutativeMonoid_to_monoid e2)
+commutativeMonoid_to_monoid (VarCM p _ v) = VarMo (commutativeMonoid_to_monoid_class p) _ _ v
 
-monoid_to_commutativeMonoid : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> {g:Vect n c} -> {c1:c} -> ExprMo (commutativeMonoid_to_monoid_class p) (\x => x) g c1 -> ExprCM p g c1 -- we know that no negations have been encoded
-monoid_to_commutativeMonoid p (ConstMo _ _ _ cst) = (ConstCM p _ cst)
-monoid_to_commutativeMonoid p (PlusMo _ e1 e2) = PlusCM (monoid_to_commutativeMonoid p e1) (monoid_to_commutativeMonoid p e2)
-monoid_to_commutativeMonoid p (VarMo _ _ (RealVariable _ _ g i)) = VarCM _ i 
--- This case can't happen, this we only decode what we have previously encoded, and we've never encoded something with a "EncodingGroupTerm_var". Anyway, it has to be total...
-monoid_to_commutativeMonoid p (VarMo _ _ (EncodingGroupTerm_var _ _ g i)) = VarCM _ i
+monoid_to_commutativeMonoid : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprMo (commutativeMonoid_to_monoid_class p) (\x => x) mult g c1 -> ExprCM p mult g c1 -- we know that no negations have been encoded
+monoid_to_commutativeMonoid p (ConstMo _ _ _ _ cst) = (ConstCM p _ _ cst)
+monoid_to_commutativeMonoid p (PlusMo _ _ e1 e2) = PlusCM _ (monoid_to_commutativeMonoid p e1) (monoid_to_commutativeMonoid p e2)
+monoid_to_commutativeMonoid p (VarMo _ _ _ v) = VarCM _ _ v
 
 
 -- CommutativeGroup -> Group
-commutativeGroup_to_group : {c:Type} -> {n:Nat} -> {p:dataTypes.CommutativeGroup c} -> {g:Vect n c} -> {c1:c} -> ExprCG p g c1 -> ExprG (commutativeGroup_to_group_class p) g c1
-commutativeGroup_to_group (ConstCG p g c1) = ConstG (commutativeGroup_to_group_class p) g c1
-commutativeGroup_to_group (PlusCG e1 e2) = PlusG (commutativeGroup_to_group e1) (commutativeGroup_to_group e2)
-commutativeGroup_to_group (MinusCG e1 e2) = MinusG (commutativeGroup_to_group e1) (commutativeGroup_to_group e2)
-commutativeGroup_to_group (NegCG e) = NegG (commutativeGroup_to_group e)
-commutativeGroup_to_group (VarCG p v) = VarG (commutativeGroup_to_group_class p) v
+commutativeGroup_to_group : {c:Type} -> {n:Nat} -> {p:dataTypes.CommutativeGroup c} -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprCG p mult g c1 -> ExprG (commutativeGroup_to_group_class p) mult g c1
+commutativeGroup_to_group (ConstCG p _ g c1) = ConstG (commutativeGroup_to_group_class p) _ g c1
+commutativeGroup_to_group (PlusCG _ e1 e2) = PlusG _ (commutativeGroup_to_group e1) (commutativeGroup_to_group e2)
+commutativeGroup_to_group (MinusCG _ e1 e2) = MinusG _ (commutativeGroup_to_group e1) (commutativeGroup_to_group e2)
+commutativeGroup_to_group (NegCG _ e) = NegG _ (commutativeGroup_to_group e)
+commutativeGroup_to_group (VarCG p _ v) = VarG (commutativeGroup_to_group_class p) _ v
 
-group_to_commutativeGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {g:Vect n c} -> {c1:c} -> ExprG (commutativeGroup_to_group_class p) g c1 -> ExprCG p g c1
-group_to_commutativeGroup p (ConstG _ g c1) = ConstCG p g c1
-group_to_commutativeGroup p (PlusG e1 e2) = PlusCG (group_to_commutativeGroup p e1) (group_to_commutativeGroup p e2)
-group_to_commutativeGroup p (MinusG e1 e2) = MinusCG (group_to_commutativeGroup p e1) (group_to_commutativeGroup p e2)
-group_to_commutativeGroup p (NegG e) = NegCG (group_to_commutativeGroup p e)
-group_to_commutativeGroup p (VarG _ v) = VarCG p v
+group_to_commutativeGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> {mult:c->c->c} -> {g:Vect n c} -> {c1:c} -> ExprG (commutativeGroup_to_group_class p) mult g c1 -> ExprCG p mult g c1
+group_to_commutativeGroup p (ConstG _ _ g c1) = ConstCG p _ g c1
+group_to_commutativeGroup p (PlusG _ e1 e2) = PlusCG _ (group_to_commutativeGroup p e1) (group_to_commutativeGroup p e2)
+group_to_commutativeGroup p (MinusG _ e1 e2) = MinusCG _ (group_to_commutativeGroup p e1) (group_to_commutativeGroup p e2)
+group_to_commutativeGroup p (NegG _ e) = NegCG _ (group_to_commutativeGroup p e)
+group_to_commutativeGroup p (VarG _ _ v) = VarCG p _ v
 
 
 {-
@@ -607,7 +605,7 @@ r_to_cr p (VarR _ v) = VarCR p v
 
 
 ---------- Proofs ----------
-
+{-
 Provers.dataTypes.MproductsOfMonomials_eq_1 = proof
   intros
   mrefine Just
@@ -630,7 +628,7 @@ Provers.dataTypes.MproductOfVariables_eq_1 = proof
   mrefine Mult_preserves_equiv 
   mrefine set_eq_undec_refl 
   exact prEquivProd 
-
+  -}
 
 Provers.dataTypes.Meq_preserves_eq_1 = proof
   intros
