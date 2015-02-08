@@ -234,21 +234,21 @@ ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
 -- -----------------------------------------------------------
 
 
-record SetWithMult : (c:Type) -> Type where
-  MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c
+record SetWithMult : (c:Type) -> (Set c) -> Type where
+  MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
 
   
     
 
 -- Things like "x" (simple case), "x*y", "x*(y*z)", ... (all in the form right associative)
-data ProductOfVariables : {c:Type} -> {n:Nat} -> (setAndMult:SetWithMult c) -> (Vect n c) -> c -> Type where
-    LastVar : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (setAndMult:SetWithMult c) -> (k:Fin n) -> ProductOfVariables setAndMult g (index k g) 
-    VarMultProduct : {c:Type} -> {n:Nat} -> {g:Vect n c} -> (setAndMult:SetWithMult c) -> (k:Fin n) -> {c_prod : c} -> (pov:ProductOfVariables setAndMult g c_prod) -> ProductOfVariables setAndMult g ((mult setAndMult) (index k g) c_prod)
+data ProductOfVariables : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> (Vect n c) -> c -> Type where
+	LastVar : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (g:Vect n c) -> (setAndMult:SetWithMult c c_set) -> (k:Fin n) -> ProductOfVariables setAndMult g (index k g) 
+	VarMultProduct : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> (k:Fin n) -> {c_prod : c} -> (pov:ProductOfVariables setAndMult g c_prod) -> ProductOfVariables setAndMult g ((mult setAndMult) (index k g) c_prod)
 
 total
-productOfVariables_eq : {c:Type} -> {n:Nat} -> (setAndMult:SetWithMult c) -> {g : Vect n c} -> {c1:c} -> (prod1 : ProductOfVariables setAndMult g c1) -> {c2:c} -> (prod2 : ProductOfVariables setAndMult g c2) -> Maybe (eq (c_set setAndMult) c1 c2)
+productOfVariables_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (prod1 : ProductOfVariables setAndMult g c1) -> {c2:c} -> (prod2 : ProductOfVariables setAndMult g c2) -> Maybe (eq c_set c1 c2)
 productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k2) with (eq_dec_fin k1 k2)
-    productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k1) | (Just Refl) = let c_is_set = c_set setAndMult in Just (set_eq_undec_refl _) -- computation of c_is_set is needed because we need to bring the instance of Set in scope (in the context)
+    productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k1) | (Just Refl) = Just (set_eq_undec_refl _) -- computation of c_is_set is needed because we need to bring the instance of Set in scope (in the context)
     productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k2) | _ = Nothing
 productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k2 prod2) with (eq_dec_fin k1 k2, productOfVariables_eq setAndMult prod1 prod2)
     productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k1 prod2) | (Just Refl, Just prEquivProd) = ?MproductOfVariables_eq_1
@@ -258,12 +258,12 @@ productOfVariables_eq _ _ _ = Nothing
 
 
 -- Things like "x*y" (simple case), "5*(x*y)", "18*(x*(y*z))", ... (again, all in the form right associative)
-data Monomial : {c:Type} -> {n:Nat} -> (setAndMult:SetWithMult c) -> (Vect n c) -> c -> Type where
-    ProdOfVar : {c:Type} -> {n:Nat} -> {g:Vect n c} -> (setAndMult:SetWithMult c) -> {c_prod:c} -> ProductOfVariables setAndMult g c_prod -> Monomial setAndMult g c_prod
-    ProdOfVarWithConst : {c:Type} -> {n:Nat} -> {g:Vect n c} -> (setAndMult:SetWithMult c) -> (const1:c) -> {c_prod:c} -> (ProductOfVariables setAndMult g c_prod) -> Monomial setAndMult g ((mult setAndMult) const1 c_prod)
+data Monomial : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> (Vect n c) -> c -> Type where
+    ProdOfVar : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> {c_prod:c} -> ProductOfVariables setAndMult g c_prod -> Monomial setAndMult g c_prod
+    ProdOfVarWithConst : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> (const1:c) -> {c_prod:c} -> (ProductOfVariables setAndMult g c_prod) -> Monomial setAndMult g ((mult setAndMult) const1 c_prod)
 
 total
-monomial_eq : {c:Type} -> {n:Nat} -> (setAndMult:SetWithMult c) -> {g : Vect n c} -> {c1:c} -> (mon1 : Monomial setAndMult g c1) -> {c2:c} -> (mon2 : Monomial setAndMult g c2) -> Maybe (eq (c_set setAndMult) c1 c2)
+monomial_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (mon1 : Monomial setAndMult g c1) -> {c2:c} -> (mon2 : Monomial setAndMult g c2) -> Maybe (eq c_set c1 c2)
 monomial_eq setAndMult (ProdOfVar _ prod1) (ProdOfVar _ prod2) with (productOfVariables_eq setAndMult prod1 prod2)
     monomial_eq setAndMult (ProdOfVar _ prod1) (ProdOfVar _ prod2) | (Just prEquivProducts) = Just prEquivProducts
     monomial_eq setAndMult (ProdOfVar _ prod1) (ProdOfVar _ prod2) | _ = Nothing
@@ -275,12 +275,12 @@ monomial_eq _ _ _ = Nothing
 
 
 -- Things like "5*(x*y)" (simple case), "[5*(x*y)] * [18*(x*(y*z)]", ... (each monomial being in the form right associative)
-data ProductOfMonomials : {c:Type} -> {n:Nat} -> (setAndMult:SetWithMult c) -> (Vect n c) -> c -> Type where
-    LastMonomial : {c:Type} -> {n:Nat} -> {g:Vect n c} -> (setAndMult:SetWithMult c) -> {c_prod:c} -> Monomial setAndMult g c_prod -> ProductOfMonomials setAndMult g c_prod
-    MonomialMultProduct : {c:Type} -> {n:Nat} -> {g:Vect n c} -> (setAndMult:SetWithMult c) -> {c_mon:c} -> (Monomial setAndMult g c_mon) -> {c_prod:c} -> (ProductOfMonomials setAndMult g c_prod) -> ProductOfMonomials setAndMult g ((mult setAndMult) c_mon c_prod)
+data ProductOfMonomials : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> (Vect n c) -> c -> Type where
+    LastMonomial : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> {c_prod:c} -> Monomial setAndMult g c_prod -> ProductOfMonomials setAndMult g c_prod
+    MonomialMultProduct : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> {c_mon:c} -> (Monomial setAndMult g c_mon) -> {c_prod:c} -> (ProductOfMonomials setAndMult g c_prod) -> ProductOfMonomials setAndMult g ((mult setAndMult) c_mon c_prod)
     
 
-productOfMonomials_eq : {c:Type} -> {n:Nat} -> (setAndMult:SetWithMult c) -> {g : Vect n c} -> {c1:c} -> (prod1 : ProductOfMonomials setAndMult g c1) -> {c2:c} -> (prod2 : ProductOfMonomials setAndMult g c2) -> Maybe (eq (c_set setAndMult) c1 c2)
+productOfMonomials_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (prod1 : ProductOfMonomials setAndMult g c1) -> {c2:c} -> (prod2 : ProductOfMonomials setAndMult g c2) -> Maybe (eq c_set c1 c2)
 productOfMonomials_eq setAndMult (LastMonomial _ mon1) (LastMonomial _ mon2) with (monomial_eq setAndMult mon1 mon2)
     productOfMonomials_eq setAndMult (LastMonomial _ mon1) (LastMonomial _ mon2) | (Just mon1_equiv_mon2) = Just mon1_equiv_mon2
     productOfMonomials_eq setAndMult (LastMonomial _ mon1) (LastMonomial _ mon2) | _ = Nothing
@@ -294,34 +294,34 @@ productOfMonomials_eq _ _ _ = Nothing
 -- -----------------------------------------------------------
 
 -- NEW : We require 'c' to be "at least" a set, instead of just asking for the "equivalence relation" (which was previously an equality)
-data Variable : {c:Type} -> {n:Nat} -> (neg:c->c) -> (setAndMult:SetWithMult c) -> (Vect n c) -> c -> Type where
-    RealVariable : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (mult:c->c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_set neg mult g (index i g) -- neg is not used here
-    EncodingGroupTerm_var : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (mult:c->c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_set neg mult g (neg (index i g)) -- neg is used here
+data Variable : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (setAndMult:Maybe (SetWithMult c c_set)) -> (Vect n c) -> c -> Type where
+    RealVariable : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_set neg Nothing g (index i g) -- neg is not used here
+    EncodingGroupTerm_var : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (g:Vect n c) -> (i:Fin n) -> Variable c_set neg Nothing g (neg (index i g)) -- neg is used here
     --Note : I'd have prefered to not have to pass a "neg" function as argument, since I could be directly indexed over the real "Neg", but that doesn't work for Variable_eq definition
-    EncodingProductOfMonomials : {c:Type} -> {n:Nat} -> (neg:c->c) -> {g:Vect n c} -> {setAndMult:SetWithMult c} -> (c_prod:c) -> (ProductOfMonomials setAndMult g c_prod) -> Variable (c_set setAndMult) neg (mult setAndMult) g c_prod
+    EncodingProductOfMonomials : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> {g:Vect n c} -> {setAndMult:SetWithMult c c_set} -> (c_prod:c) -> (ProductOfMonomials setAndMult g c_prod) -> Variable c_set neg (Just setAndMult) g c_prod
     --EncodingGroupTerm_const : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> VariableA c_equal neg g (neg c1) -- and here
     -- Encoding fot constants is no longer needed since we can just put a constant of value (Neg c) : we can still use Neg during the conversion because we still have a Group, even though we convert to a Monoid !
 
-Variable_eq : {c:Type} -> {n:Nat} -> {c1:c} -> {c2:c} -> (neg:c->c) -> (setAndMult:SetWithMult c) -> (g:Vect n c) -> (v1:Variable c_set neg mult g c1) -> (v2:Variable c_set neg mult g c2) -> Maybe (c1~=c2)
-Variable_eq neg mult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i2) with (decEq i1 i2)
-    Variable_eq neg mult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
-    Variable_eq neg mult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i2) | _ = Nothing
-Variable_eq neg mult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i2) with (decEq i1 i2) 
-    Variable_eq neg mult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
-    Variable_eq neg mult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i2) | _ = Nothing
-Variable_eq neg mult g (EncodingProductOfMonomials _ _ prod1) (EncodingProductOfMonomials _ _ prod2) with (productOfMonomials_eq mult prod1 prod2)
-    Variable_eq neg mult g (EncodingProductOfMonomials _ _ prod1) (EncodingProductOfMonomials _ _ prod2) | (Just prod1_equiv_prod2) = Just (prod1_equiv_prod2)
-    Variable_eq neg mult g (EncodingProductOfMonomials _ _ prod1) (EncodingProductOfMonomials _ _ prod2) | _ = Nothing
+Variable_eq : {c:Type} -> {c_set:Set c} -> {n:Nat} -> {c1:c} -> {c2:c} -> (neg:c->c) -> (optSetAndMult:Maybe (SetWithMult c c_set)) -> (g:Vect n c) -> (v1:Variable c_set neg optSetAndMult g c1) -> (v2:Variable c_set neg optSetAndMult g c2) -> Maybe (c1~=c2)
+Variable_eq neg Nothing g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) with (decEq i1 i2)
+    Variable_eq neg Nothing g (RealVariable _ _ _ i1) (RealVariable _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
+    Variable_eq neg Nothing g (RealVariable _ _ _ i1) (RealVariable _ _ _ i2) | _ = Nothing
+Variable_eq neg Nothing g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i2) with (decEq i1 i2) 
+    Variable_eq neg Nothing g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
+    Variable_eq neg Nothing g (EncodingGroupTerm_var _ _ _ i1) (EncodingGroupTerm_var _ _ _ i2) | _ = Nothing
+Variable_eq neg (Just setAndMult) g (EncodingProductOfMonomials _ _ _ prod1) (EncodingProductOfMonomials _ _ _ prod2) with (productOfMonomials_eq setAndMult prod1 prod2)
+    Variable_eq neg (Just setAndMult) g (EncodingProductOfMonomials _ _ _ prod1) (EncodingProductOfMonomials _ _ _ prod2) | (Just prod1_equiv_prod2) = Just (prod1_equiv_prod2)
+    Variable_eq neg (Just setAndMult) g (EncodingProductOfMonomials _ _ _ prod1) (EncodingProductOfMonomials _ _ _ prod2) | _ = Nothing
 --Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) with (c_equal c1 c2)
 --    Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c1) | (Just Refl) = Just Refl
 --    Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) | _ = Nothing
-Variable_eq neg mult g _ _ = Nothing
+Variable_eq neg optSetAndMult g _ _ = Nothing
    
       
-print_Variable : {c1:c} -> {c_set:Set c} -> (f:c -> String) -> {neg:c->c} -> {mult:c->c->c} -> {g:Vect n c} -> Variable c_set neg mult g c1 -> String
-print_Variable f (RealVariable _ _ _ _ i) = "Var " ++ (show (cast i))
-print_Variable f (EncodingGroupTerm_var _ _ _ _ i) = "[Encoding_var (" ++ (show(cast i)) ++ ") ]"
-print_Variable f (EncodingProductOfMonomials _ _ prod) = "encoding of product of monomials" -- Perhaps will need to print something more useful here for debug
+print_Variable : {c:Type} -> {c_set:Set c} -> {n:Nat} -> {c1:c} -> (f:c -> String) -> {neg:c->c} -> {setAndMult:Maybe (SetWithMult c c_set)} -> {g:Vect n c} -> Variable c_set neg setAndMult g c1 -> String
+print_Variable f (RealVariable _ _ _ i) = "Var " ++ (show (cast i))
+print_Variable f (EncodingGroupTerm_var _ _ _ i) = "[Encoding_var (" ++ (show(cast i)) ++ ") ]"
+print_Variable f (EncodingProductOfMonomials _ _ _ prod) = "encoding of product of monomials" -- Perhaps will need to print something more useful here for debug
 --print_VariableA f (EncodingGroupTerm_const _ _ _ c1) = "[Encoding_const (" ++ (f c1) ++ ") ]"
 
 
