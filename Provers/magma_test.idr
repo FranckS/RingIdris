@@ -35,14 +35,19 @@ instance Magma Nat where
     Plus_preserves_equiv p1 p2 = ?MPlus_preserves_equiv_1
 
 
-test1 : (x:Nat) -> ExprMa (%instance) (\x =>x) [x] (Plus 2 (Plus 3 x))
-test1 x = PlusMa _ (ConstMa _ _ _ 2) (PlusMa _ (ConstMa _ _ _ 3) (VarMa _ _ (RealVariable _ _ _ FZ)))
+-- Just a fake term encapsulating a fake multiplication (always returning its first element) and the proof that this multiplication preserves the equality
+FakeNatAndMult : (nat_is_set:Set Nat) -> SetWithMult Nat nat_is_set
+FakeNatAndMult nat_is_set = MkSetWithMult nat_is_set (\x => \y => x) ?MFakeNatAndMult_multPreservesEq
 
-test2 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
-test2 x = PlusMa _ (PlusMa _ (ConstMa _ _ _ 2) (ConstMa _ _ _ 3)) (VarMa _ _ (RealVariable _ _ _ FZ))
+    
+test1 : (x:Nat) -> ExprMa (%instance) (\x =>x) (FakeNatAndMult (%instance)) [x] (Plus 2 (Plus 3 x))
+test1 x = PlusMa _ _ (ConstMa _ _ _ _ 2) (PlusMa _ _ (ConstMa _ _ _ _ 3) (VarMa _ _ _ (RealVariable _ _ _ _ FZ)))
 
-test3 : (x:Nat) -> ExprMa (%instance) (\x => x) [x] (Plus 5 x)
-test3 x = PlusMa _ (ConstMa _ _ _ 5) (VarMa _ _ (RealVariable _ _ _ FZ))
+test2 : (x:Nat) -> ExprMa (%instance) (\x => x) (FakeNatAndMult (%instance)) [x] (Plus 5 x)
+test2 x = PlusMa _ _ (PlusMa _ _ (ConstMa _ _ _ _ 2) (ConstMa _ _ _ _ 3)) (VarMa _ _ _ (RealVariable _ _ _ _ FZ))
+
+test3 : (x:Nat) -> ExprMa (%instance) (\x => x) (FakeNatAndMult (%instance)) [x] (Plus 5 x)
+test3 x = PlusMa _ _ (ConstMa _ _ _ _ 5) (VarMa _ _ _ (RealVariable _ _ _ _ FZ))
 
 --First test : 2 + (3 + x) =\= 5 + x
 total -- cool !
@@ -69,8 +74,8 @@ test2_equal_test3 = \x => let (Just pr) = magmaDecideEq (%instance) (test2 x) (t
 -- but it works for specific values of x, which is what we would expect
 
 
-termX : (x:Nat) -> ExprMa (%instance) (\x => x) [x] x
-termX x = ConstMa _ _ _ x
+termX : (x:Nat) -> ExprMa (%instance) (\x => x) (FakeNatAndMult (%instance)) [x] x
+termX x = ConstMa _ _ _ _ x
 
 total -- cool !
 compare_termX_termX : (x:Nat) -> Maybe (x = x)
@@ -89,5 +94,8 @@ Provers.magma_test.MPlus_preserves_equiv_1 = proof
   rewrite p2
   exact Refl
 
+Provers.magma_test.MFakeNatAndMult_multPreservesEq = proof
+  intro c_set, mult, imp, imp1, imp2, imp3, pr1, pr2
+  exact pr1
 
 

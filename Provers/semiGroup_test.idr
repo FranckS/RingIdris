@@ -19,22 +19,22 @@ instance SemiGroup Nat where
     Plus_assoc c1 c2 c3 = sym (plusAssociative c1 c2 c3)
 
 
-test1' : (x:Nat) -> ExprSG (%instance) (\x => x) [x] (2 + (3 + x))
-test1' x = PlusSG _ (ConstSG _ _ _ 2) (PlusSG _ (ConstSG _ _ _ 3) (VarSG _ _ (RealVariable _ _ _ FZ)))
+test1' : (x:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x] (2 + (3 + x))
+test1' x = PlusSG _ _ (ConstSG _ _ _ _ 2) (PlusSG _ _ (ConstSG _ _ _ _ 3) (VarSG _ _ _ (RealVariable _ _ _ _ FZ)))
 
-test2' : (x:Nat) -> ExprSG (%instance) (\x => x) [x] (5 + x)
-test2' x = PlusSG _ (PlusSG _ (ConstSG _ _ _ 2) (ConstSG _ _ _ 3)) (VarSG _ _ (RealVariable _ _ _ FZ))
+test2' : (x:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x] (5 + x)
+test2' x = PlusSG _ _ (PlusSG _ _ (ConstSG _ _ _ _ 2) (ConstSG _ _ _ _ 3)) (VarSG _ _ _ (RealVariable _ _ _ _ FZ))
 
-test3' : (x:Nat) -> ExprSG (%instance) (\x => x) [x] (5 + x)
-test3' x = PlusSG _ (ConstSG _ _ _ 5) (VarSG _ _ (RealVariable _ _ _ FZ))
+test3' : (x:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x] (5 + x)
+test3' x = PlusSG _ _ (ConstSG _ _ _ _ 5) (VarSG _ _ _ (RealVariable _ _ _ _ FZ))
 
-test4' : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] ((x + (1+1)) + (2 + y))
-test4' x y = (PlusSG _ (PlusSG _ (VarSG _ _ (RealVariable _ _ _ FZ))
-                                 (PlusSG _ (ConstSG _ _ _ 1) (ConstSG _ _ _ 1)))
-                       (PlusSG _ (ConstSG _ _ _ 2) (VarSG _ _ (RealVariable _ _ _ (FS FZ)))))
+test4' : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x, y] ((x + (1+1)) + (2 + y))
+test4' x y = (PlusSG _ _ (PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ))
+                                 (PlusSG _ _ (ConstSG _ _ _ _ 1) (ConstSG _ _ _ _ 1)))
+                       (PlusSG _ _ (ConstSG _ _ _ _ 2) (VarSG _ _ _ (RealVariable _ _ _ _ (FS FZ)))))
              
-test5' : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + (4 + y))
-test5' x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ FZ)) (PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ (FS FZ))))
+test5' : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x, y] (x + (4 + y))
+test5' x y = PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ)) (PlusSG _ _ (ConstSG _ _ _ _ 4) (VarSG _ _ _ (RealVariable _ _ _ _ (FS FZ))))
              
 -- Normalisation of 2 + (3 + x) that should give 5 + x this time, since now we are working with semiGroup
 compare_test1'_test3' : (x:Nat) -> Maybe (2 + (3 + x) = 5 + x)
@@ -78,29 +78,29 @@ print_test5'_norm = (\x => \y => print_ExprSG show (left (rightDep (semiGroupRed
 
 -- new test
 
-new_a : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + 4)
-new_a x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ FZ)) (ConstSG _ _ _ 4)
+new_a : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x, y] (x + 4)
+new_a x y = PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ)) (ConstSG _ _ _ _ 4)
 
 newTest_a : (x:Nat) -> (y:Nat) -> (x+4 = x+4)
 newTest_a x y = let (Just ok) = semiGroupDecideEq (%instance) (new_a x y) (new_a x y) in ok
 -- ok
 
 
-new_b : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (4 + y)
-new_b x y = PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ (FS FZ)))
+new_b : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x, y] (4 + y)
+new_b x y = PlusSG _ _ (ConstSG _ _ _ _ 4) (VarSG _ _ _ (RealVariable _ _ _ _ (FS FZ)))
 
 newTest_b : (x:Nat) -> (y:Nat) -> (4+y = 4+y)
 newTest_b x y = let (Just ok) = semiGroupDecideEq (%instance) (new_b x y) (new_b x y) in ok
 -- ok
 
 
-new_c : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + (4 + y))
-new_c x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ FZ)) 
-                    (PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ (FS FZ))))
+new_c : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x, y] (x + (4 + y))
+new_c x y = PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ)) 
+                    (PlusSG _ _ (ConstSG _ _ _ _ 4) (VarSG _ _ _ (RealVariable _ _ _ _ (FS FZ))))
             
-new_d : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) [x, y] (x + (4 + y))
-new_d x y = PlusSG _ (VarSG _ _ (RealVariable _ _ _ FZ)) 
-                    (PlusSG _ (ConstSG _ _ _ 4) (VarSG _ _ (RealVariable _ _ _ (FS FZ))))
+new_d : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x, y] (x + (4 + y))
+new_d x y = PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ)) 
+                    (PlusSG _ _ (ConstSG _ _ _ _ 4) (VarSG _ _ _ (RealVariable _ _ _ _ (FS FZ))))
             
 newTest_c_d : (x:Nat) -> (y:Nat) -> (x+(4+y) = x+(4+y))
 newTest_c_d x y = let (Just ok) = semiGroupDecideEq (%instance) (new_c x y) (new_d x y) in ok

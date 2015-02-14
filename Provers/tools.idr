@@ -1187,15 +1187,3 @@ Provers.tools.MlastElement'_1 = proof
 
 
 
-
-
-
-
----------- Proofs ----------
-
-
-
-
-
-
-
