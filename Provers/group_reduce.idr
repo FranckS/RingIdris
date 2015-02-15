@@ -18,63 +18,63 @@ import Provers.tools
 
 
 total
-elimMinus : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-elimMinus p (ConstG _ _ const) = (_ ** (ConstG _ _ const, set_eq_undec_refl _))
-elimMinus p (PlusG e1 e2) = 
-  let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
-  let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p e2) in
-    ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimMinus1))
-elimMinus p (VarG _ v) = (_ ** (VarG _ v, set_eq_undec_refl _))    
-elimMinus p (MinusG e1 e2) = 
-  let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
-  let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p e2) in
-    ((Plus r_ih1 (Neg r_ih2)) ** (PlusG e_ih1 (NegG e_ih2), ?MelimMinus2)) 
-elimMinus p (NegG e1) = 
-  let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p e1) in
-    (_ ** (NegG e_ih1, ?MelimMinus3))
+elimMinus : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+elimMinus p setAndMult (ConstG _ _ _ const) = (_ ** (ConstG _ _ _ const, set_eq_undec_refl _))
+elimMinus p setAndMult (PlusG _ e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p setAndMult e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p setAndMult e2) in
+		((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MelimMinus1))
+elimMinus p setAndMult (VarG _ _ v) = (_ ** (VarG _ _ v, set_eq_undec_refl _))    
+elimMinus p setAndMult (MinusG _ e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p setAndMult e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p setAndMult e2) in
+		((Plus r_ih1 (Neg r_ih2)) ** (PlusG _ e_ih1 (NegG _ e_ih2), ?MelimMinus2)) 
+elimMinus p setAndMult (NegG _ e1) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p setAndMult e1) in
+		(_ ** (NegG _ e_ih1, ?MelimMinus3))
   
   
 -- Ex : -(a+b) becomes (-b) + (-a)
 -- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
-propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-propagateNeg p (NegG (PlusG e1 e2)) =
-  let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p (NegG e1)) in
-  let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p (NegG e2)) in
-    ((Plus r_ih2 r_ih1) ** (PlusG e_ih2 e_ih1, ?MpropagateNeg_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
-propagateNeg p (NegG e) = 
-  let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg p e in
-      (Neg r_ih1 ** (NegG e_ih1, ?MpropagateNeg_2))
-propagateNeg p (PlusG e1 e2) = 
-  let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p e1) in
-  let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p e2) in
-    ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MpropagateNeg_3))
-propagateNeg p e =
+propagateNeg : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+propagateNeg p setAndMult (NegG _ (PlusG _ e1 e2)) =
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p setAndMult (NegG _ e1)) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p setAndMult (NegG _ e2)) in
+		((Plus r_ih2 r_ih1) ** (PlusG _ e_ih2 e_ih1, ?MpropagateNeg_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
+propagateNeg p setAndMult (NegG _ e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg p setAndMult e in
+		(Neg r_ih1 ** (NegG _ e_ih1, ?MpropagateNeg_2))
+propagateNeg p setAndMult (PlusG _ e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p setAndMult e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p setAndMult e2) in
+		((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MpropagateNeg_3))
+propagateNeg p setAndMult e =
   (_ ** (e, set_eq_undec_refl _)) 
   
 
 -- Needed because calling propagateNeg on -(-(a+b)) gives - [-b + -a] : we may need other passes
-propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-propagateNeg_fix p e = 
-	let (r_1 ** (e_1, p_1)) = propagateNeg p e in
-		case exprG_eq p _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
+propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+propagateNeg_fix p setAndMult e = 
+	let (r_1 ** (e_1, p_1)) = propagateNeg p setAndMult e in
+		case exprG_eq p _ _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
 			Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
-			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg_fix p e_1 in -- We do another passe
+			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg_fix p setAndMult e_1 in -- We do another passe
 							(r_ih1 ** (e_ih1, ?MpropagateNeg_fix_1))
   
 
 total
-elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-elimDoubleNeg p (NegG (NegG e1)) =
-  let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p e1 in
+elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+elimDoubleNeg p setAndMult (NegG _ (NegG _ e1)) =
+	let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p setAndMult e1 in
     (_ ** (e_ih1, ?MelimDoubleNeg_1))
-elimDoubleNeg p (NegG e) = 
-  let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p e in
-    ((Neg r_ih1) ** (NegG e_ih1, ?MelimDoubleNeg_2))
-elimDoubleNeg p (PlusG e1 e2) = 
-  let (r_ih1 ** (e_ih1, p_ih1)) = (elimDoubleNeg p e1) in
-  let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg p e2) in
-    ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MelimDoubleNeg_3))        
-elimDoubleNeg p e1 = 
+elimDoubleNeg p setAndMult (NegG _ e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg p setAndMult e in
+    ((Neg r_ih1) ** (NegG _ e_ih1, ?MelimDoubleNeg_2))
+elimDoubleNeg p setAndMult (PlusG _ e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (elimDoubleNeg p setAndMult e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg p setAndMult e2) in
+    ((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MelimDoubleNeg_3))        
+elimDoubleNeg p setAndMult e1 = 
     (_ ** (e1, set_eq_undec_refl _))
     
 
@@ -82,29 +82,29 @@ elimDoubleNeg p e1 =
 -- it's needed because before reaching the level of computations (magma), negative constants will be wrapped into fake variables, and
 -- that will prevent computations to happen if we don't do this first simplification here.
 total
-fold_negative_constant : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-fold_negative_constant p (PlusG (NegG (ConstG _ _ c1)) (NegG (ConstG _ _ c2))) = (_ ** (NegG (ConstG _ _ (Plus c2 c1)), ?Mfold_negative_constant_1)) -- -- carefull here to the order which has to be reversed : -(a+b) is (-b + -a) but not (-a + -b) in the general case (when it's not an abelian (commutative) group)
-fold_negative_constant p (NegG e) = 
-    let (r_ih ** (e_ih, p_ih)) = fold_negative_constant p e in
-        (_ ** (NegG e_ih, ?Mfold_negative_constant_2))
---fold_negative_constant p (PlusG _ (ConstG p _ _ const1) (VarG _ _ (EncodingGroupTerm_const _ _ _ const2))) = (_ ** (ConstG p _ _ (Plus const1 (Neg const2)), refl))
---fold_negative_constant p (PlusG _ (VarG _ _ (EncodingGroupTerm_const _ _ _ const1)) (ConstG p _ _ const2)) = (_ ** (ConstG p _ _ (Plus (Neg const1) const2), refl))
-fold_negative_constant p (PlusG e1 e2) = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = (fold_negative_constant p e1) in
-    let (r_ih2 ** (e_ih2, p_ih2)) = (fold_negative_constant p e2) in
-        ((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?Mfold_negative_constant_3)) 
+fold_negative_constant : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+fold_negative_constant p setAndMult (PlusG _ (NegG _ (ConstG _ _ _ c1)) (NegG _ (ConstG _ _ _ c2))) = (_ ** (NegG _ (ConstG _ _ _ (Plus c2 c1)), ?Mfold_negative_constant_1)) -- -- carefull here to the order which has to be reversed : -(a+b) is (-b + -a) but not (-a + -b) in the general case (when it's not an abelian (commutative) group)
+fold_negative_constant p setAndMult (NegG _ e) = 
+	let (r_ih ** (e_ih, p_ih)) = fold_negative_constant p setAndMult e in
+        (_ ** (NegG _ e_ih, ?Mfold_negative_constant_2))
+--fold_negative_constant p (PlusG _ _ (ConstG _ _ _ p _ _ const1) (VarG _ _ _ (EncodingGroupTerm_const _ _ _ const2))) = (_ ** (ConstG _ _ _ p _ _ (Plus const1 (Neg const2)), refl))
+--fold_negative_constant p (PlusG _ _ (VarG _ _ _ (EncodingGroupTerm_const _ _ _ const1)) (ConstG _ _ _ p _ _ const2)) = (_ ** (ConstG _ _ _ p _ _ (Plus (Neg const1) const2), refl))
+fold_negative_constant p setAndMult (PlusG _ e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (fold_negative_constant p setAndMult e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (fold_negative_constant p setAndMult e2) in
+        ((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?Mfold_negative_constant_3)) 
 -- Note : not needed to do it recursively for MinusG, since they have already been removed at this point
-fold_negative_constant p e = 
+fold_negative_constant p setAndMult e = 
     (_ ** (e, set_eq_undec_refl _))
 
 
 -- As for propagateNeg, we need the fixpoint
-fold_negative_constant_fix : {c:Type} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-fold_negative_constant_fix p e = 
-	let (r_1 ** (e_1, p_1)) = fold_negative_constant p e in
-		case exprG_eq p _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
+fold_negative_constant_fix : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+fold_negative_constant_fix p setAndMult e = 
+	let (r_1 ** (e_1, p_1)) = fold_negative_constant p setAndMult e in
+		case exprG_eq p _ _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
 			Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
-			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = fold_negative_constant_fix p e_1 in -- We do another passe
+			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = fold_negative_constant_fix p setAndMult e_1 in -- We do another passe
 							(r_ih1 ** (e_ih1, ?Mfold_negative_constant_fix_1))
 
 
@@ -113,46 +113,46 @@ fold_negative_constant_fix p e =
 ------------------------------------------------------------------------   
 
 -- Can't be tagged as total because of the missing cases (like one for Minus) (they have been deleted when we reach this point)
-encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p g c1) -> (c2 ** (ExprMo {n=n} (group_to_monoid_class p) Neg g c2, c1~=c2))
-encode c p g (ConstG _ _ c1) = (c1 ** (ConstMo (group_to_monoid_class p) _ _ c1, set_eq_undec_refl _))
-encode c p g (PlusG e1 e2) = 
-    let (c2_ih1 ** (e_ih1, p_ih1)) = encode c p g e1 in 
-    let (c2_ih2 ** (e_ih2, p_ih2)) = encode c p g e2 in 
-    (_ ** (PlusMo _ e_ih1 e_ih2, ?Mencode_1))
-encode c p g (VarG _ v) = (_ ** ((VarMo (group_to_monoid_class p) _ v), set_eq_undec_refl _))
--- For the (NegG e) (where e can only be a variable or a constant), we encode the variable or the constant
---encode c p g (NegG _ (ConstG _ _ _ c1)) = ((Neg c1) ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_const _ _ _ c1), refl))
-encode c p g (NegG (ConstG _ _ c1)) = ((Neg c1) ** (ConstMo _ _ _ (Neg c1), set_eq_undec_refl _)) 
-encode c p g (NegG (VarG _ (RealVariable _ _ _ i))) = (_ ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_var _ _ _ i), set_eq_undec_refl _))
+encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p setAndMult g c1) -> (c2 ** (ExprMo {n=n} (group_to_monoid_class p) Neg setAndMult g c2, c1~=c2))
+encode c p setAndMult g (ConstG _ _ _ c1) = (c1 ** (ConstMo (group_to_monoid_class p) _ _ _ c1, set_eq_undec_refl _))
+encode c p setAndMult g (PlusG _ e1 e2) = 
+	let (c2_ih1 ** (e_ih1, p_ih1)) = encode c p setAndMult g e1 in 
+	let (c2_ih2 ** (e_ih2, p_ih2)) = encode c p setAndMult g e2 in 
+    (_ ** (PlusMo _ _ e_ih1 e_ih2, ?Mencode_1))
+encode c p setAndMult g (VarG _ _ v) = (_ ** ((VarMo (group_to_monoid_class p) _ _ v), set_eq_undec_refl _))
+-- For the (NegG _ e) (where e can only be a variable or a constant), we encode the variable or the constant
+--encode c p g (NegG _ _ (ConstG _ _ _ c1)) = ((Neg c1) ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_const _ _ _ c1), refl))
+encode c p setAndMult g (NegG _ (ConstG _ _ _ c1)) = ((Neg c1) ** (ConstMo _ _ _ _ (Neg c1), set_eq_undec_refl _)) 
+encode c p setAndMult g (NegG _ (VarG _ _ (RealVariable _ _ _ _ i))) = (_ ** (VarMo (group_to_monoid_class p) _ _ (EncodingGroupTerm_var _ _ _ _ i), set_eq_undec_refl _))
 {-
 -- We should not have the two cases just under : we create the "groupTermEncoding", so they are not supposed to be already here
-encode c n p g (NegG _ (VarG _ _ (EncodingGroupTerm_const _ _ _ c1))) = ?total_test_1
-encode c n p g (NegG _ (VarG _ _ (EncodingGroupTerm_var _ _ _ i))) = ?total_test_2
--- we should not have something else ! we can only have NegG of constant or variable at this point !
-encode c n p g (NegG _ e) = ?total_test_3
+encode c n p g (NegG _ _ (VarG _ _ _ (EncodingGroupTerm_const _ _ _ c1))) = ?total_test_1
+encode c n p g (NegG _ _ (VarG _ _ _ (EncodingGroupTerm_var _ _ _ i))) = ?total_test_2
+-- we should not have something else ! we can only have NegG _ of constant or variable at this point !
+encode c n p g (NegG _ _ e) = ?total_test_3
 -- and we should not have Minus either (since it has been replace with Neg)
 encode c n p g (MinusG _ e1 e2) = ?total_test_4
 -}
 
 
 total
-decode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) Neg g c1) -> (c2 ** (ExprG {n=n} p g c2, c1~=c2))
-decode p g (ConstMo _ _ _ c1) = (c1 ** (ConstG p g c1, set_eq_undec_refl _))
-decode p g (VarMo _ _ (RealVariable _ _ _ i)) = (_ ** (VarG _ (RealVariable _ _ _ i), set_eq_undec_refl _))
---decode p g (VarMo _ _ (EncodingGroupTerm_const _ _ _ c1)) = (_ ** (NegG _ (ConstG _ _ _ c1), refl))
-decode p g (VarMo _ _ (EncodingGroupTerm_var _ _ _ i)) = (_ ** (NegG (VarG _ (RealVariable _ _ _ i)), set_eq_undec_refl _))
-decode p g (PlusMo _ e1 e2) = 
-	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p g e1 in 
-	let (c2_ih2 ** ((e_ih2, p_ih2))) = decode p g e2 in 
-		(_** (PlusG e_ih1 e_ih2, ?Mdecode_1))
+decode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) Neg setAndMult g c1) -> (c2 ** (ExprG {n=n} p setAndMult g c2, c1~=c2))
+decode p setAndMult g (ConstMo _ _ _ _ c1) = (c1 ** (ConstG p _ g c1, set_eq_undec_refl _))
+decode p setAndMult g (VarMo _ _ _ (RealVariable _ _ _ _ i)) = (_ ** (VarG _ _ (RealVariable _ _ _ _ i), set_eq_undec_refl _))
+--decode p setAndMult g (VarMo _ _ (EncodingGroupTerm_const _ _ _ c1)) = (_ ** (NegG _ _ (ConstG _ _ _ c1), refl))
+decode p setAndMult g (VarMo _ _ _ (EncodingGroupTerm_var _ _ _ _ i)) = (_ ** (NegG _ (VarG _ _ (RealVariable _ _ _ _ i)), set_eq_undec_refl _))
+decode p setAndMult g (PlusMo _ _ e1 e2) = 
+	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p setAndMult g e1 in 
+	let (c2_ih2 ** ((e_ih2, p_ih2))) = decode p setAndMult g e2 in 
+		(_** (PlusG _ e_ih1 e_ih2, ?Mdecode_1))
 
 
 
-code_reduceM_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-code_reduceM_andDecode p g e = 
-	let (c2 ** (e2, pEncode)) = encode _ _ _ e in
+code_reduceM_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+code_reduceM_andDecode p setAndMult g e = 
+	let (c2 ** (e2, pEncode)) = encode _ _ _ _ e in
 	let (c3 ** (e3, pReduce)) = monoidReduce (group_to_monoid_class p) e2 in
-	let (c4 ** (e4, pDecode)) = decode p _ e3 in
+	let (c4 ** (e4, pDecode)) = decode p _ _ e3 in
 		(c4 ** (e4, ?Mcode_reduceM_andDecode_1))
                                               
                                              
@@ -161,164 +161,164 @@ mutual
 --------------------------------------------
 -- Simplify (+e) + (-e) at *one* level of +
 --------------------------------------------
-	elim_plusInverse : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-	elim_plusInverse p g (ConstG _ _ const) = (_ ** (ConstG _ _ const, set_eq_undec_refl const))
-	elim_plusInverse p g (VarG _ {c1=c1} v) = (_ ** (VarG _ v, set_eq_undec_refl c1))
+	elim_plusInverse : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+	elim_plusInverse p setAndMult g (ConstG _ _ _ const) = (_ ** (ConstG _ _ _ const, set_eq_undec_refl const))
+	elim_plusInverse p setAndMult g (VarG _ _ {c1=c1} v) = (_ ** (VarG _ _ v, set_eq_undec_refl c1))
 	-- Reminder : e1 and e2 can't be a Neg themselves, because you are suppose to call elimDoubleNeg before calling this function...
-	elim_plusInverse p g (PlusG (NegG e1) (NegG e2)) = 
-		let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
-		let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
-		(_ ** ((PlusG (NegG e1') (NegG e2')), ?Melim_plusInverse_1))
+	elim_plusInverse p setAndMult g (PlusG _ (NegG _ e1) (NegG _ e2)) = 
+		let (r_e1' ** (e1', p_e1')) = elim_plusInverse p setAndMult g e1 in
+		let (r_e2' ** (e2', p_e2')) = elim_plusInverse p setAndMult g e2 in
+		(_ ** ((PlusG _ (NegG _ e1') (NegG _ e2')), ?Melim_plusInverse_1))
 	-- If e2 is not a Neg !
-	elim_plusInverse p g (PlusG (NegG e1) e2) with (groupDecideEq p e1 e2) -- compare les versions simplifiees de e1 et de e2
-		elim_plusInverse p g (PlusG (NegG e1) e2) | (Just e1_equiv_e2) = (_ ** ((ConstG _ _ Zero), ?Melim_plusInverse_2))
-		elim_plusInverse p g (PlusG (NegG e1) e2) | _ = 
-			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
-			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
-			(_ ** ((PlusG (NegG e1') e2'), ?Melim_plusInverse_2))
+	elim_plusInverse p setAndMult g (PlusG _ (NegG _ e1) e2) with (groupDecideEq p e1 e2) -- compare les versions simplifiees de e1 et de e2
+		elim_plusInverse p setAndMult g (PlusG _ (NegG _ e1) e2) | (Just e1_equiv_e2) = (_ ** ((ConstG _ _ _ Zero), ?Melim_plusInverse_2))
+		elim_plusInverse p setAndMult g (PlusG _ (NegG _ e1) e2) | _ = 
+			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p setAndMult g e2 in
+			(_ ** ((PlusG _ (NegG _ e1') e2'), ?Melim_plusInverse_2))
 	-- If e1 is not a Neg !
-	elim_plusInverse p g (PlusG e1 (NegG e2)) with (groupDecideEq p e1 e2) -- compare les versions simplifiees de e1 et de e2
-		elim_plusInverse p g (PlusG e1 (NegG e2)) | (Just e1_equiv_e2) = (_ ** ((ConstG _ _ Zero), ?Melim_plusInverse_3))
-		elim_plusInverse p g (PlusG e1 (NegG e2)) | _ = 
-			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
-			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
-			(_ ** ((PlusG e1' (NegG e2')), ?Melim_plusInverse_4))
+	elim_plusInverse p setAndMult g (PlusG _ e1 (NegG _ e2)) with (groupDecideEq p e1 e2) -- compare les versions simplifiees de e1 et de e2
+		elim_plusInverse p setAndMult g (PlusG _ e1 (NegG _ e2)) | (Just e1_equiv_e2) = (_ ** ((ConstG _ _ _ Zero), ?Melim_plusInverse_3))
+		elim_plusInverse p setAndMult g (PlusG _ e1 (NegG _ e2)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = elim_plusInverse p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = elim_plusInverse p setAndMult g e2 in
+			(_ ** ((PlusG _ e1' (NegG _ e2')), ?Melim_plusInverse_4))
 	-- If e1 and e2 are not Neg 
-	elim_plusInverse p g (PlusG e1 e2) = 
-		let (r_e1' ** (e1', p_e1')) = elim_plusInverse p g e1 in
-		let (r_e2' ** (e2', p_e2')) = elim_plusInverse p g e2 in
-		(_ ** ((PlusG e1' e2'), ?Melim_plusInverse_5))
-	elim_plusInverse p g {c1=c1} e = (_ ** (e, set_eq_undec_refl c1))
+	elim_plusInverse p setAndMult g (PlusG _ e1 e2) = 
+		let (r_e1' ** (e1', p_e1')) = elim_plusInverse p setAndMult g e1 in
+		let (r_e2' ** (e2', p_e2')) = elim_plusInverse p setAndMult g e2 in
+		(_ ** ((PlusG _ e1' e2'), ?Melim_plusInverse_5))
+	elim_plusInverse p setAndMult g {c1=c1} e = (_ ** (e, set_eq_undec_refl c1))
 		
             
 --------------------------------------------------------------------------
 -- Simplifying (+e) + (-e) with associativity (at two levels of +) !
 --------------------------------------------------------------------------
-	plusInverse_assoc : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
+	plusInverse_assoc : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 	-- (e1 + (-e2 + e3))
-	plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) with (groupDecideEq p e1 e2)
-		plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) | (Just e1_equiv_e2) = 
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in
+	plusInverse_assoc p setAndMult g (PlusG _ e1 (PlusG _ (NegG _ e2) e3)) with (groupDecideEq p e1 e2)
+		plusInverse_assoc p setAndMult g (PlusG _ e1 (PlusG _ (NegG _ e2) e3)) | (Just e1_equiv_e2) = 
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p setAndMult g e3 in
 				(_ ** (e3', ?MplusInverse_assoc_1))
-		plusInverse_assoc p g (PlusG e1 (PlusG (NegG e2) e3)) | _ = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
-			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p g e2 in
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in
-				(_ ** ((PlusG e1' (PlusG (NegG e2') e3')), ?MplusInverse_assoc_2))
+		plusInverse_assoc p setAndMult g (PlusG _ e1 (PlusG _ (NegG _ e2) e3)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p setAndMult g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p setAndMult g e3 in
+				(_ ** ((PlusG _ e1' (PlusG _ (NegG _ e2') e3')), ?MplusInverse_assoc_2))
 	
 	-- (-e1 + (e2+e3))
-	plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) with (groupDecideEq p e1 e2)
-		plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) | (Just e1_equiv_e2) = 
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in 
+	plusInverse_assoc p setAndMult g (PlusG _ (NegG _ e1) (PlusG _ e2 e3)) with (groupDecideEq p e1 e2)
+		plusInverse_assoc p setAndMult g (PlusG _ (NegG _ e1) (PlusG _ e2 e3)) | (Just e1_equiv_e2) = 
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p setAndMult g e3 in 
 				(_ ** (e3', ?MplusInverse_assoc_3))
-		plusInverse_assoc p g (PlusG (NegG e1) (PlusG e2 e3)) | _ = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
-			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p g e2 in
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in
-				(_ ** ((PlusG (NegG e1') (PlusG e2' e3')), ?MplusInverse_assoc_4))
+		plusInverse_assoc p setAndMult g (PlusG _ (NegG _ e1) (PlusG _ e2 e3)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p setAndMult g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p setAndMult g e3 in
+				(_ ** ((PlusG _ (NegG _ e1') (PlusG _ e2' e3')), ?MplusInverse_assoc_4))
 	
 	-- ((e1+e2) + -e3))
-	plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) with (groupDecideEq p e2 e3)
-		plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) | (Just e2_equiv_e3) = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
+	plusInverse_assoc p setAndMult g (PlusG _ (PlusG _ e1 e2) (NegG _ e3)) with (groupDecideEq p e2 e3)
+		plusInverse_assoc p setAndMult g (PlusG _ (PlusG _ e1 e2) (NegG _ e3)) | (Just e2_equiv_e3) = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p setAndMult g e1 in
 				(_ ** (e1', ?MplusInverse_assoc_5))
-		plusInverse_assoc p g (PlusG (PlusG e1 e2) (NegG e3)) | _ = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
-			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p g e2 in
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in
-				(_ ** ((PlusG (PlusG e1' e2') (NegG e3')), ?MplusInverse_assoc_6))
+		plusInverse_assoc p setAndMult g (PlusG _ (PlusG _ e1 e2) (NegG _ e3)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p setAndMult g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p setAndMult g e3 in
+				(_ ** ((PlusG _ (PlusG _ e1' e2') (NegG _ e3')), ?MplusInverse_assoc_6))
 				
 	-- ((e1+(-e2)) + e3)		
-	plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) with (groupDecideEq p e2 e3)
-		plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) | (Just e2_equiv_e3) = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
+	plusInverse_assoc p setAndMult g (PlusG _ (PlusG _ e1 (NegG _ e2)) e3) with (groupDecideEq p e2 e3)
+		plusInverse_assoc p setAndMult g (PlusG _ (PlusG _ e1 (NegG _ e2)) e3) | (Just e2_equiv_e3) = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p setAndMult g e1 in
 				(_ ** (e1', ?MplusInverse_assoc_7))
-		plusInverse_assoc p g (PlusG (PlusG e1 (NegG e2)) e3) | _ = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p g e1 in
-			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p g e2 in
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p g e3 in
-				(_ ** ((PlusG (PlusG e1' (NegG e2')) e3'), ?MplusInverse_assoc_8))
+		plusInverse_assoc p setAndMult g (PlusG _ (PlusG _ e1 (NegG _ e2)) e3) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc p setAndMult g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc p setAndMult g e3 in
+				(_ ** ((PlusG _ (PlusG _ e1' (NegG _ e2')) e3'), ?MplusInverse_assoc_8))
 				
-	plusInverse_assoc p g (PlusG e1 e2) =
-		let (r_ih1 ** (e_ih1, p_ih1)) = (plusInverse_assoc p g e1) in
-		let (r_ih2 ** (e_ih2, p_ih2)) = (plusInverse_assoc p g e2) in
-			((Plus r_ih1 r_ih2) ** (PlusG e_ih1 e_ih2, ?MplusInverse_assoc_9))
+	plusInverse_assoc p setAndMult g (PlusG _ e1 e2) =
+		let (r_ih1 ** (e_ih1, p_ih1)) = (plusInverse_assoc p setAndMult g e1) in
+		let (r_ih2 ** (e_ih2, p_ih2)) = (plusInverse_assoc p setAndMult g e2) in
+			((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MplusInverse_assoc_9))
 			
 	-- Anything else
-	plusInverse_assoc p g {c1=c1} e =
+	plusInverse_assoc p setAndMult g {c1=c1} e =
 		(_ ** (e, set_eq_undec_refl c1))
 
 	
 	-- NEW : 3 levels of +
-	plusInverse_assoc' : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
+	plusInverse_assoc' : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 	-- (a+b) + ((-c)+d)
-	plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) with (groupDecideEq p e2 e3)
-		plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) | (Just e2_equiv_e3) = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
-			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
-				(_ ** (PlusG e1' e4', ?MplusInverse_assoc'_1))
-		plusInverse_assoc' p g (PlusG (PlusG e1 e2) (PlusG (NegG e3) e4)) | _ = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
-			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc' p g e2 in
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc' p g e3 in
-			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
-				(_ ** ((PlusG (PlusG e1' e2') (PlusG (NegG e3') e4')), ?MplusInverse_assoc'_2))
+	plusInverse_assoc' p setAndMult g (PlusG _ (PlusG _ e1 e2) (PlusG _ (NegG _ e3) e4)) with (groupDecideEq p e2 e3)
+		plusInverse_assoc' p setAndMult g (PlusG _ (PlusG _ e1 e2) (PlusG _ (NegG _ e3) e4)) | (Just e2_equiv_e3) = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p setAndMult g e1 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p setAndMult g e4 in
+				(_ ** (PlusG _ e1' e4', ?MplusInverse_assoc'_1))
+		plusInverse_assoc' p setAndMult g (PlusG _ (PlusG _ e1 e2) (PlusG _ (NegG _ e3) e4)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc' p setAndMult g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc' p setAndMult g e3 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p setAndMult g e4 in
+				(_ ** ((PlusG _ (PlusG _ e1' e2') (PlusG _ (NegG _ e3') e4')), ?MplusInverse_assoc'_2))
 				
 	-- (a+(-b)) + (c+d)
-	plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e3 e4)) with (groupDecideEq p e2 e3)
-		plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e3 e4)) | (Just e2_equiv_e3) = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
-			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
-				(_ ** (PlusG e1' e4', ?MplusInverse_assoc'_3))
-		plusInverse_assoc' p g (PlusG (PlusG e1 (NegG e2)) (PlusG e3 e4)) | _ = 
-			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p g e1 in
-			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc' p g e2 in
-			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc' p g e3 in
-			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p g e4 in
-				(_ ** ((PlusG (PlusG e1' (NegG e2')) (PlusG e3' e4')), ?MplusInverse_assoc'_4))
+	plusInverse_assoc' p setAndMult g (PlusG _ (PlusG _ e1 (NegG _ e2)) (PlusG _ e3 e4)) with (groupDecideEq p e2 e3)
+		plusInverse_assoc' p setAndMult g (PlusG _ (PlusG _ e1 (NegG _ e2)) (PlusG _ e3 e4)) | (Just e2_equiv_e3) = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p setAndMult g e1 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p setAndMult g e4 in
+				(_ ** (PlusG _ e1' e4', ?MplusInverse_assoc'_3))
+		plusInverse_assoc' p setAndMult g (PlusG _ (PlusG _ e1 (NegG _ e2)) (PlusG _ e3 e4)) | _ = 
+			let (r_e1' ** (e1', p_e1')) = plusInverse_assoc' p setAndMult g e1 in
+			let (r_e2' ** (e2', p_e2')) = plusInverse_assoc' p setAndMult g e2 in
+			let (r_e3' ** (e3', p_e3')) = plusInverse_assoc' p setAndMult g e3 in
+			let (r_e4' ** (e4', p_e4')) = plusInverse_assoc' p setAndMult g e4 in
+				(_ ** ((PlusG _ (PlusG _ e1' (NegG _ e2')) (PlusG _ e3' e4')), ?MplusInverse_assoc'_4))
 				
 	-- Anything else
-	plusInverse_assoc' p g {c1=c1} e =
+	plusInverse_assoc' p setAndMult g {c1=c1} e =
 		(_ ** (e, set_eq_undec_refl c1))
 				
 			
-	pre_groupReduce : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (g:Vect n c) -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
-	pre_groupReduce c p g e =
-                let (r_1 ** (e_1, p_1)) = elimMinus p e in
-                let (r_2 ** (e_2, p_2)) = propagateNeg_fix p e_1 in
-                let (r_3 ** (e_3, p_3)) = elimDoubleNeg p e_2 in
-                let (r_4 ** (e_4, p_4)) = elim_plusInverse p g e_3 in
-                let (r_5 ** (e_5, p_5)) = plusInverse_assoc p g e_4 in
-                let (r_6 ** (e_6, p_6)) = plusInverse_assoc' p g e_5 in -- NEW (assoc at 3 levels of +, for dealing with things like (x+y) + (-y + z)
-                let (r_7 ** (e_7, p_7)) = fold_negative_constant_fix p e_6 in
-                -- IMPORTANT : At this stage, we only have negation on variables and constants.
-                -- Thus, we can continue the reduction by calling the reduction for a monoid, with encoding for the minus :
-                -- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
-                let (r_8 ** (e_8, p_8)) = code_reduceM_andDecode p g e_7 in
-                    (r_8 ** (e_8, ?Mpre_groupReduce_1))
+	pre_groupReduce : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
+	pre_groupReduce c p setAndMult g e =
+		let (r_1 ** (e_1, p_1)) = elimMinus p setAndMult e in
+		let (r_2 ** (e_2, p_2)) = propagateNeg_fix p setAndMult e_1 in
+		let (r_3 ** (e_3, p_3)) = elimDoubleNeg p setAndMult e_2 in
+		let (r_4 ** (e_4, p_4)) = elim_plusInverse p setAndMult g e_3 in
+		let (r_5 ** (e_5, p_5)) = plusInverse_assoc p setAndMult g e_4 in
+		let (r_6 ** (e_6, p_6)) = plusInverse_assoc' p setAndMult g e_5 in -- NEW (assoc at 3 levels of +, for dealing with things like (x+y) + (-y + z)
+		let (r_7 ** (e_7, p_7)) = fold_negative_constant_fix p setAndMult e_6 in
+		-- IMPORTANT : At this stage, we only have negation on variables and constants.
+		-- Thus, we can continue the reduction by calling the reduction for a monoid, with encoding for the minus :
+		-- the expression (-c) is encoded as a constant c', and the variable (-x) as a varible x'
+		let (r_8 ** (e_8, p_8)) = code_reduceM_andDecode p setAndMult g e_7 in
+			(r_8 ** (e_8, ?Mpre_groupReduce_1))
 			
 			
 	-- Computes the fixpoint of pre_groupReduce : do the entire serie of simplification as long as we've not finished (ie, as long as we don't loop on the same term)
 	-- That's needed because some simplification done at the monoid level could lead to new simplification.
 	-- Exemple : (0+(Y)) become (Y) at the Monoid level. And if this Y was encoding (-x), then at the toplevel we can have x + (-x) now,
 	-- which need a new simplification at the group level
-	groupReduce : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {c1:c} -> (ExprG p g c1) -> (c2 ** (ExprG p g c2, c1~=c2))
+	groupReduce : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {setAndMult:SetWithMult c (group_to_set p)} -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 	groupReduce p e = 
-		let (c' ** (e', p')) = pre_groupReduce _ p _ e in
-			case exprG_eq p _ e e' of 
-                        Just pr => (c' ** (e', p'))-- We stop here
-                        Nothing => let (c'' ** (e'', p'')) = groupReduce p e' in
-                                    (c'' ** (e'', ?Mgroup_Reduce_1))
+		let (c' ** (e', p')) = pre_groupReduce _ p _ _ e in
+			case exprG_eq p _ _ e e' of 
+				Just pr => (c' ** (e', p'))-- We stop here
+				Nothing => let (c'' ** (e'', p'')) = groupReduce p e' in
+							(c'' ** (e'', ?Mgroup_Reduce_1))
 		
 			
-        total
-	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p g c1) -> (ExprG p g c2) -> (x~=c1) -> (y~=c2) -> (Maybe (x~=y))
-	buildProofGroup p e1 e2 lp rp with (exprG_eq p _ e1 e2)
+	total
+	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {setAndMult:SetWithMult c (group_to_set p)} -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p setAndMult g c1) -> (ExprG p setAndMult g c2) -> (x~=c1) -> (y~=c2) -> (Maybe (x~=y))
+	buildProofGroup p e1 e2 lp rp with (exprG_eq p _ _ e1 e2)
 		buildProofGroup p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofGroup
 		buildProofGroup p e1 e2 lp rp | Nothing = Nothing
 
 		
-	groupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p g x) -> (ExprG p g y) -> (Maybe (x~=y))
+	groupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {setAndMult:SetWithMult c (group_to_set p)} -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p setAndMult g x) -> (ExprG p setAndMult g y) -> (Maybe (x~=y))
 	-- e1 is the left side, e2 is the right side
 	groupDecideEq p e1 e2 =
 		let (r_e1 ** (e_e1, p_e1)) = groupReduce p e1 in
