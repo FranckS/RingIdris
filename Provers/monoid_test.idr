@@ -30,11 +30,11 @@ instance dataTypes.Monoid Nat where
     
     
 
-a : (x:Nat) -> ExprMo (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x] (2 + (x + 0)) 
+a : (x:Nat) -> ExprMo (%instance) (\x => x) (FakeSetAndMult (monoid_to_set (%instance))) [x] (2 + (x + 0)) 
 a x = PlusMo _ _ (ConstMo _ _ _ _ 2) (PlusMo _ _ (VarMo _ _ _ (RealVariable _ _ _ _ FZ)) (ConstMo _ _ _ _ 0))
 
 
-b : (x:Nat) -> ExprMo (%instance) (\x => x) (FakeNatAndMult (semiGroup_to_set (%instance))) [x] (2 + x)
+b : (x:Nat) -> ExprMo (%instance) (\x => x) (FakeSetAndMult (monoid_to_set (%instance))) [x] (2 + x)
 b x = PlusMo _ _ (ConstMo _ _ _ _ 2) (VarMo _ _ _ (RealVariable _ _ _ _ FZ))
 
 

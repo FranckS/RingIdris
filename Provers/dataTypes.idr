@@ -51,7 +51,7 @@ eq_preserves_eq p x y c1 c2 p1 p2 p3 =
     let paux : (x~=c2) = ?Meq_preserves_eq_1 in
     let paux2 : (c2~=y) = ?Meq_preserves_eq_2 in
         ?Meq_preserves_eq_3
-        
+            
         
         
 class Set c => Magma c where
@@ -239,8 +239,11 @@ ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
 record SetWithMult : (c:Type) -> (Set c) -> Type where
   MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
 
-  
-    
+-- Just a fake term encapsulating a fake multiplication (always returning its first element) and the proof that this multiplication preserves the equality
+FakeSetAndMult : {c:Type} -> (c_is_set:Set c) -> SetWithMult c c_is_set
+FakeSetAndMult c_is_set = MkSetWithMult c_is_set (\x => \y => x) ?MFakeSetAndMult_multPreservesEq
+      
+
 
 -- Things like "x" (simple case), "x*y", "x*(y*z)", ... (all in the form right associative)
 data ProductOfVariables : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> (Vect n c) -> c -> Type where
@@ -710,6 +713,8 @@ Provers.dataTypes.MexprR_eq_2 = proof
   exact p1
   exact p2
 
-
+Provers.dataTypes.MFakeSetAndMult_multPreservesEq = proof
+  intro c, c_set, mult, imp, imp1, imp2, imp3, pr1, pr2
+  exact pr1
   
   

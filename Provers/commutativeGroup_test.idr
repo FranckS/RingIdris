@@ -19,18 +19,18 @@ instance dataTypes.CommutativeGroup ZZ where
     
 
 -- x + (-x)
-expA : (x:ZZ) -> ExprCG (%instance) [x] (x + (- x))
-expA x = PlusCG (VarCG _ (RealVariable _ _ _ FZ)) (NegCG (VarCG _ (RealVariable _ _ _ FZ)))
+expA : (x:ZZ) -> ExprCG (%instance) (FakeSetAndMult (commutativeGroup_to_set (%instance))) [x] (x + (- x))
+expA x = PlusCG _ (VarCG _ _ (RealVariable _ _ _ _ FZ)) (NegCG _ (VarCG _ _ (RealVariable _ _ _ _ FZ)))
 
 
 -- (-x) + x
-expB : (x:ZZ) -> ExprCG (%instance) [x] ((-x) + x)
-expB x = PlusCG (NegCG (VarCG _ (RealVariable _ _ _ FZ))) (VarCG _ (RealVariable _ _ _ FZ))
+expB : (x:ZZ) -> ExprCG (%instance) (FakeSetAndMult (commutativeGroup_to_set (%instance))) [x] ((-x) + x)
+expB x = PlusCG _ (NegCG _ (VarCG _ _ (RealVariable _ _ _ _ FZ))) (VarCG _ _ (RealVariable _ _ _ _ FZ))
 
 
 -- 0
-expC : (x:ZZ) -> ExprCG (%instance) [x] (Pos 0)
-expC x = ConstCG _ _ (Pos 0)
+expC : (x:ZZ) -> ExprCG (%instance) (FakeSetAndMult (commutativeGroup_to_set (%instance))) [x] (Pos 0)
+expC x = ConstCG _ _ _ (Pos 0)
 
 
 -- ---------------------------------
@@ -57,20 +57,20 @@ compare_expA_expC x = commutativeGroupDecideEq (%instance) (expA x) (expC x)
 -- --------------------------------------------------------------
 -- TEST 3 : Test if ((u + (x + (-y)))) + ((-x + z) + y) = z + u
 -- --------------------------------------------------------------
-expD : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (((u + (x + (Neg y)))) + ((-x + z) + y))
-expD x y z u = PlusCG 
-            (PlusCG
-                (VarCG _ (RealVariable _ _ _ (FS (FS (FS FZ)))))
-                (PlusCG (VarCG _ (RealVariable _ _ _ FZ)) (NegCG (VarCG _ (RealVariable _ _ _ (FS FZ))))))
-            (PlusCG
-                (PlusCG (NegCG (VarCG _ (RealVariable _ _ _ FZ))) (VarCG _ (RealVariable _ _ _ (FS (FS FZ)))))
-                (VarCG _ (RealVariable _ _ _ (FS FZ))))
+expD : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) (FakeSetAndMult (commutativeGroup_to_set (%instance))) [x, y, z, u] (((u + (x + (Neg y)))) + ((-x + z) + y))
+expD x y z u = PlusCG _ 
+            (PlusCG _
+                (VarCG _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ)))))
+                (PlusCG _ (VarCG _ _ (RealVariable _ _ _ _ FZ)) (NegCG _ (VarCG _ _ (RealVariable _ _ _ _ (FS FZ))))))
+            (PlusCG _
+                (PlusCG _ (NegCG _ (VarCG _ _ (RealVariable _ _ _ _ FZ))) (VarCG _ _ (RealVariable _ _ _ _ (FS (FS FZ)))))
+                (VarCG _ _ (RealVariable _ _ _ _ (FS FZ))))
 
  
-expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) [x, y, z, u] (z + u)
-expE x y z u = PlusCG
-                (VarCG _ (RealVariable _ _ _ (FS (FS FZ))))
-                (VarCG _ (RealVariable _ _ _ (FS (FS (FS FZ)))))
+expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> ExprCG (%instance) (FakeSetAndMult (commutativeGroup_to_set (%instance))) [x, y, z, u] (z + u)
+expE x y z u = PlusCG _
+                (VarCG _ _ (RealVariable _ _ _ _ (FS (FS FZ))))
+                (VarCG _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ)))))
 
 
 compare_expD_expE : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (u:ZZ) -> Maybe (((u + (x + (-y)))) + ((-x + z) + y) = z + u)

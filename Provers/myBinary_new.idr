@@ -56,7 +56,7 @@ adc (numx # bX) (numy # bY) carry
 -- LHS
 LHSreflected : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] 
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1] 
                          (plus x1 
                                 (plus 
                                     (plus 
@@ -70,16 +70,16 @@ LHSreflected : (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
                                 )
                         )
 LHSreflected c bit0 bit1 x x1 v v1 = 
-        PlusCM (VarCM _ (FS (FS( (FS (FS FZ))))))
-               (PlusCM
-                        (PlusCM
-                            (PlusCM (VarCM _ (FS (FS (FS FZ)))) (VarCM _ (FS (FS (FS (FS (FS FZ)))))))
-                            (VarCM _ (FS(FS(FS(FS(FS(FS FZ))))))))
-                        (PlusCM
-                            (PlusCM
-                                (PlusCM (VarCM _ (FS (FS (FS FZ)))) (VarCM _ (FS (FS (FS (FS (FS FZ)))))))
-                                (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))))
-                            (ConstCM _ _ Z))
+        PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS( (FS (FS FZ)))))))
+               (PlusCM _
+                        (PlusCM _
+                            (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))) (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ))))))))
+                            (VarCM _ _ (RealVariable _ _ _ _ (FS(FS(FS(FS(FS(FS FZ)))))))))
+                        (PlusCM _
+                            (PlusCM _
+                                (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))) (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ))))))))
+                                (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS (FS FZ)))))))))
+                            (ConstCM _ _ _ Z))
                 )
         
 
@@ -96,11 +96,11 @@ LHSreflected' c bit0 bit1 x x1 v v1 = left (rightDep (commutativeMonoidReduce _ 
 -- Just the same as above, but by hand
 LHSreflected'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (v1+(v1+(v+(v+(x1+(x+x))))))
-LHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) 
-					  (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) 
-					    (PlusCM (VarCM _ (FS (FS (FS (FS FZ))))) (PlusCM (VarCM _ (FS (FS (FS FZ)))) 
-                                                        (VarCM _ (FS (FS (FS FZ)))))))))
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1] (v1+(v1+(v+(v+(x1+(x+x))))))
+LHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM _ (VarCM _ _ (RealVariable _ _ _ _  (FS (FS (FS (FS (FS (FS FZ)))))))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS (FS FZ)))))))) 
+					  (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ))))))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ))))))) 
+					    (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS FZ)))))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))) 
+                                                        (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))))))))
          
         
         
@@ -108,7 +108,7 @@ LHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS (FS (F
 -- RHS
 RHSreflected : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] 
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1] 
                          (plus 
                             (plus c 
                                    (plus bit0 
@@ -122,16 +122,16 @@ RHSreflected : (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
                              )
                          )
 RHSreflected c bit0 bit1 x x1 v v1 = 
-                PlusCM
-                    (PlusCM (VarCM _ FZ)
-                            (PlusCM (VarCM _ (FS FZ))
-                                   (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ))))))
-                                          (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) (ConstCM _ _ Z))
+                PlusCM _
+                    (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ FZ))
+                            (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS FZ)))
+                                   (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ)))))))
+                                          (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ))))))) (ConstCM _ _ _ Z))
                                    )
                             )
                     )
-                    (PlusCM (VarCM _ (FS  (FS FZ)))
-                            (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (ConstCM _ _ Z)))
+                    (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS  (FS FZ))))
+                            (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS (FS FZ)))))))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS (FS FZ)))))))) (ConstCM _ _ _ Z)))
                     )
             
             
@@ -139,11 +139,11 @@ RHSreflected c bit0 bit1 x x1 v v1 =
             
 RHSreflected'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus v1 (plus v1 (plus v (plus v (plus bit1 (plus bit0 c))))))
-RHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS (FS FZ))))))) 
-					  (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) (PlusCM (VarCM _ (FS (FS (FS (FS (FS FZ)))))) 
-					    (PlusCM (VarCM _ (FS (FS FZ))) (PlusCM (VarCM _ (FS FZ)) 
-                                                                                                (VarCM _ FZ))))))
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1] (plus v1 (plus v1 (plus v (plus v (plus bit1 (plus bit0 c))))))
+RHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS (FS FZ)))))))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS (FS FZ)))))))) 
+					  (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ))))))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS (FS FZ))))))) 
+					    (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS FZ)))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS FZ))) 
+                                                                                                (VarCM _ _ (RealVariable _ _ _ _ FZ)))))))
 														  
   
             
@@ -151,11 +151,11 @@ RHSreflected'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS (FS (F
 --LHS of the known equality
 leftKnown : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1]
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1]
                     (plus (plus c bit0) bit1)
-leftKnown c bit0 bit1 x x1 v v1 = PlusCM
-                                    (PlusCM (VarCM _ FZ) (VarCM _ (FS FZ)))
-                                    (VarCM _ (FS (FS FZ)))
+leftKnown c bit0 bit1 x x1 v v1 = PlusCM _
+                                    (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ FZ)) (VarCM _ _ (RealVariable _ _ _ _ (FS FZ))))
+                                    (VarCM _ _ (RealVariable _ _ _ _ (FS (FS FZ))))
                     
                     
                     
@@ -163,29 +163,29 @@ leftKnown c bit0 bit1 x x1 v v1 = PlusCM
 -- Normalized LHS of the known equality
 leftKnown'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus bit1 (plus bit0 c))
-leftKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS FZ))) 
-					  (PlusCM (VarCM _ (FS FZ)) (VarCM _ FZ))
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1] (plus bit1 (plus bit0 c))
+leftKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS FZ)))) 
+					  (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS FZ))) (VarCM _ _ (RealVariable _ _ _ _ FZ)))
 
 
                     
 -- RHS of the known equality                    
 rightKnown : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1]
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1]
                     (plus x1
                           (plus x (plus x Z)))
-rightKnown c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS FZ)))))
-                                          (PlusCM (VarCM _ (FS (FS (FS FZ)))) (PlusCM (VarCM _ (FS (FS (FS FZ)))) (ConstCM _ _ Z))) 
+rightKnown c bit0 bit1 x x1 v v1 = PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS FZ))))))
+                                          (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))) (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))) (ConstCM _ _ _ Z))) 
       
       
       
 -- Normalized RHS of the known equality
 rightKnown'_bis : (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
                -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat) 
-               -> ExprCM (%instance) [c, bit0, bit1, x, x1, v, v1] (plus x1 (plus x x))
-rightKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM (VarCM _ (FS (FS (FS (FS FZ)))))
-                                          (PlusCM (VarCM _ (FS (FS (FS FZ)))) (VarCM _ (FS (FS (FS FZ)))))
+               -> ExprCM (%instance) (FakeSetAndMult (commutativeMonoid_to_set (%instance))) [c, bit0, bit1, x, x1, v, v1] (plus x1 (plus x x))
+rightKnown'_bis c bit0 bit1 x x1 v v1 = PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS (FS FZ))))))
+                                          (PlusCM _ (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))) (VarCM _ _ (RealVariable _ _ _ _ (FS (FS (FS FZ))))))
            
       
       

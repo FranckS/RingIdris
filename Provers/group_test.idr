@@ -79,21 +79,15 @@ instance dataTypes.Group ZZ where
     
 
 
--- Just a fake term encapsulating a fake multiplication (always returning its first element) and the proof that this multiplication preserves the equality
-FakeZZAndMult : (zz_is_set:Set ZZ) -> SetWithMult ZZ zz_is_set
-FakeZZAndMult zz_is_set = MkSetWithMult zz_is_set (\x => \y => x) ?MFakeZZAndMult_multPreservesEq
-    
-    
-    
 -- ----------------------
 -- TEST 1 THAT SHOULD WORK
 -- ----------------------
-termC : (x:ZZ) -> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x] ((2 + (0-2))+x)
+termC : (x:ZZ) -> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x] ((2 + (0-2))+x)
 termC x = PlusG _ (PlusG _ (ConstG _ _ _ (Pos 2))
                                          (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
 				(VarG _ _ (RealVariable _ _ _ _ FZ))
 
-termD : (x:ZZ) -> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x] x
+termD : (x:ZZ) -> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x] x
 termD x = VarG _ _ (RealVariable _ _ _ _ FZ)
 
 
@@ -109,16 +103,16 @@ proof_termC_termD x = let (Just ok) = compare_termC_termD x in ok
 -- RESULT : WORKS FOR ALL X !
   
 
-termE : (x:ZZ) -> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x] ((3 + (0-2))+x)
+termE : (x:ZZ) -> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x] ((3 + (0-2))+x)
 termE x = PlusG _ (PlusG _ (ConstG _ _ _ (Pos 3))
                            (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
                   (VarG _ _ (RealVariable _ _ _ _ FZ))
 
-termF : (x:ZZ) -> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x] (1+x)
+termF : (x:ZZ) -> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x] (1+x)
 termF x = PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ _ FZ))
 
 
-termG : (x:ZZ) -> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x] x
+termG : (x:ZZ) -> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x] x
 termG x = VarG _ _ (RealVariable _ _ _ _FZ)
 
 
@@ -158,7 +152,7 @@ proof_termE_termG x = let (Just ok) = compare_termE_termG x in ok
 -- TEST 4 THAT SHOULD WORK
 -- ----------------------
 
-termH : (x:ZZ) -> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x] ((-2 + (0 + (-(-2)))) + x)
+termH : (x:ZZ) -> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x] ((-2 + (0 + (-(-2)))) + x)
 termH x = PlusG _ (PlusG _ (NegG _ (ConstG _ _ _ (Pos 2)))
                            (PlusG _ (ConstG _ _ _ (Pos 0)) (NegG _ (NegG _ (ConstG _ _ _ (Pos 2))))))
                   (VarG _ _ (RealVariable _ _ _ _ FZ))
@@ -184,7 +178,7 @@ proof_termH_termG x = let (Just ok) = compare_termH_termG x in ok
 -- Here : e1 - y
 --        e2 = ((3 + (0-2))+x)
 --        e3 = 1+x
-termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
+termJ : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x, y] ((y + ((3 + (0-2))+x)) + (-(1+x)))
 termJ x y = PlusG _ (PlusG _ (VarG _ _ (RealVariable _ _ _ _ (FS FZ))) 
                              (PlusG _ (PlusG _ (ConstG _ _ _ (Pos 3))
                                                (MinusG _ (ConstG _ _ _ (Pos 0)) (ConstG _ _ _ (Pos 2))))
@@ -192,10 +186,10 @@ termJ x y = PlusG _ (PlusG _ (VarG _ _ (RealVariable _ _ _ _ (FS FZ)))
                     (NegG _ (PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ _ FZ))))
 
 
-termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x, y] y
+termK : (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x, y] y
 termK x y = VarG _ _ (RealVariable _ _ _ _ (FS FZ))
 
-termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (FakeZZAndMult (group_to_set (%instance))) [x, y] ((y + (1+x)) + (-(1+x)))
+termL :  (x:ZZ) -> (y:ZZ)-> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x, y] ((y + (1+x)) + (-(1+x)))
 termL x y = PlusG _ (PlusG _ (VarG _ _ (RealVariable _ _ _ _ (FS FZ))) 
                              (PlusG _ (ConstG _ _ _ (Pos 1))
                                       (VarG _ _ (RealVariable _ _ _ _ FZ))))
@@ -258,8 +252,4 @@ Provers.group_test.MNeg_preserves_equiv_1 = proof
   rewrite p
   exact Refl
 
-Provers.group_test.MFakeZZAndMult_multPreservesEq = proof
-  intro c_set, mult, imp, imp1, imp2, imp3, pr1, pr2
-  exact pr1
-
-
+  
