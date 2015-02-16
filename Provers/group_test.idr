@@ -113,7 +113,7 @@ termF x = PlusG _ (ConstG _ _ _ (Pos 1)) (VarG _ _ (RealVariable _ _ _ _ FZ))
 
 
 termG : (x:ZZ) -> ExprG (%instance) (FakeSetAndMult (group_to_set (%instance))) [x] x
-termG x = VarG _ _ (RealVariable _ _ _ _FZ)
+termG x = VarG _ _ (RealVariable _ _ _ _ FZ)
 
 
 
