@@ -394,18 +394,58 @@ shuffleProductRight p g (MultR (MultR e11 e12) (MultR e21 e22)) =
 
 
 
+encodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+
+
+-- The "e" here can't be a Plus, a Neg or a Minus
+encodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+-- At this stage, the only thing we should receive is a real variable, but let's write it on a complete fashions
+encodeProductOfMonomials c p g (VarR _ v) = 
+    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (VarR _ v) in
+        (_ ** (LastMonomial _ mon1, ?MO))
+encodeProductOfMonomials c p g (ConstR _ _ const) = 
+    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (ConstR _ _ const) in
+        (_ ** (LastMonomial _ mon1, ?MO))
+-- For a mult, we now that the left part is forced to be an atom (variable or constant), since we've put eveything in right-associative form before calling the encoding function
+encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = 
+    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (ConstR _ _ (Mult const1 const2)) in
+        (_ ** (LastMonomial _ mon1, ?MO))
+encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
+    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (MultR (ConstR _ _ const1) (VarR _ v)) in
+        (_ ** (LastMonomial _ mon1, ?MO))   
+encodeProductOfMonomials c p g (MultR (VarR _ v) e2) = 
+
+encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+encode c p g (PlusR e1 e2) = 
+    let (r_1 ** (e_1, p_1)) = encode c p g e1 in
+    let (r_2 ** (e_2, p_2)) = encode c p g e2 in
+        (_ ** (PlusCG _ e_1 e_2, ?MA))
+encode c p g (NegR e) = 
+    let (r ** (e, p)) = encode c p g e in
+        (_ ** (NegCG _ e, ?MB))
+-- In the case of a mult, a constant or a var, we know that we have a "product of monomials"
+encode c p g e =
+    let (r_1 ** (pdtOfMon, p_1)) = encodeProductOfMonomials c p g e in
+        (_ ** (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon), ?MFFF))
 
 	
-{-
+
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
-  let (r_1 ** (e_1, p_1)) = removeMinus e in
-  let (r_2 ** (e_2, p_2)) = develop_fix e_1 in
-  let (r_3 ** (
--}	
-	
-	
-	
-	
+  let (r_1 ** (e_1, p_1)) = elimMinus' p e in
+  let (r_2 ** (e_2, p_2)) = develop_fix p e_1 in
+  let (r_3 ** (e_3, p_3)) = shuffleProductRight p _ e_2 in
+    (_ **(e_3, ?MX))
+
 	
 
+---------- Proofs ----------
+Provers.ring_reduce.MX = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_2
+  exact p_1
+  mrefine set_eq_undec_sym 
+  exact p_2
+  exact p_3

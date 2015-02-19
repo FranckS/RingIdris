@@ -160,9 +160,13 @@ commutativeMonoid_to_monoid_class p = (%instance)
 commutativeGroup_to_group_class : (CommutativeGroup c) -> (dataTypes.Group c)
 commutativeGroup_to_group_class p = (%instance)
 
+-- Ring -> CommutativeGroup
+ring_to_commutativeGroup_class : (dataTypes.Ring c) -> (dataTypes.CommutativeGroup c)
+ring_to_commutativeGroup_class p = (%instance)
+
 -- CommutativeRing -> Ring
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
-cr_to_r_class p = %instance -- finds the instance automatically from p
+cr_to_r_class p = (%instance) -- finds the instance automatically from p
 
 
 -- -----------------------------------------
