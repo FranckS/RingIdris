@@ -54,7 +54,7 @@ develop (MultR (ConstR _ _ c1) (MinusR e21 e22)) =
     (_ ** (MinusR e_ih_l e_ih_r, ?Mdevelop_5))    
 develop (MultR (ConstR _ _ c1) (NegR e)) = 
   let (r_ih ** (e_ih, p_ih)) = (develop e) in
-    (_ ** (MultR (ConstR _ _ c1) e_ih, ?Mdevelop_6))
+    (_ ** (MultR (ConstR _ _ c1) (NegR e_ih), ?Mdevelop_6))
 develop (MultR (ConstR _ _ c1) (MultR e21 e22)) = 
   let (r_ih_e21 ** (e_ih_e21, p_ih_e21)) = develop e21 in
   let (r_ih_e22 ** (e_ih_e22, p_ih_e22)) = develop e22 in
@@ -77,7 +77,7 @@ develop (MultR (VarR p v1) (MinusR e21 e22)) =
     (_ ** ((MinusR e_ih_l e_ih_r), ?Mdevelop_9))    
 develop (MultR (VarR p v1) (NegR e)) = 
   let (r_ih ** (e_ih, p_ih)) = (develop e) in
-    (_ ** (MultR (VarR p v1) e_ih, ?Mdevelop_10))    
+    (_ ** (MultR (VarR p v1) (NegR e_ih), ?Mdevelop_10))    
 develop (MultR (VarR p v1) (MultR e21 e22)) = 
   let (r_ih_e21 ** (e_ih_e21, p_ih_e21)) = develop e21 in
   let (r_ih_e22 ** (e_ih_e22, p_ih_e22)) = develop e22 in
@@ -119,7 +119,7 @@ develop (MultR (PlusR e11 e12) (NegR e2)) =
   let (r_ih_e11 ** (e_ih_e11, p_ih_e11)) = develop e11 in
   let (r_ih_e12 ** (e_ih_e12, p_ih_e12)) = develop e12 in
   let (r_ih_e2 ** (e_ih_e2, p_ih_e2)) = develop e2 in
-    (_ ** (PlusR (MultR e_ih_e11 e_ih_e2) (MultR e_ih_e12 e_ih_e2), ?Mdevelop_16))
+    (_ ** (PlusR (MultR e_ih_e11 (NegR e_ih_e2)) (MultR e_ih_e12 (NegR e_ih_e2)), ?Mdevelop_16))
 develop (MultR (PlusR e11 e12) (MultR e21 e22)) = 
   let (r_ih_e11 ** (e_ih_e11, p_ih_e11)) = develop e11 in
   let (r_ih_e12 ** (e_ih_e12, p_ih_e12)) = develop e12 in
@@ -393,33 +393,116 @@ shuffleProductRight p g (MultR (MultR e11 e12) (MultR e21 e22)) =
     (_ ** (e_3, ?MshuffleProductRight23))
 
 
+-- Ex : -(a+b) becomes (-b) + (-a), -(a*b) becomes (-a) * b
+-- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
+propagateNeg' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+propagateNeg' p (NegR (PlusR e1 e2)) =
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p (NegR e2)) in
+		((Plus r_ih2 r_ih1) ** (PlusR e_ih2 e_ih1, ?MpropagateNeg'_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
+propagateNeg' p (NegR (MultR e1 e2)) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
+		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg'_2))
+propagateNeg' p (NegR e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg' p e in
+		((Neg r_ih1) ** (NegR e_ih1, ?MpropagateNeg'_3))
+propagateNeg' p (PlusR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
+		((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?MpropagateNeg_4))
+propagateNeg' p (MultR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
+		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg_4))		
+propagateNeg' p e =
+  (_ ** (e, set_eq_undec_refl _))     
+    
 
+    
+-- Needed because calling propagateNeg on -(-(a+b)) gives - [-b + -a] : we may need other passes
+propagateNeg_fix' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+propagateNeg_fix' p e = 
+	let (r_1 ** (e_1, p_1)) = propagateNeg' p e in
+		case exprR_eq p _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
+			Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
+			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg_fix' p e_1 in -- We do another passe
+							(r_ih1 ** (e_ih1, ?MpropagateNeg_fix'_1))    
+    
+
+total
+elimDoubleNeg' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+elimDoubleNeg' p (NegR (NegR e1)) =
+	let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg' p e1 in
+    (_ ** (e_ih1, ?MelimDoubleNeg'_1))
+elimDoubleNeg' p (NegR e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = elimDoubleNeg' p e in
+    ((Neg r_ih1) ** (NegR e_ih1, ?MelimDoubleNeg'_2))
+elimDoubleNeg' p (PlusR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (elimDoubleNeg' p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg' p e2) in
+    ((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?MelimDoubleNeg'_3))  
+elimDoubleNeg' p (MultR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (elimDoubleNeg' p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg' p e2) in
+    ((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MelimDoubleNeg'_4))  
+elimDoubleNeg' p e1 = 
+    (_ ** (e1, set_eq_undec_refl _))    
+    
+    
+    
+    
 encodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
 
 
 -- The "e" here can't be a Plus, a Neg or a Minus
 encodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+
 -- At this stage, the only thing we should receive is a real variable, but let's write it on a complete fashions
+-- This case gives only one monomial (base case)
 encodeProductOfMonomials c p g (VarR _ v) = 
     let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (VarR _ v) in
         (_ ** (LastMonomial _ mon1, ?MO))
+-- This case gives only one monomial (base case)
 encodeProductOfMonomials c p g (ConstR _ _ const) = 
     let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (ConstR _ _ const) in
         (_ ** (LastMonomial _ mon1, ?MO))
+
 -- For a mult, we now that the left part is forced to be an atom (variable or constant), since we've put eveything in right-associative form before calling the encoding function
+-- This case gives only one monomial (base case)
 encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = 
     let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (ConstR _ _ (Mult const1 const2)) in
         (_ ** (LastMonomial _ mon1, ?MO))
+-- This case gives only one monomial (base case)
 encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
     let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (MultR (ConstR _ _ const1) (VarR _ v)) in
-        (_ ** (LastMonomial _ mon1, ?MO))   
-encodeProductOfMonomials c p g (MultR (VarR _ v) e2) = 
+        (_ ** (LastMonomial _ mon1, ?MO))
+-- Case with n>=2monomials
+--encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (NegR (ConstR _ _ const2)) = 
+        
+        
+-- This case gives a product of 2 monomials
+encodeProductOfMonomials c p g (MultR (VarR _ v) (ConstR _ _ const2)) = 
+	-- The variable v is going to be part of a first monomial, and the const2 of another one
+    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (VarR _ v) in
+    let (r_2 ** (mon2, p_2)) = encodeMonomial c p g (ConstR _ _ const2) in
+	-- Wrapp the second monomial into a product of monomial
+	let prod = LastMonomial _ mon2 in
+		(_ ** (MonomialMultProduct _ mon1 prod, ?MP))
+-- This case gives only one monomial (base case)
+encodeProductOfMonomials c p g (MultR (VarR _ v1) (VarR _ v2)) = 
+    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (MultR (VarR _ v1) (VarR _ v2)) in
+        (_ ** (LastMonomial _ mon1, ?MN))
+        
+
 
 encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+-- Sum of product of monomials
 encode c p g (PlusR e1 e2) = 
     let (r_1 ** (e_1, p_1)) = encode c p g e1 in
     let (r_2 ** (e_2, p_2)) = encode c p g e2 in
         (_ ** (PlusCG _ e_1 e_2, ?MA))
+-- Neg of product of monomials
 encode c p g (NegR e) = 
     let (r ** (e, p)) = encode c p g e in
         (_ ** (NegCG _ e, ?MB))
@@ -433,19 +516,14 @@ encode c p g e =
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
   let (r_1 ** (e_1, p_1)) = elimMinus' p e in
-  let (r_2 ** (e_2, p_2)) = develop_fix p e_1 in
-  let (r_3 ** (e_3, p_3)) = shuffleProductRight p _ e_2 in
-    (_ **(e_3, ?MX))
+  let (r_2 ** (e_2, p_2)) = propagateNeg_fix' p e_1 in
+  let (r_3 ** (e_3, p_3)) = elimDoubleNeg' p e_2 in
+  let (r_4 ** (e_4, p_4)) = develop_fix p e_3 in
+  let (r_5 ** (e_5, p_5)) = shuffleProductRight p _ e_4 in
+  -- Here we need to treat every product of monomial that that they contain at most ONE Neg
+  -- Then encoding
+    (_ **(e_5, ?MX))
 
 	
 
 ---------- Proofs ----------
-Provers.ring_reduce.MX = proof
-  intros
-  mrefine eq_preserves_eq 
-  exact r_1
-  exact r_2
-  exact p_1
-  mrefine set_eq_undec_sym 
-  exact p_2
-  exact p_3
