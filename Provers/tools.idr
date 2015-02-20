@@ -138,6 +138,33 @@ aux1 : O = plus O O
 
 -}
 
+-- -------------------------------
+-- B') TOOLS AND LEMMAS FOR RINGS
+-- -------------------------------
+-- Moves the neg in front of the product
+lemmaRing1 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Neg (Mult a b))
+lemmaRing1 p _ a b =
+	let p1 : (Plus (Mult a (Neg b)) (Mult a b) ~= Mult a (Plus b (Neg b))) = ?MVVV in
+	let p2 : (Mult a (Plus b (Neg b)) ~= Mult a Zero) = ?MMMM in
+	let p3 : (Mult a Zero ~= Zero) = ?MNNN in
+	let p4 : (Plus (Mult a (Neg b)) (Mult a b) ~= Zero) = ?MAAAA in
+	let p5 : ((Mult a (Neg b)) ~= Plus Zero (Neg (Mult a b))) = move_other_side _ (Mult a (Neg b)) (Mult a b) Zero p4 in
+	let p6 : (Plus Zero (Neg (Mult a b)) ~= (Neg (Mult a b))) = ?MJJJ in
+		?MGGG  
+
+{-
+subgoal : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg One) b ~= Neg b)
+subgoal _ _ a b = 
+	let p1 : (Mult (Neg One) b = Mult (
+	-}
+
+
+goal : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Mult (Neg a) b)
+goal _ _ a b = 
+	let p1 : (Neg b ~= Mult (Neg One) b) = ?MA in -- Use lemma subgoal1
+	let p2 : (Mult a (Mult (Neg One) b) ~= Mult (Mult a (Neg One)) b) = ?MB in -- Use assoc of *
+	let p3 : (Mult a (Neg One) ~= Neg a) = ?MC in -- Use lemma subgoal2
+		?MD
 
 -- -----------------------------------
 -- C) TOOLS AND LEMMAS FOR STRUCTURES
@@ -1185,5 +1212,28 @@ Provers.tools.MlastElement'_1 = proof
   
 -- Part F : Vector tools
 
+
+
+
+---------- Proofs ----------
+
+Provers.tools.MJJJ = proof
+  intros
+  mrefine Plus_neutral_1
+
+
+Provers.tools.MD = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult a (Mult (Neg One) b))
+  exact (Mult (Mult a (Neg One)) b)
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p2
+  mrefine set_eq_undec_refl 
+  exact p1
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  exact p3
 
 

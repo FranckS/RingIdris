@@ -16,6 +16,7 @@ import Provers.commutativeGroup_reduce
 import Data.Vect
 
 
+
 --%logging 2
 -- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 pattern matched cases
 --total
@@ -258,7 +259,8 @@ develop_fix p e =
       Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = develop_fix p e_1 in -- We do another passe
 						  (r_ih1 ** (e_ih1, ?Mdevelop_fix_1))	 
 	 
-	 
+
+ 
 -- same as elimMinus, but typed for an element of a Ring instead of a Group	 
 total
 elimMinus' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
@@ -449,15 +451,45 @@ elimDoubleNeg' p (MultR e1 e2) =
 elimDoubleNeg' p e1 = 
     (_ ** (e1, set_eq_undec_refl _))    
     
+
+
+-- Is forced to take a MultR in input    
+removeMultipleNegInMonomial : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+--removeMultipleNegInMonomial p (MultR
+
     
-    
+removeMultipleNegInPolynomial : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+removeMultipleNegInPolynomial p (PlusR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (removeMultipleNegInPolynomial p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (removeMultipleNegInPolynomial p e2) in
+		(_ ** (PlusR e_ih1 e_ih2, ?MLLL))
+removeMultipleNegInPolynomial p (ConstR	_ _ const1) = 
+	(_ ** (ConstR _ _ const1, ?MMMM))
+removeMultipleNegInPolynomial p (VarR _ v) = 
+	(_ ** (VarR _ v, ?MNNN))
+removeMultipleNegInPolynomial p (NegR e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (removeMultipleNegInPolynomial p e) in
+		(_ ** (NegR e_ih1, ?MOOO))
+removeMultipleNegInPolynomial p (MultR e1 e2) = 
+	let (rprod ** (eprod, pprod)) = removeMultipleNegInMonomial p (MultR e1 e2) in
+		(_ ** (eprod, pprod))
     
 encodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+encodeMonomial = ?HHHH
+
+
+
+-- Returns a product of monomial that can be composed of either only one monomial (if they were concatenable together), or a product of two monomials
+multiplyMonomialAndProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c1) -> (ProductOfMonomials _ g c2) -- If I give the _ parameter to the ProductOfMonomial, I've got a senseless error message...
+	-> (c3 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c3, Mult c1 c2 ~=c3))
+multiplyMonomialAndProductOfMonomials = ?KKKKK
+
+
+
 
 
 -- The "e" here can't be a Plus, a Neg or a Minus
 encodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
-
 -- At this stage, the only thing we should receive is a real variable, but let's write it on a complete fashions
 -- This case gives only one monomial (base case)
 encodeProductOfMonomials c p g (VarR _ v) = 
@@ -478,7 +510,12 @@ encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
     let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (MultR (ConstR _ _ const1) (VarR _ v)) in
         (_ ** (LastMonomial _ mon1, ?MO))
 -- Case with n>=2monomials
---encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (NegR (ConstR _ _ const2)) = 
+-- Case with the second argument of the Mult being a Neg is not possible since we are supposed to have move the Neg to the front.
+encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) e2) = 
+	let (r_1 ** (monomial, p_1)) = encodeMonomial c p g (ConstR _ _ const1) in
+	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeProductOfMonomials c p g e2 in
+	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials c p g monomial productOfMonomials in
+		(_ ** (e_3, ?MJ))
         
         
 -- This case gives a product of 2 monomials
@@ -527,3 +564,5 @@ ring_reduce p e =
 	
 
 ---------- Proofs ----------
+
+

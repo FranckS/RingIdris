@@ -23,7 +23,7 @@ import Provers.commutativeMonoid_reduce -- NEW
 import Provers.group_reduce
 import Provers.commutativeGroup_reduce
 -- Ring solver is still in development
-import Provers.ring_reduce
+--import Provers.ring_reduce
 
 import Provers.magma_test
 import Provers.semiGroup_test

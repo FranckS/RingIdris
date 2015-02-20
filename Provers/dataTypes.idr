@@ -308,6 +308,7 @@ data Variable : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (setAndMul
     EncodingGroupTerm_var : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (setAndMult:SetWithMult c c_set) -> (g:Vect n c) -> (i:Fin n) -> Variable c_set neg setAndMult g (neg (index i g)) -- neg is used here
     --Note : I'd have prefered to not have to pass a "neg" function as argument, since I could be directly indexed over the real "Neg", but that doesn't work for Variable_eq definition
     EncodingProductOfMonomials : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} ->  (c_prod:c) -> (ProductOfMonomials setAndMult g c_prod) -> Variable c_set neg setAndMult g c_prod
+    EncodingNegProductOfMonomials : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} ->  (c_prod:c) -> (ProductOfMonomials setAndMult g c_prod) -> Variable c_set neg setAndMult g (neg c_prod)
     --EncodingGroupTerm_const : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> VariableA c_equal neg g (neg c1) -- and here
     -- Encoding fot constants is no longer needed since we can just put a constant of value (Neg c) : we can still use Neg during the conversion because we still have a Group, even though we convert to a Monoid !
 
