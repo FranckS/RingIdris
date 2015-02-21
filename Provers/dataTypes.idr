@@ -126,7 +126,7 @@ class CommutativeGroup c => Ring c where
     Mult_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Mult c1 c2) c3) ~= (Mult c1 (Mult c2 c3))
     Mult_dist : (c1:c) -> (c2:c) -> (c3:c) -> (Mult c1 (Plus c2 c3)) ~= (Plus (Mult c1 c2) (Mult c1 c3))
     Mult_dist_2 : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Plus c1 c2) c3) ~= (Plus (Mult c1 c3) (Mult c2 c3)) -- Needed because we don't have commutativity of * in a ring (in general)
-    Mult_neutral : (c1:c) -> ((Mult c1 One) ~= (Mult One c1), (Mult One c1) ~= c1)
+    Mult_neutral : (c1:c) -> ((Mult c1 One) ~= c1, (Mult One c1) ~= c1) -- Implies necessarly (Mult c1 One) = (Mult One c1) since they are both equal to the same thing
 
 -- An abstract commutative ring    
 class dataTypes.Ring c => CommutativeRing c where

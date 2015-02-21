@@ -141,30 +141,57 @@ aux1 : O = plus O O
 -- -------------------------------
 -- B') TOOLS AND LEMMAS FOR RINGS
 -- -------------------------------
+
+-- Cancelation Lemma could have been useful but we won't generalize it in fact, we just do the cancelation "by hand" when needed
+
+
+-- Zero is absorbant for Mult
+zeroAbsorbant : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (Mult a Zero ~= Zero)
+zeroAbsorbant C p a = 
+	let p1 : (Mult a Zero ~= Mult a (Plus Zero Zero)) = ?MzeroAbsorbant_1 in
+	let p2 : (Mult a (Plus Zero Zero) ~= Plus (Mult a Zero) (Mult a Zero)) = ?MzeroAbsorbant_2 in
+	let p3 : (Mult a Zero ~= Plus (Mult a Zero) (Mult a Zero)) = ?MzeroAbsorbant_3 in
+	let p4 : (Plus (Mult a Zero) (Neg (Mult a Zero)) ~= Plus (Plus (Mult a Zero) (Mult a Zero)) (Neg (Mult a Zero))) = ?MzeroAbsorbant_4 in -- By adding (Neg (Mult a Zero)) on Right and Left of the equality p3
+	let p5 : (Plus (Mult a Zero) (Neg (Mult a Zero)) ~= Plus (Mult a Zero) (Plus (Mult a Zero) (Neg (Mult a Zero)))) = ?MzeroAbsorbant_5 in -- By using assoc on the Right side of p4
+	let p6 : (Plus (Mult a Zero) (Neg (Mult a Zero)) ~= Plus (Mult a Zero) Zero) = ?MzeroAbsorbant_6 in -- By simplifying opposite terms on the Right of p5
+	let p7 : (Plus (Mult a Zero) (Neg (Mult a Zero)) ~= (Mult a Zero)) = ?MzeroAbsorbant_7 in -- By simplifying the add zero on the Right of p6
+	let p8 : (Zero ~= Mult a Zero) = ?MzeroAbsorbant_8 in -- By simplifying oppposite terms on the left of p7
+		?MzeroAbsorbant_9
+
 -- Moves the neg in front of the product
 lemmaRing1 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Neg (Mult a b))
-lemmaRing1 p _ a b =
-	let p1 : (Plus (Mult a (Neg b)) (Mult a b) ~= Mult a (Plus b (Neg b))) = ?MVVV in
-	let p2 : (Mult a (Plus b (Neg b)) ~= Mult a Zero) = ?MMMM in
-	let p3 : (Mult a Zero ~= Zero) = ?MNNN in
-	let p4 : (Plus (Mult a (Neg b)) (Mult a b) ~= Zero) = ?MAAAA in
-	let p5 : ((Mult a (Neg b)) ~= Plus Zero (Neg (Mult a b))) = move_other_side _ (Mult a (Neg b)) (Mult a b) Zero p4 in
-	let p6 : (Plus Zero (Neg (Mult a b)) ~= (Neg (Mult a b))) = ?MJJJ in
-		?MGGG  
+lemmaRing1 C p a b =
+	let p1 : (Plus (Mult a (Neg b)) (Mult a b) ~= Mult a (Plus (Neg b) b)) = ?MlemmaRing1_1 in
+	let p2 : (Mult a (Plus (Neg b) b) ~= Mult a Zero) = ?MlemmaRing1_2 in
+	let p3 : (Mult a Zero ~= Zero) = zeroAbsorbant C p a in
+	let p4 : (Plus (Mult a (Neg b)) (Mult a b) ~= Zero) = ?MlemmaRing1_3 in
+	let p5 : ((Mult a (Neg b)) ~= Plus Zero (Neg (Mult a b))) = move_other_side (%instance) (Mult a (Neg b)) (Mult a b) Zero p4 in
+	let p6 : (Plus Zero (Neg (Mult a b)) ~= (Neg (Mult a b))) = ?MlemmaRing1_4 in
+		?MlemmaRing1_5
 
-{-
-subgoal : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg One) b ~= Neg b)
-subgoal _ _ a b = 
-	let p1 : (Mult (Neg One) b = Mult (
-	-}
+-- To do, following the same idea as lemmaRing1
+lemmaRing2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg a) b ~= Neg (Mult a b))
 
 
+	
+subgoal1 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (Mult a (Neg One) ~= Neg a)
+subgoal1 C p a = 
+	let p1 : (Mult a One ~= a) = ?Msubgoal1_1 in
+		?Msubgoal1_2
+
+subgoal2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (Mult (Neg One) a ~= Neg a)
+subgoal2 C p a = 
+	let p1 : (Mult One a ~= a) = ?Msubgoal2_1 in
+		?Msubgoal2_2
+	
+	
+	
 goal : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Mult (Neg a) b)
 goal _ _ a b = 
-	let p1 : (Neg b ~= Mult (Neg One) b) = ?MA in -- Use lemma subgoal1
-	let p2 : (Mult a (Mult (Neg One) b) ~= Mult (Mult a (Neg One)) b) = ?MB in -- Use assoc of *
-	let p3 : (Mult a (Neg One) ~= Neg a) = ?MC in -- Use lemma subgoal2
-		?MD
+	let p1 : (Neg b ~= Mult (Neg One) b) = ?Mgoal_1 in -- Use lemma subgoal2
+	let p2 : (Mult a (Mult (Neg One) b) ~= Mult (Mult a (Neg One)) b) = ?Mgoal_2 in -- Use assoc of *
+	let p3 : (Mult a (Neg One) ~= Neg a) = ?Mgoal_3 in -- Use lemma subgoal1
+		?Mgoal_4
 
 -- -----------------------------------
 -- C) TOOLS AND LEMMAS FOR STRUCTURES
@@ -1216,13 +1243,186 @@ Provers.tools.MlastElement'_1 = proof
 
 
 ---------- Proofs ----------
-
-Provers.tools.MJJJ = proof
+Provers.tools.MzeroAbsorbant_1 = proof
   intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
   mrefine Plus_neutral_1
 
 
-Provers.tools.MD = proof
+Provers.tools.MzeroAbsorbant_2 = proof
+  intros
+  mrefine Mult_dist
+
+
+Provers.tools.MzeroAbsorbant_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult a Zero)
+  exact (Mult a (Plus Zero Zero))
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p1
+  exact p2
+
+
+Provers.tools.MzeroAbsorbant_4 = proof
+  intros
+  mrefine adding_preserves_equality 
+  exact p3
+
+
+Provers.tools.MzeroAbsorbant_5 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult a Zero) (Neg (Mult a Zero)))
+  exact (Plus (Plus (Mult a Zero) (Mult a Zero)) (Neg (Mult a Zero)))
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p4
+  mrefine Plus_assoc 
+
+
+Provers.tools.MzeroAbsorbant_6 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult a Zero) (Neg (Mult a Zero)))
+  exact (Plus (Mult a Zero) (Plus (Mult a Zero) (Neg (Mult a Zero))))
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  exact p5
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine left
+  exact (Plus (Neg (Mult a Zero)) (Mult a Zero) ~= Zero)
+  mrefine Plus_inverse 
+
+
+Provers.tools.MzeroAbsorbant_7 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult a Zero) (Neg (Mult a Zero)))
+  exact (Plus (Mult a Zero) Zero)
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p6
+  mrefine Plus_neutral_2
+
+
+Provers.tools.MzeroAbsorbant_8 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult a Zero) (Neg (Mult a Zero)))
+  exact (Mult a Zero)
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  exact p7
+  mrefine left
+  exact (Plus (Neg (Mult a Zero)) (Mult a Zero) ~= Zero)
+  mrefine Plus_inverse 
+
+
+Provers.tools.MzeroAbsorbant_9 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  exact p8
+
+-- -----------------------------  
+Provers.tools.MlemmaRing1_1 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine Mult_dist
+
+Provers.tools.MlemmaRing1_2 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine right
+  exact (Plus b (Neg b) ~= Zero)
+  mrefine Plus_inverse
+  
+Provers.tools.MlemmaRing1_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult a (Neg b)) (Mult a b))
+  exact (Mult a Zero)
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine eq_preserves_eq 
+  exact p3
+  exact (Plus (Mult a (Neg b)) (Mult a b))
+  exact (Mult a (Plus (Neg b) b))
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p1
+  exact p2  
+
+Provers.tools.MlemmaRing1_4 = proof
+  intros
+  mrefine Plus_neutral_1
+
+Provers.tools.MlemmaRing1_5 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult a (Neg b))
+  exact (Plus Zero (Neg (Mult a b)))
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p5
+  exact p6
+  
+-- -----------------------------  
+Provers.tools.Msubgoal1_1 = proof
+  intros
+  mrefine left
+  exact (Mult One a ~= a)
+  mrefine Mult_neutral 
+
+Provers.tools.Msubgoal1_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult a (Neg One))
+  exact (Neg (Mult a One))
+  mrefine set_eq_undec_refl 
+  mrefine Neg_preserves_equiv 
+  mrefine lemmaRing1 
+  mrefine set_eq_undec_sym 
+  exact p1  
+
+Provers.tools.Msubgoal2_1 = proof
+  intros
+  mrefine right
+  exact (Mult a One ~= a)
+  mrefine Mult_neutral   
+  
+Provers.tools.Msubgoal2_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Neg One) a)
+  exact (Neg (Mult One a))
+  mrefine set_eq_undec_refl 
+  mrefine Neg_preserves_equiv 
+  mrefine lemmaRing2
+  mrefine set_eq_undec_sym 
+  exact p1  
+  
+-- -----------------------------
+Provers.tools.Mgoal_1 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine subgoal2
+
+Provers.tools.Mgoal_2 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine Mult_assoc 
+
+Provers.tools.Mgoal_3 = proof
+  intros
+  mrefine subgoal1 
+
+Provers.tools.Mgoal_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Mult a (Mult (Neg One) b))
