@@ -212,6 +212,15 @@ lemmaRing3 _ _ a b =
 	let p3 : (Mult a (Neg One) ~= Neg a) = ?MlemmaRing3_3 in -- Use lemma subgoal1
 		?MlemmaRing3_4
 
+
+lemmaRing4 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg a) (Neg b) ~= Mult a b)
+lemmaRing4 C p a b = 
+	let p1 : (Mult (Neg a) (Neg b) ~= Neg (Mult a (Neg b))) = lemmaRing2 C p a (Neg b) in
+	let p2 : (Mult a (Neg b) ~= Neg (Mult a b)) = ?MKKK in -- Uses lemmaRing3 
+	let p3 : (Mult (Neg a) (Neg b) ~= Neg (Neg (Mult a b))) = ?MLLL in --compose p1 and p2
+	let p4 : (Mult (Neg a) (Neg b) ~= Mult a b) = ?MMMM in -- Uses remove double neg
+		?MNNN
+		
 -- -----------------------------------
 -- C) TOOLS AND LEMMAS FOR STRUCTURES
 -- -----------------------------------

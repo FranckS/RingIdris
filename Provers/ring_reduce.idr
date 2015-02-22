@@ -403,7 +403,7 @@ propagateNeg' p (NegR (PlusR e1 e2)) =
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p (NegR e2)) in
 		((Plus r_ih2 r_ih1) ** (PlusR e_ih2 e_ih1, ?MpropagateNeg'_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
 propagateNeg' p (NegR (MultR e1 e2)) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in -- We do not forget to propate the Neg inside of the product (we chose the first argument)
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
 		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg'_2))
 propagateNeg' p (NegR e) = 
@@ -452,27 +452,52 @@ elimDoubleNeg' p e1 =
     (_ ** (e1, set_eq_undec_refl _))    
     
 
-
+    
+    
+    
+-- For a product A * B, we decide to move the neg before the prodct if there is one
+-- Ex : (-c * v) -> -(c*v)
+-- Ex : (v1 * -v2) -> -(v1*c2)
 -- Is forced to take a MultR in input    
-removeMultipleNegInMonomial : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
---removeMultipleNegInMonomial p (MultR
+moveNegInMonomial : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+moveNegInMonomial p (MultR (NegR a) (ConstR _ _ const1)) =
+	(_ ** (NegR (MultR a (ConstR _ _ const1)), ?MmoveNegInMonomial_1))
+moveNegInMonomial p (MultR (NegR a) (VarR _ v)) = 
+	(_ ** (NegR (MultR a (VarR _ v)), ?MmoveNegInMonomial_2))
+moveNegInMonomial p (MultR (NegR a) (NegR b)) = -- I think that b here can only be a constant or variable
+	(_ ** (MultR a b, ?MmoveNegInMonomial_3))
+moveNegInMonomial p (MultR (NegR a) b) = -- Here, b is a MultR (reminder : we've put everything in the form right-associative)
+	let (r_ih1 ** (e_ih1, p_ih1)) = moveNegInMonomial p b in -- We do it for b first, and perhaps we will end up with a Neg on the left
+	let (r_ih2 ** (e_ih2, p_ih2)) = moveNegInMonomial p (MultR (NegR a) e_ih1) in -- We do the analyze again, but with the new b
+		(_ ** (e_ih2, ?MmoveNegInMonomial_4))
+
+moveNegInMonomial p (MultR a (ConstR _ _ const1)) =
+	(_ ** (MultR a (ConstR _ _ const1), set_eq_undec_refl _))
+moveNegInMonomial p (MultR a (VarR _ v)) = 
+	(_ ** (MultR a (VarR _ v), set_eq_undec_refl _))
+moveNegInMonomial p (MultR a (NegR b)) = -- I think that b here can only be a constant or variable
+	(_ ** (NegR (MultR a b), ?MmoveNegInMonomial_5))
+moveNegInMonomial p (MultR a b) = -- Here, b is a MultR (reminder : we've put everything in the form right-associative)
+	let (r_ih1 ** (e_ih1, p_ih1)) = moveNegInMonomial p b in -- We do it for b first, and perhaps we will end up with a Neg on the left
+	let (r_ih2 ** (e_ih2, p_ih2)) = moveNegInMonomial p (MultR a e_ih1) in -- We do the analyze again, but with the new b
+		(_ ** (e_ih2, ?MmoveNegInMonomial_6))
 
     
-removeMultipleNegInPolynomial : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
-removeMultipleNegInPolynomial p (PlusR e1 e2) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = (removeMultipleNegInPolynomial p e1) in
-	let (r_ih2 ** (e_ih2, p_ih2)) = (removeMultipleNegInPolynomial p e2) in
-		(_ ** (PlusR e_ih1 e_ih2, ?MLLL))
-removeMultipleNegInPolynomial p (ConstR	_ _ const1) = 
-	(_ ** (ConstR _ _ const1, ?MMMM))
-removeMultipleNegInPolynomial p (VarR _ v) = 
-	(_ ** (VarR _ v, ?MNNN))
-removeMultipleNegInPolynomial p (NegR e) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = (removeMultipleNegInPolynomial p e) in
-		(_ ** (NegR e_ih1, ?MOOO))
-removeMultipleNegInPolynomial p (MultR e1 e2) = 
-	let (rprod ** (eprod, pprod)) = removeMultipleNegInMonomial p (MultR e1 e2) in
-		(_ ** (eprod, pprod))
+moveNegInPolynomial : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+moveNegInPolynomial p (PlusR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegInPolynomial p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (moveNegInPolynomial p e2) in
+		(_ ** (PlusR e_ih1 e_ih2, ?MmoveNegInPolynomial_1))
+moveNegInPolynomial p (ConstR _ _ const1) = 
+	(_ ** (ConstR _ _ const1, set_eq_undec_refl _))
+moveNegInPolynomial p (VarR _ v) = 
+	(_ ** (VarR _ v, set_eq_undec_refl _))
+moveNegInPolynomial p (NegR e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegInPolynomial p e) in
+		(_ ** (NegR e_ih1, ?MmoveNegInPolynomial_2))
+moveNegInPolynomial p (MultR e1 e2) = 
+	moveNegInMonomial p (MultR e1 e2)
+
     
 encodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
 encodeMonomial = ?HHHH
@@ -565,4 +590,54 @@ ring_reduce p e =
 
 ---------- Proofs ----------
 
+Provers.ring_reduce.MmoveNegInPolynomial_1 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+
+Provers.ring_reduce.MmoveNegInMonomial_6 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult c1 r_ih1)
+  exact (Mult c1 r_ih1)
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_refl
+  exact p_ih1
+  exact p_ih2
+
+
+Provers.ring_reduce.MmoveNegInMonomial_5 = proof
+  intros
+  mrefine lemmaRing1
+
+
+Provers.ring_reduce.MmoveNegInMonomial_4 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Neg c1) r_ih1)
+  exact (Mult (Neg c1) r_ih1)
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_refl
+  exact p_ih1
+  exact p_ih2
+
+
+Provers.ring_reduce.MmoveNegInMonomial_3 = proof
+  intros
+  mrefine lemmaRing4
+
+
+Provers.ring_reduce.MmoveNegInMonomial_2 = proof
+  intros
+  mrefine lemmaRing2
+  
+Provers.ring_reduce.MmoveNegInMonomial_1 = proof
+  intros
+  mrefine lemmaRing2
 
