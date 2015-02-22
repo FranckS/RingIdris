@@ -158,7 +158,19 @@ zeroAbsorbant C p a =
 	let p8 : (Zero ~= Mult a Zero) = ?MzeroAbsorbant_8 in -- By simplifying oppposite terms on the left of p7
 		?MzeroAbsorbant_9
 
--- Moves the neg in front of the product
+zeroAbsorbant2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (Mult Zero a ~= Zero)
+zeroAbsorbant2 C p a = 
+	let p1 : (Mult Zero a ~= Mult (Plus Zero Zero) a) = ?MzeroAbsorbant2_1 in
+	let p2 : (Mult (Plus Zero Zero) a ~= Plus (Mult Zero a) (Mult Zero a)) = ?MzeroAbsorbant2_2 in
+	let p3 : (Mult Zero a ~= Plus (Mult Zero a) (Mult Zero a)) = ?MzeroAbsorbant2_3 in
+	let p4 : (Plus (Mult Zero a) (Neg (Mult Zero a)) ~= Plus (Plus (Mult Zero a) (Mult Zero a)) (Neg (Mult Zero a))) = ?MzeroAbsorbant2_4 in -- By adding (Neg (Mult Zero a)) on Right and Left of the equality p3
+	let p5 : (Plus (Mult Zero a) (Neg (Mult Zero a)) ~= Plus (Mult Zero a) (Plus (Mult Zero a) (Neg (Mult Zero a)))) = ?MzeroAbsorbant2_5 in -- By using assoc on the Right side of p4
+	let p6 : (Plus (Mult Zero a) (Neg (Mult Zero a)) ~= Plus (Mult Zero a) Zero) = ?MzeroAbsorbant2_6 in -- By simplifying opposite terms on the Right of p5
+	let p7 : (Plus (Mult Zero a) (Neg (Mult Zero a)) ~= (Mult Zero a)) = ?MzeroAbsorbant2_7 in -- By simplifying the add zero on the Right of p6
+	let p8 : (Zero ~= Mult Zero a) = ?MzeroAbsorbant2_8 in -- By simplifying oppposite terms on the left of p7
+		?MzeroAbsorbant2_9
+		
+-- Moves the Neg in front of the product when the Neg was on the second argument
 lemmaRing1 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Neg (Mult a b))
 lemmaRing1 C p a b =
 	let p1 : (Plus (Mult a (Neg b)) (Mult a b) ~= Mult a (Plus (Neg b) b)) = ?MlemmaRing1_1 in
@@ -169,11 +181,17 @@ lemmaRing1 C p a b =
 	let p6 : (Plus Zero (Neg (Mult a b)) ~= (Neg (Mult a b))) = ?MlemmaRing1_4 in
 		?MlemmaRing1_5
 
--- To do, following the same idea as lemmaRing1
+-- Moves the Neg in front of the producti when the Neg was on the first argument
 lemmaRing2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg a) b ~= Neg (Mult a b))
+lemmaRing2 C p a b = 
+	let p1 : (Plus (Mult (Neg a) b) (Mult a b) ~= Mult (Plus (Neg a) a) b) = ?MlemmaRing2_1 in -- Use distributivity 
+	let p2 : (Mult (Plus (Neg a) a) b ~= Mult Zero b) = ?MlemmaRing2_2 in -- Use symmetric elements of +
+	let p3 : (Mult Zero b ~= Zero) = zeroAbsorbant2 C p b in
+	let p4 : (Plus (Mult (Neg a) b) (Mult a b) ~= Zero) = ?MlemmaRing2_3 in -- Transitivity of the aboves
+	let p5 : (Mult (Neg a) b ~= Plus Zero (Neg (Mult a b))) = move_other_side (%instance) (Mult (Neg a) b) (Mult a b) Zero p4 in -- Use move other side
+		?MlemmaRing2_4
 
-
-	
+-- --------------------
 subgoal1 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (Mult a (Neg One) ~= Neg a)
 subgoal1 C p a = 
 	let p1 : (Mult a One ~= a) = ?Msubgoal1_1 in
@@ -183,15 +201,16 @@ subgoal2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (Mult (Neg One) a ~= Neg a
 subgoal2 C p a = 
 	let p1 : (Mult One a ~= a) = ?Msubgoal2_1 in
 		?Msubgoal2_2
-	
-	
-	
-goal : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Mult (Neg a) b)
-goal _ _ a b = 
-	let p1 : (Neg b ~= Mult (Neg One) b) = ?Mgoal_1 in -- Use lemma subgoal2
-	let p2 : (Mult a (Mult (Neg One) b) ~= Mult (Mult a (Neg One)) b) = ?Mgoal_2 in -- Use assoc of *
-	let p3 : (Mult a (Neg One) ~= Neg a) = ?Mgoal_3 in -- Use lemma subgoal1
-		?Mgoal_4
+-- --------------------
+		
+-- Moves the Neg from the second argument of the Mult to the first argument
+-- A more directly would have been to directly use lemmaRing1 and lemmaRing2 since they both have the same right hand side
+lemmaRing3 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Mult (Neg a) b)
+lemmaRing3 _ _ a b = 
+	let p1 : (Neg b ~= Mult (Neg One) b) = ?MlemmaRing3_1 in -- Use lemma subgoal2
+	let p2 : (Mult a (Mult (Neg One) b) ~= Mult (Mult a (Neg One)) b) = ?MlemmaRing3_2 in -- Use assoc of *
+	let p3 : (Mult a (Neg One) ~= Neg a) = ?MlemmaRing3_3 in -- Use lemma subgoal1
+		?MlemmaRing3_4
 
 -- -----------------------------------
 -- C) TOOLS AND LEMMAS FOR STRUCTURES
@@ -1241,8 +1260,7 @@ Provers.tools.MlastElement'_1 = proof
 
 
 
-
----------- Proofs ----------
+-- -------- Part for Rings -------------
 Provers.tools.MzeroAbsorbant_1 = proof
   intros
   mrefine Mult_preserves_equiv 
@@ -1250,11 +1268,9 @@ Provers.tools.MzeroAbsorbant_1 = proof
   mrefine set_eq_undec_sym 
   mrefine Plus_neutral_1
 
-
 Provers.tools.MzeroAbsorbant_2 = proof
   intros
   mrefine Mult_dist
-
 
 Provers.tools.MzeroAbsorbant_3 = proof
   intros
@@ -1266,12 +1282,10 @@ Provers.tools.MzeroAbsorbant_3 = proof
   exact p1
   exact p2
 
-
 Provers.tools.MzeroAbsorbant_4 = proof
   intros
   mrefine adding_preserves_equality 
   exact p3
-
 
 Provers.tools.MzeroAbsorbant_5 = proof
   intros
@@ -1282,7 +1296,6 @@ Provers.tools.MzeroAbsorbant_5 = proof
   mrefine set_eq_undec_sym 
   exact p4
   mrefine Plus_assoc 
-
 
 Provers.tools.MzeroAbsorbant_6 = proof
   intros
@@ -1298,7 +1311,6 @@ Provers.tools.MzeroAbsorbant_6 = proof
   exact (Plus (Neg (Mult a Zero)) (Mult a Zero) ~= Zero)
   mrefine Plus_inverse 
 
-
 Provers.tools.MzeroAbsorbant_7 = proof
   intros
   mrefine eq_preserves_eq 
@@ -1308,7 +1320,6 @@ Provers.tools.MzeroAbsorbant_7 = proof
   mrefine set_eq_undec_sym 
   exact p6
   mrefine Plus_neutral_2
-
 
 Provers.tools.MzeroAbsorbant_8 = proof
   intros
@@ -1322,8 +1333,85 @@ Provers.tools.MzeroAbsorbant_8 = proof
   exact (Plus (Neg (Mult a Zero)) (Mult a Zero) ~= Zero)
   mrefine Plus_inverse 
 
-
 Provers.tools.MzeroAbsorbant_9 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  exact p8
+  
+-- ----------------------------- 
+Provers.tools.MzeroAbsorbant2_1 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine Plus_neutral_1
+  
+Provers.tools.MzeroAbsorbant2_2 = proof
+  intros
+  mrefine Mult_dist_2  
+
+Provers.tools.MzeroAbsorbant2_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Plus Zero Zero) a)
+  exact (Mult (Plus Zero Zero) a)
+  exact p1
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  exact p2  
+  
+Provers.tools.MzeroAbsorbant2_4 = proof
+  intros
+  mrefine adding_preserves_equality 
+  exact p3  
+  
+Provers.tools.MzeroAbsorbant2_5 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult Zero a) (Neg(Mult Zero a)))
+  exact (Plus (Plus (Mult Zero a) (Mult Zero a)) (Neg (Mult Zero a)))
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p4
+  mrefine Plus_assoc  
+  
+Provers.tools.MzeroAbsorbant2_6 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult Zero a) (Neg (Mult Zero a)))
+  exact (Plus (Mult Zero a) (Plus (Mult Zero a) (Neg (Mult Zero a))))
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  exact p5
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine left
+  exact (Plus (Neg (Mult Zero a)) (Mult Zero a) ~= Zero)
+  mrefine Plus_inverse
+  
+Provers.tools.MzeroAbsorbant2_7 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult Zero a) (Neg (Mult Zero a)))
+  exact (Plus (Mult Zero a) Zero)
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_sym 
+  exact p6
+  mrefine Plus_neutral_2
+  
+Provers.tools.MzeroAbsorbant2_8 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult Zero a) (Neg (Mult Zero a)))
+  exact (Mult Zero a)
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  exact p7
+  mrefine left
+  exact (Plus (Neg (Mult Zero a)) (Mult Zero a) ~= Zero)
+  mrefine Plus_inverse 
+  
+Provers.tools.MzeroAbsorbant2_9 = proof
   intros
   mrefine set_eq_undec_sym 
   exact p8
@@ -1371,6 +1459,45 @@ Provers.tools.MlemmaRing1_5 = proof
   mrefine set_eq_undec_sym 
   exact p5
   exact p6
+
+-- ----------------------------- 
+Provers.tools.MlemmaRing2_1 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine Mult_dist_2
+ 
+Provers.tools.MlemmaRing2_2 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine right
+  mrefine set_eq_undec_refl 
+  exact (Plus a (Neg a) ~= Zero)
+  mrefine Plus_inverse  
+  
+Provers.tools.MlemmaRing2_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Plus (Neg a) a) b)
+  exact (Mult (Plus (Neg a) a) b)
+  exact p1
+  mrefine eq_preserves_eq
+  mrefine set_eq_undec_refl 
+  exact (Mult Zero b)
+  exact (Mult Zero b)
+  mrefine set_eq_undec_sym 
+  exact p2
+  mrefine set_eq_undec_refl 
+  exact p3  
+  
+Provers.tools.MlemmaRing2_4 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Neg a) b)
+  exact (Plus Zero (Neg (Mult a b)))
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p5
+  mrefine Plus_neutral_1
   
 -- -----------------------------  
 Provers.tools.Msubgoal1_1 = proof
@@ -1408,21 +1535,21 @@ Provers.tools.Msubgoal2_2 = proof
   exact p1  
   
 -- -----------------------------
-Provers.tools.Mgoal_1 = proof
+Provers.tools.MlemmaRing3_1 = proof
   intros
   mrefine set_eq_undec_sym 
   mrefine subgoal2
 
-Provers.tools.Mgoal_2 = proof
+Provers.tools.MlemmaRing3_2 = proof
   intros
   mrefine set_eq_undec_sym 
   mrefine Mult_assoc 
 
-Provers.tools.Mgoal_3 = proof
+Provers.tools.MlemmaRing3_3 = proof
   intros
   mrefine subgoal1 
 
-Provers.tools.Mgoal_4 = proof
+Provers.tools.MlemmaRing3_4 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Mult a (Mult (Neg One) b))
