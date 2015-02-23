@@ -270,7 +270,7 @@ productOfVariables_eq _ _ _ = Nothing
 data Monomial : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> (Vect n c) -> c -> Type where
     ProdOfVar : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> {c_prod:c} -> ProductOfVariables setAndMult g c_prod -> Monomial setAndMult g c_prod
     ProdOfVarWithConst : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> (const1:c) -> {c_prod:c} -> (ProductOfVariables setAndMult g c_prod) -> Monomial setAndMult g ((mult setAndMult) const1 c_prod)
-
+    ConstantMonomial : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (g:Vect n c) -> (setAndMult:SetWithMult c c_set) -> (const1:c) -> Monomial setAndMult g const1
 
 monomial_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (mon1 : Monomial setAndMult g c1) -> {c2:c} -> (mon2 : Monomial setAndMult g c2) -> Maybe (c1~=c2)
 monomial_eq setAndMult (ProdOfVar _ prod1) (ProdOfVar _ prod2) with (productOfVariables_eq setAndMult prod1 prod2)
@@ -279,6 +279,9 @@ monomial_eq setAndMult (ProdOfVar _ prod1) (ProdOfVar _ prod2) with (productOfVa
 monomial_eq {c_set=c_set} setAndMult (ProdOfVarWithConst _ c1 prod1) (ProdOfVarWithConst _ c2 prod2) with (set_eq c1 c2, productOfVariables_eq setAndMult prod1 prod2)
     monomial_eq setAndMult (ProdOfVarWithConst _ c1 prod1) (ProdOfVarWithConst _ c2 prod2) | (Just c1_equiv_c2, Just prEquivProducts) = ?Mmonomial_eq_1
     monomial_eq setAndMult (ProdOfVarWithConst _ c1 prod1) (ProdOfVarWithConst _ c2 prod2) | _ = Nothing
+monomial_eq {c_set=c_set} setAndMut	(ConstantMonomial _ _ const1) (ConstantMonomial _ _ const2) with (set_eq const1 const2)
+	monomial_eq {c_set=c_set} setAndMut	(ConstantMonomial _ _ c1) (ConstantMonomial _ _ c2) | (Just c1_equiv_c2) = Just c1_equiv_c2
+	monomial_eq {c_set=c_set} setAndMut	(ConstantMonomial _ _ c1) (ConstantMonomial _ _ c2) | Nothing = Nothing
 monomial_eq _ _ _ = Nothing
 
 
@@ -308,7 +311,7 @@ data Variable : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (setAndMul
     EncodingGroupTerm_var : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (setAndMult:SetWithMult c c_set) -> (g:Vect n c) -> (i:Fin n) -> Variable c_set neg setAndMult g (neg (index i g)) -- neg is used here
     --Note : I'd have prefered to not have to pass a "neg" function as argument, since I could be directly indexed over the real "Neg", but that doesn't work for Variable_eq definition
     EncodingProductOfMonomials : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} ->  (c_prod:c) -> (ProductOfMonomials setAndMult g c_prod) -> Variable c_set neg setAndMult g c_prod
-    EncodingNegProductOfMonomials : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} ->  (c_prod:c) -> (ProductOfMonomials setAndMult g c_prod) -> Variable c_set neg setAndMult g (neg c_prod)
+--  EncodingNegProductOfMonomials : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} ->  (c_prod:c) -> (ProductOfMonomials setAndMult g c_prod) -> Variable c_set neg setAndMult g (neg c_prod)
     --EncodingGroupTerm_const : {c:Type} -> {n:Nat} -> (c_equal:(c1:c)->(c2:c)->Maybe(c1=c2)) -> (neg:c->c) -> (g:Vect n c) -> (c1:c) -> VariableA c_equal neg g (neg c1) -- and here
     -- Encoding fot constants is no longer needed since we can just put a constant of value (Neg c) : we can still use Neg during the conversion because we still have a Group, even though we convert to a Monoid !
 

@@ -499,90 +499,132 @@ moveNegInPolynomial p (MultR e1 e2) =
 	moveNegInMonomial p (MultR e1 e2)
 
     
-encodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
-encodeMonomial = ?HHHH
+encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+-- The only thing we can get are : 
+-- a Var, a Constant, a Mult between a const and a var and a Mult between a var and a var
+-- (Mult between const and const is impossible because we could have deal with that directly, and Mult between var and const would not make a monomial so we would have already deal with it as well) 
+encodeToMonomial c p g (ConstR _ _ const1) = (_ ** (ConstantMonomial _ _ const1, ?MKOKO))
+encodeToMonomial c p g (VarR _ (RealVariable _ _ _ _ i)) = (_ ** (ProdOfVar _ (LastVar _ _ i), ?MKUKU))
+encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ (RealVariable _ _ _ _ i))) = (_ ** (ProdOfVarWithConst _ const1 (LastVar _ _ i), ?MYOYO))
+encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVariable _ _ _ _ j))) = (_ ** (ProdOfVar _ (VarMultProduct _ i (LastVar _ _ j)), ?MCOUCOU))
 
 
-multiplyProdOfVar : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (ProductOfVariables setAndMult g c1)
+multiplyProdOfVar : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {setAndMult:SetWithMult c (ring_to_set p)} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (ProductOfVariables setAndMult g c1)
                                 -> (ProductOfVariables setAndMult g c2)
                                 -> (c3 ** ((ProductOfVariables setAndMult g c3), Mult c1 c2 ~= c3))
+multiplyProdOfVar (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduct _ k1 (LastVar _ _ k2), ?MPOIPOI))                
+multiplyProdOfVar (LastVar _ _ k1) (VarMultProduct _ k2 pdv) = (_ ** (VarMultProduct _ k1 (VarMultProduct _ k2 pdv), ?MKNKN))
+multiplyProdOfVar (VarMultProduct _ k1 pdv) (LastVar _ _ k2) = 
+	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar pdv (LastVar _ _ k2) in
+		(_ ** (VarMultProduct _ k1 newpdv, ?MFRGH))
+multiplyProdOfVar (VarMultProduct _ k1 pdv1) (VarMultProduct _ k2 pdv2) = 
+	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar pdv1 (VarMultProduct _ k2 pdv2) in
+		(_ ** (VarMultProduct _ k1 newpdv, ?MFRGH))
                 
-
-multiplyMonomials : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {setAndMult:SetWithMult c (ring_to_set p)} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (Monomial setAndMult g c1) -> (Monomial setAndMult g c2) 
-
+                
 
 -- Returns a product of monomial that can be composed of either only one monomial (if they were concatenable together), or a product of two monomials
 multiplyMonomialAndProductOfMonomials : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {setAndMult:SetWithMult c (ring_to_set p)} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (Monomial setAndMult g c1) -> (ProductOfMonomials setAndMult g c2) -- If I give the _ parameter to the ProductOfMonomial, I've got a senseless error message...
-	-> (c3 ** (ProductOfMonomials setAndMult g c3, Mult c1 c2 ~=c3))
+	-> (c3 ** (ProductOfMonomials setAndMult g c3, Mult c1 c2 ~= c3))
 -- This case will give only one monomial
 multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
-    let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar _ _ _ prodVar1 prodVar2 in
+    let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar prodVar1 prodVar2 in
         (_ ** (LastMonomial _ (ProdOfVar _ prodVar1Var2), ?MTTTY))
 -- This case gives two monomials
 multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)) = 
     (_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)), ?MTYU))
 -- To see
 multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVar _ prodVar2) prodOfMon) = 
-    let (r1 ** (mon1, p1)) = multiplyProdOfVar prodVar1 prodVar2 mon in  
-        (_ ** (MonomialMultProduct (ProdOfVar prodVar1 prodVar2) prodOfMon, ?MJIUK))
-multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const) prodOfMon) = 
-    (_ **(MonomialMultProduct (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const) prodOfMon), ?MKJH))
-
-
+    let (r1 ** (mon1, p1)) = multiplyProdOfVar prodVar1 prodVar2 in  
+        (_ ** (MonomialMultProduct _ (ProdOfVar _ mon1) prodOfMon, ?MJIUK))
+multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon) = 
+    (_ **(MonomialMultProduct _ (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon), ?MKJH))
+multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon), ?MKKO))
+    
+    
+multiplyMonomialAndProductOfMonomials (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
+	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar prodVar1 prodVar2 in
+		(_ ** (LastMonomial _ (ProdOfVarWithConst _ const1 prodVar1Var2), ?MMPOLKI))
+multiplyMonomialAndProductOfMonomials (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar2)) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar2)), ?MJIKK))
+multiplyMonomialAndProductOfMonomials (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVar _ prodVar2) prodOfMon) = 
+	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar prodVar1 prodVar2 in
+		(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1Var2) prodOfMon, ?MRGTYUJ))
+multiplyMonomialAndProductOfMonomials (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon), ?MYUIO))
+multiplyMonomialAndProductOfMonomials (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon), ?MOHOH))
+    
+multiplyMonomialAndProductOfMonomials (ConstantMonomial _ _ const1) (LastMonomial _ (ProdOfVar _ prodVar)) = 
+	(_ ** (LastMonomial _ (ProdOfVarWithConst _ const1 prodVar), ?MYHYH))
+multiplyMonomialAndProductOfMonomials (ConstantMonomial _ _ const1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar)) = 
+	(_ ** (LastMonomial _ (ProdOfVarWithConst _ (Mult const1 const2) prodVar), ?MOPOP))
+multiplyMonomialAndProductOfMonomials (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ProdOfVar _ prodVar) prodOfMon) =
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar) prodOfMon, ?MIKIK))
+multiplyMonomialAndProductOfMonomials (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ (Mult const1 const2) prodVar) prodOfMon, ?MJOP))
+-- For this case, the output is weird (with a product of two constant monomial), but so was the input
+multiplyMonomialAndProductOfMonomials (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ConstantMonomial _ _ (Mult const1 const2)) prodOfMon, ?MUIUI))
+    
 
 -- The "e" here can't be a Plus, a Neg or a Minus
-encodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
--- At this stage, the only thing we should receive is a real variable, but let's write it on a complete fashions
+encodeToProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
 -- This case gives only one monomial (base case)
-encodeProductOfMonomials c p g (VarR _ v) = 
-    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (VarR _ v) in
+encodeToProductOfMonomials c p g (VarR _ v) = 
+    let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (VarR _ v) in
         (_ ** (LastMonomial _ mon1, ?MO))
 -- This case gives only one monomial (base case)
-encodeProductOfMonomials c p g (ConstR _ _ const) = 
-    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (ConstR _ _ const) in
+encodeToProductOfMonomials c p g (ConstR _ _ const) = 
+    let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (ConstR _ _ const) in
         (_ ** (LastMonomial _ mon1, ?MO))
 
 -- IMPORTANT : In the case of a mult, we know that no operand can be a Neg, since we've move all the Neg before the product (thanks to MoveNegInPolynomial, which does moveNegInMonomial for all monomials)
 -- For a mult, we now that the left part is forced to be an atom (variable or constant), since we've put eveything in right-associative form before calling the encoding function
 -- This case gives only one monomial (base case)
-encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = 
-    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (ConstR _ _ (Mult const1 const2)) in
+encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = 
+    let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (ConstR _ _ (Mult const1 const2)) in
         (_ ** (LastMonomial _ mon1, ?MO))
 -- This case gives only one monomial (base case)
-encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
-    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (MultR (ConstR _ _ const1) (VarR _ v)) in
+encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
+    let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ v)) in
         (_ ** (LastMonomial _ mon1, ?MO))
 -- Case with n>=2monomials
 -- Case with the second argument of the Mult being a Neg is not possible since we are supposed to have move the Neg to the front.
-encodeProductOfMonomials c p g (MultR (ConstR _ _ const1) e2) = 
-	let (r_1 ** (monomial, p_1)) = encodeMonomial c p g (ConstR _ _ const1) in
-	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeProductOfMonomials c p g e2 in
+encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) e2) = 
+	let (r_1 ** (monomial, p_1)) = encodeToMonomial c p g (ConstR _ _ const1) in
+	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeToProductOfMonomials c p g e2 in
 	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials monomial productOfMonomials in
 		(_ ** (e_3, ?MJ))
         
 -- This case gives a product of 2 monomials
-encodeProductOfMonomials c p g (MultR (VarR _ v) (ConstR _ _ const2)) = 
+encodeToProductOfMonomials c p g (MultR (VarR _ v) (ConstR _ _ const2)) = 
 	-- The variable v is going to be part of a first monomial, and the const2 of another one
-    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (VarR _ v) in
-    let (r_2 ** (mon2, p_2)) = encodeMonomial c p g (ConstR _ _ const2) in
+    let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (VarR _ v) in
+    let (r_2 ** (mon2, p_2)) = encodeToMonomial c p g (ConstR _ _ const2) in
 	-- Wrapp the second monomial into a product of monomial
 	let prod = LastMonomial _ mon2 in
 		(_ ** (MonomialMultProduct _ mon1 prod, ?MP))
 -- This case gives only one monomial (base case)
-encodeProductOfMonomials c p g (MultR (VarR _ v1) (VarR _ v2)) = 
-    let (r_1 ** (mon1, p_1)) = encodeMonomial c p g (MultR (VarR _ v1) (VarR _ v2)) in
+encodeToProductOfMonomials c p g (MultR (VarR _ v1) (VarR _ v2)) = 
+    let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (MultR (VarR _ v1) (VarR _ v2)) in
         (_ ** (LastMonomial _ mon1, ?MN))
 -- Case with n>=2monomials
 -- Case with the second argument of the Mult being a Neg is not possible since we are supposed to have move the Neg to the front.
-encodeProductOfMonomials c p g (MultR (VarR _ v1) e2) =
-	let (r_1 ** (monomial, p_1)) = encodeMonomial c p g (VarR _ v1) in
-	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeProductOfMonomials e2 in
-	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials c p g monomial productOfMonomials in
+encodeToProductOfMonomials c p g (MultR (VarR _ v1) e2) =
+	let (r_1 ** (monomial, p_1)) = encodeToMonomial c p g (VarR _ v1) in
+	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeToProductOfMonomials c p g e2 in
+	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials monomial productOfMonomials in
 		(_ ** (e_3, ?MJ2))
             
 
 
 encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+encode c p g (ConstR _ _ const1) = 
+	(_ ** (ConstCG _ _ _ const1, ?MBBB))
+encode c p g (VarR _ v1) = 
+	(_ ** (VarCG _ _ v1, ?MEEE))
 -- Sum of product of monomials
 encode c p g (PlusR e1 e2) = 
     let (r_1 ** (e_1, p_1)) = encode c p g e1 in
@@ -592,9 +634,9 @@ encode c p g (PlusR e1 e2) =
 encode c p g (NegR e) = 
     let (r ** (e, p)) = encode c p g e in
         (_ ** (NegCG _ e, ?MB))
--- In the case of a mult, a constant or a var, we know that we have a "product of monomials"
-encode c p g e =
-    let (r_1 ** (pdtOfMon, p_1)) = encodeProductOfMonomials c p g e in
+-- In the case of a mult, we know that we have a "product of monomials", we just need to encode to it
+encode c p g (MultR e1 e2) =
+	let (r_1 ** (pdtOfMon, p_1)) = encodeToProductOfMonomials c p g (MultR e1 e2) in
         (_ ** (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon), ?MFFF))
 
 	
@@ -602,11 +644,14 @@ encode c p g e =
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
   let (r_1 ** (e_1, p_1)) = elimMinus' p e in
-  let (r_2 ** (e_2, p_2)) = propagateNeg_fix' p e_1 in
-  let (r_3 ** (e_3, p_3)) = elimDoubleNeg' p e_2 in
+  let (r_2 ** (e_2, p_2)) = propagateNeg_fix' p e_1 in 
+  let (r_3 ** (e_3, p_3)) = elimDoubleNeg' p e_2 in -- Needed because we've propagated some Neg just before
+	  
   let (r_4 ** (e_4, p_4)) = develop_fix p e_3 in
-  let (r_5 ** (e_5, p_5)) = shuffleProductRight p _ e_4 in
-  -- Here we need to treat every product of monomial that that they contain at most ONE Neg
+	  
+  let (r_5 ** (e_5, p_5)) = shuffleProductRight p _ e_4 in -- Needed for the encoding
+  let (r_6 ** (e_6, p_6)) = moveNegInPolynomial p e_5 in -- Needed for the encoding, because we want each product of monomials to start with the Neg (if any), and not to contain Negs in the middle of them
+  let (r_7 ** (e_7, p_7)) = elimDoubleNeg' p e_6 in -- Needed because we've moved some Neg just before
   -- Then encoding
     (_ **(e_5, ?MX))
 
