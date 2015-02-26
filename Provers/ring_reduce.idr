@@ -509,7 +509,8 @@ encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ (RealVariable _ _ _ _ 
 encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVariable _ _ _ _ j))) = (_ ** (ProdOfVar _ (VarMultProduct _ i (LastVar _ _ j)), ?MCOUCOU))
 
 
-multiplyProdOfVar : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {setAndMult:SetWithMult c (ring_to_set p)} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (ProductOfVariables setAndMult g c1)
+multiplyProdOfVar : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {setAndMult:SetWithMult c (ring_to_set p)} -> {g:Vect n c} -> {c1:c} -> {c2:c} 
+								-> (ProductOfVariables setAndMult g c1)
                                 -> (ProductOfVariables setAndMult g c2)
                                 -> (c3 ** ((ProductOfVariables setAndMult g c3), Mult c1 c2 ~= c3))
 multiplyProdOfVar (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduct _ k1 (LastVar _ _ k2), ?MPOIPOI))                
@@ -542,7 +543,6 @@ multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (MonomialMultProduc
 multiplyMonomialAndProductOfMonomials (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
 	(_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon), ?MKKO))
     
-    
 multiplyMonomialAndProductOfMonomials (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
 	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar prodVar1 prodVar2 in
 		(_ ** (LastMonomial _ (ProdOfVarWithConst _ const1 prodVar1Var2), ?MMPOLKI))
@@ -567,6 +567,9 @@ multiplyMonomialAndProductOfMonomials (ConstantMonomial _ _ const1) (MonomialMul
 -- For this case, the output is weird (with a product of two constant monomial), but so was the input
 multiplyMonomialAndProductOfMonomials (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
 	(_ ** (MonomialMultProduct _ (ConstantMonomial _ _ (Mult const1 const2)) prodOfMon, ?MUIUI))
+    
+    
+    
     
 
 -- The "e" here can't be a Plus, a Neg or a Minus
