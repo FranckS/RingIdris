@@ -243,6 +243,7 @@ ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
 record SetWithMult : (c:Type) -> (Set c) -> Type where
   MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
 
+  
 -- Just a fake term encapsulating a fake multiplication (always returning its first element) and the proof that this multiplication preserves the equality
 FakeSetAndMult : {c:Type} -> (c_is_set:Set c) -> SetWithMult c c_is_set
 FakeSetAndMult c_is_set = MkSetWithMult c_is_set (\x => \y => x) ?MFakeSetAndMult_multPreservesEq
