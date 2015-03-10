@@ -499,7 +499,7 @@ moveNegInPolynomial p (MultR e1 e2) =
 	moveNegInMonomial p (MultR e1 e2)
 
     
-encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 -- The only thing we can get are : 
 -- a Var, a Constant, a Mult between a const and a var and a Mult between a var and a var
 -- (Mult between const and const is impossible because we could have deal with that directly, and Mult between var and const would not make a monomial so we would have already deal with it as well) 
@@ -512,9 +512,9 @@ encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVar
 
 --%logging 3 
 multiplyProdOfVar : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c} 
-								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult Mult_preserves_equiv) g c1) -- I don't understand why I get an error message if I give Mult_preserves_equiv here... I suspect a problem in Idris
-								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult Mult_preserves_equiv) g c2) -- Since the problem arises when the 2 SetWithMult are the same. So be carefull, this function now expects a fake unused argument
-								-> (c3 ** ((ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult Mult_preserves_equiv) g c3), Mult c1 c2 ~= c3))
+								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4 => Mult_preserves_equiv _ _ _ _) g c1) -- I don't understand why I get an error message if I give Mult_preserves_equiv here... I suspect a problem in Idris
+								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4 => Mult_preserves_equiv _ _ _ _)) g c2) -- Since the problem arises when the 2 SetWithMult are the same. So be carefull, this function now expects a fake unused argument
+								-> (c3 ** ((ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4 => Mult_preserves_equiv _ _ _ _)) g c3), Mult c1 c2 ~= c3))
                                 
 multiplyProdOfVar p (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduct _ k1 (LastVar _ _ k2), set_eq_undec_refl _))                
 multiplyProdOfVar p (LastVar _ _ k1) (VarMultProduct _ k2 pdv) = (_ ** (VarMultProduct _ k1 (VarMultProduct _ k2 pdv), set_eq_undec_refl _))
