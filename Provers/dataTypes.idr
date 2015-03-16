@@ -241,8 +241,7 @@ ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
 
 
 record SetWithMult : (c:Type) -> (Set c) -> Type where
-  MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : (c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
-
+    MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
   
 -- Just a fake term encapsulating a fake multiplication (always returning its first element) and the proof that this multiplication preserves the equality
 FakeSetAndMult : {c:Type} -> (c_is_set:Set c) -> SetWithMult c c_is_set
@@ -506,8 +505,7 @@ data ExprR : {c:Type} -> {n:Nat} -> dataTypes.Ring c -> (Vect n c) -> c -> Type 
     MultR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
     MinusR: {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Minus c1 c2)
     NegR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> ExprR p g c1 -> ExprR p g (Neg c1)
-    VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg (MkSetWithMult _ Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1 -> ExprR p g c1
-   
+    VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg (MkSetWithMult _ Mult Mult_preserves_equiv) g c1 -> ExprR p g c1
 
 exprR_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprR p g c1) -> (e2:ExprR p g c2) -> (Maybe (c1~=c2))
 exprR_eq p g (PlusR x y) (PlusR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
