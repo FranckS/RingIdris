@@ -257,7 +257,7 @@ data ProductOfVariables : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:Se
 
 productOfVariables_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (prod1 : ProductOfVariables setAndMult g c1) -> {c2:c} -> (prod2 : ProductOfVariables setAndMult g c2) -> Maybe (c1~=c2)
 productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k2) with (eq_dec_fin k1 k2)
-    productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k1) | (Just Refl) = Just (set_eq_undec_refl _) -- computation of c_is_set is needed because we need to bring the instance of Set in scope (in the context)
+    productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k1) | (Just Refl) = let c_is_set = c_set setAndMult in Just (set_eq_undec_refl _) -- computation of c_is_set is needed because we need to bring the instance of Set in scope (in the context)
     productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k2) | _ = Nothing
 productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k2 prod2) with (eq_dec_fin k1 k2, productOfVariables_eq setAndMult prod1 prod2)
     productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k1 prod2) | (Just Refl, Just prEquivProd) = ?MproductOfVariables_eq_1
@@ -330,10 +330,15 @@ Variable_eq neg setAndMult g (EncodingProductOfMonomials _ _ _ prod1) (EncodingP
 --    Variable_eq c_equal neg g (EncodingGroupTerm_const _ _ _ c1) (EncodingGroupTerm_const _ _ _ c2) | _ = Nothing
 Variable_eq neg setAndMult g _ _ = Nothing
    
-      
+
+
+cast_fin_to_nat : {n:Nat} -> Fin n -> Nat
+cast_fin_to_nat f = cast f
+   
+   
 print_Variable : {c:Type} -> {c_set:Set c} -> {n:Nat} -> {c1:c} -> (f:c -> String) -> {neg:c->c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> Variable c_set neg setAndMult g c1 -> String
-print_Variable f (RealVariable _ _ _ _ i) = "Var " ++ (show (cast i))
-print_Variable f (EncodingGroupTerm_var _ _ _ _ i) = "[Encoding_var (" ++ (show(cast i)) ++ ") ]"
+print_Variable f (RealVariable _ _ _ _ i) = "Var " ++ (show (cast_fin_to_nat i))
+print_Variable f (EncodingGroupTerm_var _ _ _ _ i) = "[Encoding_var (" ++ (show( cast_fin_to_nat i)) ++ ") ]"
 print_Variable f (EncodingProductOfMonomials _ _ _ prod) = "encoding of product of monomials" -- Perhaps will need to print something more useful here for debug
 --print_VariableA f (EncodingGroupTerm_const _ _ _ c1) = "[Encoding_const (" ++ (f c1) ++ ") ]"
 
