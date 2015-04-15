@@ -228,7 +228,7 @@ lemmaRing4 C p a b =
 -- C.1) For SemiGroup
 
 semiGroupAssoc_4terms_Aux1 : (C : Type) -> (SemiGroup C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 ~= Plus (Plus c1 c2) (Plus c3 c4))
-semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc _ _ _
+semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc {c=C} _ _ _
 
 plusEqualLeft_SemiGroup : (C : Type) -> (SemiGroup C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x~=x') -> (Plus x y ~= Plus x' y)
 plusEqualLeft_SemiGroup C p x x' y prEqual = ?MplusEqualLeft_SemiGroup_1
@@ -242,7 +242,7 @@ semiGroupAssoc_4terms C p c1 c2 c3 c4 = ?MsemiGroupAssoc_4terms_1
 -- C.2) For Group
 
 groupAssoc_4terms_Aux1 :  (C : Type) -> (dataTypes.Group C) -> (c1:C) -> (c2:C) -> (c3:C) -> (c4:C) -> (Plus (Plus (Plus c1 c2) c3) c4 ~= Plus (Plus c1 c2) (Plus c3 c4))
-groupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc _ _ _
+groupAssoc_4terms_Aux1 C p c1 c2 c3 c4 = Plus_assoc {c=C} _ _ _
 
 plusEqualLeft_Group : (C : Type) -> (dataTypes.Group C) -> (x:C) -> (x':C) -> (y:C) -> (prEqual:x~=x') -> (Plus x y ~= Plus x' y)
 plusEqualLeft_Group C p x x' y prEqual = ?MplusEqualLeft_Group_1 
@@ -753,9 +753,9 @@ Provers.tools.MGroup_unicity_1 = proof
   mrefine eq_preserves_eq 
   exact (Plus b (Plus a c))
   exact (Plus (Plus b a) c)
-  exact (set_eq_undec_sym (add_zero_right _ (Plus a c) b (left p2)))
-  exact (set_eq_undec_sym (add_zero_left _ (Plus b a) c (right p1)))
-  exact (set_eq_undec_sym a1)
+  exact (set_eq_undec_sym {c=C} (add_zero_right _ (Plus a c) b (left p2)))
+  exact (set_eq_undec_sym {c=C} (add_zero_left _ (Plus b a) c (right p1)))
+  exact (set_eq_undec_sym {c=C} a1)
 
 Provers.tools.MGroup_unicity_2 = proof
   intros
@@ -776,7 +776,7 @@ Provers.tools.Mplus_inverse_2 = proof
 
 Provers.tools.Mgroup_doubleNeg1 = proof
   intros
-  exact (set_eq_undec_sym (group_unicity_symmetric p (Neg a) a (Neg (Neg a)) a1 b))
+  exact (set_eq_undec_sym {c=C} (group_unicity_symmetric p (Neg a) a (Neg (Neg a)) a1 b))
   
 Provers.tools.Mgroup_doubleNeg_2 = proof
   intros
@@ -790,7 +790,7 @@ Provers.tools.Mgroup_doubleNeg_3 = proof
   
 Provers.tools.Madding_preserves_equality_1 = proof
   intros
-  exact (Plus_preserves_equiv H (set_eq_undec_refl z))
+  exact (Plus_preserves_equiv {c=C} H (set_eq_undec_refl z))
 
 {-  
 Provers.tools.Madding_preserves_equality_left_1 = proof
@@ -804,8 +804,8 @@ Provers.tools.Mmove_other_side_1 = proof
   mrefine eq_preserves_eq 
   exact (Plus (Plus x y) (Neg y))
   exact (Plus z (Neg y))
-  exact (set_eq_undec_sym aux2)
-  exact (set_eq_undec_refl (Plus z (Neg y)))
+  exact (set_eq_undec_sym {c=C} aux2)
+  exact (set_eq_undec_refl {c=C} (Plus z (Neg y)))
   exact aux
   
 Provers.tools.Mmove_other_side_2 = proof
@@ -824,17 +824,17 @@ Provers.tools.Mmove_other_side_3 = proof
   mrefine eq_preserves_eq 
   exact x
   exact (Plus x (Plus y (Neg y)))
-  exact (set_eq_undec_refl x)
-  exact (set_eq_undec_sym aux3)
-  exact (set_eq_undec_sym aux5)
+  exact (set_eq_undec_refl {c=C} x)
+  exact (set_eq_undec_sym {c=C} aux3)
+  exact (set_eq_undec_sym {c=C} aux5)
   
 Provers.tools.Mpush_negation_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg (Plus x y)) (Plus x y))
   exact (the C Zero)
-  exact (set_eq_undec_sym aux2)
-  exact (set_eq_undec_refl Zero)
+  exact (set_eq_undec_sym {c=C} aux2)
+  exact (set_eq_undec_refl {c=C} Zero)
   exact aux  
   
 Provers.tools.Mpush_negation_2 = proof
@@ -854,12 +854,12 @@ Provers.tools.MplusEqualLeft_SemiGroup_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact prEqual 
-  exact (set_eq_undec_refl y) 
+  exact (set_eq_undec_refl {c=C} y) 
 
 Provers.tools.MsemiGroupAssoc_4terms_Aux2_1 = proof
   intros
   mrefine plusEqualLeft_SemiGroup 
-  exact (set_eq_undec_sym (Plus_assoc c1 c2 c3))
+  exact (set_eq_undec_sym {c=C} (Plus_assoc c1 c2 c3))
 
 Provers.tools.MsemiGroupAssoc_4terms_1 = proof
   intros
@@ -867,8 +867,8 @@ Provers.tools.MsemiGroupAssoc_4terms_1 = proof
   exact (Plus (Plus (Plus c1 c2) c3) c4)
   exact (Plus (Plus (Plus c1 c2) c3) c4)
   exact (semiGroupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
-  exact (set_eq_undec_sym (semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4))
-  exact (set_eq_undec_refl (Plus (Plus (Plus c1 c2) c3) c4))
+  exact (set_eq_undec_sym {c=C} (semiGroupAssoc_4terms_Aux1 C p c1 c2 c3 c4))
+  exact (set_eq_undec_refl {c=C} (Plus (Plus (Plus c1 c2) c3) c4))
 
 Provers.tools.MplusEqualLeft_Group_1 = proof
   intros
@@ -879,7 +879,7 @@ Provers.tools.MplusEqualLeft_Group_1 = proof
 Provers.tools.MgroupAssoc_4terms_Aux2_1 = proof
   intros
   mrefine plusEqualLeft_Group 
-  exact (set_eq_undec_sym(Plus_assoc c1 c2 c3))
+  exact (set_eq_undec_sym {c=C} (Plus_assoc c1 c2 c3))
 
 Provers.tools.MgroupAssoc_4terms_1 = proof
   intros
@@ -887,8 +887,8 @@ Provers.tools.MgroupAssoc_4terms_1 = proof
   exact (Plus (Plus (Plus c1 c2) c3) c4)
   exact (Plus (Plus (Plus c1 c2) c3) c4)
   exact (groupAssoc_4terms_Aux2 C p c1 c2 c3 c4)
-  exact (set_eq_undec_sym (groupAssoc_4terms_Aux1 C p c1 c2 c3 c4))
-  exact (set_eq_undec_refl (Plus (Plus (Plus c1 c2) c3) c4))
+  exact (set_eq_undec_sym {c=C} (groupAssoc_4terms_Aux1 C p c1 c2 c3 c4))
+  exact (set_eq_undec_refl {c=C} (Plus (Plus (Plus c1 c2) c3) c4))
   
 {-
 Provers.tools.aux1 = proof {

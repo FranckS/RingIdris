@@ -18,21 +18,21 @@ import Provers.tools
 
 total
 elimZero : (c:Type) -> (p:dataTypes.Monoid c) -> (neg:c->c) -> (setAndMult:SetWithMult c (monoid_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprMo p neg setAndMult g c1) -> (c2 ** (ExprMo p neg setAndMult g c2, c1~=c2))
-elimZero c p neg setAndMult g (ConstMo _ _ _ _ const) = (_ ** (ConstMo _ _ _ _ const, set_eq_undec_refl _))
+elimZero c p neg setAndMult g (ConstMo _ _ _ _ const) = (_ ** (ConstMo _ _ _ _ const, set_eq_undec_refl {c} _))
 -- elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) = ?foo --with (monoid_get_setEq p Zero const1) 
 elimZero c p neg setAndMult g (PlusMo _ _ (ConstMo _ _ _ _ const1) (VarMo _ _ _ v)) with (monoid_eq_as_elem_of_set p Zero const1)
 --  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | with_pat = ?elimZero_rhs~~
 --  elimZero c p (PlusMo (ConstMo p const1) (VarMo p v)) | (Just prf) = ?elimZero_rhs_2
     elimZero c p neg setAndMult g (PlusMo _ _ (ConstMo _ _ _ _ const1) (VarMo _ _ _ v)) | (Just const1_eq_zero) = (_ ** (VarMo _ _ _ v, ?MelimZero1))
-    elimZero c p neg setAndMult g (PlusMo _ _ (ConstMo _ _ _ _ const1) (VarMo _ _ _ v)) | _ = (_ ** (PlusMo _ _ (ConstMo _ _ _ _ const1) (VarMo _ _ _ v), set_eq_undec_refl _)) 
+    elimZero c p neg setAndMult g (PlusMo _ _ (ConstMo _ _ _ _ const1) (VarMo _ _ _ v)) | _ = (_ ** (PlusMo _ _ (ConstMo _ _ _ _ const1) (VarMo _ _ _ v), set_eq_undec_refl {c} _)) 
 elimZero c p neg setAndMult g (PlusMo _ _ (VarMo _ _ _ v) (ConstMo _ _ _ _ const2)) with (monoid_eq_as_elem_of_set p Zero const2) 
     elimZero c p neg setAndMult g (PlusMo _ _ (VarMo _ _ _ v) (ConstMo _ _ _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarMo _ _ _ v, ?MelimZero2))
-    elimZero c p neg setAndMult g (PlusMo _ _ (VarMo _ _ _ v) (ConstMo _ _ _ _ const2)) | _ = (_ ** (PlusMo _ _ (VarMo _ _ _ v) (ConstMo _ _ _ _ const2), set_eq_undec_refl _))
+    elimZero c p neg setAndMult g (PlusMo _ _ (VarMo _ _ _ v) (ConstMo _ _ _ _ const2)) | _ = (_ ** (PlusMo _ _ (VarMo _ _ _ v) (ConstMo _ _ _ _ const2), set_eq_undec_refl {c} _))
 elimZero c p neg setAndMult g (PlusMo _ _ e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (elimZero c p neg setAndMult g e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (elimZero c p neg setAndMult g e2) in
     ((Plus r_ih1 r_ih2) ** (PlusMo _ _ e_ih1 e_ih2, ?MelimZero3))  
-elimZero c p neg setAndMult g (VarMo _ _ _ v) = (_ ** (VarMo _ _ _ v, set_eq_undec_refl _))
+elimZero c p neg setAndMult g (VarMo _ _ _ v) = (_ ** (VarMo _ _ _ v, set_eq_undec_refl {c} _))
 
 
 monoidReduce : (p:dataTypes.Monoid c) -> {neg:c->c} -> {setAndMult:SetWithMult c (monoid_to_set p)} -> {g:Vect n c} -> {c1:c} -> (ExprMo p neg setAndMult g c1) -> (c2 ** (ExprMo p neg setAndMult g c2, c1~=c2))

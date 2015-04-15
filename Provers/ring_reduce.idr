@@ -21,8 +21,8 @@ import Data.Vect
 -- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 pattern matched cases
 --total
 develop : {c:Type} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
-develop (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl _))
-develop (VarR p v) = (_ ** (VarR p v, set_eq_undec_refl _))
+develop {c} (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl {c} _))
+develop {c} (VarR p v) = (_ ** (VarR p v, set_eq_undec_refl {c} _))
 develop (PlusR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (develop e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (develop e2) in
@@ -39,8 +39,8 @@ develop (NegR e) =
     (r_ih ** (e_ih, ?Mdevelop_3))
 
       
-develop (MultR (ConstR _ _ c1) (ConstR _ _ c2)) = (_ ** (MultR (ConstR _ _ c1) (ConstR _ _ c2), set_eq_undec_refl _))     
-develop (MultR (ConstR _ _ c1) (VarR p v)) = (_ ** (MultR (ConstR _ _ c1) (VarR p v), set_eq_undec_refl _))
+develop {c} (MultR (ConstR _ _ c1) (ConstR _ _ c2)) = (_ ** (MultR (ConstR _ _ c1) (ConstR _ _ c2), set_eq_undec_refl {c} _))     
+develop {c} (MultR (ConstR _ _ c1) (VarR p v)) = (_ ** (MultR (ConstR _ _ c1) (VarR p v), set_eq_undec_refl {c} _))
 develop (MultR (ConstR _ _ c1) (PlusR e21 e22)) = 
   let (r_ih_e21 ** (e_ih_e21, p_ih_e21)) = develop e21 in
   let (r_ih_e22 ** (e_ih_e22, p_ih_e22)) = develop e22 in
@@ -62,8 +62,8 @@ develop (MultR (ConstR _ _ c1) (MultR e21 e22)) =
   let e_ih = (MultR e_ih_e21 e_ih_e22) in
     (_ ** ({- develop -} (MultR (ConstR _ _ c1) e_ih), ?Mdevelop_7))
 
-develop (MultR (VarR p v1) (ConstR _ _ c2)) = (_ ** (MultR (VarR p v1) (ConstR _ _ c2), set_eq_undec_refl _))
-develop (MultR (VarR p v1) (VarR p v2)) = (_ ** (MultR (VarR p v1) (VarR p v2), set_eq_undec_refl _))
+develop {c} (MultR (VarR p v1) (ConstR _ _ c2)) = (_ ** (MultR (VarR p v1) (ConstR _ _ c2), set_eq_undec_refl {c} _))
+develop {c} (MultR (VarR p v1) (VarR p v2)) = (_ ** (MultR (VarR p v1) (VarR p v2), set_eq_undec_refl {c} _))
 develop (MultR (VarR p v1) (PlusR e21 e22)) = 
   let (r_ih_e21 ** (e_ih_e21, p_ih_e21)) = develop e21 in
   let (r_ih_e22 ** (e_ih_e22, p_ih_e22)) = develop e22 in
@@ -264,12 +264,12 @@ develop_fix p e =
 -- same as elimMinus, but typed for an element of a Ring instead of a Group	 
 total
 elimMinus' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
-elimMinus' p (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl _))
+elimMinus' {c} p (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl {c} _))
 elimMinus' p (PlusR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
     ((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?Melim'Minus1))
-elimMinus' p (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl _))    
+elimMinus' {c} p (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl {c} _))    
 elimMinus' p (MinusR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
@@ -285,20 +285,20 @@ elimMinus' p (MultR e1 e2) =
 
 
 -- Not tagged as total since we have no case for Minus (but they have been all removed at the previous step)
-multAfter : (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (ExprR p g c1) -> (ExprR p g c2) -> (c3 ** (ExprR p g c3, c3~=Mult c1 c2))
-multAfter p g (ConstR _ _ const1) e = (_ ** (MultR (ConstR _ _ const1) e, set_eq_undec_refl _))
-multAfter p g (VarR _ v) e = (_ ** (MultR (VarR _ v) e, set_eq_undec_refl _))
-multAfter p g (PlusR e11 e12) e2 = (_ ** (MultR (PlusR e11 e12) e2, set_eq_undec_refl _))
-multAfter p g (NegR e1) e2 = (_ ** (MultR (NegR e1) e2, set_eq_undec_refl _))
+multAfter : {c:Type} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (ExprR p g c1) -> (ExprR p g c2) -> (c3 ** (ExprR p g c3, c3~=Mult c1 c2))
+multAfter {c} p g (ConstR _ _ const1) e = (_ ** (MultR (ConstR _ _ const1) e, set_eq_undec_refl {c} _))
+multAfter {c} p g (VarR _ v) e = (_ ** (MultR (VarR _ v) e, set_eq_undec_refl {c} _))
+multAfter {c} p g (PlusR e11 e12) e2 = (_ ** (MultR (PlusR e11 e12) e2, set_eq_undec_refl {c} _))
+multAfter {c} p g (NegR e1) e2 = (_ ** (MultR (NegR e1) e2, set_eq_undec_refl {c} _))
 multAfter p g (MultR e11 e12) e2 = 
     let (r_ih1 ** (e_ih1, p_ih1)) = multAfter p g e12 e2
     in (_ ** (MultR e11 e_ih1, ?MmultAfter1))
 
 
 
-shuffleProductRight : (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
-shuffleProductRight p g (ConstR _ _ const1) = (_ ** (ConstR _ _ const1, set_eq_undec_refl _))
-shuffleProductRight p g (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl _))
+shuffleProductRight : {c:Type} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+shuffleProductRight {c} p g (ConstR _ _ const1) = (_ ** (ConstR _ _ const1, set_eq_undec_refl {c} _))
+shuffleProductRight {c} p g (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl {c} _))
 shuffleProductRight p g (NegR e) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e) in
     (_ ** (e_ih1, ?MshuffleProductRight1))
@@ -307,8 +307,8 @@ shuffleProductRight p g (PlusR e1 e2) =
     let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g e2 in
     (_ ** (PlusR e_ih1 e_ih2, ?MshuffleProductRight2))
 
-shuffleProductRight p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = (_ ** (MultR (ConstR _ _ const1) (ConstR _ _ const2), set_eq_undec_refl _))
-shuffleProductRight p g (MultR (ConstR _ _ const1) (VarR _ v)) = (_ ** (MultR (ConstR _ _ const1) (VarR _ v), set_eq_undec_refl _))
+shuffleProductRight {c} p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = (_ ** (MultR (ConstR _ _ const1) (ConstR _ _ const2), set_eq_undec_refl {c} _))
+shuffleProductRight {c} p g (MultR (ConstR _ _ const1) (VarR _ v)) = (_ ** (MultR (ConstR _ _ const1) (VarR _ v), set_eq_undec_refl {c} _))
 shuffleProductRight p g (MultR (ConstR _ _ const1) (PlusR e21 e22)) =
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e21 e22) in -- Will do it for e21 and e22 separately during the recursive call
     (_ ** (MultR (ConstR _ _ const1) e_ih1, ?MshuffleProductRight3))
@@ -320,8 +320,8 @@ shuffleProductRight p g (MultR (ConstR _ _ const1) (MultR e21 e22)) =
     (_ ** (MultR (ConstR _ _ const1) e_ih1, ?MshuffleProductRight5))
 
 
-shuffleProductRight p g (MultR (VarR _ v1) (ConstR _ _ const2)) = (_ ** (MultR (VarR _ v1) (ConstR _ _ const2), set_eq_undec_refl _))
-shuffleProductRight p g (MultR (VarR _ v1) (VarR _ v2)) = (_ ** (MultR (VarR _ v1) (VarR _ v2), set_eq_undec_refl _))
+shuffleProductRight {c} p g (MultR (VarR _ v1) (ConstR _ _ const2)) = (_ ** (MultR (VarR _ v1) (ConstR _ _ const2), set_eq_undec_refl {c} _))
+shuffleProductRight {c} p g (MultR (VarR _ v1) (VarR _ v2)) = (_ ** (MultR (VarR _ v1) (VarR _ v2), set_eq_undec_refl {c} _))
 shuffleProductRight p g (MultR (VarR _ v1) (PlusR e21 e22)) =
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (PlusR e21 e22) in -- Will do it for e21 and e22 separately during the recursive call
     (_ ** (MultR (VarR _ v1) e_ih1, ?MshuffleProductRight6))
@@ -417,8 +417,8 @@ propagateNeg' p (MultR e1 e2) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
 		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg_4))		
-propagateNeg' p e =
-  (_ ** (e, set_eq_undec_refl _))     
+propagateNeg' {c} p e =
+  (_ ** (e, set_eq_undec_refl {c} _))     
     
 
     
@@ -448,8 +448,8 @@ elimDoubleNeg' p (MultR e1 e2) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = (elimDoubleNeg' p e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg' p e2) in
     ((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MelimDoubleNeg'_4))  
-elimDoubleNeg' p e1 = 
-    (_ ** (e1, set_eq_undec_refl _))    
+elimDoubleNeg' {c} p e1 = 
+    (_ ** (e1, set_eq_undec_refl {c} _))    
     
 
     
@@ -471,10 +471,10 @@ moveNegInMonomial p (MultR (NegR a) b) = -- Here, b is a MultR (reminder : we've
 	let (r_ih2 ** (e_ih2, p_ih2)) = moveNegInMonomial p (MultR (NegR a) e_ih1) in -- We do the analyze again, but with the new b
 		(_ ** (e_ih2, ?MmoveNegInMonomial_4))
 
-moveNegInMonomial p (MultR a (ConstR _ _ const1)) =
-	(_ ** (MultR a (ConstR _ _ const1), set_eq_undec_refl _))
-moveNegInMonomial p (MultR a (VarR _ v)) = 
-	(_ ** (MultR a (VarR _ v), set_eq_undec_refl _))
+moveNegInMonomial {c} p (MultR a (ConstR _ _ const1)) =
+	(_ ** (MultR a (ConstR _ _ const1), set_eq_undec_refl {c} _))
+moveNegInMonomial {c} p (MultR a (VarR _ v)) = 
+	(_ ** (MultR a (VarR _ v), set_eq_undec_refl {c} _))
 moveNegInMonomial p (MultR a (NegR b)) = -- I think that b here can only be a constant or variable
 	(_ ** (NegR (MultR a b), ?MmoveNegInMonomial_5))
 moveNegInMonomial p (MultR a b) = -- Here, b is a MultR (reminder : we've put everything in the form right-associative)
@@ -488,10 +488,10 @@ moveNegInPolynomial p (PlusR e1 e2) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegInPolynomial p e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (moveNegInPolynomial p e2) in
 		(_ ** (PlusR e_ih1 e_ih2, ?MmoveNegInPolynomial_1))
-moveNegInPolynomial p (ConstR _ _ const1) = 
-	(_ ** (ConstR _ _ const1, set_eq_undec_refl _))
-moveNegInPolynomial p (VarR _ v) = 
-	(_ ** (VarR _ v, set_eq_undec_refl _))
+moveNegInPolynomial {c} p (ConstR _ _ const1) = 
+	(_ ** (ConstR _ _ const1, set_eq_undec_refl {c} _))
+moveNegInPolynomial {c} p (VarR _ v) = 
+	(_ ** (VarR _ v, set_eq_undec_refl {c} _))
 moveNegInPolynomial p (NegR e) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegInPolynomial p e) in
 		(_ ** (NegR e_ih1, ?MmoveNegInPolynomial_2))
@@ -503,21 +503,21 @@ encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -
 -- The only thing we can get are : 
 -- a Var, a Constant, a Mult between a const and a var and a Mult between a var and a var
 -- (Mult between const and const is impossible because we could have deal with that directly, and Mult between var and const would not make a monomial so we would have already deal with it as well) 
-encodeToMonomial c p g (ConstR _ _ const1) = (_ ** (ConstantMonomial _ _ const1, set_eq_undec_refl _))
-encodeToMonomial c p g (VarR _ (RealVariable _ _ _ _ i)) = (_ ** (ProdOfVar _ (LastVar _ _ i), set_eq_undec_refl _))
-encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ (RealVariable _ _ _ _ i))) = (_ ** (ProdOfVarWithConst _ const1 (LastVar _ _ i), set_eq_undec_refl _))
-encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVariable _ _ _ _ j))) = (_ ** (ProdOfVar _ (VarMultProduct _ i (LastVar _ _ j)), set_eq_undec_refl _))
+encodeToMonomial c p g (ConstR _ _ const1) = (_ ** (ConstantMonomial _ _ const1, set_eq_undec_refl {c} _))
+encodeToMonomial c p g (VarR _ (RealVariable _ _ _ _ i)) = (_ ** (ProdOfVar _ (LastVar _ _ i), set_eq_undec_refl {c} _))
+encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ (RealVariable _ _ _ _ i))) = (_ ** (ProdOfVarWithConst _ const1 (LastVar _ _ i), set_eq_undec_refl {c} _))
+encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVariable _ _ _ _ j))) = (_ ** (ProdOfVar _ (VarMultProduct _ i (LastVar _ _ j)), set_eq_undec_refl {c} _))
 
 
 
 --%logging 3 
 multiplyProdOfVar : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c} 
-								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4 => Mult_preserves_equiv _ _ _ _) g c1) -- I don't understand why I get an error message if I give Mult_preserves_equiv here... I suspect a problem in Idris
-								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4 => Mult_preserves_equiv _ _ _ _)) g c2) -- Since the problem arises when the 2 SetWithMult are the same. So be carefull, this function now expects a fake unused argument
-								-> (c3 ** ((ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4 => Mult_preserves_equiv _ _ _ _)) g c3), Mult c1 c2 ~= c3))
+								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -- I don't understand why I get an error message if I give Mult_preserves_equiv here... I suspect a problem in Idris
+								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2) -- Since the problem arises when the 2 SetWithMult are the same. So be carefull, this function now expects a fake unused argument
+								-> (c3 ** ((ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c3), Mult c1 c2 ~= c3))
                                 
-multiplyProdOfVar p (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduct _ k1 (LastVar _ _ k2), set_eq_undec_refl _))                
-multiplyProdOfVar p (LastVar _ _ k1) (VarMultProduct _ k2 pdv) = (_ ** (VarMultProduct _ k1 (VarMultProduct _ k2 pdv), set_eq_undec_refl _))
+multiplyProdOfVar {c} p (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduct _ k1 (LastVar _ _ k2), set_eq_undec_refl {c} _))                
+multiplyProdOfVar {c} p (LastVar _ _ k1) (VarMultProduct _ k2 pdv) = (_ ** (VarMultProduct _ k1 (VarMultProduct _ k2 pdv), set_eq_undec_refl {c} _))
 multiplyProdOfVar p (VarMultProduct _ k1 pdv) (LastVar _ _ k2) = 
 	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar p pdv (LastVar _ _ k2) in
 		(_ ** (VarMultProduct _ k1 newpdv, ?MmultiplyProdOfVar_3))
@@ -528,8 +528,8 @@ multiplyProdOfVar p (VarMultProduct _ k1 pdv1) (VarMultProduct _ k2 pdv2) =
 --%logging 0                
 
 -- Returns a product of monomial that can be composed of either only one monomial (if they were concatenable together), or a product of two monomials
-multiplyMonomialAndProductOfMonomials : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (Monomial (MkSetWithMult (ring_to_set p) Mult _) g c1) -> (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2) -- If I give the _ parameter to the ProductOfMonomial, I've got a senseless error message...
-	-> (c3 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c3, Mult c1 c2 ~= c3))
+multiplyMonomialAndProductOfMonomials : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (Monomial (MkSetWithMult (ring_to_set p) Mult _) g c1) -> (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult _) g c2) -- If I give the _ parameter to the ProductOfMonomial, I've got a senseless error message...
+	-> (c3 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c3, Mult c1 c2 ~= c3))
 -- This case will give only one monomial
 multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
 	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p prodVar1 prodVar2 in
@@ -576,7 +576,7 @@ multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (MonomialM
     
 
 -- The "e" here can't be a Plus, a Neg or a Minus
-encodeToProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+encodeToProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 -- This case gives only one monomial (base case)
 encodeToProductOfMonomials c p g (VarR _ v) = 
     let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (VarR _ v) in
@@ -601,7 +601,7 @@ encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
 encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) e2) = 
 	let (r_1 ** (monomial, p_1)) = encodeToMonomial c p g (ConstR _ _ const1) in
 	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeToProductOfMonomials c p g e2 in
-	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials monomial productOfMonomials in
+	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials p monomial productOfMonomials in
 		(_ ** (e_3, ?MencodeToProductOfMonomials_5))
         
 -- This case gives a product of 2 monomials
@@ -621,12 +621,12 @@ encodeToProductOfMonomials c p g (MultR (VarR _ v1) (VarR _ v2)) =
 encodeToProductOfMonomials c p g (MultR (VarR _ v1) e2) =
 	let (r_1 ** (monomial, p_1)) = encodeToMonomial c p g (VarR _ v1) in
 	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeToProductOfMonomials c p g e2 in
-	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials monomial productOfMonomials in
+	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials p monomial productOfMonomials in
 		(_ ** (e_3, ?MencodeToProductOfMonomials_8))
             
 
 
-encodeToCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult Mult_preserves_equiv) g c2, c1~=c2))
+encodeToCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 encodeToCG c p g (ConstR _ _ const1) = 
 	(_ ** (ConstCG _ _ _ const1, ?MencodeToCG_1))
 encodeToCG c p g (VarR _ v1) = 

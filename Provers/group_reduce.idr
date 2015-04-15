@@ -19,12 +19,12 @@ import Provers.tools
 
 total
 elimMinus : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
-elimMinus p setAndMult (ConstG _ _ _ const) = (_ ** (ConstG _ _ _ const, set_eq_undec_refl _))
+elimMinus {c} p setAndMult (ConstG _ _ _ const) = (_ ** (ConstG _ _ _ const, set_eq_undec_refl {c} _))
 elimMinus p setAndMult (PlusG _ e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p setAndMult e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p setAndMult e2) in
 		((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MelimMinus1))
-elimMinus p setAndMult (VarG _ _ v) = (_ ** (VarG _ _ v, set_eq_undec_refl _))    
+elimMinus {c} p setAndMult (VarG _ _ v) = (_ ** (VarG _ _ v, set_eq_undec_refl {c} _))    
 elimMinus p setAndMult (MinusG _ e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus p setAndMult e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus p setAndMult e2) in
@@ -48,8 +48,8 @@ propagateNeg p setAndMult (PlusG _ e1 e2) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p setAndMult e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p setAndMult e2) in
 		((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MpropagateNeg_3))
-propagateNeg p setAndMult e =
-  (_ ** (e, set_eq_undec_refl _)) 
+propagateNeg {c} p setAndMult e =
+  (_ ** (e, set_eq_undec_refl {c} _)) 
   
 
 -- Needed because calling propagateNeg on -(-(a+b)) gives - [-b + -a] : we may need other passes
@@ -74,8 +74,8 @@ elimDoubleNeg p setAndMult (PlusG _ e1 e2) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = (elimDoubleNeg p setAndMult e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (elimDoubleNeg p setAndMult e2) in
     ((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?MelimDoubleNeg_3))        
-elimDoubleNeg p setAndMult e1 = 
-    (_ ** (e1, set_eq_undec_refl _))
+elimDoubleNeg {c} p setAndMult e1 = 
+    (_ ** (e1, set_eq_undec_refl {c} _))
     
 
 -- Ex : -5 + -8 becomes -13
@@ -94,8 +94,8 @@ fold_negative_constant p setAndMult (PlusG _ e1 e2) =
 	let (r_ih2 ** (e_ih2, p_ih2)) = (fold_negative_constant p setAndMult e2) in
         ((Plus r_ih1 r_ih2) ** (PlusG _ e_ih1 e_ih2, ?Mfold_negative_constant_3)) 
 -- Note : not needed to do it recursively for MinusG, since they have already been removed at this point
-fold_negative_constant p setAndMult e = 
-    (_ ** (e, set_eq_undec_refl _))
+fold_negative_constant {c} p setAndMult e = 
+    (_ ** (e, set_eq_undec_refl {c} _))
 
 
 -- As for propagateNeg, we need the fixpoint
@@ -114,16 +114,16 @@ fold_negative_constant_fix p setAndMult e =
 
 -- Can't be tagged as total because of the missing cases (like one for Minus) (they have been deleted when we reach this point)
 encode : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (e:ExprG p setAndMult g c1) -> (c2 ** (ExprMo {n=n} (group_to_monoid_class p) Neg setAndMult g c2, c1~=c2))
-encode c p setAndMult g (ConstG _ _ _ c1) = (c1 ** (ConstMo (group_to_monoid_class p) _ _ _ c1, set_eq_undec_refl _))
+encode c p setAndMult g (ConstG _ _ _ c1) = (c1 ** (ConstMo (group_to_monoid_class p) _ _ _ c1, set_eq_undec_refl {c} _))
 encode c p setAndMult g (PlusG _ e1 e2) = 
 	let (c2_ih1 ** (e_ih1, p_ih1)) = encode c p setAndMult g e1 in 
 	let (c2_ih2 ** (e_ih2, p_ih2)) = encode c p setAndMult g e2 in 
     (_ ** (PlusMo _ _ e_ih1 e_ih2, ?Mencode_1))
-encode c p setAndMult g (VarG _ _ v) = (_ ** ((VarMo (group_to_monoid_class p) _ _ v), set_eq_undec_refl _))
+encode c p setAndMult g (VarG _ _ v) = (_ ** ((VarMo (group_to_monoid_class p) _ _ v), set_eq_undec_refl {c} _))
 -- For the (NegG _ e) (where e can only be a variable or a constant), we encode the variable or the constant
 --encode c p g (NegG _ _ (ConstG _ _ _ c1)) = ((Neg c1) ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_const _ _ _ c1), refl))
-encode c p setAndMult g (NegG _ (ConstG _ _ _ c1)) = ((Neg c1) ** (ConstMo _ _ _ _ (Neg c1), set_eq_undec_refl _)) 
-encode c p setAndMult g (NegG _ (VarG _ _ (RealVariable _ _ _ _ i))) = (_ ** (VarMo (group_to_monoid_class p) _ _ (EncodingGroupTerm_var _ _ _ _ i), set_eq_undec_refl _))
+encode c p setAndMult g (NegG _ (ConstG _ _ _ c1)) = ((Neg c1) ** (ConstMo _ _ _ _ (Neg c1), set_eq_undec_refl {c} _)) 
+encode c p setAndMult g (NegG _ (VarG _ _ (RealVariable _ _ _ _ i))) = (_ ** (VarMo (group_to_monoid_class p) _ _ (EncodingGroupTerm_var _ _ _ _ i), set_eq_undec_refl {c} _))
 {-
 -- We should not have the two cases just under : we create the "groupTermEncoding", so they are not supposed to be already here
 encode c n p g (NegG _ _ (VarG _ _ _ (EncodingGroupTerm_const _ _ _ c1))) = ?total_test_1
@@ -137,10 +137,10 @@ encode c n p g (MinusG _ e1 e2) = ?total_test_4
 
 total
 decode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (e:ExprMo (group_to_monoid_class p) Neg setAndMult g c1) -> (c2 ** (ExprG {n=n} p setAndMult g c2, c1~=c2))
-decode p setAndMult g (ConstMo _ _ _ _ c1) = (c1 ** (ConstG p _ g c1, set_eq_undec_refl _))
-decode p setAndMult g (VarMo _ _ _ (RealVariable _ _ _ _ i)) = (_ ** (VarG _ _ (RealVariable _ _ _ _ i), set_eq_undec_refl _))
+decode {c} p setAndMult g (ConstMo _ _ _ _ c1) = (c1 ** (ConstG p _ g c1, set_eq_undec_refl {c} _))
+decode {c} p setAndMult g (VarMo _ _ _ (RealVariable _ _ _ _ i)) = (_ ** (VarG _ _ (RealVariable _ _ _ _ i), set_eq_undec_refl {c} _))
 --decode p setAndMult g (VarMo _ _ (EncodingGroupTerm_const _ _ _ c1)) = (_ ** (NegG _ _ (ConstG _ _ _ c1), refl))
-decode p setAndMult g (VarMo _ _ _ (EncodingGroupTerm_var _ _ _ _ i)) = (_ ** (NegG _ (VarG _ _ (RealVariable _ _ _ _ i)), set_eq_undec_refl _))
+decode {c} p setAndMult g (VarMo _ _ _ (EncodingGroupTerm_var _ _ _ _ i)) = (_ ** (NegG _ (VarG _ _ (RealVariable _ _ _ _ i)), set_eq_undec_refl {c} _))
 decode p setAndMult g (PlusMo _ _ e1 e2) = 
 	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p setAndMult g e1 in 
 	let (c2_ih2 ** ((e_ih2, p_ih2))) = decode p setAndMult g e2 in 

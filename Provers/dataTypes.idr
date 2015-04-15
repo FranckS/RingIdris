@@ -241,7 +241,7 @@ ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
 
 
 record SetWithMult : (c:Type) -> (Set c) -> Type where
-    MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
+    MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : (c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
   
 -- Just a fake term encapsulating a fake multiplication (always returning its first element) and the proof that this multiplication preserves the equality
 FakeSetAndMult : {c:Type} -> (c_is_set:Set c) -> SetWithMult c c_is_set
@@ -255,11 +255,13 @@ data ProductOfVariables : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:Se
 	VarMultProduct : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> (k:Fin n) -> {c_prod : c} -> (pov:ProductOfVariables setAndMult g c_prod) -> ProductOfVariables setAndMult g ((mult setAndMult) (index k g) c_prod)
 
 
+-- FIX ME
+%assert_total
 productOfVariables_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (prod1 : ProductOfVariables setAndMult g c1) -> {c2:c} -> (prod2 : ProductOfVariables setAndMult g c2) -> Maybe (c1~=c2)
 productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k2) with (eq_dec_fin k1 k2)
-    productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k1) | (Just Refl) = let c_is_set = c_set setAndMult in Just (set_eq_undec_refl _) -- computation of c_is_set is needed because we need to bring the instance of Set in scope (in the context)
+    productOfVariables_eq {c} setAndMult (LastVar _ _ k1) (LastVar _ _ k1) | (Just Refl) = Just (set_eq_undec_refl (the c _)) -- computation of c_is_set is needed because we need to bring the instance of Set in scope (in the context)
     productOfVariables_eq setAndMult (LastVar _ _ k1) (LastVar _ _ k2) | _ = Nothing
-productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k2 prod2) with (eq_dec_fin k1 k2, productOfVariables_eq setAndMult prod1 prod2)
+productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k2 prod2) with (eq_dec_fin k1 k2, assert_total (productOfVariables_eq setAndMult prod1 prod2)) -- FIX ME !!! Edwin agrees it should be total without this assertion
     productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k1 prod2) | (Just Refl, Just prEquivProd) = ?MproductOfVariables_eq_1
     productOfVariables_eq setAndMult (VarMultProduct _ k1 prod1) (VarMultProduct _ k2 prod2) | _ = Nothing
 productOfVariables_eq _ _ _ = Nothing
@@ -272,6 +274,8 @@ data Monomial : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult 
     ProdOfVarWithConst : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> (const1:c) -> {c_prod:c} -> (ProductOfVariables setAndMult g c_prod) -> Monomial setAndMult g ((mult setAndMult) const1 c_prod)
     ConstantMonomial : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (g:Vect n c) -> (setAndMult:SetWithMult c c_set) -> (const1:c) -> Monomial setAndMult g const1
 
+--FIX ME
+%assert_total
 monomial_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (mon1 : Monomial setAndMult g c1) -> {c2:c} -> (mon2 : Monomial setAndMult g c2) -> Maybe (c1~=c2)
 monomial_eq setAndMult (ProdOfVar _ prod1) (ProdOfVar _ prod2) with (productOfVariables_eq setAndMult prod1 prod2)
     monomial_eq setAndMult (ProdOfVar _ prod1) (ProdOfVar _ prod2) | (Just prEquivProducts) = Just prEquivProducts
@@ -291,7 +295,8 @@ data ProductOfMonomials : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:Se
     LastMonomial : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> {c_prod:c} -> Monomial setAndMult g c_prod -> ProductOfMonomials setAndMult g c_prod
     MonomialMultProduct : {c:Type} -> {n:Nat} -> {c_set:Set c} -> {g:Vect n c} -> (setAndMult:SetWithMult c c_set) -> {c_mon:c} -> (Monomial setAndMult g c_mon) -> {c_prod:c} -> (ProductOfMonomials setAndMult g c_prod) -> ProductOfMonomials setAndMult g ((mult setAndMult) c_mon c_prod)
     
-    
+-- FIX ME
+%assert_total    
 productOfMonomials_eq : {c:Type} -> {n:Nat} -> {c_set:Set c} -> (setAndMult:SetWithMult c c_set) -> {g : Vect n c} -> {c1:c} -> (prod1 : ProductOfMonomials setAndMult g c1) -> {c2:c} -> (prod2 : ProductOfMonomials setAndMult g c2) -> Maybe (c1~=c2)
 productOfMonomials_eq setAndMult (LastMonomial _ mon1) (LastMonomial _ mon2) with (monomial_eq setAndMult mon1 mon2)
     productOfMonomials_eq setAndMult (LastMonomial _ mon1) (LastMonomial _ mon2) | (Just mon1_equiv_mon2) = Just mon1_equiv_mon2
@@ -317,10 +322,10 @@ data Variable : {c:Type} -> (c_set:Set c) -> {n:Nat} -> (neg:c->c) -> (setAndMul
 
 Variable_eq : {c:Type} -> {c_set:Set c} -> {n:Nat} -> {c1:c} -> {c2:c} -> (neg:c->c) -> (setAndMult:SetWithMult c c_set) -> (g:Vect n c) -> (v1:Variable c_set neg setAndMult g c1) -> (v2:Variable c_set neg setAndMult g c2) -> Maybe (c1~=c2)
 Variable_eq neg setAndMult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i2) with (decEq i1 i2)
-    Variable_eq neg setAndMult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
+    Variable_eq neg setAndMult {c} g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl (the c _))
     Variable_eq neg setAndMult g (RealVariable _ _ _ _ i1) (RealVariable _ _ _ _ i2) | _ = Nothing
 Variable_eq neg setAndMult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i2) with (decEq i1 i2) 
-    Variable_eq neg setAndMult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl _)
+    Variable_eq {c} neg setAndMult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i1) | (Yes Refl) = Just (set_eq_undec_refl (the c _))
     Variable_eq neg setAndMult g (EncodingGroupTerm_var _ _ _ _ i1) (EncodingGroupTerm_var _ _ _ _ i2) | _ = Nothing
 Variable_eq neg setAndMult g (EncodingProductOfMonomials _ _ _ prod1) (EncodingProductOfMonomials _ _ _ prod2) with (productOfMonomials_eq setAndMult prod1 prod2)
     Variable_eq neg setAndMult g (EncodingProductOfMonomials _ _ _ prod1) (EncodingProductOfMonomials _ _ _ prod2) | (Just prod1_equiv_prod2) = Just (prod1_equiv_prod2)
@@ -353,8 +358,8 @@ data ExprMa : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> (setAndMult:Se
 -- I wanted it to only produce a bool, which tells if the two expression are "syntactically equivalent" (that mean equal, appart for the constants where we only ask for the equivalence)
 -- BUT, we will need to prove a lemma which says that if two expressions are "syntactically equivalent" then (c_eq c1 c2). So instead, we directly produce a Maybe(c_eq c1 c2)
 exprMa_eq : {c:Type} -> {n:Nat} -> (p:Magma c) -> (neg:c->c) -> (setAndMult:SetWithMult c (magma_to_set_class p)) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMa p neg setAndMult g c1) -> (e2:ExprMa p neg setAndMult g c2) -> Maybe(c1~=c2)
-exprMa_eq p neg setAndMult g (PlusMa _ _ x y) (PlusMa _ _ x' y') with (exprMa_eq p neg setAndMult g x x', exprMa_eq p neg setAndMult g y y')
-    exprMa_eq p neg setAndMult g (PlusMa _ _ x y) (PlusMa _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+exprMa_eq {c} p neg setAndMult g (PlusMa _ _ x y) (PlusMa _ _ x' y') with (exprMa_eq p neg setAndMult g x x', exprMa_eq p neg setAndMult g y y')
+    exprMa_eq {c} p neg setAndMult g (PlusMa _ _ x y) (PlusMa _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv {c} p1 p2)
     exprMa_eq p neg setAndMult g (PlusMa _ _ x y) (PlusMa _ _ _ _) | _ = Nothing
 exprMa_eq p neg setAndMult g (VarMa _ _ _ {c1=c1} v1) (VarMa _ _ _ v2) with (Variable_eq neg setAndMult g v1 v2) 
     exprMa_eq p neg setAndMult g (VarMa _ _ _ {c1=c1} v1) (VarMa _ _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
@@ -364,8 +369,6 @@ exprMa_eq p neg setAndMult g (ConstMa _ _ _ _ const1) (ConstMa _ _ _ _ const2) w
     exprMa_eq p neg setAndMult g (ConstMa _ _ _ _ const1) (ConstMa _ _ _ _ const2) | _ = Nothing
 exprMa_eq p neg setAndMult g e1 e2 = Nothing
 
-
-
 -- Reflected terms in semigroup
 data ExprSG : {c:Type} -> {n:Nat} -> SemiGroup c -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (Vect n c) -> c -> Type where
     ConstSG : {c:Type} -> {n:Nat} -> (p : SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> (c1:c) -> ExprSG p neg setAndMult g c1
@@ -373,8 +376,8 @@ data ExprSG : {c:Type} -> {n:Nat} -> SemiGroup c -> (neg:c->c) -> (setAndMult:Se
     VarSG : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> {g:Vect n c} -> {c1:c} -> Variable (semiGroup_to_set p) neg setAndMult g c1 -> ExprSG p neg setAndMult g c1
 
 exprSG_eq : {c:Type} -> {n:Nat} -> (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprSG p neg setAndMult g c1) -> (e2:ExprSG p neg setAndMult g c2) -> Maybe(c1~=c2)
-exprSG_eq p neg setAndMult g (PlusSG _ _ x y) (PlusSG _ _ x' y') with (exprSG_eq p neg setAndMult g x x', exprSG_eq p neg setAndMult g y y')
-    exprSG_eq p neg setAndMult g (PlusSG _ _ x y) (PlusSG _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+exprSG_eq {c} p neg setAndMult g (PlusSG _ _ x y) (PlusSG _ _ x' y') with (exprSG_eq p neg setAndMult g x x', exprSG_eq p neg setAndMult g y y')
+    exprSG_eq {c} p neg setAndMult g (PlusSG _ _ x y) (PlusSG _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv {c} p1 p2)
     exprSG_eq p neg setAndMult g (PlusSG _ _ x y) (PlusSG _ _ _ _) | _ = Nothing
 exprSG_eq p neg setAndMult g (VarSG _ _ _ {c1=c1} v1) (VarSG _ _ _ v2) with (Variable_eq neg setAndMult g v1 v2)
     exprSG_eq p neg setAndMult g (VarSG _ _ _ {c1=c1} v1) (VarSG _ _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
@@ -398,8 +401,8 @@ data ExprMo : {c:Type} -> {n:Nat} -> dataTypes.Monoid c -> (neg:c->c) -> (setAnd
     VarMo : {c:Type} -> {n:Nat} -> (p : dataTypes.Monoid c) -> (neg:c->c) -> (setAndMult:SetWithMult c (monoid_to_set p)) -> {g:Vect n c} -> {c1:c} -> Variable (monoid_to_set p) neg setAndMult g c1 -> ExprMo p neg setAndMult g c1
 
 exprMo_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Monoid c) -> (neg:c->c) -> (setAndMult:SetWithMult c (monoid_to_set p)) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprMo p neg setAndMult g c1) -> (e2:ExprMo p neg setAndMult g c2) -> Maybe(c1~=c2)
-exprMo_eq p neg mult g (PlusMo _ _ x y) (PlusMo _ _ x' y') with (exprMo_eq p neg mult g x x', exprMo_eq p neg mult g y y')
-    exprMo_eq p neg mult g (PlusMo _ _ x y) (PlusMo _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+exprMo_eq {c} p neg mult g (PlusMo _ _ x y) (PlusMo _ _ x' y') with (exprMo_eq p neg mult g x x', exprMo_eq p neg mult g y y')
+    exprMo_eq {c} p neg mult g (PlusMo _ _ x y) (PlusMo _ _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv {c} p1 p2)
     exprMo_eq p neg mult g (PlusMo _ _ x y) (PlusMo _ _ _ _) | _ = Nothing
 exprMo_eq p neg mult g (VarMo _ _ _ {c1=c1} v1) (VarMo _ _ _ v2) with (Variable_eq neg mult g v1 v2)
     exprMo_eq p neg mult g (VarMo _ _ _ {c1=c1} v1) (VarMo _ _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
@@ -418,7 +421,7 @@ data ExprCM : {c:Type} -> {n:Nat} -> (CommutativeMonoid c) -> (setAndMult:SetWit
 
 exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (setAndMult:SetWithMult c (commutativeMonoid_to_set p)) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p setAndMult g c1) -> (e2:ExprCM p setAndMult g c2) -> Maybe(c1~=c2)
 exprCM_eq p setAndMult g (PlusCM _ x y) (PlusCM _ x' y') with (exprCM_eq p setAndMult g x x', exprCM_eq p setAndMult g y y')
-    exprCM_eq p setAndMult g (PlusCM _ x y) (PlusCM _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+    exprCM_eq p setAndMult g (PlusCM _ x y) (PlusCM _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv @{semiGroup_to_magma_class (monoid_to_semiGroup_class (commutativeMonoid_to_monoid_class p))} p1 p2)
     exprCM_eq p setAndMult g (PlusCM _ x y) (PlusCM _ _ _) | _ = Nothing
 exprCM_eq p setAndMult g (VarCM _ _ v1) (VarCM _ _ v2) with (Variable_eq (\x=>x) setAndMult g v1 v2)
     exprCM_eq p setAndMult g (VarCM _ _ v1) (VarCM _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
@@ -440,8 +443,8 @@ data ExprG :  {c:Type} -> {n:Nat} -> dataTypes.Group c -> (setAndMult:SetWithMul
 
 
 exprG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprG p setAndMult g c1) -> (e2:ExprG p setAndMult g c2) -> Maybe(c1~=c2)
-exprG_eq p setAndMult g (PlusG _ x y) (PlusG _ x' y') with (exprG_eq p setAndMult g x x', exprG_eq p setAndMult g y y')
-        exprG_eq p setAndMult g (PlusG _ x y) (PlusG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+exprG_eq {c} p setAndMult g (PlusG _ x y) (PlusG _ x' y') with (exprG_eq p setAndMult g x x', exprG_eq p setAndMult g y y')
+        exprG_eq {c} p setAndMult g (PlusG _ x y) (PlusG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv {c} p1 p2)
         exprG_eq p setAndMult g (PlusG _ x y) (PlusG _ _ _) | _ = Nothing
 exprG_eq p setAndMult g (VarG _ _ {c1=c1} v1) (VarG _ _ v2) with (Variable_eq Neg setAndMult g v1 v2)
         exprG_eq p setAndMult g (VarG _ _ {c1=c1} v1) (VarG _ _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
@@ -449,8 +452,8 @@ exprG_eq p setAndMult g (VarG _ _ {c1=c1} v1) (VarG _ _ v2) with (Variable_eq Ne
 exprG_eq p setAndMult g (ConstG _ _ _ const1) (ConstG _ _ _ const2) with ((group_eq_as_elem_of_set p) const1 const2)
         exprG_eq p setAndMult g (ConstG _ _ _ const1) (ConstG _ _ _ const2) | (Just const_eq) = Just const_eq
         exprG_eq p setAndMult g (ConstG _ _ _ const1) (ConstG _ _ _ const2) | _ = Nothing
-exprG_eq p setAndMult g (NegG _ e1) (NegG _ e2) with (exprG_eq p setAndMult g e1 e2)
-        exprG_eq p setAndMult g (NegG _ e1) (NegG _ _) | (Just p1) = Just (Neg_preserves_equiv p1)
+exprG_eq {c} p setAndMult g (NegG _ e1) (NegG _ e2) with (exprG_eq p setAndMult g e1 e2)
+        exprG_eq {c} p setAndMult g (NegG _ e1) (NegG _ _) | (Just p1) = Just (Neg_preserves_equiv {c} p1)
         exprG_eq p setAndMult g (NegG _ e1) (NegG _ e2) | _ = Nothing
 exprG_eq p setAndMult g (MinusG _ x y) (MinusG _ x' y') with (exprG_eq p setAndMult g x x', exprG_eq p setAndMult g y y')
         exprG_eq p setAndMult g (MinusG _ x y) (MinusG _ _ _) | (Just p1, Just p2) = ?MexprG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
@@ -476,8 +479,8 @@ data ExprCG : {c:Type} -> {n:Nat} -> CommutativeGroup c -> (setAndMult:SetWithMu
     
     
 exprCG_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCG p setAndMult g c1) -> (e2:ExprCG p setAndMult g c2) -> (Maybe (c1~=c2))
-exprCG_eq p setAndMult g (PlusCG _ x y) (PlusCG _ x' y') with (exprCG_eq p setAndMult g x x', exprCG_eq p setAndMult g y y')
-        exprG_eq p setAndMult g (PlusCG _ x y) (PlusCG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+exprCG_eq {c} p setAndMult g (PlusCG _ x y) (PlusCG _ x' y') with (exprCG_eq p setAndMult g x x', exprCG_eq p setAndMult g y y')
+        exprG_eq {c} p setAndMult g (PlusCG _ x y) (PlusCG _ _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv {c} p1 p2)
         exprG_eq p setAndMult g (PlusCG _ x y) (PlusCG _ _ _) | _ = Nothing
 exprCG_eq p setAndMult g (VarCG _ _ {c1=c1} v1) (VarCG _ _ v2) with (Variable_eq Neg setAndMult g v1 v2)
         exprG_eq p setAndMult g (VarCG _ _ {g=g} {c1=c1} v1) (VarCG _ _ {g=g} v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
@@ -485,8 +488,8 @@ exprCG_eq p setAndMult g (VarCG _ _ {c1=c1} v1) (VarCG _ _ v2) with (Variable_eq
 exprCG_eq p setAndMult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) with ((commutativeGroup_eq_as_elem_of_set p) const1 const2)
         exprG_eq p setAndMult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) | (Just const_eq) = Just const_eq
         exprG_eq p setAndMult g (ConstCG _ _ _ const1) (ConstCG _ _ _ const2) | _ = Nothing
-exprCG_eq p setAndMult g (NegCG _ e1) (NegCG _ e2) with (exprCG_eq p setAndMult g e1 e2)
-        exprG_eq p setAndMult g (NegCG _ e1) (NegCG _ _) | (Just p1) = Just (Neg_preserves_equiv p1)
+exprCG_eq {c} p setAndMult g (NegCG _ e1) (NegCG _ e2) with (exprCG_eq p setAndMult g e1 e2)
+        exprG_eq {c} p setAndMult g (NegCG _ e1) (NegCG _ _) | (Just p1) = Just (Neg_preserves_equiv {c} p1)
         exprG_eq p setAndMult g (NegCG _ e1) (NegCG _ e2) | _ = Nothing
 exprCG_eq p setAndMult g (MinusCG _ x y) (MinusCG _ x' y') with (exprCG_eq p setAndMult g x x', exprCG_eq p setAndMult g y y')
         exprG_eq p setAndMult g (MinusCG _ x y) (MinusCG _ _ _) | (Just p1, Just p2) = ?MexprCG_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
@@ -510,20 +513,20 @@ data ExprR : {c:Type} -> {n:Nat} -> dataTypes.Ring c -> (Vect n c) -> c -> Type 
     MultR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Mult c1 c2)
     MinusR: {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> ExprR p g c1 -> ExprR p g c2 -> ExprR p g (Minus c1 c2)
     NegR : {c:Type} -> {n:Nat} -> {p:dataTypes.Ring c} -> {g:Vect n c} -> {c1:c} -> ExprR p g c1 -> ExprR p g (Neg c1)
-    VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg (MkSetWithMult _ Mult Mult_preserves_equiv) g c1 -> ExprR p g c1
+    VarR : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> Variable (ring_to_set p) Neg (MkSetWithMult _ Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c} {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1 -> ExprR p g c1
 
 exprR_eq : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprR p g c1) -> (e2:ExprR p g c2) -> (Maybe (c1~=c2))
-exprR_eq p g (PlusR x y) (PlusR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
-        exprG_eq p g (PlusR x y) (PlusR _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv p1 p2)
+exprR_eq {c} p g (PlusR x y) (PlusR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
+        exprG_eq {c} p g (PlusR x y) (PlusR _ _) | (Just p1, Just p2) = Just (Plus_preserves_equiv {c} p1 p2)
         exprG_eq p g (PlusR x y) (PlusR _ _) | _ = Nothing
-exprR_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) with (Variable_eq Neg (MkSetWithMult _ Mult Mult_preserves_equiv) g v1 v2)
+exprR_eq {c} p g (VarR _ {c1=c1} v1) (VarR _ v2) with (Variable_eq Neg (MkSetWithMult _ Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c} {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g v1 v2)
         exprG_eq p g (VarR _ {c1=c1} v1) (VarR _ v2) | (Just v1_equiv_v2) = Just v1_equiv_v2
         exprG_eq p g (VarR _ v1) (VarR _ v2) | _ = Nothing
 exprR_eq p g (ConstR _ _ const1) (ConstR _ _ const2) with ((ring_eq_as_elem_of_set p) const1 const2)
         exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const2) | (Just const_eq) = Just const_eq
         exprG_eq p g (ConstR _ _ const1) (ConstR _ _ const2) | _ = Nothing
-exprR_eq p g (NegR e1) (NegR e2) with (exprR_eq p g e1 e2)
-        exprG_eq p g (NegR e1) (NegR _) | (Just p1) = Just (Neg_preserves_equiv p1)
+exprR_eq {c} p g (NegR e1) (NegR e2) with (exprR_eq p g e1 e2)
+        exprG_eq {c} p g (NegR e1) (NegR _) | (Just p1) = Just (Neg_preserves_equiv {c} p1)
         exprG_eq p g (NegR e1) (NegR e2) | _ = Nothing
 exprR_eq p g (MinusR x y) (MinusR x' y') with (exprR_eq p g x x', exprR_eq p g y y')
         exprG_eq p g (MinusR x y) (MinusR _ _) | (Just p1, Just p2) = ?MexprR_eq_1 -- Just (Minus_preserves_equiv p1 p2) THIS IS STRANGE ! WHY DO I NEED TO DO THIS PROOF IN PROOF MODE ! I PRODUCE THE SAME LAMBDA TERM !
@@ -636,17 +639,23 @@ r_to_cr p (VarR _ v) = VarCR p v
 Provers.dataTypes.MproductOfVariables_eq_1 = proof
   intros
   mrefine Just
-  exact (mult_preserves_equiv setAndMult (set_eq_undec_refl (index k1 g)) prEquivProd)
-
+  mrefine mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact prEquivProd 
+  
 Provers.dataTypes.Mmonomial_eq_1 = proof
   intros
   mrefine Just
-  exact (mult_preserves_equiv setAndMult c1_equiv_c2 prEquivProducts)
+  mrefine mult_preserves_equiv 
+  exact c1_equiv_c2 
+  exact prEquivProducts 
     
 Provers.dataTypes.MproductOfMonomials_eq_1 = proof
   intros
   mrefine Just
-  exact (mult_preserves_equiv setAndMult mon1_equiv_mon2 prod1_equiv_prod2 )
+  mrefine mult_preserves_equiv 
+  exact mon1_equiv_mon2 
+  exact prod1_equiv_prod2 
 
 Provers.dataTypes.Meq_preserves_eq_1 = proof
   intros
@@ -657,11 +666,11 @@ Provers.dataTypes.Meq_preserves_eq_1 = proof
 
 Provers.dataTypes.Meq_preserves_eq_2 = proof
   intros
-  exact (set_eq_undec_sym p2)
+  exact (set_eq_undec_sym {c} p2)
 
 Provers.dataTypes.Meq_preserves_eq_3 = proof
   intros
-  exact (set_eq_undec_trans paux paux2)
+  exact (set_eq_undec_trans {c} paux paux2)
 
 Provers.dataTypes.Madd_zero_left_1 = proof
   intros
@@ -728,5 +737,4 @@ Provers.dataTypes.MexprR_eq_2 = proof
 Provers.dataTypes.MFakeSetAndMult_multPreservesEq = proof
   intro c, c_set, mult, imp, imp1, imp2, imp3, pr1, pr2
   exact pr1
-  
   

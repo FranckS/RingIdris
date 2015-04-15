@@ -18,9 +18,9 @@ import Provers.monoid_reduce
 
 -- A usufel lemma for most rewriting in this section
 assoc_commute_and_assoc' : {c:Type} -> {p:CommutativeMonoid c} -> (x : c) -> (y : c) -> (z : c) -> (Plus (Plus x y) z ~= Plus (Plus x z) y)
-assoc_commute_and_assoc' x y z = let aux : (Plus (Plus x y) z ~= Plus x (Plus y z)) = Plus_assoc x y z in
+assoc_commute_and_assoc' {c} x y z = let aux : (Plus (Plus x y) z ~= Plus x (Plus y z)) = Plus_assoc {c} x y z in
 								let aux2 : (Plus x (Plus y z) ~= Plus x (Plus z y)) = ?Massoc_commute_and_assoc'_1 in
-								let aux3 : (Plus x (Plus z y) ~= Plus (Plus x z) y) = (set_eq_undec_sym (Plus_assoc x z y)) in
+								let aux3 : (Plus x (Plus z y) ~= Plus (Plus x z) y) = (set_eq_undec_sym {c} (Plus_assoc x z y)) in
 									?Massoc_commute_and_assoc'_2
 
 
@@ -42,8 +42,8 @@ putVarOnPlace_cm p setAndMult (PlusCM _ (ConstCM _ _ _ c0) e) (i) =
 	(_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i)) (PlusCM _ (ConstCM _ _ _ c0) e), ?MputVarOnPlace_cm_3)) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
 -- Basic cases : cases without Plus
 putVarOnPlace_cm p setAndMult (ConstCM _ _ _ c0) i = (_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i)) (ConstCM _ _ _ c0), ?MputVarOnPlace_cm_4))
-putVarOnPlace_cm p setAndMult (VarCM p _ (RealVariable _ _ _ _ i0)) i = 
-	    if minusOrEqual_Fin i0 i then (_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i0)) (VarCM p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl _))
+putVarOnPlace_cm {c} p setAndMult (VarCM p _ (RealVariable _ _ _ _ i0)) i = 
+	    if minusOrEqual_Fin i0 i then (_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i0)) (VarCM p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i)) (VarCM p _ (RealVariable _ _ _ _ i0)), ?MputVarOnPlace_cm_5))
 
 
@@ -55,8 +55,8 @@ putConstantOnPlace_cm p setAndMult (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i0
 	let (r_ihn ** (e_ihn, p_ihn)) = putConstantOnPlace_cm p setAndMult e constValue in
 		(_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i0)) e_ihn, ?MputConstantOnPlace_cm_2))
 -- Basic cases : cases without Plus
-putConstantOnPlace_cm p setAndMult (ConstCM _ _ _ c0) constValue = (_ ** (ConstCM _ _ _ (Plus c0 constValue), set_eq_undec_refl _))
-putConstantOnPlace_cm p setAndMult (VarCM p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i0)) (ConstCM _ _ _ constValue), set_eq_undec_refl _))
+putConstantOnPlace_cm {c} p setAndMult (ConstCM _ _ _ c0) constValue = (_ ** (ConstCM _ _ _ (Plus c0 constValue), set_eq_undec_refl {c} _))
+putConstantOnPlace_cm {c} p setAndMult (VarCM p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCM _ (VarCM p _ (RealVariable _ _ _ _ i0)) (ConstCM _ _ _ constValue), set_eq_undec_refl {c} _))
 
 
 -- FUNCTION WHICH REORGANIZE AN EXPRESSION	
@@ -73,7 +73,7 @@ reorganize_cm p setAndMult (PlusCM _ (ConstCM _ _ _ c0) e) =
 	let (r_ihn ** (e_ihn, p_ihn)) = reorganize_cm p setAndMult e in
 	let (r_add ** (e_add, p_add)) = putConstantOnPlace_cm p setAndMult e_ihn c0 in
 		(_ ** (e_add, ?Mreorganize_cm_2))	
-reorganize_cm p setAndMult e = (_ ** (e, set_eq_undec_refl _))
+reorganize_cm {c} p setAndMult e = (_ ** (e, set_eq_undec_refl {c} _))
 
 
 
@@ -84,20 +84,20 @@ getZero_cm p = Zero
 
 elimZeroCM : {c:Type} -> (p:dataTypes.CommutativeMonoid c) -> (setAndMult:SetWithMult c (commutativeMonoid_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprCM p setAndMult g c1) -> (c2 ** (ExprCM p setAndMult g c2, c1~=c2))
 elimZeroCM p setAndMult (ConstCM p _ _ const) = (_ ** (ConstCM p _ _ const, set_eq_undec_refl const))
-elimZeroCM p setAndMult (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v)) with (commutativeMonoid_eq_as_elem_of_set p Zero const1)
-    elimZeroCM p setAndMult (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v)) | (Just const1_eq_zero) = (_ ** (VarCM p _ v, ?MelimZeroCM1))
-    elimZeroCM p setAndMult (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v)) | _ = (_ ** (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v), set_eq_undec_refl _))
-elimZeroCM p setAndMult (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2)) with (commutativeMonoid_eq_as_elem_of_set p Zero const2) 
-    elimZeroCM p setAndMult (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarCM _ _ v, ?MelimZeroCM2))
-    elimZeroCM p setAndMult (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2)) | _ = (_ ** (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2), set_eq_undec_refl _))
+elimZeroCM {c} p setAndMult (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v)) with (commutativeMonoid_eq_as_elem_of_set p Zero const1)
+    elimZeroCM {c} p setAndMult (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v)) | (Just const1_eq_zero) = (_ ** (VarCM p _ v, ?MelimZeroCM1))
+    elimZeroCM {c} p setAndMult (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v)) | _ = (_ ** (PlusCM _ (ConstCM p _ _ const1) (VarCM p _ v), set_eq_undec_refl {c} _))
+elimZeroCM {c} p setAndMult (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2)) with (commutativeMonoid_eq_as_elem_of_set p Zero const2) 
+    elimZeroCM {c} p setAndMult (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarCM _ _ v, ?MelimZeroCM2))
+    elimZeroCM {c} p setAndMult (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2)) | _ = (_ ** (PlusCM _ (VarCM _ _ v) (ConstCM _ _ _ const2), set_eq_undec_refl {c} _))
 elimZeroCM p setAndMult (PlusCM _ e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (elimZeroCM p setAndMult e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (elimZeroCM p setAndMult e2) in
         ((Plus r_ih1 r_ih2) ** (PlusCM _ e_ih1 e_ih2, ?MelimZeroCM3))
-elimZeroCM p setAndMult (VarCM _ _ v) = (_ ** (VarCM _ _ v, set_eq_undec_refl _))
+elimZeroCM {c} p setAndMult (VarCM _ _ v) = (_ ** (VarCM _ _ v, set_eq_undec_refl {c} _))
 -- No treatment for Minus since they have already been simplified
 -- and no treatment for Neg since we should not find a constant inside a Neg at this point
-elimZeroCM p setAndMult e = (_ ** (e, set_eq_undec_refl _))
+elimZeroCM {c} p setAndMult e = (_ ** (e, set_eq_undec_refl {c} _))
 
 
 commutativeMonoidReduce : (p:CommutativeMonoid c) -> {setAndMult:SetWithMult c (commutativeMonoid_to_set p)} -> {g:Vect n c} -> {c1:c} -> (ExprCM p setAndMult g c1) -> (c2 ** (ExprCM p setAndMult g c2, c1~=c2))

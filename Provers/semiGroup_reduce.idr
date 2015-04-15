@@ -17,9 +17,9 @@ import Provers.tools
 
 -- Normalization
 -- No longer possible to tag this function as total due to fixed point to reach (non structural recursivity) (see last lines of the function)
-assoc : (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprSG p neg setAndMult g c1) -> (c2 ** (ExprSG p neg setAndMult g c2, c1~=c2))
+assoc : {c:Type} -> (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprSG p neg setAndMult g c1) -> (c2 ** (ExprSG p neg setAndMult g c2, c1~=c2))
 assoc p neg setAndMult g (ConstSG _ _ _ _ const) = (_ ** (ConstSG _ _ _ _ const, set_eq_undec_refl const))
-assoc p neg setAndMult g (VarSG _ _ _ v) = (_ ** (VarSG _ _ _ v, set_eq_undec_refl _))
+assoc {c} p neg setAndMult g (VarSG _ _ _ v) = (_ ** (VarSG _ _ _ v, set_eq_undec_refl {c=c} _))
 -- (x + c1) + (c2 + y) -> (x + (res c1+c2)) + y
 assoc p neg setAndMult g (PlusSG _ _ (PlusSG _ _ e1 (ConstSG _ _ _ _ const1)) (PlusSG _ _ (ConstSG _ _ _ _ const2) e2)) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p neg setAndMult g e1) in
@@ -53,31 +53,31 @@ assoc p neg setAndMult g (PlusSG _ _ e1 e2) =
 
 
 total
-addAfter : (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (ExprSG p neg setAndMult g c1) -> (ExprSG p neg setAndMult g c2) -> (c3 ** (ExprSG p neg setAndMult g c3, c3~=Plus c1 c2))
-addAfter p neg setAndMult g (ConstSG _ _ _ _ const1) e = (_ ** (PlusSG _ _ (ConstSG _ _ _ _ const1) e, set_eq_undec_refl _))
-addAfter p neg setAndMult g (VarSG _ _ _ v) e = (_ ** (PlusSG _ _ (VarSG _ _ _ v) e, set_eq_undec_refl _))
+addAfter : {c:Type} -> (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> {c1:c} -> {c2:c} -> (ExprSG p neg setAndMult g c1) -> (ExprSG p neg setAndMult g c2) -> (c3 ** (ExprSG p neg setAndMult g c3, c3~=Plus c1 c2))
+addAfter {c} p neg setAndMult g (ConstSG _ _ _ _ const1) e = (_ ** (PlusSG _ _ (ConstSG _ _ _ _ const1) e, set_eq_undec_refl {c} _))
+addAfter {c} p neg setAndMult g (VarSG _ _ _ v) e = (_ ** (PlusSG _ _ (VarSG _ _ _ v) e, set_eq_undec_refl {c} _))
 addAfter p neg setAndMult g (PlusSG _ _ e11 e12) e2 = 
     let (r_ih1 ** (e_ih1, p_ih1)) = addAfter p neg setAndMult g e12 e2
-		in (_ ** (PlusSG _ _ e11 e_ih1, ?MaddAfter1))
+    in (_ ** (PlusSG _ _ e11 e_ih1, ?MaddAfter1))
 
 
 -- Transforms an expression in the form x + (y + (z + ...))
 -- can't be tagged as total (non structural recursion)
-shuffleRight : (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprSG p neg setAndMult g c1) -> (c2 ** (ExprSG p neg setAndMult g c2, c1~=c2))
-shuffleRight p neg setAndMult g (ConstSG _ _ _ _ const1) = (_ ** (ConstSG _ _ _ _ const1, set_eq_undec_refl _))
-shuffleRight p neg setAndMult g (VarSG _ _ _ v) = (_ ** (VarSG _ _ _ v, set_eq_undec_refl _))
+shuffleRight : {c:Type} -> (p:SemiGroup c) -> (neg:c->c) -> (setAndMult:SetWithMult c (semiGroup_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprSG p neg setAndMult g c1) -> (c2 ** (ExprSG p neg setAndMult g c2, c1~=c2))
+shuffleRight {c} p neg setAndMult g (ConstSG _ _ _ _ const1) = (_ ** (ConstSG _ _ _ _ const1, set_eq_undec_refl {c} _))
+shuffleRight {c} p neg setAndMult g (VarSG _ _ _ v) = (_ ** (VarSG _ _ _ v, set_eq_undec_refl {c} _))
 
-shuffleRight p neg setAndMult g (PlusSG _ _ (ConstSG _ _ _ _ const1) (ConstSG _ _ _ _ const2)) = (_ ** (PlusSG _ _ (ConstSG _ _ _ _ const1) (ConstSG _ _ _ _ const2), set_eq_undec_refl _))
-shuffleRight p neg setAndMult g (PlusSG _ _ (ConstSG _ _ _ _ const1) (VarSG _ _ _ v)) = (_ ** (PlusSG _ _ (ConstSG _ _ _ _ const1) (VarSG _ _ _ v), set_eq_undec_refl _))
-shuffleRight p neg setAndMult g (PlusSG _ _ (ConstSG _ _ _ _ const1) (PlusSG _ _ e21 e22)) =
+shuffleRight {c} p neg setAndMult g (PlusSG _ _ (ConstSG _ _ _ _ const1) (ConstSG _ _ _ _ const2)) = (_ ** (PlusSG _ _ (ConstSG _ _ _ _ const1) (ConstSG _ _ _ _ const2), set_eq_undec_refl {c} _))
+shuffleRight {c} p neg setAndMult g (PlusSG _ _ (ConstSG _ _ _ _ const1) (VarSG _ _ _ v)) = (_ ** (PlusSG _ _ (ConstSG _ _ _ _ const1) (VarSG _ _ _ v), set_eq_undec_refl {c} _))
+shuffleRight {c} p neg setAndMult g (PlusSG _ _ (ConstSG _ _ _ _ const1) (PlusSG _ _ e21 e22)) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p neg setAndMult g (PlusSG _ _ e21 e22) in
     (_ ** (PlusSG _ _ (ConstSG _ _ _ _ const1) e_ih1, ?MshuffleRight1))
     -- Previously : PlusSG (ConstSG c1) (addAfter (shuffleRight p21) (shuffleRight p22))
 
-shuffleRight p neg setAndMult g (PlusSG _ _ (VarSG _ _ _ v1) (ConstSG _ _ _ _ const2)) = (_ ** (PlusSG _ _ (VarSG _ _ _ v1) (ConstSG _ _ _ _ const2), set_eq_undec_refl _))
-shuffleRight p neg setAndMult g (PlusSG _ _ (VarSG _ _ _ v1) (VarSG _ _ _ v2)) = (_ ** (PlusSG _ _ (VarSG _ _ _ v1) (VarSG _ _ _ v2), set_eq_undec_refl _))
+shuffleRight {c} p neg setAndMult g (PlusSG _ _ (VarSG _ _ _ v1) (ConstSG _ _ _ _ const2)) = (_ ** (PlusSG _ _ (VarSG _ _ _ v1) (ConstSG _ _ _ _ const2), set_eq_undec_refl {c} _))
+shuffleRight {c} p neg setAndMult g (PlusSG _ _ (VarSG _ _ _ v1) (VarSG _ _ _ v2)) = (_ ** (PlusSG _ _ (VarSG _ _ _ v1) (VarSG _ _ _ v2), set_eq_undec_refl {c} _))
 shuffleRight p neg setAndMult g (PlusSG _ _ (VarSG _ _ _ v1) (PlusSG _ _ e21 e22)) =
-	let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p neg setAndMult g (PlusSG _ _ e21 e22) in
+    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleRight p neg setAndMult g (PlusSG _ _ e21 e22) in
     (_ ** (PlusSG _ _ (VarSG _ _ _ v1) e_ih1, ?MshuffleRight2))
     -- PlusSG (VarSG v1) (addAfter (shuffleRight p21) (shuffleRight p22)) -- ok with me
     

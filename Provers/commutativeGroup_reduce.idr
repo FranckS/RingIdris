@@ -25,21 +25,21 @@ assoc_and_commute x y z = let aux : (Plus (Plus x y) z ~= Plus x (Plus y z)) = P
 
 -- A usufel lemma for most rewriting in this section
 assoc_commute_and_assoc : {c:Type} -> {p:CommutativeGroup c} -> (x : c) -> (y : c) -> (z : c) -> (Plus (Plus x y) z ~= Plus (Plus x z) y)
-assoc_commute_and_assoc x y z = let aux : (Plus (Plus x y) z ~= Plus x (Plus y z)) = Plus_assoc x y z in
+assoc_commute_and_assoc {c} x y z = let aux : (Plus (Plus x y) z ~= Plus x (Plus y z)) = Plus_assoc {c} x y z in
 								let aux2 : (Plus x (Plus y z) ~= Plus x (Plus z y)) = ?Massoc_commute_and_assoc_1 in
-								let aux3 : (Plus x (Plus z y) ~= Plus (Plus x z) y) = (set_eq_undec_sym (Plus_assoc x z y)) in
+								let aux3 : (Plus x (Plus z y) ~= Plus (Plus x z) y) = (set_eq_undec_sym {c} (Plus_assoc x z y)) in
 									?Massoc_commute_and_assoc_2
 
 									
 assoc_and_neutral : {c:Type} -> {p:dataTypes.Group c} -> (x : c) -> (y : c) -> (Plus x (Plus (Neg x) y) ~= y)
-assoc_and_neutral x y = let aux : (Plus x (Plus (Neg x) y) ~= Plus (Plus x (Neg x)) y) = (set_eq_undec_sym (Plus_assoc x (Neg x) y)) in
+assoc_and_neutral {c} x y = let aux : (Plus x (Plus (Neg x) y) ~= Plus (Plus x (Neg x)) y) = (set_eq_undec_sym {c} (Plus_assoc {c} x (Neg x) y)) in
 						let aux2 : (Plus x (Neg x) ~= Zero) = left (Plus_inverse x) in
 						let aux3 : (Plus Zero y ~= y) = Plus_neutral_1 y in
 							?Massoc_and_neutral_1
 
 assoc_and_neutral_bis : {c:Type} -> {p:dataTypes.Group c} -> (x : c) -> (y : c) -> (Plus (Neg x) (Plus x y) ~= y)
-assoc_and_neutral_bis x y = let aux : (Plus (Neg x) (Plus x y) ~= Plus (Plus (Neg x) x) y) = (set_eq_undec_sym (Plus_assoc (Neg x) x y)) in
-							let aux2 : (Plus (Neg x) x ~= Zero) = right (Plus_inverse x) in
+assoc_and_neutral_bis {c} x y = let aux : (Plus (Neg x) (Plus x y) ~= Plus (Plus (Neg x) x) y) = (set_eq_undec_sym {c} (Plus_assoc {c} (Neg x) x y)) in
+							let aux2 : (Plus (Neg x) x ~= Zero) = right (Plus_inverse {c} x) in
 							let aux3 : (Plus Zero y ~= y) = Plus_neutral_1 y in
 							?Massoc_and_neutral_bis_1
 							
@@ -68,11 +68,11 @@ putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) (RealVariab
 -- Basic cases : cases without Plus
 putVarOnPlace p setAndMult (ConstCG _ _ _ c0) (RealVariable _ _ _ _ i) = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (ConstCG _ _ _ c0), ?MputVarOnPlace_7))
 putVarOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) (RealVariable _ _ _ _ i) = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (ConstCG _ _ _ (Neg c0)), ?MputVarOnPlace_8))
-putVarOnPlace p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (RealVariable _ _ _ _ i) = 
-	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (VarCG p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl _))
+putVarOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (RealVariable _ _ _ _ i) = 
+	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (VarCG p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (VarCG p _ (RealVariable _ _ _ _ i0)), ?MputVarOnPlace_9))
-putVarOnPlace p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (RealVariable _ _ _ _ i) = 
-		if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl _))
+putVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (RealVariable _ _ _ _ i) = 
+		if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))), ?MputVarOnPlace_10))
 
 	
@@ -89,10 +89,10 @@ putConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ 
 	let (r_ihn ** (e_ihn, p_ihn)) = putConstantOnPlace p setAndMult e constValue in
 		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e_ihn, ?MputConstantOnPlace_4))
 -- Basic cases : cases without Plus
-putConstantOnPlace p setAndMult (ConstCG _ _ _ c0) constValue = (_ ** (ConstCG _ _ _ (Plus c0 constValue), set_eq_undec_refl _))
-putConstantOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) constValue = (_ ** (ConstCG _ _ _ (Plus (Neg c0) constValue), set_eq_undec_refl _))
-putConstantOnPlace p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (ConstCG _ _ _ constValue), set_eq_undec_refl _))
-putConstantOnPlace p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (ConstCG _ _ _ constValue), set_eq_undec_refl _))
+putConstantOnPlace {c} p setAndMult (ConstCG _ _ _ c0) constValue = (_ ** (ConstCG _ _ _ (Plus c0 constValue), set_eq_undec_refl {c} _))
+putConstantOnPlace {c} p setAndMult (NegCG _ (ConstCG _ _ _ c0)) constValue = (_ ** (ConstCG _ _ _ (Plus (Neg c0) constValue), set_eq_undec_refl {c} _))
+putConstantOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (ConstCG _ _ _ constValue), set_eq_undec_refl {c} _))
+putConstantOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (ConstCG _ _ _ constValue), set_eq_undec_refl {c} _))
 
 
 
@@ -118,11 +118,11 @@ putNegVarOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) (RealVar
 -- Basic cases : cases without Plus
 putNegVarOnPlace p setAndMult (ConstCG _ _ _ c0) (RealVariable _ _ _ _ i) = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (ConstCG _ _ _ c0), ?MputNegVarOnPlace_7))
 putNegVarOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) (RealVariable _ _ _ _ i) = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (ConstCG _ _ _ (Neg c0)), ?MputNegVarOnPlace_8))
-putNegVarOnPlace p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (RealVariable _ _ _ _ i) = 
-	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), set_eq_undec_refl _))
+putNegVarOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (RealVariable _ _ _ _ i) = 
+	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (VarCG p _ (RealVariable _ _ _ _ i0)), ?MputNegVarOnPlace_9))
-putNegVarOnPlace p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (RealVariable _ _ _ _ i) = 
-		if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), set_eq_undec_refl _))
+putNegVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (RealVariable _ _ _ _ i) = 
+		if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))), ?MputNegVarOnPlace_10))
 
 
@@ -138,10 +138,10 @@ putNegConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _
 	let (r_ihn ** (e_ihn, p_ihn)) = putNegConstantOnPlace p setAndMult e constValue in
 		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e_ihn, ?MputNegConstantOnPlace_4))
 -- Basic cases : cases without Plus
-putNegConstantOnPlace p setAndMult (ConstCG _ _ _ c0) constValue = (_ ** (ConstCG _ _ _ (Plus c0 (Neg constValue)), set_eq_undec_refl _))
-putNegConstantOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) constValue = (_ ** (ConstCG _ _ _ (Plus (Neg c0) (Neg constValue)), set_eq_undec_refl _))
-putNegConstantOnPlace p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl _))
-putNegConstantOnPlace p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl _))
+putNegConstantOnPlace {c} p setAndMult (ConstCG _ _ _ c0) constValue = (_ ** (ConstCG _ _ _ (Plus c0 (Neg constValue)), set_eq_undec_refl {c} _))
+putNegConstantOnPlace {c} p setAndMult (NegCG _ (ConstCG _ _ _ c0)) constValue = (_ ** (ConstCG _ _ _ (Plus (Neg c0) (Neg constValue)), set_eq_undec_refl {c} _))
+putNegConstantOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl {c} _))
+putNegConstantOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl {c} _))
 		
 		
 
@@ -166,7 +166,7 @@ reorganize p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) =
 	let (r_ihn ** (e_ihn, p_ihn)) = reorganize p setAndMult e in
 	let (r_add ** (e_add, p_add)) = putNegConstantOnPlace p setAndMult e_ihn c0 in
 		(_ ** (e_add, ?Mreorganize_4))	
-reorganize p setAndMult e = (_ ** (e, set_eq_undec_refl _))
+reorganize p setAndMult {c} e = (_ ** (e, set_eq_undec_refl {c} _))
 
 
 -- SIMPLIFY BY DELETING TERMS AND THEIR SYMMETRICS	
@@ -198,20 +198,20 @@ simplifyAfterReorg p setAndMult (PlusCG _ t1 (PlusCG _ t2 exp)) =
 		(_ ** (PlusCG _ t1 e_ihn, ?MsimplifyAfterReorg_5))
 
 -- Just a plus with two terms
-simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1)))) with (eq_dec_fin i0 i1)
-	simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0)))) | (Just Refl) =
+simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1)))) with (eq_dec_fin i0 i1)
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0)))) | (Just Refl) =
 		(_ ** (ConstCG _ _ _ Zero, ?MsimplifyAfterReorg_6))
-	simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1)))) | (Nothing) =
-		(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1))), set_eq_undec_refl _))
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1)))) | (Nothing) =
+		(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1))), set_eq_undec_refl {c} _))
 		
-simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1))) with (eq_dec_fin i0 i1)
-	simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i0))) | (Just Refl) =
+simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1))) with (eq_dec_fin i0 i1)
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i0))) | (Just Refl) =
 		(_ ** (ConstCG _ _ _ Zero, ?MsimplifyAfterReorg_7))
-	simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1))) | (Nothing) =
-		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1)), set_eq_undec_refl _))
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1))) | (Nothing) =
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1)), set_eq_undec_refl {c} _))
 		
 --Anything else simply gives the same value
-simplifyAfterReorg p setAndMult e = (_ ** (e, set_eq_undec_refl _)) 
+simplifyAfterReorg {c} p setAndMult e = (_ ** (e, set_eq_undec_refl {c} _)) 
 
 
 
@@ -230,21 +230,21 @@ getZero p = Zero
 
 
 elimZeroCG : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprCG p setAndMult g c1) -> (c2 ** (ExprCG p setAndMult g c2, c1~=c2))
-elimZeroCG p setAndMult (ConstCG p _ _ const) = (_ ** (ConstCG p _ _ const, set_eq_undec_refl _))
-elimZeroCG p setAndMult (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v)) with (commutativeGroup_eq_as_elem_of_set p Zero const1)
-    elimZeroCG p setAndMult (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v)) | (Just const1_eq_zero) = (_ ** (VarCG p _ v, ?MelimZeroCG1))
-    elimZeroCG p setAndMult (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v)) | _ = (_ ** (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v), set_eq_undec_refl _))
-elimZeroCG p setAndMult (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2)) with (commutativeGroup_eq_as_elem_of_set p Zero const2) 
-    elimZeroCG p setAndMult (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarCG _ _ v, ?MelimZeroCG2))
-    elimZeroCG p setAndMult (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2)) | _ = (_ ** (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2), set_eq_undec_refl _))
+elimZeroCG {c} p setAndMult (ConstCG p _ _ const) = (_ ** (ConstCG p _ _ const, set_eq_undec_refl {c} _))
+elimZeroCG {c} p setAndMult (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v)) with (commutativeGroup_eq_as_elem_of_set p Zero const1)
+    elimZeroCG {c} p setAndMult (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v)) | (Just const1_eq_zero) = (_ ** (VarCG p _ v, ?MelimZeroCG1))
+    elimZeroCG {c} p setAndMult (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v)) | _ = (_ ** (PlusCG _ (ConstCG p _ _ const1) (VarCG p _ v), set_eq_undec_refl {c} _))
+elimZeroCG {c} p setAndMult (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2)) with (commutativeGroup_eq_as_elem_of_set p Zero const2) 
+    elimZeroCG {c} p setAndMult (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2)) | (Just const2_eq_zero) = (_ ** (VarCG _ _ v, ?MelimZeroCG2))
+    elimZeroCG {c} p setAndMult (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2)) | _ = (_ ** (PlusCG _ (VarCG _ _ v) (ConstCG _ _ _ const2), set_eq_undec_refl {c} _))
 elimZeroCG p setAndMult (PlusCG _ e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (elimZeroCG p setAndMult e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (elimZeroCG p setAndMult e2) in
         ((Plus r_ih1 r_ih2) ** (PlusCG _ e_ih1 e_ih2, ?MelimZeroCG3))
-elimZeroCG p setAndMult (VarCG _ _ v) = (_ ** (VarCG _ _ v, set_eq_undec_refl _))
+elimZeroCG {c} p setAndMult (VarCG _ _ v) = (_ ** (VarCG _ _ v, set_eq_undec_refl {c} _))
 -- No treatment for Minus since they have already been simplified
 -- and no treatment for Neg since we should not find a constant inside a Neg at this point
-elimZeroCG p setAndMult e = (_ ** (e, set_eq_undec_refl _))
+elimZeroCG {c} p setAndMult e = (_ ** (e, set_eq_undec_refl {c} _))
 
 
 
