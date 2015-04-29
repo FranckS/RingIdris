@@ -520,10 +520,10 @@ multiplyProdOfVar {c} p (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduc
 multiplyProdOfVar {c} p (LastVar _ _ k1) (VarMultProduct _ k2 pdv) = (_ ** (VarMultProduct _ k1 (VarMultProduct _ k2 pdv), set_eq_undec_refl {c} _))
 multiplyProdOfVar p (VarMultProduct _ k1 pdv) (LastVar _ _ k2) = 
 	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar p pdv (LastVar _ _ k2) in
-		(_ ** (VarMultProduct _ k1 newpdv, ?MmultiplyProdOfVar_3))
+		(_ ** (VarMultProduct _ k1 newpdv, ?MmultiplyProdOfVar_1))
 multiplyProdOfVar p (VarMultProduct _ k1 pdv1) (VarMultProduct _ k2 pdv2) = 
 	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar p pdv1 (VarMultProduct _ k2 pdv2) in
-		(_ ** (VarMultProduct _ k1 newpdv, ?MmultiplyProdOfVar_4))
+		(_ ** (VarMultProduct _ k1 newpdv, ?MmultiplyProdOfVar_2))
 
 --%logging 0                
 
@@ -533,7 +533,7 @@ multiplyMonomialAndProductOfMonomials : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring
 -- This case will give only one monomial
 multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
 	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p prodVar1 prodVar2 in
-        (_ ** (LastMonomial _ (ProdOfVar _ prodVar1Var2), ?MmultiplyMonomialAndProductOfMonomials_1))
+        (_ ** (LastMonomial _ (ProdOfVar _ prodVar1Var2), p_1))
 -- This case gives two monomials
 multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)) = 
     (_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)), ?MmultiplyMonomialAndProductOfMonomials_2))
@@ -664,8 +664,92 @@ ring_reduce p e =
 	
 
 ---------- Proofs ----------
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_15 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine Mult_assoc 
 
-Provers.ring_reduce.MmultiplyProdOfVar_4 = proof
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_14 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine eq_preserves_eq 
+  exact (Mult (Mult const1 (Mult const2 c_prod)) c_prod1)
+  exact (Mult const1 (Mult (Mult const2 c_prod) c_prod1))
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_assoc 
+  mrefine Mult_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl 
+
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_13 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine Mult_assoc 
+
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_12 = proof
+  intros
+  mrefine set_eq_undec_sym 
+  mrefine Mult_assoc 
+
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_8 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult const1 (Mult c_prod (Mult c_mon c_prod1)))
+  exact (Mult (Mult const1 r_1) c_prod1)
+  mrefine Mult_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact (Mult const1 (Mult (Mult c_prod c_mon) c_prod1))
+  exact (Mult (Mult const1 r_1) c_prod1)
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_sym 
+  mrefine eq_preserves_eq 
+  mrefine Mult_assoc 
+  exact (Mult (Mult const1 r_1) c_prod1)
+  exact (Mult const1 (Mult r_1 c_prod1))
+  mrefine set_eq_undec_refl 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Mult_preserves_equiv 
+  exact p_1
+  mrefine set_eq_undec_refl 
+
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_6 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult const1 (Mult c_prod c2))
+  exact (Mult const1 r_1)
+  mrefine Mult_assoc
+  mrefine set_eq_undec_refl 
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_1
+
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Mult c1 c_mon) c_prod)
+  exact (Mult r1 c_prod)
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_assoc 
+  exact p1
+  mrefine set_eq_undec_refl
+
+Provers.ring_reduce.MmultiplyProdOfVar_2 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Mult (index k1 g) (Mult c_prod (Mult (index k2 g) (c_prod1))))
@@ -676,7 +760,7 @@ Provers.ring_reduce.MmultiplyProdOfVar_4 = proof
   mrefine set_eq_undec_refl
   exact p_ih1
   
-Provers.ring_reduce.MmultiplyProdOfVar_3 = proof
+Provers.ring_reduce.MmultiplyProdOfVar_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Mult (index k1 g) (Mult c_prod (index k2 g)))
