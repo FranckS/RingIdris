@@ -273,19 +273,19 @@ elimMinus' {c} p (ConstR _ _ const) = (_ ** (ConstR _ _ const, set_eq_undec_refl
 elimMinus' p (PlusR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
-    ((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?Melim'Minus1))
+    ((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?MelimMinus'_1))
 elimMinus' {c} p (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl {c} _))    
 elimMinus' p (MinusR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
-    ((Plus r_ih1 (Neg r_ih2)) ** (PlusR e_ih1 (NegR e_ih2), ?MelimMinus'2)) 
+    ((Plus r_ih1 (Neg r_ih2)) ** (PlusR e_ih1 (NegR e_ih2), ?MelimMinus'_2)) 
 elimMinus' p (NegR e1) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
-    (_ ** (NegR e_ih1, ?MelimMinus'3))
+    (_ ** (NegR e_ih1, ?MelimMinus'_3))
 elimMinus' p (MultR e1 e2) = 
   let (r_ih1 ** (e_ih1, p_ih1)) = (elimMinus' p e1) in
   let (r_ih2 ** (e_ih2, p_ih2)) = (elimMinus' p e2) in
-    ((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?Melim'Minus1))
+    ((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MelimMinus'_4))
 
 
 
@@ -417,11 +417,11 @@ propagateNeg' p (NegR e) =
 propagateNeg' p (PlusR e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
-		((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?MpropagateNeg_4))
+		((Plus r_ih1 r_ih2) ** (PlusR e_ih1 e_ih2, ?MpropagateNeg'_4))
 propagateNeg' p (MultR e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
-		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg_4))		
+		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg'_5))		
 propagateNeg' {c} p e =
   (_ ** (e, set_eq_undec_refl {c} _))     
     
@@ -920,6 +920,27 @@ Provers.ring_reduce.MpropagateNeg'_3 = proof
   mrefine Neg_preserves_equiv 
   exact p_ih1
 
+Provers.ring_reduce.MpropagateNeg'_4 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MpropagateNeg'_5 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MpropagateNeg_fix'_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_ih1
+  exact p_1
+  mrefine set_eq_undec_refl 
+  exact p_ih1
+
 Provers.ring_reduce.MelimDoubleNeg'_1 = proof
   intros
   mrefine eq_preserves_eq 
@@ -971,13 +992,137 @@ Provers.ring_reduce.MencodeToCG_1 = proof
   intros
   mrefine set_eq_undec_refl 
 
-Provers.ring_reduce.MpropagateNeg_fix'_1 = proof
+Provers.ring_reduce.MmultAfter1 = proof
   intros
   mrefine eq_preserves_eq 
-  exact r_1
-  exact r_ih1
-  exact p_1
+  exact (Mult c1 (Mult c2 c3))
+  exact (Mult (Mult c1 c2) c3)
+  mrefine Mult_preserves_equiv 
   mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  exact p_ih1
+  mrefine Mult_assoc 
+
+Provers.ring_reduce.MshuffleProductRight23 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Mult c1 c2) (Mult c3 c4))
+  exact (Mult r_ih1 r_ih2)
+  mrefine set_eq_undec_refl 
+  exact p_3
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight22 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Mult c1 c2) (Neg c3))
+  exact (Mult r_ih1 r_ih2)
+  mrefine set_eq_undec_refl 
+  exact p_3
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight21 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Mult c1 c2) (Plus c3 c4))
+  exact (Mult r_ih1 r_ih2)
+  mrefine set_eq_undec_refl 
+  exact p_3
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight20 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Mult c1 c2) c3)
+  exact (Mult r_ih1 c3)
+  mrefine set_eq_undec_refl 
+  exact p_2
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MshuffleProductRight19 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Mult c1 c2) const2)
+  exact (Mult r_ih1 const2)
+  mrefine set_eq_undec_refl 
+  exact p_2
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MshuffleProductRight18 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight17 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight16 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight15 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MshuffleProductRight14 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MshuffleProductRight13 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight12 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight11 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MshuffleProductRight10 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_refl
+
+Provers.ring_reduce.MshuffleProductRight9 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_refl
+
+Provers.ring_reduce.MshuffleProductRight8 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl
   exact p_ih1
 
 Provers.ring_reduce.MshuffleProductRight7 = proof
@@ -1019,4 +1164,46 @@ Provers.ring_reduce.MshuffleProductRight2 = proof
 Provers.ring_reduce.MshuffleProductRight1 = proof
   intros
   exact p_ih1
+
+Provers.ring_reduce.Mdevelop_fix_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_ih1
+  exact p_1
+  mrefine set_eq_undec_refl 
+  exact p_ih1
+
+Provers.ring_reduce.MelimMinus'_1 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+  
+Provers.ring_reduce.MelimMinus'_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Minus c1 c2)
+  exact (Plus c1 (Neg c2))
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine Minus_simpl 
+  mrefine set_eq_undec_sym 
+  mrefine Neg_preserves_equiv 
+  exact p_ih1
+  mrefine set_eq_undec_sym 
+  exact p_ih2  
+  
+Provers.ring_reduce.MelimMinus'_3 = proof
+  intros
+  mrefine Neg_preserves_equiv 
+  exact p_ih1
+  
+Provers.ring_reduce.MelimMinus'_4 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_ih1
+  exact p_ih2  
+
+
 
