@@ -536,7 +536,7 @@ multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (LastMonomial _ (
         (_ ** (LastMonomial _ (ProdOfVar _ prodVar1Var2), p_1))
 -- This case gives two monomials
 multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)) = 
-    (_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)), ?MmultiplyMonomialAndProductOfMonomials_2))
+    (_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)), ?MmultiplyMonomialAndProductOfMonomials_2)) -- FIX ME : Why does Idris refuses (set_eq_undec_refl _) for the proof (I have to do the same in proof mode...)
 -- To see
 multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVar _ prodVar2) prodOfMon) = 
     let (r1 ** (mon1, p1)) = multiplyProdOfVar p prodVar1 prodVar2 in  
@@ -580,22 +580,22 @@ encodeToProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:V
 -- This case gives only one monomial (base case)
 encodeToProductOfMonomials c p g (VarR _ v) = 
     let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (VarR _ v) in
-        (_ ** (LastMonomial _ mon1, ?MencodeToProductOfMonomials_1))
+        (_ ** (LastMonomial _ mon1, p_1))
 -- This case gives only one monomial (base case)
 encodeToProductOfMonomials c p g (ConstR _ _ const) = 
     let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (ConstR _ _ const) in
-        (_ ** (LastMonomial _ mon1, ?MencodeToProductOfMonomials_2))
+        (_ ** (LastMonomial _ mon1, p_1))
 
 -- IMPORTANT : In the case of a mult, we know that no operand can be a Neg, since we've move all the Neg before the product (thanks to MoveNegInPolynomial, which does moveNegInMonomial for all monomials)
 -- For a mult, we now that the left part is forced to be an atom (variable or constant), since we've put eveything in right-associative form before calling the encoding function
 -- This case gives only one monomial (base case)
 encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) (ConstR _ _ const2)) = 
     let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (ConstR _ _ (Mult const1 const2)) in
-        (_ ** (LastMonomial _ mon1, ?MencodeToProductOfMonomials_3))
+        (_ ** (LastMonomial _ mon1, p_1))
 -- This case gives only one monomial (base case)
 encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
     let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ v)) in
-        (_ ** (LastMonomial _ mon1, ?MencodeToProductOfMonomials_4))
+        (_ ** (LastMonomial _ mon1, p_1))
 -- Case with n>=2monomials
 -- Case with the second argument of the Mult being a Neg is not possible since we are supposed to have move the Neg to the front.
 encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) e2) = 
@@ -664,11 +664,42 @@ ring_reduce p e =
 	
 
 ---------- Proofs ----------
+Provers.ring_reduce.MencodeToProductOfMonomials_8 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult r_1 r_ih2)
+  exact r_3
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_3
+  exact p_1
+  exact p_ih2
+
+Provers.ring_reduce.MencodeToProductOfMonomials_7 = proof
+  intros
+  exact p_1
+
+Provers.ring_reduce.MencodeToProductOfMonomials_6 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p_1
+  exact p_2
+
+Provers.ring_reduce.MencodeToProductOfMonomials_5 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult r_1 r_ih2)
+  exact r_3
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl
+  exact p_3
+  exact p_1
+  exact p_ih2
+
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_15 = proof
   intros
   mrefine set_eq_undec_sym 
   mrefine Mult_assoc 
-
 
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_14 = proof
   intros
@@ -684,18 +715,27 @@ Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_14 = proof
   mrefine set_eq_undec_refl 
   mrefine set_eq_undec_refl 
 
-
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_13 = proof
   intros
   mrefine set_eq_undec_sym 
   mrefine Mult_assoc 
-
 
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_12 = proof
   intros
   mrefine set_eq_undec_sym 
   mrefine Mult_assoc 
 
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_11 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_10 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_9 = proof
+  intros
+  mrefine set_eq_undec_refl 
 
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_8 = proof
   intros
@@ -722,8 +762,11 @@ Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_8 = proof
   mrefine set_eq_undec_refl 
   mrefine Mult_preserves_equiv 
   exact p_1
-  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl   
 
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_7 = proof
+  intros
+  mrefine set_eq_undec_refl 
 
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_6 = proof
   intros
@@ -736,6 +779,13 @@ Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_6 = proof
   mrefine set_eq_undec_refl 
   exact p_1
 
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_5 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_4 = proof
+  intros
+  mrefine set_eq_undec_refl 
 
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_3 = proof
   intros
@@ -748,7 +798,11 @@ Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_3 = proof
   mrefine Mult_assoc 
   exact p1
   mrefine set_eq_undec_refl
-
+ 
+Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_2 = proof
+  intros
+  mrefine set_eq_undec_refl  
+  
 Provers.ring_reduce.MmultiplyProdOfVar_2 = proof
   intros
   mrefine eq_preserves_eq 
