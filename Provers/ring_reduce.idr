@@ -1200,6 +1200,38 @@ Provers.ring_reduce.MelimMinus'_4 = proof
   exact p_ih1
   exact p_ih2  
 
+Provers.ring_reduce.Mdevelop_5 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult c1 (Minus c2 c3))
+  exact (Minus (Mult c1 c2) (Mult c1 c3))
+  mrefine set_eq_undec_refl
+  mrefine Minus_preserves_equiv 
+  mrefine eq_preserves_eq 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact (Mult c1 (Plus c2 (Neg c3)))
+  exact (Plus (Mult c1 c2) (Neg (Mult c1 c3)))
+  mrefine Mult_preserves_equiv 
+  mrefine Minus_simpl 
+  mrefine eq_preserves_eq 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine Minus_simpl 
+  exact (Mult c1 (Plus c2 (Neg c3)))
+  exact (Plus (Mult c1 c2) (Mult c1 (Neg c3)))
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_dist
+  exact p_ih_e21
+  exact p_ih_e22
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine lemmaRing1
+
 Provers.ring_reduce.Mdevelop_4 = proof
   intros
   mrefine eq_preserves_eq 

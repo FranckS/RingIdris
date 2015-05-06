@@ -56,7 +56,7 @@ However, one remark :
 However, one remark :
    . We don't pass the totality checker at the moment
 
-- Ring solver NOT YET IMPLEMENTED
+- Ring solver : IMPLEMENTATION IN PROGRESS (roughly 90% done)
 
 - Commutative Ring solver NOT YET IMPLEMENTED
 
@@ -64,7 +64,7 @@ How to compile it :
 -------------------
 Simply do :
 
-idris main.idr
+idris main.idr -p contrib
 That will compiles the 6 tactics available yet + the tests (which includes instances
 of the corresponding typeclass) for each of them.
 
