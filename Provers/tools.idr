@@ -184,8 +184,8 @@ lemmaRing1 C p a b =
 -- Moves the Neg in front of the producti when the Neg was on the first argument
 lemmaRing2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg a) b ~= Neg (Mult a b))
 lemmaRing2 C p a b = 
-	let p1 : (Plus (Mult (Neg a) b) (Mult a b) ~= Mult (Plus (Neg a) a) b) = ?MlemmaRing2_1 in -- Use distributivity 
-	let p2 : (Mult (Plus (Neg a) a) b ~= Mult Zero b) = ?MlemmaRing2_2 in -- Use symmetric elements of +
+	let p1 : (Plus (Mult (Neg a) b) (Mult a b) ~= Mult (Plus (Neg a) a) b) = ?MlemmaRing2_1 in -- Uses distributivity 
+	let p2 : (Mult (Plus (Neg a) a) b ~= Mult Zero b) = ?MlemmaRing2_2 in -- Uses symmetric elements of +
 	let p3 : (Mult Zero b ~= Zero) = zeroAbsorbant2 C p b in
 	let p4 : (Plus (Mult (Neg a) b) (Mult a b) ~= Zero) = ?MlemmaRing2_3 in -- Transitivity of the aboves
 	let p5 : (Mult (Neg a) b ~= Plus Zero (Neg (Mult a b))) = move_other_side (%instance) (Mult (Neg a) b) (Mult a b) Zero p4 in -- Use move other side
@@ -207,19 +207,18 @@ subgoal2 C p a =
 -- A more directly would have been to directly use lemmaRing1 and lemmaRing2 since they both have the same right hand side
 lemmaRing3 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult a (Neg b) ~= Mult (Neg a) b)
 lemmaRing3 _ _ a b = 
-	let p1 : (Neg b ~= Mult (Neg One) b) = ?MlemmaRing3_1 in -- Use lemma subgoal2
-	let p2 : (Mult a (Mult (Neg One) b) ~= Mult (Mult a (Neg One)) b) = ?MlemmaRing3_2 in -- Use assoc of *
-	let p3 : (Mult a (Neg One) ~= Neg a) = ?MlemmaRing3_3 in -- Use lemma subgoal1
+	let p1 : (Neg b ~= Mult (Neg One) b) = ?MlemmaRing3_1 in -- Uses lemma subgoal2
+	let p2 : (Mult a (Mult (Neg One) b) ~= Mult (Mult a (Neg One)) b) = ?MlemmaRing3_2 in -- Uses assoc of *
+	let p3 : (Mult a (Neg One) ~= Neg a) = ?MlemmaRing3_3 in -- Uses lemma subgoal1
 		?MlemmaRing3_4
 
 
 lemmaRing4 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg a) (Neg b) ~= Mult a b)
 lemmaRing4 C p a b = 
 	let p1 : (Mult (Neg a) (Neg b) ~= Neg (Mult a (Neg b))) = lemmaRing2 C p a (Neg b) in
-	let p2 : (Mult a (Neg b) ~= Neg (Mult a b)) = ?MKKK in -- Uses lemmaRing3 
-	let p3 : (Mult (Neg a) (Neg b) ~= Neg (Neg (Mult a b))) = ?MLLL in --compose p1 and p2
-	let p4 : (Mult (Neg a) (Neg b) ~= Mult a b) = ?MMMM in -- Uses remove double neg
-		?MNNN
+	let p2 : (Mult a (Neg b) ~= Neg (Mult a b)) = lemmaRing1 C p a b in
+	let p3 : (Mult (Neg a) (Neg b) ~= Neg (Neg (Mult a b))) = ?MlemmaRing4_2 in --composes p1 and p2
+            ?MlemmaRing4_3 -- Use group_doubleNeg on p3
 		
 -- -----------------------------------
 -- C) TOOLS AND LEMMAS FOR STRUCTURES
@@ -1571,5 +1570,27 @@ Provers.tools.MlemmaRing3_4 = proof
   mrefine set_eq_undec_sym 
   mrefine set_eq_undec_refl
   exact p3
+
+Provers.tools.MlemmaRing4_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Neg a) (Neg b))
+  exact (Neg (Mult a (Neg b)))
+  mrefine set_eq_undec_refl
+  mrefine Neg_preserves_equiv 
+  exact p1
+  mrefine set_eq_undec_sym
+  exact p2
+
+Provers.tools.MlemmaRing4_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult (Neg a) (Neg b))
+  exact (Neg (Neg (Mult a b)))
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  exact p3
+  mrefine group_doubleNeg 
+
 
 

@@ -17,11 +17,6 @@ import Data.Vect
 
 
 
--- FIX ME : Why do I have to tell dataTypes.Neg ? It should be found automatically !...
-push_negation_in_product : {C:Type} -> (p:dataTypes.Ring C) -> (x : C) -> (y : C) -> (dataTypes.Neg (Mult x y) ~= Mult (dataTypes.Neg c1) c2)
-push_negation_in_product p x y = ?Mpush_negation_in_product_1
-
-
 --%logging 2
 -- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 pattern matched cases
 --total
@@ -41,7 +36,7 @@ develop (MinusR e1 e2) =
 -}
 develop (NegR e) = 
   let (r_ih ** (e_ih, p_ih)) = (develop e) in
-    (r_ih ** (e_ih, ?Mdevelop_3))
+    (Neg r_ih ** (NegR e_ih, ?Mdevelop_3))
 
       
 develop {c} (MultR (ConstR _ _ c1) (ConstR _ _ c2)) = (_ ** (MultR (ConstR _ _ c1) (ConstR _ _ c2), set_eq_undec_refl {c} _))     
@@ -888,7 +883,6 @@ Provers.ring_reduce.MmoveNegInMonomial_1 = proof
   intros
   mrefine lemmaRing2
 
-
 Provers.ring_reduce.MpropagateNeg'_1 = proof
   intros
   mrefine eq_preserves_eq 
@@ -907,13 +901,14 @@ Provers.ring_reduce.MpropagateNeg'_2 = proof
   mrefine eq_preserves_eq 
   exact (Neg (Mult c1 c2))
   exact (Mult (Neg c1) c2)
-  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl
   mrefine Mult_preserves_equiv 
-  mrefine push_negation_in_product 
-  mrefine set_eq_undec_sym 
-  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_sym
+  mrefine set_eq_undec_sym
+  mrefine set_eq_undec_sym
+  mrefine lemmaRing2
   exact p_ih1
-  exact p_ih2 
+  exact p_ih2
   
 Provers.ring_reduce.MpropagateNeg'_3 = proof
   intros
@@ -1205,5 +1200,31 @@ Provers.ring_reduce.MelimMinus'_4 = proof
   exact p_ih1
   exact p_ih2  
 
+Provers.ring_reduce.Mdevelop_4 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult c1 (Plus c2 c3))
+  exact (Plus (Mult c1 c2) (Mult c1 c3))
+  mrefine set_eq_undec_refl
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_dist
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_sym
+  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_sym
+  exact p_ih_e21
+  exact p_ih_e22
 
+Provers.ring_reduce.Mdevelop_3 = proof
+  intros
+  mrefine Neg_preserves_equiv 
+  exact p_ih 
+
+Provers.ring_reduce.Mdevelop_1 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
 
