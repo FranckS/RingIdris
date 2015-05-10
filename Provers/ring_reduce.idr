@@ -16,6 +16,9 @@ import Provers.commutativeGroup_reduce
 import Data.Vect
 
 
+dist_minus : {c:Type} -> (p:dataTypes.Ring c) -> (c1:c) -> (c2:c) -> (c3:c) -> (Mult c1 (Minus c2 c3) ~= Minus (Mult c1 c2) (Mult c1 c3))
+dist_minus p c1 c2 c3 = ?Mdist_minus
+
 
 --%logging 2
 -- Should be total, but can't be asserted to be, since Idris runs into an infinite loop at typecheck with 41 pattern matched cases
@@ -1199,6 +1202,134 @@ Provers.ring_reduce.MelimMinus'_4 = proof
   mrefine Mult_preserves_equiv 
   exact p_ih1
   exact p_ih2  
+
+Provers.ring_reduce.Mdist_minus = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Mult c1 (Plus c2 (Neg c3)))
+  exact (Plus (Mult c1 c2) (Mult c1 (Neg c3)))
+  mrefine Mult_preserves_equiv 
+  mrefine eq_preserves_eq 
+  mrefine Mult_dist
+  mrefine set_eq_undec_refl 
+  mrefine Minus_simpl 
+  exact (Plus (Mult c1 c2) (Neg (Mult c1 c3)))
+  exact (Plus (Mult c1 c2) (Mult c1 (Neg c3)))
+  mrefine Minus_simpl 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine lemmaRing1
+  
+Provers.ring_reduce.Mdevelop_14 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult c1 (Plus c3 c4)) (Mult c2 (Plus c3 c4)))
+  exact (Plus (Mult r_ih_e11 (Plus r_ih_e21 r_ih_e22)) (Mult r_ih_e12 (Plus r_ih_e21 r_ih_e22)))
+  mrefine Mult_dist_2
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e11
+  mrefine Plus_preserves_equiv 
+  exact p_ih_e12
+  mrefine Plus_preserves_equiv 
+  exact p_ih_e21
+  exact p_ih_e22
+  exact p_ih_e21
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_13 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult c1 c3) (Mult c2 c3))
+  exact (Plus (Mult r_ih_e11 c3) (Mult r_ih_e12 c3))
+  mrefine Mult_dist_2 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e11
+  mrefine set_eq_undec_refl 
+  exact p_ih_e12
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.Mdevelop_12 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult c1 c3) (Mult c2 c3))
+  exact (Plus (Mult r_ih_e11 c3) (Mult r_ih_e12 c3))
+  mrefine Mult_dist_2 
+  mrefine set_eq_undec_refl
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e11
+  mrefine set_eq_undec_refl 
+  exact p_ih_e12
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.Mdevelop_11 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e21
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_10 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine Neg_preserves_equiv 
+  exact p_ih
+
+Provers.ring_reduce.Mdevelop_9 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Minus (Mult c1 c2) (Mult c1 c3))
+  exact (Minus (Mult c1 r_ih_e21) (Mult c1 r_ih_e22))
+  mrefine dist_minus 
+  mrefine set_eq_undec_refl 
+  mrefine Minus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ih_e21
+  mrefine set_eq_undec_refl 
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_8 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult c1 c2) (Mult c1 c3))
+  exact (Plus (Mult c1 r_ih_e21) (Mult c1 r_ih_e22))
+  mrefine Mult_dist
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ih_e21
+  mrefine set_eq_undec_refl
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_7 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e21
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_6 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine Neg_preserves_equiv 
+  exact p_ih
 
 Provers.ring_reduce.Mdevelop_5 = proof
   intros
