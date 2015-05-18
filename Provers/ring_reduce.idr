@@ -639,6 +639,10 @@ encodeToProductOfMonomials c p g (MultR (VarR _ v1) e2) =
 		(_ ** (e_3, ?MencodeToProductOfMonomials_8))
             
 
+decodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeProductOfMonomials c p g e = ?MX
+
+
 
 encodeToCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 encodeToCG c p g (ConstR _ _ const1) = 
@@ -660,6 +664,28 @@ encodeToCG c p g (MultR e1 e2) =
         (_ ** (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon), ?MencodeToCG_5))
 
 	
+	
+decodeFromCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR {n=n} p g c2, c1~=c2))
+decodeFromCG c p g (ConstCG _ _ g const1) = (_ ** (ConstR p _ const1, ?MdecodeFromCG_1)) -- Fix Idris : we can't simply give (set_eq_undec_refl _) which is exactly the proof we do in the proof mode !
+decodeFromCG c p g (PlusCG _ e1 e2) = 
+    let (r_ih1 ** ((e_ih1, p_ih1))) = decodeFromCG c p g e1 in 
+    let (r_ih2 ** ((e_ih2, p_ih2))) = decodeFromCG c p g e2 in 
+        (_ ** (PlusR e_ih1 e_ih2, ?MdecodeFromCG_2))
+decodeFromCG c p g (MinusCG _ e1 e2) = 
+    let (r_ih1 ** ((e_ih1, p_ih1))) = decodeFromCG c p g e1 in 
+    let (r_ih2 ** ((e_ih2, p_ih2))) = decodeFromCG c p g e2 in 
+        (_ ** (MinusR e_ih1 e_ih2, ?MdecodeFromCG_3))
+decodeFromCG c p g (NegCG _ e) = 
+    let (r_ih ** ((e_ih, p_ih))) = decodeFromCG c p g e in 
+        (_ ** (NegR e_ih, ?MdecodeFromCG_4))
+decodeFromCG c p g (VarCG _ _ (RealVariable _ _ _ _ i)) = (_ ** (VarR _ (RealVariable _ _ _ _ i), ?MdecodeFromCG_5))
+-- I should not have "encoding of group terms" at this point, so I just do this identity (I don't decode them, in order to avoid hiding potential problems from the Group level)
+decodeFromCG c p g (VarCG _ _ (EncodingGroupTerm_var _ _ _ _ i)) = (_ ** (VarR _ (EncodingGroupTerm_var _ _ _ _ i), ?MdecodeFromCG_6))
+decodeFromCG c p g (VarCG _ _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) = 
+    let (r_1 ** ((e_1, p_1))) = decodeProductOfMonomials c p g productOfMonomials in
+        (_ ** (e_1, ?MdecodeFromCG_7))
+    
+
 
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
@@ -672,8 +698,8 @@ ring_reduce p e =
   let (r_5 ** (e_5, p_5)) = shuffleProductRight p _ e_4 in -- Needed for the encoding
   let (r_6 ** (e_6, p_6)) = moveNegInPolynomial p e_5 in -- Needed for the encoding, because we want each product of monomials to start with the Neg (if any), and not to contain Negs in the middle of them
   let (r_7 ** (e_7, p_7)) = elimDoubleNeg' p e_6 in -- Needed because we've moved some Neg just before
-  -- Then encoding
-    (_ **(e_5, ?MX))
+  -- Then encoding, call to commutativeGroup prover, and decoding
+    (_ **(e_7, ?MX))
 
 	
 
@@ -839,19 +865,16 @@ Provers.ring_reduce.MmultiplyProdOfVar_1 = proof
   mrefine set_eq_undec_refl 
   exact p_ih1
 
-
 Provers.ring_reduce.MmoveNegInPolynomial_2 = proof
   intros
   mrefine Neg_preserves_equiv 
   exact p_ih1
-
 
 Provers.ring_reduce.MmoveNegInPolynomial_1 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
-
 
 Provers.ring_reduce.MmoveNegInMonomial_6 = proof
   intros
@@ -865,11 +888,9 @@ Provers.ring_reduce.MmoveNegInMonomial_6 = proof
   exact p_ih1
   exact p_ih2
 
-
 Provers.ring_reduce.MmoveNegInMonomial_5 = proof
   intros
   mrefine lemmaRing1
-
 
 Provers.ring_reduce.MmoveNegInMonomial_4 = proof
   intros
@@ -883,11 +904,9 @@ Provers.ring_reduce.MmoveNegInMonomial_4 = proof
   exact p_ih1
   exact p_ih2
 
-
 Provers.ring_reduce.MmoveNegInMonomial_3 = proof
   intros
   mrefine lemmaRing4
-
 
 Provers.ring_reduce.MmoveNegInMonomial_2 = proof
   intros
@@ -998,6 +1017,39 @@ Provers.ring_reduce.MencodeToCG_2 = proof
   mrefine set_eq_undec_refl 
 
 Provers.ring_reduce.MencodeToCG_1 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MdecodeFromCG_7 = proof
+  intros
+  exact p_1
+
+Provers.ring_reduce.MdecodeFromCG_6 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MdecodeFromCG_5 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MdecodeFromCG_4 = proof
+  intros
+  mrefine Neg_preserves_equiv 
+  exact p_ih
+
+Provers.ring_reduce.MdecodeFromCG_3 = proof
+  intros
+  mrefine Minus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MdecodeFromCG_2 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+Provers.ring_reduce.MdecodeFromCG_1 = proof
   intros
   mrefine set_eq_undec_refl 
 
