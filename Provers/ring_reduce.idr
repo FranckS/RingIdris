@@ -179,7 +179,7 @@ develop (MultR (MinusR e11 e12) (NegR e2)) =
   let (r_ih_e11 ** (e_ih_e11, p_ih_e11)) = develop e11 in
   let (r_ih_e12 ** (e_ih_e12, p_ih_e12)) = develop e12 in
   let (r_ih_e2 ** (e_ih_e2, p_ih_e2)) = develop e2 in
-    (_ ** (MinusR (MultR e_ih_e11 e_ih_e2) (MultR e_ih_e12 e_ih_e2), ?Mdevelop_22))
+    (_ ** (MinusR (MultR e_ih_e11 (NegR e_ih_e2)) (MultR e_ih_e12 (NegR e_ih_e2)), ?Mdevelop_22))
 develop (MultR (MinusR e11 e12) (MultR e21 e22)) = 
   let (r_ih_e11 ** (e_ih_e11, p_ih_e11)) = develop e11 in
   let (r_ih_e12 ** (e_ih_e12, p_ih_e12)) = develop e12 in
@@ -192,10 +192,10 @@ develop (MultR (MinusR e11 e12) (MultR e21 e22)) =
     
 develop (MultR (NegR e1) (ConstR _ _ c2)) = 
   let (r_ih ** (e_ih, p_ih)) = develop e1 in
-      (_ ** (MultR e_ih (ConstR _ _ c2), ?Mdevelop_24))
+      (_ ** (MultR (NegR e_ih) (ConstR _ _ c2), ?Mdevelop_24))
 develop (MultR (NegR e1) (VarR p v)) = 
   let (r_ih ** (e_ih, p_ih)) = develop e1 in
-      (_ ** (MultR e_ih (VarR p v), ?Mdevelop_25))
+      (_ ** (MultR (NegR e_ih) (VarR p v), ?Mdevelop_25))
 develop (MultR (NegR e1) (PlusR e21 e22)) =
   let (r_ih_e1 ** (e_ih_e1, p_ih_e1)) = develop e1 in
   let (r_ih_e21 ** (e_ih_e21, p_ih_e21)) = develop e21 in
@@ -205,7 +205,7 @@ develop (MultR (NegR e1) (MinusR e21 e22)) =
   let (r_ih_e1 ** (e_ih_e1, p_ih_e1)) = develop e1 in
   let (r_ih_e21 ** (e_ih_e21, p_ih_e21)) = develop e21 in
   let (r_ih_e22 ** (e_ih_e22, p_ih_e22)) = develop e22 in
-      (_ ** (PlusR (MinusR (NegR e_ih_e1) e_ih_e21) (MultR (NegR e_ih_e1) e_ih_e22), ?Mdevelop_27))
+      (_ ** (MinusR (MultR (NegR e_ih_e1) e_ih_e21) (MultR (NegR e_ih_e1) e_ih_e22), ?Mdevelop_27))
 -- Not 100% sure here
 develop (MultR (NegR e1) (NegR e2)) = 
   let (r_ih_e1 ** (e_ih_e1, p_ih_e1)) = develop e1 in
@@ -250,7 +250,7 @@ develop (MultR (MultR e11 e12) (NegR e2)) =
   let (r_ih_e11 ** (e_ih_e11, p_ih_e11)) = develop e11 in
   let (r_ih_e12 ** (e_ih_e12, p_ih_e12)) = develop e12 in
   let (r_ih_e2 ** (e_ih_e2, p_ih_e2)) = develop e2 in
-    (_ ** (MultR (MultR e_ih_e11 e_ih_e12) e_ih_e2, ?Mdevelop_34))  
+    (_ ** (MultR (MultR e_ih_e11 e_ih_e12) (NegR e_ih_e2), ?Mdevelop_34))  
 develop (MultR (MultR e11 e12) (MultR e21 e22)) = 
   let (r_ih_e11 ** (e_ih_e11, p_ih_e11)) = develop e11 in
   let (r_ih_e12 ** (e_ih_e12, p_ih_e12)) = develop e12 in
@@ -1267,6 +1267,180 @@ Provers.ring_reduce.Mdist_plus_minus_1 = proof
   mrefine set_eq_undec_refl 
   mrefine Mult_dist_2 
   mrefine Mult_dist_2  
+
+Provers.ring_reduce.Mdevelop_35 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e11
+  exact p_ih_e12
+  exact p_ih_e21
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_34 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e11
+  exact p_ih_e12
+  exact p_ih_e2
+
+Provers.ring_reduce.Mdevelop_33 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Minus (Mult (Mult c1 c2) c3) (Mult (Mult c1 c2) c4))
+  exact (Minus (Mult (Mult r_ih_e11 r_ih_e12) r_ih_e21) (Mult (Mult r_ih_e11 r_ih_e12) r_ih_e22))
+  mrefine dist_minus
+  mrefine set_eq_undec_refl 
+  mrefine Minus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e21
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e22
+  exact p_ih_e11
+  exact p_ih_e12
+  exact p_ih_e11
+  exact p_ih_e12
+
+Provers.ring_reduce.Mdevelop_32 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult (Mult c1 c2) c3) (Mult (Mult c1 c2) c4))
+  exact (Plus (Mult (Mult r_ih_e11 r_ih_e12) r_ih_e21) (Mult (Mult r_ih_e11 r_ih_e12) r_ih_e22))
+  mrefine Mult_dist
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e21
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e22
+  exact p_ih_e11
+  exact p_ih_e12
+  exact p_ih_e11
+  exact p_ih_e12
+
+Provers.ring_reduce.Mdevelop_31 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ih_e11
+  exact p_ih_e12
+
+Provers.ring_reduce.Mdevelop_30 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl
+  exact p_ih_e11
+  exact p_ih_e12
+
+Provers.ring_reduce.Mdevelop_29 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e1
+  exact p_ih_e21
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_28 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e1
+  exact p_ih_e2
+  
+Provers.ring_reduce.Mdevelop_27 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Minus (Mult (Neg c1) c2) (Mult (Neg c1) c3))
+  exact (Minus (Mult (Neg r_ih_e1) r_ih_e21) (Mult (Neg r_ih_e1) r_ih_e22))
+  mrefine dist_minus
+  mrefine set_eq_undec_refl 
+  mrefine Minus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e21
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e22
+  exact p_ih_e1
+  exact p_ih_e1
+
+Provers.ring_reduce.Mdevelop_26 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Mult (Neg c1) c2) (Mult (Neg c1) c3))
+  exact (Plus (Mult (Neg r_ih_e1) r_ih_e21) (Mult (Neg r_ih_e1) r_ih_e22))
+  mrefine Mult_dist
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e21
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e22
+  exact p_ih_e1
+  exact p_ih_e1
+
+Provers.ring_reduce.Mdevelop_25 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ih
+
+Provers.ring_reduce.Mdevelop_24 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine Neg_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ih
+
+Provers.ring_reduce.Mdevelop_23 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Minus (Mult c1 (Mult c3 c4)) (Mult c2 (Mult c3 c4)))
+  exact (Minus (Mult r_ih_e11 (Mult r_ih_e21 r_ih_e22)) (Mult r_ih_e12 (Mult r_ih_e21 r_ih_e22)))
+  mrefine dist_minus_2
+  mrefine set_eq_undec_refl 
+  mrefine Minus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e11
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e12
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e21
+  exact p_ih_e22
+  exact p_ih_e21
+  exact p_ih_e22
+
+Provers.ring_reduce.Mdevelop_22 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Minus (Mult c1 (Neg c3)) (Mult c2 (Neg c3)))
+  exact (Minus (Mult r_ih_e11 (Neg r_ih_e2)) (Mult r_ih_e12 (Neg r_ih_e2)))
+  mrefine dist_minus_2
+  mrefine set_eq_undec_refl 
+  mrefine Minus_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  mrefine Mult_preserves_equiv 
+  exact p_ih_e11
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e12
+  mrefine Neg_preserves_equiv 
+  exact p_ih_e2
+  exact p_ih_e2
 
 Provers.ring_reduce.Mdevelop_21 = proof
   intros
