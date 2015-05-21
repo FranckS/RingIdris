@@ -512,6 +512,16 @@ moveNegInPolynomial p (NegR e) =
 moveNegInPolynomial p (MultR e1 e2) = 
 	moveNegInMonomial p (MultR e1 e2)
 
+	
+	
+	
+decodeProdOfVar : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfVar:ProductOfVariables (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeProdOfVar c p g (LastVar g _ k) = (_ ** (VarR p (RealVariable _ _ _ g k), ?MdecodeProdOfVar_1))
+decodeProdOfVar c p g (VarMultProduct _ k prodOfVar) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = decodeProdOfVar c p g prodOfVar in
+		(_ ** (MultR (VarR p (RealVariable _ _ _ g k)) e_ih1, ?MdecodeProdOfVar_2))
+	
+	
     
 encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 -- The only thing we can get are : 
@@ -521,6 +531,15 @@ encodeToMonomial c p g (ConstR _ _ const1) = (_ ** (ConstantMonomial _ _ const1,
 encodeToMonomial c p g (VarR _ (RealVariable _ _ _ _ i)) = (_ ** (ProdOfVar _ (LastVar _ _ i), set_eq_undec_refl {c} _))
 encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ (RealVariable _ _ _ _ i))) = (_ ** (ProdOfVarWithConst _ const1 (LastVar _ _ i), set_eq_undec_refl {c} _))
 encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVariable _ _ _ _ j))) = (_ ** (ProdOfVar _ (VarMultProduct _ i (LastVar _ _ j)), set_eq_undec_refl {c} _))
+
+
+
+decodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (monomial:Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeMonomial c p g (ProdOfVar _ prodOfVar) = decodeProdOfVar c p g prodOfVar
+decodeMonomial c p g (ProdOfVarWithConst _ const1 prodOfVar) = 
+	let (r1 ** (e1, p1)) = decodeProdOfVar c p g prodOfVar in
+		(_ ** (MultR (ConstR _ _ const1) e1, ?MdecodeMonomial_1))
+decodeMonomial c p g (ConstantMonomial g _ const1) = (_ ** (ConstR _ _ const1, ?MdecodeMonomial_2))
 
 
 
@@ -639,8 +658,12 @@ encodeToProductOfMonomials c p g (MultR (VarR _ v1) e2) =
 		(_ ** (e_3, ?MencodeToProductOfMonomials_8))
             
 
-decodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
-decodeProductOfMonomials c p g e = ?MX
+decodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfMon:ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeProductOfMonomials c p g (LastMonomial _ mon) = decodeMonomial c p g mon
+decodeProductOfMonomials c p g (MonomialMultProduct _ mon prod) =
+	let (r1 ** (e1, p1)) = decodeMonomial c p g mon in
+	let (r_ih2 ** (e_ih2, p_ih2)) = decodeProductOfMonomials c p g prod in
+		(_ ** (MultR e1 e_ih2, ?MdecodeProductOfMonomials_1))
 
 
 
@@ -686,6 +709,14 @@ decodeFromCG c p g (VarCG _ _ (EncodingProductOfMonomials _ _ _ productOfMonomia
         (_ ** (e_1, ?MdecodeFromCG_7))
     
 
+code_reduceCG_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))    
+code_reduceCG_andDecode p e = 	
+	let (c2 ** (e2, pEncode)) = encodeToCG _ p _ e in
+	let (c3 ** (e3, pReduce)) = commutativeGroupReduce (ring_to_commutativeGroup_class p) e2 in
+	let (c4 ** (e4, pDecode)) = decodeFromCG _ p _ e3 in
+		(c4 ** (e4, ?Mcode_reduceCG_andDecode_1))    
+    
+    
 
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
@@ -699,6 +730,7 @@ ring_reduce p e =
   let (r_6 ** (e_6, p_6)) = moveNegInPolynomial p e_5 in -- Needed for the encoding, because we want each product of monomials to start with the Neg (if any), and not to contain Negs in the middle of them
   let (r_7 ** (e_7, p_7)) = elimDoubleNeg' p e_6 in -- Needed because we've moved some Neg just before
   -- Then encoding, call to commutativeGroup prover, and decoding
+  let (r_8 ** (e_8, p_8)) = code_reduceCG_andDecode p e_7 in
     (_ **(e_7, ?MX))
 
 	
@@ -1019,6 +1051,32 @@ Provers.ring_reduce.MencodeToCG_2 = proof
 Provers.ring_reduce.MencodeToCG_1 = proof
   intros
   mrefine set_eq_undec_refl 
+  
+Provers.ring_reduce.MdecodeProdOfVar_1 = proof
+  intros
+  mrefine set_eq_undec_refl 
+  
+Provers.ring_reduce.MdecodeProdOfVar_2 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ih1
+
+Provers.ring_reduce.MdecodeMonomial_1 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p1  
+  
+Provers.ring_reduce.MdecodeMonomial_2 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MdecodeProductOfMonomials_1 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact p1
+  exact p_ih2  
 
 Provers.ring_reduce.MdecodeFromCG_7 = proof
   intros
@@ -1794,3 +1852,16 @@ Provers.ring_reduce.Mdevelop_1 = proof
   exact p_ih1
   exact p_ih2
 
+Provers.ring_reduce.Mcode_reduceCG_andDecode_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact c2
+  exact c4
+  exact pEncode 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact c3
+  exact c4
+  exact pReduce 
+  mrefine set_eq_undec_refl 
+  exact pDecode 
