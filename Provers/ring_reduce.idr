@@ -469,7 +469,7 @@ elimDoubleNeg' {c} p e1 =
     
     
     
--- For a product A * B, we decide to move the neg before the prodct if there is one
+-- For a product A * B, we decide to move the neg before the product if there is one
 -- Ex : (-c * v) -> -(c*v)
 -- Ex : (v1 * -v2) -> -(v1*c2)
 -- Is forced to take a MultR in input    
@@ -512,7 +512,41 @@ moveNegInPolynomial p (NegR e) =
 moveNegInPolynomial p (MultR e1 e2) = 
 	moveNegInMonomial p (MultR e1 e2)
 
+
 	
+total
+simplifyWithConstant_Monomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (monomial:Monomial setAndMult g c1) -> (c2 ** (Monomial setAndMult g c2, c1~=c2))
+simplifyWithConstant_Monomial c p g proofZero proofOne (ProdOfVar _ prodOfVar) = (_ ** (ProdOfVar _ prodOfVar, ?MsimplifyWithConstant_Monomial_1))
+simplifyWithConstant_Monomial c p g proofZero proofOne (ProdOfVarWithConst _ const1 prodOfVar) = 
+	case set_eq const1 Zero of
+		-- 0 * v1v2v3 -> 0
+		Just prEqualZero => (_ ** (ConstantMonomial g _ Zero, ?MsimplifyWithConstant_Monomial_2))
+		Nothing => 
+		case set_eq const1 One of
+			-- 1 * v1v2v3... -> v1*v2v*v3...
+			Just prEqualOne => (_ ** (ProdOfVar _ prodOfVar, ?MsimplifyWithConstant_Monomial_3))
+			Nothing => (_ ** (ProdOfVarWithConst _ const1 prodOfVar, ?MsimplifyWithConstant_Monomial_4))
+simplifyWithConstant_Monomial c p g proofZero proofOne (ConstantMonomial g _ const1) = (_ ** (ConstantMonomial g _ const1, ?MsimplifyWithConstant_Monomial_5))
+	
+
+total
+simplifyWithConstant_ProdOfMon : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (prodOfMon:ProductOfMonomials setAndMult g c1) -> (c2 ** (ProductOfMonomials setAndMult g c2, c1~=c2))
+simplifyWithConstant_ProdOfMon c p g proofZero proofOne (LastMonomial _ monomial) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
+		(_ ** (LastMonomial _ e1, ?MsimplifyWithConstant_ProdOfMon_1)) -- Because of this, we might finish with just a constant monomial equal to Zero, so we will need to check that any expression containing a productOfMonomials can't be simplified by removing this prodOfMon.
+simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ monomial prodOfMon) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
+	let (r_ih2 ** (e_ih2, p_ih2)) = simplifyWithConstant_ProdOfMon c p g proofZero proofOne  prodOfMon in
+	case e1 of
+		(ConstantMonomial g _ r1) =>
+		-- we return the constant monomial Zero
+		case set_eq r1 Zero of
+			Just prEqualZero => (_ ** (LastMonomial _ (ConstantMonomial g _ Zero), ?MsimplifyWithConstant_ProdOfMon_2))
+			Nothing => (_ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_3))
+		-- nothing to simplify here for a ProdOfVar or for a ProfOfVarWithConst
+		_ => ( _ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_4))
+
+
 	
 	
 decodeProdOfVar : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfVar:ProductOfVariables (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
@@ -666,7 +700,7 @@ decodeProductOfMonomials c p g (MonomialMultProduct _ mon prod) =
 		(_ ** (MultR e1 e_ih2, ?MdecodeProductOfMonomials_1))
 
 
-
+-- NEW : does a bit of simplification after having encoded the product of monomials : 1 * v1v2v3 -> v1v2v3 and 0*v1v2v3 -> 0
 encodeToCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 encodeToCG c p g (ConstR _ _ const1) = 
 	(_ ** (ConstCG _ _ _ const1, ?MencodeToCG_1))
@@ -684,7 +718,8 @@ encodeToCG c p g (NegR e) =
 -- In the case of a mult, we know that we have a "product of monomials", we just need to encode to it
 encodeToCG c p g (MultR e1 e2) =
 	let (r_1 ** (pdtOfMon, p_1)) = encodeToProductOfMonomials c p g (MultR e1 e2) in
-        (_ ** (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon), ?MencodeToCG_5))
+	let (r_2 ** (pdtOfMon2, p_2)) = simplifyWithConstant_ProdOfMon c p g (\x => zeroAbsorbant2 c p x) (\x => right (Mult_neutral x)) pdtOfMon in -- NEW : simplifications in the product of monomials
+        (_ ** (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon2), ?MencodeToCG_5))
 
 	
 	
@@ -1031,8 +1066,13 @@ Provers.ring_reduce.MelimDoubleNeg'_4 = proof
 
 Provers.ring_reduce.MencodeToCG_5 = proof
   intros
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_2
   exact p_1
-
+  mrefine set_eq_undec_refl 
+  exact p_2  
+  
 Provers.ring_reduce.MencodeToCG_4 = proof
   intros
   mrefine Neg_preserves_equiv 
@@ -1865,3 +1905,72 @@ Provers.ring_reduce.Mcode_reduceCG_andDecode_1 = proof
   exact pReduce 
   mrefine set_eq_undec_refl 
   exact pDecode 
+
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_4 = proof
+  intros
+  mrefine mult_preserves_equiv 
+  exact p1
+  exact p_ih2
+
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_3 = proof
+  intros
+  mrefine mult_preserves_equiv 
+  exact p1
+  exact p_ih2 
+
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (mult setAndMult r1 c_prod)
+  exact Zero
+  mrefine mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact p1
+  mrefine set_eq_undec_refl 
+  exact (mult setAndMult Zero c_prod)
+  exact Zero
+  mrefine mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact (proofZero c_prod)
+  exact prEqualZero 
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_1 = proof
+  intros
+  exact p1
+
+Provers.ring_reduce.MsimplifyWithConstant_Monomial_5 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MsimplifyWithConstant_Monomial_4 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MsimplifyWithConstant_Monomial_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (mult setAndMult One c_prod)
+  exact c_prod
+  mrefine mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact (proofOne c_prod)
+  exact prEqualOne 
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MsimplifyWithConstant_Monomial_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (mult setAndMult Zero c_prod)
+  exact Zero
+  mrefine mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine proofZero 
+  exact c_prod
+  exact prEqualZero 
+  mrefine set_eq_undec_refl 
+
+Provers.ring_reduce.MsimplifyWithConstant_Monomial_1 = proof
+  intros
+  mrefine set_eq_undec_refl
