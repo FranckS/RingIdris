@@ -700,6 +700,14 @@ decodeProductOfMonomials c p g (MonomialMultProduct _ mon prod) =
 		(_ ** (MultR e1 e_ih2, ?MdecodeProductOfMonomials_1))
 
 
+		
+-- NEW : If an encoding is just a constant, we "decrypt" it, so that the CommutativeGroup level will be able to simplify it with other constants		
+total
+decryptConstant : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprCG p setAndMult g c1) -> (c2 ** (ExprCG p setAndMult g c2, c1~=c2))		
+decryptConstant p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ConstantMonomial _ _ const1)))) = (_ ** (ConstCG _ _ _ const1, ?MdecryptConstant_1))
+decryptConstant p setAndMult e = (_ ** (e, ?MdecryptConstant_2))
+		
+		
 -- NEW : does a bit of simplification after having encoded the product of monomials : 1 * v1v2v3 -> v1v2v3 and 0*v1v2v3 -> 0
 encodeToCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 encodeToCG c p g (ConstR _ _ const1) = 
@@ -719,7 +727,8 @@ encodeToCG c p g (NegR e) =
 encodeToCG c p g (MultR e1 e2) =
 	let (r_1 ** (pdtOfMon, p_1)) = encodeToProductOfMonomials c p g (MultR e1 e2) in
 	let (r_2 ** (pdtOfMon2, p_2)) = simplifyWithConstant_ProdOfMon c p g (\x => zeroAbsorbant2 c p x) (\x => right (Mult_neutral x)) pdtOfMon in -- NEW : simplifications in the product of monomials
-        (_ ** (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon2), ?MencodeToCG_5))
+	let (r_3 ** (res, p_3)) = decryptConstant (ring_to_commutativeGroup_class p) _ (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon2)) in -- NEW : if the resulted product of monomial is a constant, we transform it into a real constant, so that constant will be able to be simplified at the CG level
+        (_ ** (res, ?MencodeToCG_5))
 
 	
 	
@@ -766,7 +775,7 @@ ring_reduce p e =
   let (r_7 ** (e_7, p_7)) = elimDoubleNeg' p e_6 in -- Needed because we've moved some Neg just before
   -- Then encoding, call to commutativeGroup prover, and decoding
   let (r_8 ** (e_8, p_8)) = code_reduceCG_andDecode p e_7 in
-    (_ **(e_7, ?MX))
+    (_ **(e_8, ?Mring_reduce_1))
 
 	
 
@@ -1068,10 +1077,15 @@ Provers.ring_reduce.MencodeToCG_5 = proof
   intros
   mrefine eq_preserves_eq 
   exact r_1
-  exact r_2
+  exact r_3
   exact p_1
   mrefine set_eq_undec_refl 
-  exact p_2  
+  mrefine eq_preserves_eq 
+  exact r_2
+  exact r_3
+  exact p_2
+  mrefine set_eq_undec_refl 
+  exact p_3
   
 Provers.ring_reduce.MencodeToCG_4 = proof
   intros
@@ -1117,7 +1131,15 @@ Provers.ring_reduce.MdecodeProductOfMonomials_1 = proof
   mrefine Mult_preserves_equiv 
   exact p1
   exact p_ih2  
+  
+Provers.ring_reduce.MdecryptConstant_2 = proof
+  intros
+  mrefine set_eq_undec_refl 
 
+Provers.ring_reduce.MdecryptConstant_1 = proof
+  intros
+  mrefine set_eq_undec_refl 
+  
 Provers.ring_reduce.MdecodeFromCG_7 = proof
   intros
   exact p_1
@@ -1974,3 +1996,42 @@ Provers.ring_reduce.MsimplifyWithConstant_Monomial_2 = proof
 Provers.ring_reduce.MsimplifyWithConstant_Monomial_1 = proof
   intros
   mrefine set_eq_undec_refl
+  
+Provers.ring_reduce.Mring_reduce_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_8
+  exact p_1
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact r_2
+  exact r_8
+  exact p_2
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact r_3
+  exact r_8
+  exact p_3
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact r_4
+  exact r_8
+  exact p_4
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact r_5
+  exact r_8
+  exact p_5
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact r_6
+  exact r_8
+  exact p_6
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact r_7
+  exact r_8
+  exact p_7
+  mrefine set_eq_undec_refl 
+  exact p_8  
