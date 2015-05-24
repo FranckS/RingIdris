@@ -42,6 +42,11 @@ assoc_and_neutral_bis {c} x y = let aux : (Plus (Neg x) (Plus x y) ~= Plus (Plus
 							let aux2 : (Plus (Neg x) x ~= Zero) = right (Plus_inverse {c} x) in
 							let aux3 : (Plus Zero y ~= y) = Plus_neutral_1 y in
 							?Massoc_and_neutral_bis_1
+
+							
+isBefore : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (prod1:ProductOfMonomials setAndMult g c1) -> (prod2:ProductOfMonomials setAndMult g c2) -> Bool
+
+
 							
 									
 -- 4 FUNCTIONS WHICH ADD A TERM TO AN EXPRESSION ALREADY "SORTED" (of the right forme)
@@ -56,6 +61,9 @@ putVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e) (R
 		then let (r_ihn ** (e_ihn, p_ihn)) = (putVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
              (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e_ihn, ?MputVarOnPlace_1))
         else (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e), ?MputVarOnPlace_2))
+putVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) e) (RealVariable _ _ _ _ i) = 
+	let (r_ihn ** (e_ihn, p_ihn)) = (putVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) e_ihn, ?MputVarOnPlace_new_1)) -- NEW
 putVarOnPlace p setAndMult (PlusCG _ (ConstCG _ _ _ c0) e) (RealVariable _ _ _ _ i) = 
 	(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (PlusCG _ (ConstCG _ _ _ c0) e), ?MputVarOnPlace_3)) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !        
 putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e) (RealVariable _ _ _ _ i) = 
@@ -63,6 +71,9 @@ putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i
 		then let (r_ihn ** (e_ihn, p_ihn)) = (putVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
 			 (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e_ihn, ?MputVarOnPlace_4))
 		else (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e), ?MputVarOnPlace_5))
+putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) e) (RealVariable _ _ _ _ i) = 
+		let (r_ihn ** (e_ihn, p_ihn)) = (putVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
+			 (_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) e_ihn, ?MputVarOnPlace_new_2)) -- NEW (not sure this one is needed : is it possible to have "Neg (encoding of productOfMonomials)" as input ?
 putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) (RealVariable _ _ _ _ i) = 
 	(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e), ?MputVarOnPlace_6)) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
 -- Basic cases : cases without Plus
@@ -71,28 +82,71 @@ putVarOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) (RealVariable _ _ _ _ i)
 putVarOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (RealVariable _ _ _ _ i) = 
 	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (VarCG p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (VarCG p _ (RealVariable _ _ _ _ i0)), ?MputVarOnPlace_9))
+putVarOnPlace {c} p setAndMult (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (RealVariable _ _ _ _ i) = -- NEW
+	(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (VarCG p _ (RealVariable _ _ _ _ i)), ?MputVarOnPlace_new_3))
 putVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (RealVariable _ _ _ _ i) = 
 		if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i)), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))), ?MputVarOnPlace_10))
+putVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (RealVariable _ _ _ _ i) = 
+	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (VarCG p _ (RealVariable _ _ _ _ i)), ?MputVarOnPlace_new_4))
 
+-- ALL THESE CASES UNDER ARE NEW (the variable given is an encoding of a productOfMonomials)	
 	
-
+putVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e), ?MputVarOnPlace_new_5))
+putVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	if isBefore productOfMonomials0 productOfMonomials
+		then let (r_ihn ** (e_ihn, p_ihn)) = (putVarOnPlace p setAndMult e (EncodingProductOfMonomials _ _ _ productOfMonomials)) in
+			(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) e_ihn, ?MputVarOnPlace_new_6))
+   else (_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) e), ?MputVarOnPlace_new_7))
+putVarOnPlace p setAndMult (PlusCG _ (ConstCG _ _ _ c0) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (PlusCG _ (ConstCG _ _ _ c0) e), ?MputVarOnPlace_new_8')) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !        
+putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e), ?MputVarOnPlace_new_8))
+putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+		if isBefore productOfMonomials0 productOfMonomials then
+			let (r_ihn ** (e_ihn, p_ihn)) = (putVarOnPlace p setAndMult e (EncodingProductOfMonomials _ _ _ productOfMonomials)) in
+				(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) e_ihn, ?MputVarOnPlace_new_9)) -- NEW (not sure this one is needed : is it possible to have "Neg (encoding of productOfMonomials)" as input ?
+		else (_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) e), ?MputVarOnPlace_new_10))
+putVarOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e), ?MputVarOnPlace_new_11)) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
+-- Basic cases : cases without Plus
+putVarOnPlace p setAndMult (ConstCG _ _ _ c0) (EncodingProductOfMonomials _ _ _ productOfMonomials) = (_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (ConstCG _ _ _ c0), ?MputVarOnPlace_new_12))
+putVarOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) (EncodingProductOfMonomials _ _ _ productOfMonomials) = (_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (ConstCG _ _ _ (Neg c0)), ?MputVarOnPlace_new_13))
+putVarOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (VarCG p _ (RealVariable _ _ _ _ i0)), ?MputVarOnPlace_new_14))
+putVarOnPlace {c} p setAndMult (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) (EncodingProductOfMonomials _ _ _ productOfMonomials) = -- NEW
+	if isBefore productOfMonomials0 productOfMonomials then
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)), ?MputVarOnPlace_new_15))
+	else
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)), ?MputVarOnPlace_new_16))
+putVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))), ?MputVarOnPlace_new_17))
+putVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	if isBefore productOfMonomials0 productOfMonomials then
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)), ?MputVarOnPlace_new_18))
+	else
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))), ?MputVarOnPlace_new_19))
+	
+	
+	
+	
 putConstantOnPlace : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} 
    -> (ExprCG p setAndMult g c1) -> (constValue:c) 
    -> (c2 ** (ExprCG p setAndMult g c2, Plus c1 constValue~=c2))
 putConstantOnPlace p setAndMult (PlusCG _ (ConstCG _ _ _ c0) e) constValue = (_ ** (PlusCG _ (ConstCG _ _ _ (Plus c0 constValue)) e, ?MputConstantOnPlace_1))
-putConstantOnPlace p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e) constValue = 
+putConstantOnPlace p setAndMult (PlusCG _ (VarCG p _ v) e) constValue = 
 	let (r_ihn ** (e_ihn, p_ihn)) = putConstantOnPlace p setAndMult e constValue in
-		(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e_ihn, ?MputConstantOnPlace_2))
+		(_ ** (PlusCG _ (VarCG p _ v) e_ihn, ?MputConstantOnPlace_2))
 putConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) constValue = (_ ** (PlusCG _ (ConstCG _ _ _ (Plus (Neg c0) constValue)) e, ?MputConstantOnPlace_3)) -- Perhaps useless because I think that NegCG _ (ConstCG _ c) is always ConstCG _ (Neg c) at this stage
-putConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e) constValue = 
+putConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ v)) e) constValue = 
 	let (r_ihn ** (e_ihn, p_ihn)) = putConstantOnPlace p setAndMult e constValue in
-		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e_ihn, ?MputConstantOnPlace_4))
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ v)) e_ihn, ?MputConstantOnPlace_4))
 -- Basic cases : cases without Plus
 putConstantOnPlace {c} p setAndMult (ConstCG _ _ _ c0) constValue = (_ ** (ConstCG _ _ _ (Plus c0 constValue), set_eq_undec_refl {c} _))
 putConstantOnPlace {c} p setAndMult (NegCG _ (ConstCG _ _ _ c0)) constValue = (_ ** (ConstCG _ _ _ (Plus (Neg c0) constValue), set_eq_undec_refl {c} _))
-putConstantOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (ConstCG _ _ _ constValue), set_eq_undec_refl {c} _))
-putConstantOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (ConstCG _ _ _ constValue), set_eq_undec_refl {c} _))
+putConstantOnPlace {c} p setAndMult (VarCG p _ v) constValue = (_ ** (PlusCG _ (VarCG p _ v) (ConstCG _ _ _ constValue), set_eq_undec_refl {c} _))
+putConstantOnPlace {c} p setAndMult (NegCG _ (VarCG p _ v)) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ v)) (ConstCG _ _ _ constValue), set_eq_undec_refl {c} _))
 
 
 
@@ -407,7 +461,8 @@ Provers.commutativeGroup_reduce.MputVarOnPlace_10 = proof
 Provers.commutativeGroup_reduce.MputConstantOnPlace_1 = proof
   intros
   mrefine assoc_commute_and_assoc 
-  
+
+{-
 Provers.commutativeGroup_reduce.MputConstantOnPlace_2 = proof
   intros
   mrefine eq_preserves_eq 
@@ -419,11 +474,13 @@ Provers.commutativeGroup_reduce.MputConstantOnPlace_2 = proof
   mrefine set_eq_undec_refl 
   mrefine set_eq_undec_sym
   exact p_ihn
+  -}  
   
 Provers.commutativeGroup_reduce.MputConstantOnPlace_3 = proof
   intros
   mrefine assoc_commute_and_assoc    
 
+{-  
 Provers.commutativeGroup_reduce.MputConstantOnPlace_4 = proof
   intros
   mrefine eq_preserves_eq 
@@ -435,7 +492,8 @@ Provers.commutativeGroup_reduce.MputConstantOnPlace_4 = proof
   mrefine set_eq_undec_refl 
   mrefine set_eq_undec_sym
   exact p_ihn 
-
+  -}
+  
 Provers.commutativeGroup_reduce.MputNegVarOnPlace_1 = proof
   intros
   mrefine eq_preserves_eq 
