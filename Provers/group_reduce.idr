@@ -124,6 +124,9 @@ encode c p setAndMult g (VarG _ _ v) = (_ ** ((VarMo (group_to_monoid_class p) _
 --encode c p g (NegG _ _ (ConstG _ _ _ c1)) = ((Neg c1) ** (VarMo (group_to_monoid_class p) _ (EncodingGroupTerm_const _ _ _ c1), refl))
 encode c p setAndMult g (NegG _ (ConstG _ _ _ c1)) = ((Neg c1) ** (ConstMo _ _ _ _ (Neg c1), set_eq_undec_refl {c} _)) 
 encode c p setAndMult g (NegG _ (VarG _ _ (RealVariable _ _ _ _ i))) = (_ ** (VarMo (group_to_monoid_class p) _ _ (EncodingGroupTerm_var _ _ _ _ i), set_eq_undec_refl {c} _))
+-- New case : we may have to pass on a Neg of an encoding from the Ring level (the case where it's not a Neg has been done above generically with the v which might be an encoding)
+-- quite big problem here : I don't have anything for encoding the Neg of an encoding for the Monoid level
+-- encode c p setAndMult g (NegG _ (VarG _ _ (EncodingProductOfMonomials _ _ _ prodOfMon))) = (_ ** (VarMo (group_to_monoid_class p) _ _ (EncodingGroupTerm_var _
 {-
 -- We should not have the two cases just under : we create the "groupTermEncoding", so they are not supposed to be already here
 encode c n p g (NegG _ _ (VarG _ _ _ (EncodingGroupTerm_const _ _ _ c1))) = ?total_test_1

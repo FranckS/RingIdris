@@ -43,9 +43,37 @@ assoc_and_neutral_bis {c} x y = let aux : (Plus (Neg x) (Plus x y) ~= Plus (Plus
 							let aux3 : (Plus Zero y ~= y) = Plus_neutral_1 y in
 							?Massoc_and_neutral_bis_1
 
-							
-isBefore : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (prod1:ProductOfMonomials setAndMult g c1) -> (prod2:ProductOfMonomials setAndMult g c2) -> Bool
 
+-- Decides if pdt1 is before pdt2
+total
+isBefore_pdtOfVar : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (pdt1:ProductOfVariables setAndMult g c1) -> (pdt2:ProductOfVariables setAndMult g c2) -> Bool
+isBefore_pdtOfVar (LastVar _ _ k1) (LastVar _ _ k2) = minusOrEqual_Fin k1 k2
+isBefore_pdtOfVar (LastVar _ _ k1) (VarMultProduct _ k2 pov2) = minusOrEqual_Fin k1 k2
+isBefore_pdtOfVar (VarMultProduct _ k1 pov1) (LastVar _ _ k2) = minusOrEqual_Fin k1 k2
+isBefore_pdtOfVar (VarMultProduct _ k1 pov1) (VarMultProduct _ k2 pov2) = minusOrEqual_Fin k1 k2
+
+
+-- Decides if mon1 is before mon2
+total
+isBefore_mon : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (mon1:Monomial setAndMult g c1) -> (mon2:Monomial setAndMult g c2) -> Bool
+-- generic pattern
+isBefore_mon (ConstantMonomial _ _ const1) _ = True -- a constant always comes before anything
+-- 
+isBefore_mon (ProdOfVarWithConst _ const1 prod1) (ConstantMonomial _ _ const2) = False -- I'm not sure that's needed, but I prefer to put the constant monomial in front
+isBefore_mon (ProdOfVarWithConst _ const1 prod1) _ = True
+
+isBefore_mon (ProdOfVar _ prod1) (ConstantMonomial _ _ const2) = False -- the constant monomial should come before
+isBefore_mon (ProdOfVar _ prod1) (ProdOfVarWithConst _ const2 prod2) = False -- idem, the monomial with the constant should come first
+isBefore_mon (ProdOfVar _ prod1) (ProdOfVar _ prod2) = isBefore_pdtOfVar prod1 prod2
+
+
+-- Decides if prod1 is before prod2
+total
+isBefore : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (prod1:ProductOfMonomials setAndMult g c1) -> (prod2:ProductOfMonomials setAndMult g c2) -> Bool
+isBefore (LastMonomial _ mon1) (LastMonomial _ mon2) = isBefore_mon mon1 mon2
+isBefore (LastMonomial _ mon1) (MonomialMultProduct _ mon2 prod2) = isBefore_mon mon1 mon2
+isBefore (MonomialMultProduct _ mon1 prod1) (LastMonomial _ mon2) = isBefore_mon mon1 mon2
+isBefore (MonomialMultProduct _ mon1 prod1) (MonomialMultProduct _ mon2 prod2) = isBefore_mon mon1 mon2
 
 							
 									
@@ -159,6 +187,9 @@ putNegVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e)
 	then let (r_ihn ** (e_ihn, p_ihn)) = (putNegVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
              (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e_ihn, ?MputNegVarOnPlace_1))
 		else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e), ?MputNegVarOnPlace_2))
+putNegVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) e) (RealVariable _ _ _ _ i) = 
+	let (r_ihn ** (e_ihn, p_ihn)) = (putNegVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) e_ihn, ?MputNegVarOnPlace_new_1)) -- NEW
 putNegVarOnPlace p setAndMult (PlusCG _ (ConstCG _ _ _ c0) e) (RealVariable _ _ _ _ i) = 
 	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (PlusCG _ (ConstCG _ _ _ c0) e), ?MputNegVarOnPlace_3)) -- the negation of the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
         
@@ -167,6 +198,9 @@ putNegVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ 
 	 then let (r_ihn ** (e_ihn, p_ihn)) = (putNegVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
 			 (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e_ihn, ?MputNegVarOnPlace_4))
 		else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e), ?MputNegVarOnPlace_5))
+putNegVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) e) (RealVariable _ _ _ _ i) = 
+		let (r_ihn ** (e_ihn, p_ihn)) = (putNegVarOnPlace p setAndMult e (RealVariable _ _ _ _ i)) in
+			 (_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) e_ihn, ?MputNegVarOnPlace_new_2)) -- NEW (not sure this one is needed : is it possible to have "Neg (encoding of productOfMonomials)" as input ?
 putNegVarOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) (RealVariable _ _ _ _ i) = 
 	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e), ?MputNegVarOnPlace_6)) -- the negation of the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
 -- Basic cases : cases without Plus
@@ -175,27 +209,73 @@ putNegVarOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) (RealVariable _ _ _ _
 putNegVarOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (RealVariable _ _ _ _ i) = 
 	    if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (VarCG p _ (RealVariable _ _ _ _ i0)), ?MputNegVarOnPlace_9))
+putNegVarOnPlace {c} p setAndMult (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (RealVariable _ _ _ _ i) = -- NEW
+	(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), ?MputNegVarOnPlace_new_3))
 putNegVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (RealVariable _ _ _ _ i) = 
 		if minusOrEqual_Fin i0 i then (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), set_eq_undec_refl {c} _))
 		else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))), ?MputNegVarOnPlace_10))
+putNegVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (RealVariable _ _ _ _ i) = 
+	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i))), ?MputNegVarOnPlace_new_4)) -- NEW
 
+-- ALL THESE CASES UNDER ARE NEW (the variable given is an encoding of a productOfMonomials)	
+	
+putNegVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e), ?MputNegVarOnPlace_new_5))
+putNegVarOnPlace p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	if isBefore productOfMonomials0 productOfMonomials
+		then let (r_ihn ** (e_ihn, p_ihn)) = (putNegVarOnPlace p setAndMult e (EncodingProductOfMonomials _ _ _ productOfMonomials)) in
+			(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) e_ihn, ?MputNegVarOnPlace_new_6))
+  else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) e), ?MputNegVarOnPlace_new_7))
+putNegVarOnPlace p setAndMult (PlusCG _ (ConstCG _ _ _ c0) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (PlusCG _ (ConstCG _ _ _ c0) e), ?MputNegVarOnPlace_new_8')) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !        
+putNegVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e), ?MputNegVarOnPlace_new_8))
+putNegVarOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+		if isBefore productOfMonomials0 productOfMonomials then
+			let (r_ihn ** (e_ihn, p_ihn)) = (putNegVarOnPlace p setAndMult e (EncodingProductOfMonomials _ _ _ productOfMonomials)) in
+				(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) e_ihn, ?MputNegVarOnPlace_new_9)) -- NEW (not sure this one is needed : is it possible to have "Neg (encoding of productOfMonomials)" as input ?
+		else (_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) e), ?MputNegVarOnPlace_new_10))
+putNegVarOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e), ?MputNegVarOnPlace_new_11)) -- the variable becomes the first one, and e is already sorted, there's no need to do a recursive call here !
+-- Basic cases : cases without Plus
+putNegVarOnPlace p setAndMult (ConstCG _ _ _ c0) (EncodingProductOfMonomials _ _ _ productOfMonomials) = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (ConstCG _ _ _ c0), ?MputNegVarOnPlace_new_12))
+putNegVarOnPlace p setAndMult (NegCG _ (ConstCG _ _ _ c0)) (EncodingProductOfMonomials _ _ _ productOfMonomials) = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (ConstCG _ _ _ (Neg c0)), ?MputNegVarOnPlace_new_13))
+putNegVarOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (VarCG p _ (RealVariable _ _ _ _ i0)), ?MputNegVarOnPlace_new_14))
+putNegVarOnPlace {c} p setAndMult (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) (EncodingProductOfMonomials _ _ _ productOfMonomials) = -- NEW
+	if isBefore productOfMonomials0 productOfMonomials then
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))), ?MputNegVarOnPlace_new_15))
+	else
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0)), ?MputNegVarOnPlace_new_16))
+putNegVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))), ?MputNegVarOnPlace_new_17))
+putNegVarOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) (EncodingProductOfMonomials _ _ _ productOfMonomials) = 
+	if isBefore productOfMonomials0 productOfMonomials then
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))), ?MputNegVarOnPlace_new_18))
+	else
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials))) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ productOfMonomials0))), ?MputNegVarOnPlace_new_19))
+		
+	
+	
+	
+		
 
 putNegConstantOnPlace : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} 
    -> (ExprCG p setAndMult g c1) -> (constValue:c) 
    -> (c2 ** (ExprCG p setAndMult g c2, Plus c1 (Neg constValue)~=c2))
 putNegConstantOnPlace p setAndMult (PlusCG _ (ConstCG _ _ _ c0) e) constValue = (_ ** (PlusCG _ (ConstCG _ _ _ (Plus c0 (Neg constValue))) e, ?MputNegConstantOnPlace_1))
-putNegConstantOnPlace p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e) constValue = 
+putNegConstantOnPlace p setAndMult (PlusCG _ (VarCG p _ v) e) constValue = 
 	let (r_ihn ** (e_ihn, p_ihn)) = putNegConstantOnPlace p setAndMult e constValue in
-		(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e_ihn, ?MputNegConstantOnPlace_2))
+		(_ ** (PlusCG _ (VarCG p _ v) e_ihn, ?MputNegConstantOnPlace_2))
 putNegConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (ConstCG _ _ _ c0)) e) constValue = (_ ** (PlusCG _ (ConstCG _ _ _ (Plus (Neg c0) (Neg constValue))) e, ?MputNegConstantOnPlace_3)) -- Perhaps useless because I think that NegCG _ (ConstCG _ c) is always ConstCG _ (Neg c) at this stage
-putNegConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e) constValue = 
+putNegConstantOnPlace p setAndMult (PlusCG _ (NegCG _ (VarCG p _ v)) e) constValue = 
 	let (r_ihn ** (e_ihn, p_ihn)) = putNegConstantOnPlace p setAndMult e constValue in
-		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e_ihn, ?MputNegConstantOnPlace_4))
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ v)) e_ihn, ?MputNegConstantOnPlace_4))
 -- Basic cases : cases without Plus
 putNegConstantOnPlace {c} p setAndMult (ConstCG _ _ _ c0) constValue = (_ ** (ConstCG _ _ _ (Plus c0 (Neg constValue)), set_eq_undec_refl {c} _))
 putNegConstantOnPlace {c} p setAndMult (NegCG _ (ConstCG _ _ _ c0)) constValue = (_ ** (ConstCG _ _ _ (Plus (Neg c0) (Neg constValue)), set_eq_undec_refl {c} _))
-putNegConstantOnPlace {c} p setAndMult (VarCG p _ (RealVariable _ _ _ _ i0)) constValue = (_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl {c} _))
-putNegConstantOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl {c} _))
+putNegConstantOnPlace {c} p setAndMult (VarCG p _ v) constValue = (_ ** (PlusCG _ (VarCG p _ v) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl {c} _))
+putNegConstantOnPlace {c} p setAndMult (NegCG _ (VarCG p _ v)) constValue = (_ ** (PlusCG _ (NegCG _ (VarCG p _ v)) (ConstCG _ _ _ (Neg constValue)), set_eq_undec_refl {c} _))
 		
 		
 
@@ -204,13 +284,13 @@ putNegConstantOnPlace {c} p setAndMult (NegCG _ (VarCG p _ (RealVariable _ _ _ _
 
 -- The general pattern is reorganize (Plus term exp) = putTermOnPlace (reorganize exp) term
 reorganize : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprCG p setAndMult g c1) -> (c2 ** (ExprCG p setAndMult g c2, c1~=c2))
-reorganize p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e) = 
+reorganize p setAndMult (PlusCG _ (VarCG p _ v) e) = 
 	let (r_ihn ** (e_ihn, p_ihn)) = reorganize p setAndMult e in
-	let (r_add ** (e_add, p_add)) = putVarOnPlace p setAndMult e_ihn (RealVariable _ _ _ _ i0) in
+	let (r_add ** (e_add, p_add)) = putVarOnPlace p setAndMult e_ihn v in
 		(_ ** (e_add, ?Mreorganize_1))
-reorganize p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e) = 
+reorganize p setAndMult (PlusCG _ (NegCG _ (VarCG p _ v)) e) = 
 	let (r_ihn ** (e_ihn, p_ihn)) = reorganize p setAndMult e in
-	let (r_add ** (e_add, p_add)) = putNegVarOnPlace p setAndMult e_ihn (RealVariable _ _ _ _ i0) in
+	let (r_add ** (e_add, p_add)) = putNegVarOnPlace p setAndMult e_ihn v in
 		(_ ** (e_add, ?Mreorganize_2))	
 reorganize p setAndMult (PlusCG _ (ConstCG _ _ _ c0) e) = 
 	let (r_ihn ** (e_ihn, p_ihn)) = reorganize p setAndMult e in
@@ -235,7 +315,15 @@ simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) 
 	simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1))) e)) | (Nothing) = 
 		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1))) e) in
 			(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e_ihn, ?MsimplifyAfterReorg_2))
-
+simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))) e)) with (productOfMonomials_eq setAndMult prod0 prod1)
+	simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))) e)) | (Just prEqual) = 
+		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p setAndMult e in
+			(_ ** (e_ihn, ?MsimplifyAfterReorg_new_1))
+	simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))) e)) | (Nothing) = 
+		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))) e) in
+			(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) e_ihn, ?MsimplifyAfterReorg_new_2))
+			
+			
 -- (-var) + (var + e)
 simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i1)) e)) with (eq_dec_fin i0 i1)
 	simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) e)) | (Just Refl) = 
@@ -244,6 +332,13 @@ simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ 
 	simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i1)) e)) | (Nothing) = 	
 		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i1)) e) in
 			(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) e_ihn, ?MsimplifyAfterReorg_4)) 
+simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)) e)) with (productOfMonomials_eq setAndMult prod0 prod1)
+	simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)) e)) | (Just prEqual) = 
+		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p setAndMult e in
+			(_ ** (e_ihn, ?MsimplifyAfterReorg_new_3))
+	simplifyAfterReorg p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)) e)) | (Nothing) = 	
+		let (r_ihn ** (e_ihn, p_ihn)) = simplifyAfterReorg p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)) e) in
+			(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) e_ihn, ?MsimplifyAfterReorg_new_4))
 	
 -- Any other case with the first two elements not simplifiable
 -- something + (somethingElse + e)
@@ -257,13 +352,23 @@ simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i
 		(_ ** (ConstCG _ _ _ Zero, ?MsimplifyAfterReorg_6))
 	simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1)))) | (Nothing) =
 		(_ ** (PlusCG _ (VarCG p _ (RealVariable _ _ _ _ i0)) (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i1))), set_eq_undec_refl {c} _))
-		
+simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)))) with (productOfMonomials_eq setAndMult prod0 prod1)
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)))) | (Just prEqual) =
+		(_ ** (ConstCG _ _ _ Zero, ?MsimplifyAfterReorg_new_5))
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)))) | (Nothing) =
+		(_ ** (PlusCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0)) (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))), set_eq_undec_refl {c} _))	
+	
 simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1))) with (eq_dec_fin i0 i1)
 	simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i0))) | (Just Refl) =
 		(_ ** (ConstCG _ _ _ Zero, ?MsimplifyAfterReorg_7))
 	simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1))) | (Nothing) =
 		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (RealVariable _ _ _ _ i0))) (VarCG p _ (RealVariable _ _ _ _ i1)), set_eq_undec_refl {c} _))
-		
+simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))) with (productOfMonomials_eq setAndMult prod0 prod1)
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))) | (Just prEqual) =
+		(_ ** (ConstCG _ _ _ Zero, ?MsimplifyAfterReorg_new_6))
+	simplifyAfterReorg {c} p setAndMult (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1))) | (Nothing) =
+		(_ ** (PlusCG _ (NegCG _ (VarCG p _ (EncodingProductOfMonomials _ _ _ prod0))) (VarCG p _ (EncodingProductOfMonomials _ _ _ prod1)), set_eq_undec_refl {c} _))
+			
 --Anything else simply gives the same value
 simplifyAfterReorg {c} p setAndMult e = (_ ** (e, set_eq_undec_refl {c} _)) 
 
@@ -457,42 +562,159 @@ Provers.commutativeGroup_reduce.MputVarOnPlace_9 = proof
 Provers.commutativeGroup_reduce.MputVarOnPlace_10 = proof
   intros
   mrefine Plus_comm   
-  
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_19 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_18 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_17 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_16 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_15 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_14 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_13 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_12 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_11 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_10 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_9 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg c1) (Plus c2 varValue))
+  exact (Plus (Neg c1) r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_8' = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_8 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus varValue (Plus (Neg (index i0 g)) c2))
+  exact (Plus varValue (Plus (Neg (index i0 g)) c2))
+  mrefine Plus_comm
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_7 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus varValue (Plus c1 c2))
+  exact (Plus varValue (Plus c1 c2))
+  mrefine Plus_comm
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_6 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Plus c2 varValue ))
+  exact (Plus c1 r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_5 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus varValue (Plus (index i0 g) c2))
+  exact (Plus varValue (Plus (index i0 g) c2))
+  mrefine Plus_comm
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_4 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_3 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg c1) (Plus c2 (index i g)))
+  exact (Plus (Neg c1) r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+
+Provers.commutativeGroup_reduce.MputVarOnPlace_new_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Plus c2 (index i g)))
+  exact (Plus c1 r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+    
 Provers.commutativeGroup_reduce.MputConstantOnPlace_1 = proof
   intros
   mrefine assoc_commute_and_assoc 
 
-{-
 Provers.commutativeGroup_reduce.MputConstantOnPlace_2 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Plus (index i0 g) c2) constValue)
-  exact (Plus (index i0 g) (Plus c2 constValue))
-  mrefine set_eq_undec_refl 
-  mrefine Plus_preserves_equiv 
+  exact (Plus c1 (Plus c2 constValue))
+  exact (Plus c1 r_ihn)
   mrefine Plus_assoc 
   mrefine set_eq_undec_refl 
-  mrefine set_eq_undec_sym
-  exact p_ihn
-  -}  
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
   
 Provers.commutativeGroup_reduce.MputConstantOnPlace_3 = proof
   intros
   mrefine assoc_commute_and_assoc    
 
-{-  
 Provers.commutativeGroup_reduce.MputConstantOnPlace_4 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Plus (Neg (index i0 g)) c2) constValue)
-  exact (Plus (Neg (index i0 g)) (Plus c2 constValue))
+  exact (Plus (Neg c1) (Plus c2 constValue))
+  exact (Plus (Neg c1) r_ihn)
+  mrefine Plus_assoc 
   mrefine set_eq_undec_refl 
   mrefine Plus_preserves_equiv 
-  mrefine Plus_assoc
   mrefine set_eq_undec_refl 
-  mrefine set_eq_undec_sym
   exact p_ihn 
-  -}
   
 Provers.commutativeGroup_reduce.MputNegVarOnPlace_1 = proof
   intros
@@ -549,6 +771,114 @@ Provers.commutativeGroup_reduce.MputNegVarOnPlace_9 = proof
 Provers.commutativeGroup_reduce.MputNegVarOnPlace_10 = proof
   intros
   mrefine Plus_comm     
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_19 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_18 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_17 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_16 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_15 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_14 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_13 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_12 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_11 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_10 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_9 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg c1) (Plus c2 (Neg varValue)))
+  exact (Plus (Neg c1) r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_8' = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_8 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_7 = proof
+  intros
+  mrefine Plus_comm
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_6 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Plus c2 (Neg varValue)))
+  exact (Plus c1 r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_5 = proof
+  intros
+  mrefine Plus_comm  
+  
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_4 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_3 = proof
+  intros
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg c1) (Plus c2 (Neg (index i g))))
+  exact (Plus (Neg c1) r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+
+Provers.commutativeGroup_reduce.MputNegVarOnPlace_new_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus c1 (Plus c2 (Neg (index i g))))
+  exact (Plus c1 r_ihn)
+  mrefine Plus_assoc 
+  mrefine set_eq_undec_refl 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn   
   
 Provers.commutativeGroup_reduce.MputNegConstantOnPlace_1 = proof
   intros
@@ -557,68 +887,61 @@ Provers.commutativeGroup_reduce.MputNegConstantOnPlace_1 = proof
 Provers.commutativeGroup_reduce.MputNegConstantOnPlace_2 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Plus (index i0 g) c2) (Neg constValue))
-  exact (Plus (index i0 g) (Plus c2 (Neg constValue)))
+  exact (Plus c1 (Plus c2 (Neg constValue)))
+  exact (Plus c1 r_ihn)
+  mrefine Plus_assoc 
   mrefine set_eq_undec_refl 
   mrefine Plus_preserves_equiv 
-  mrefine Plus_assoc
-  mrefine set_eq_undec_refl 
-  mrefine set_eq_undec_sym
+  mrefine set_eq_undec_refl
   exact p_ihn 
-
+  
 Provers.commutativeGroup_reduce.MputNegConstantOnPlace_3 = proof
   intros
   mrefine assoc_commute_and_assoc
-  
+
 Provers.commutativeGroup_reduce.MputNegConstantOnPlace_4 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Plus (Neg (index i0 g)) c2) (Neg constValue))
-  exact (Plus (Neg (index i0 g)) (Plus c2 (Neg constValue)))
+  exact (Plus (Neg c1) (Plus c2 (Neg constValue)))
+  exact (Plus (Neg c1) r_ihn)
+  mrefine Plus_assoc 
   mrefine set_eq_undec_refl 
   mrefine Plus_preserves_equiv 
-  mrefine Plus_assoc
-  mrefine set_eq_undec_refl
-  mrefine set_eq_undec_sym
-  exact p_ihn   
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
   
 Provers.commutativeGroup_reduce.Mreorganize_1 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (index i0 g) c2)
-  exact r_add
-  mrefine set_eq_undec_refl 
-  mrefine set_eq_undec_refl 
-  mrefine eq_preserves_eq 
-  exact (Plus c2 (index i0 g))
-  exact r_add
+  exact (Plus c2 c1)
+  exact r_add 
   mrefine Plus_comm
   mrefine set_eq_undec_refl 
   mrefine eq_preserves_eq 
-  exact (Plus r_ihn (index i0 g))
+  exact (Plus r_ihn c1)
   exact r_add
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
-  exact p_add
-  exact p_ihn 
-  mrefine set_eq_undec_refl 
+  exact p_add 
+  exact p_ihn
+  mrefine set_eq_undec_refl   
   
 Provers.commutativeGroup_reduce.Mreorganize_2 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Neg (index i0 g)) r_ihn )
-  exact r_add
-  mrefine Plus_preserves_equiv 
-  mrefine set_eq_undec_refl 
-  mrefine eq_preserves_eq 
-  mrefine set_eq_undec_refl 
-  exact p_ihn
-  exact (Plus r_ihn (Neg (index i0 g)))
+  exact (Plus c2 (Neg c1))
   exact r_add
   mrefine Plus_comm
   mrefine set_eq_undec_refl 
-  exact p_add
-
+  mrefine eq_preserves_eq 
+  exact (Plus r_ihn (Neg c1))
+  exact r_add
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_add 
+  exact p_ihn 
+  mrefine set_eq_undec_refl 
+  
 Provers.commutativeGroup_reduce.Mreorganize_3 = proof
   intros
   mrefine eq_preserves_eq 
@@ -708,6 +1031,104 @@ Provers.commutativeGroup_reduce.MsimplifyAfterReorg_7 = proof
   exact (Plus (index i0 g) (Neg (index i0 g)) ~= Zero)
   mrefine Plus_inverse 
 
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_6 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Neg c2) c2)
+  exact Zero
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact (right (Plus_inverse c2))
+  mrefine Neg_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact prEqual 
+
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_5 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus c2 (Neg c2))
+  exact Zero
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact (left (Plus_inverse c2))
+  exact prEqual 
+  mrefine set_eq_undec_refl 
+
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_4 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn   
+  
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_3 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Plus (Neg c1) c3) c2)
+  exact r_ihn
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl
+  mrefine eq_preserves_eq 
+  mrefine Plus_assoc 
+  exact (Plus (Plus (Neg c3) c3) c2)
+  exact r_ihn 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact (Plus Zero c2)
+  exact r_ihn 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  mrefine Neg_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact (right (Plus_inverse c3))
+  mrefine set_eq_undec_refl 
+  exact c2
+  exact r_ihn
+  mrefine Plus_neutral_1
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+  exact prEqual 
+
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_2 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+
+Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Plus (Plus c1 (Neg c3)) c2)
+  exact r_ihn
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  mrefine Plus_assoc 
+  exact (Plus (Plus c3 (Neg c3)) c2)
+  exact r_ihn
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  exact (Plus Zero c2)
+  exact r_ihn 
+  mrefine Plus_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact prEqual 
+  mrefine set_eq_undec_refl 
+  exact (left (Plus_inverse c3))
+  mrefine set_eq_undec_refl 
+  exact c2
+  exact r_ihn 
+  mrefine Plus_neutral_1
+  mrefine set_eq_undec_refl 
+  exact p_ihn 
+  
 Provers.commutativeGroup_reduce.MsimplifyAfterReorg_fix_1 = proof
   intros
   mrefine eq_preserves_eq 
