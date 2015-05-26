@@ -24,19 +24,19 @@ magmaReduce (PlusMa neg setAndMult e1 e2) =
 magmaReduce (VarMa p neg setAndMult {c1=c1} v) = (_ ** (VarMa p neg setAndMult v, set_eq_undec_refl c1))
 
 
-buildProofMagma : {c:Type} -> {n:Nat} -> (p:Magma c) -> {neg:c->c} -> {setAndMult:SetWithMult c (magma_to_set_class p)} -> {g:Vect n c} -> {x:c} -> {y:c} -> {c1:c} -> {c2:c} -> (ExprMa p neg setAndMult g c1) -> (ExprMa p neg setAndMult g c2) -> (x ~= c1) -> (y ~= c2) -> (Maybe (x~=y))
-buildProofMagma p e1 e2 lp rp with (exprMa_eq p _ _ _ e1 e2)
-    buildProofMagma p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofMagma
-    buildProofMagma p e1 e2 lp rp | Nothing = Nothing
+buildProofMagma : {c:Type} -> {n:Nat} -> (p:Magma c) -> (setAndNeg:SetWithNeg c (magma_to_set_class p)) -> {setAndMult:SetWithMult c (magma_to_set_class p)} -> {g:Vect n c} -> {x:c} -> {y:c} -> {c1:c} -> {c2:c} -> (ExprMa p (neg setAndNeg) setAndMult g c1) -> (ExprMa p (neg setAndNeg) setAndMult g c2) -> (x ~= c1) -> (y ~= c2) -> (Maybe (x~=y))
+buildProofMagma p setAndNeg e1 e2 lp rp with (exprMa_eq p setAndNeg _ _ e1 e2)
+    buildProofMagma p setAndNeg e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofMagma
+    buildProofMagma p setAndNeg e1 e2 lp rp | Nothing = Nothing
 
 
-magmaDecideEq : {c:Type} -> {n:Nat} -> (p:Magma c) -> {neg:c->c} -> {setAndMult:SetWithMult c (magma_to_set_class p)} -> {g:Vect n c} -> {x:c} -> {y:c} -> (ExprMa p neg setAndMult g x) -> (ExprMa p neg setAndMult g y) -> Maybe (x~=y)
+magmaDecideEq : {c:Type} -> {n:Nat} -> (p:Magma c) -> (setAndNeg:SetWithNeg c (magma_to_set_class p)) -> {setAndMult:SetWithMult c (magma_to_set_class p)} -> {g:Vect n c} -> {x:c} -> {y:c} -> (ExprMa p (neg setAndNeg) setAndMult g x) -> (ExprMa p (neg setAndNeg) setAndMult g y) -> Maybe (x~=y)
 -- e1 is the left side, e2 is the right side
-magmaDecideEq p e1 e2 = 
+magmaDecideEq p setAndNeg e1 e2 = 
     let (r_e1 ** (e_e1, p_e1)) = magmaReduce e1 in
     let (r_e2 ** (e_e2, p_e2)) = magmaReduce e2 in
-    buildProofMagma p e_e1 e_e2 p_e1 p_e2
-                
+    buildProofMagma p setAndNeg e_e1 e_e2 p_e1 p_e2
+
 
 
 ---------- Proofs ----------                

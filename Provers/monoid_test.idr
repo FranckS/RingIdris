@@ -40,7 +40,7 @@ b x = PlusMo _ _ (ConstMo _ _ _ _ 2) (VarMo _ _ _ (RealVariable _ _ _ _ FZ))
 
 -- Normalisation of 2 + (0 + x) that should give 2 + x, since now we are working on a monoid
 compare_a_b : (x:Nat) -> Maybe (2 + (x + 0) = 2 + x)
-compare_a_b x = monoidDecideEq (%instance) (a x) (b x) 
+compare_a_b x = monoidDecideEq (%instance) (FakeSetAndNeg _) (a x) (b x) 
 
 -- Later, we will have a real tactic "Monoid" which can fail. At this point, we will
 -- not have a missing case for "Nothing", which enables now to manipulate some false proof

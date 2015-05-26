@@ -146,6 +146,8 @@ decode {c} p setAndMult g (VarMo _ _ _ (RealVariable _ _ _ _ i)) = (_ ** (VarG _
 decode {c} p setAndMult g (VarMo _ _ _ (EncodingGroupTerm_var _ _ _ _ i)) = (_ ** (NegG _ (VarG _ _ (RealVariable _ _ _ _ i)), set_eq_undec_refl {c} _))
 -- New : decoding of a ring-encoded term, which was also encoded for the monoid level
 decode {c} p setAndMult g (VarMo _ _ _ (EncodingNegProductOfMonomials _ _ _ prodOfMon)) = (_ ** (NegG _ (VarG _ _ (EncodingProductOfMonomials _ _ _ prodOfMon)), set_eq_undec_refl {c} _))
+-- Just for being total
+decode {c} p setAndMult g (VarMo _ _ _ (EncodingProductOfMonomials _ _ _ prodOfMon)) = (_ ** (VarG _ _ (EncodingProductOfMonomials _ _ _ prodOfMon), set_eq_undec_refl {c} _))
 decode p setAndMult g (PlusMo _ _ e1 e2) = 
 	let (c2_ih1 ** ((e_ih1, p_ih1))) = decode p setAndMult g e1 in 
 	let (c2_ih2 ** ((e_ih2, p_ih2))) = decode p setAndMult g e2 in 
@@ -154,9 +156,9 @@ decode p setAndMult g (PlusMo _ _ e1 e2) =
 
 
 code_reduceM_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
-code_reduceM_andDecode p setAndMult g e = 
+code_reduceM_andDecode {c} p setAndMult g e = 
 	let (c2 ** (e2, pEncode)) = encode _ _ _ _ e in
-	let (c3 ** (e3, pReduce)) = monoidReduce (group_to_monoid_class p) e2 in
+	let (c3 ** (e3, pReduce)) = monoidReduce (group_to_monoid_class p) (MkSetWithNeg (group_to_set p) Neg (\x => \y => \peq:x~=y => Neg_preserves_equiv {c} peq)) e2 in
 	let (c4 ** (e4, pDecode)) = decode p _ _ e3 in
 		(c4 ** (e4, ?Mcode_reduceM_andDecode_1))
                                               

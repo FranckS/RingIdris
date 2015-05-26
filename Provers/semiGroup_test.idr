@@ -38,7 +38,7 @@ test5' x y = PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ)) (PlusSG _ _ (Con
              
 -- Normalisation of 2 + (3 + x) that should give 5 + x this time, since now we are working with semiGroup
 compare_test1'_test3' : (x:Nat) -> Maybe (2 + (3 + x) = 5 + x)
-compare_test1'_test3' x = semiGroupDecideEq (%instance) (test1' x) (test3' x)
+compare_test1'_test3' x = semiGroupDecideEq (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (test1' x) (test3' x)
 
 -- Later, we will have a real tactic which can fail. At this point, we will
 -- not have a missing case for "Nothing", which enables now to manipulate some false proof
@@ -64,16 +64,16 @@ get_e (r ** (e, p)) = e
 
 -- Result of the automatic equality solver for test4' and test5'
 secondTest : (x:Nat) -> (y:Nat) -> (((x + (1+1)) + (2 + y)) = (x + (4 + y)))
-secondTest x y = let (Just ok) = semiGroupDecideEq (%instance) (test4' x y) (test5' x y) in ok
+secondTest x y = let (Just ok) = semiGroupDecideEq (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (test4' x y) (test5' x y) in ok
 -- RESULT : WORKS  FOR ALL X AND Y !
 
 
 -- Code to debug secondTest
 print_test4'_norm : Nat -> Nat -> String
-print_test4'_norm = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce  (%instance) (test4' x y)))))
+print_test4'_norm = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce  (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (test4' x y)))))
 
 print_test5'_norm : Nat -> Nat -> String
-print_test5'_norm = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce  (%instance) (test5' x y)))))
+print_test5'_norm = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce  (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (test5' x y)))))
 
 
 -- new test
@@ -82,7 +82,7 @@ new_a : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeSetAndMult (semi
 new_a x y = PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ)) (ConstSG _ _ _ _ 4)
 
 newTest_a : (x:Nat) -> (y:Nat) -> (x+4 = x+4)
-newTest_a x y = let (Just ok) = semiGroupDecideEq (%instance) (new_a x y) (new_a x y) in ok
+newTest_a x y = let (Just ok) = semiGroupDecideEq (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (new_a x y) (new_a x y) in ok
 -- ok
 
 
@@ -90,7 +90,7 @@ new_b : (x:Nat) -> (y:Nat) -> ExprSG (%instance) (\x => x) (FakeSetAndMult (semi
 new_b x y = PlusSG _ _ (ConstSG _ _ _ _ 4) (VarSG _ _ _ (RealVariable _ _ _ _ (FS FZ)))
 
 newTest_b : (x:Nat) -> (y:Nat) -> (4+y = 4+y)
-newTest_b x y = let (Just ok) = semiGroupDecideEq (%instance) (new_b x y) (new_b x y) in ok
+newTest_b x y = let (Just ok) = semiGroupDecideEq (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (new_b x y) (new_b x y) in ok
 -- ok
 
 
@@ -103,12 +103,12 @@ new_d x y = PlusSG _ _ (VarSG _ _ _ (RealVariable _ _ _ _ FZ))
                     (PlusSG _ _ (ConstSG _ _ _ _ 4) (VarSG _ _ _ (RealVariable _ _ _ _ (FS FZ))))
             
 newTest_c_d : (x:Nat) -> (y:Nat) -> (x+(4+y) = x+(4+y))
-newTest_c_d x y = let (Just ok) = semiGroupDecideEq (%instance) (new_c x y) (new_d x y) in ok
+newTest_c_d x y = let (Just ok) = semiGroupDecideEq (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (new_c x y) (new_d x y) in ok
 -- ok
 
 
 print_test_c : Nat -> Nat -> String
-print_test_c = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce (%instance) (new_c x y)))))
+print_test_c = (\x => \y => print_ExprSG show (left (rightDep (semiGroupReduce (%instance) (FakeSetAndNeg (semiGroup_to_set _)) (new_c x y)))))
 -- ok, as expected
 
 

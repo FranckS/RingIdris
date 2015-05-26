@@ -35,26 +35,26 @@ elimZero c p neg setAndMult g (PlusMo _ _ e1 e2) =
 elimZero c p neg setAndMult g (VarMo _ _ _ v) = (_ ** (VarMo _ _ _ v, set_eq_undec_refl {c} _))
 
 
-monoidReduce : (p:dataTypes.Monoid c) -> {neg:c->c} -> {setAndMult:SetWithMult c (monoid_to_set p)} -> {g:Vect n c} -> {c1:c} -> (ExprMo p neg setAndMult g c1) -> (c2 ** (ExprMo p neg setAndMult g c2, c1~=c2))
-monoidReduce p e = 
-    let (r_SGred ** (e_SGred,  p_SGred)) = semiGroupReduce (monoid_to_semiGroup_class p) (monoid_to_semiGroup e) in
+monoidReduce : (p:dataTypes.Monoid c) -> (setAndNeg:SetWithNeg c (monoid_to_set p)) -> {setAndMult:SetWithMult c (monoid_to_set p)} -> {g:Vect n c} -> {c1:c} -> (ExprMo p (neg setAndNeg) setAndMult g c1) -> (c2 ** (ExprMo p (neg setAndNeg) setAndMult g c2, c1~=c2))
+monoidReduce p setAndNeg e = 
+	let (r_SGred ** (e_SGred,  p_SGred)) = semiGroupReduce (monoid_to_semiGroup_class p) setAndNeg (monoid_to_semiGroup e) in
 		let (r_elim ** (e_elim, p_elim)) = elimZero _ p _ _ _ (semiGroup_to_monoid p e_SGred) in
             (_ ** (e_elim, ?MmonoidReduce1))
 
             
 total
-buildProofMonoid : (p:dataTypes.Monoid c) -> {neg:c->c} -> {setAndMult:SetWithMult c (monoid_to_set p)} -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprMo p neg setAndMult g c1) -> (ExprMo p neg setAndMult g c2) -> (x ~= c1) -> (y ~= c2) -> (Maybe (x~=y))
-buildProofMonoid p e1 e2 lp rp with (exprMo_eq p _ _ _ e1 e2)
-    buildProofMonoid p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofMonoid
-    buildProofMonoid p e1 e2 lp rp | Nothing = Nothing
+buildProofMonoid : (p:dataTypes.Monoid c) -> (setAndNeg:SetWithNeg c (monoid_to_set p)) -> {setAndMult:SetWithMult c (monoid_to_set p)} -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprMo p (neg setAndNeg) setAndMult g c1) -> (ExprMo p (neg setAndNeg) setAndMult g c2) -> (x ~= c1) -> (y ~= c2) -> (Maybe (x~=y))
+buildProofMonoid p setAndNeg e1 e2 lp rp with (exprMo_eq p _ _ _ e1 e2)
+    buildProofMonoid p setAndNeg e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofMonoid
+    buildProofMonoid p setAndNeg e1 e2 lp rp | Nothing = Nothing
 
 
-monoidDecideEq : (p:dataTypes.Monoid c) -> {neg:c->c} -> {setAndMult:SetWithMult c (monoid_to_set p)} -> {g:Vect n c} -> (ExprMo p neg setAndMult g x) -> (ExprMo p neg setAndMult g y) -> (Maybe (x~=y))
+monoidDecideEq : (p:dataTypes.Monoid c) -> (setAndNeg:SetWithNeg c (monoid_to_set p)) -> {setAndMult:SetWithMult c (monoid_to_set p)} -> {g:Vect n c} -> (ExprMo p (neg setAndNeg) setAndMult g x) -> (ExprMo p (neg setAndNeg) setAndMult g y) -> (Maybe (x~=y))
 -- e1 is the left side, e2 is the right side
-monoidDecideEq p e1 e2 = 
-    let (r_e1 ** (e_e1, p_e1)) = monoidReduce p e1 in
-    let (r_e2 ** (e_e2, p_e2)) = monoidReduce p e2 in
-    buildProofMonoid p e_e1 e_e2 p_e1 p_e2            
+monoidDecideEq p setAndNeg e1 e2 = 
+	let (r_e1 ** (e_e1, p_e1)) = monoidReduce p setAndNeg e1 in
+	let (r_e2 ** (e_e2, p_e2)) = monoidReduce p setAndNeg e2 in
+    buildProofMonoid p setAndNeg e_e1 e_e2 p_e1 p_e2            
 
 
 ---------- Proofs ----------
