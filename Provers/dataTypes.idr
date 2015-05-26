@@ -435,8 +435,6 @@ data ExprCM : {c:Type} -> {n:Nat} -> (CommutativeMonoid c) -> (setAndMult:SetWit
     PlusCM : {c:Type} -> {n:Nat} -> {p : CommutativeMonoid c} -> (setAndMult:SetWithMult c (commutativeMonoid_to_set p)) -> {g:Vect n c}  -> {c1:c} -> {c2:c} -> ExprCM p setAndMult g c1 -> ExprCM p setAndMult g c2 -> ExprCM p setAndMult g (Plus c1 c2)
     VarCM : {c:Type} -> {n:Nat} -> (p : CommutativeMonoid c) -> (setAndMult:SetWithMult c (commutativeMonoid_to_set p)) -> {g:Vect n c} -> {c1:c} -> Variable (commutativeMonoid_to_set p) (\x=>x) setAndMult g c1 -> ExprCM p setAndMult g c1
 
-id_preserves_any_equiv : {c:Type} -> (c_set:Set c) -> ((x:c) -> (y:c) -> (x ~= y) -> ((\a => a) x ~= (\a => a) y))
-id_preserves_any_equiv c_set = ?Mid_preserves_any_equiv_1
     
 exprCM_eq : {c:Type} -> {n:Nat} -> (p:CommutativeMonoid c) -> (setAndMult:SetWithMult c (commutativeMonoid_to_set p)) -> (g:Vect n c) -> {c1 : c} -> {c2 : c} -> (e1:ExprCM p setAndMult g c1) -> (e2:ExprCM p setAndMult g c2) -> Maybe(c1~=c2)
 exprCM_eq p setAndMult g (PlusCM _ x y) (PlusCM _ x' y') with (exprCM_eq p setAndMult g x x', exprCM_eq p setAndMult g y y')
@@ -761,12 +759,5 @@ Provers.dataTypes.MFakeSetAndMult_multPreservesEq = proof
   intro c, c_set, mult, imp, imp1, imp2, imp3, pr1, pr2
   exact pr1
   
-Provers.dataTypes.Mid_preserves_any_equiv_1 = proof
-  intro c, c_set, x, y, pEq
-  exact pEq
-  
-
-
-
 
 
