@@ -777,7 +777,21 @@ ring_reduce p e =
   let (r_8 ** (e_8, p_8)) = code_reduceCG_andDecode p e_7 in
     (_ **(e_8, ?Mring_reduce_1))
 
-	
+
+    
+buildProofRing : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprR p g c1) -> (ExprR p g c2) -> (x~=c1) -> (y~=c2) -> (Maybe (x~=y))
+buildProofRing p e1 e2 lp rp with (exprR_eq p _ e1 e2)
+	buildProofRing p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofRing
+	buildProofRing p e1 e2 lp rp | Nothing = Nothing
+
+		
+ringDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprR p g x) -> (ExprR p g y) -> (Maybe (x~=y))
+-- e1 is the left side, e2 is the right side
+ringDecideEq p e1 e2 =
+	let (r_e1 ** (e_e1, p_e1)) = ring_reduce p e1 in
+	let (r_e2 ** (e_e2, p_e2)) = ring_reduce p e2 in
+		buildProofRing p e_e1 e_e2 p_e1 p_e2    
+    
 
 ---------- Proofs ----------
 Provers.ring_reduce.MencodeToProductOfMonomials_8 = proof
@@ -2035,3 +2049,13 @@ Provers.ring_reduce.Mring_reduce_1 = proof
   exact p_7
   mrefine set_eq_undec_refl 
   exact p_8  
+  
+Provers.ring_reduce.MbuildProofRing = proof
+  intros
+  refine Just
+  mrefine eq_preserves_eq 
+  exact c1
+  exact c2
+  exact lp
+  exact rp
+  exact e1_equiv_e2   
