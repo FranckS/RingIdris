@@ -793,6 +793,14 @@ ringDecideEq p e1 e2 =
 		buildProofRing p e_e1 e_e2 p_e1 p_e2    
     
 
+debugRing : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> (c_show : Show c) -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprR p g x) -> (ExprR p g y) -> String
+debugRing p c_show e1 e2 = 
+	let (r_e1 ** (e_e1, p_e1)) = ring_reduce p e1 in
+	let (r_e2 ** (e_e2, p_e2)) = ring_reduce p e2 in
+	let leftSideNormalised = print_ExprR show e_e1 in
+	let rightSideNormalised = print_ExprR show e_e2 in
+		"left side normalised = " ++ leftSideNormalised ++ " ############### Right side normalised = " ++ rightSideNormalised
+    
 ---------- Proofs ----------
 Provers.ring_reduce.MencodeToProductOfMonomials_8 = proof
   intros
