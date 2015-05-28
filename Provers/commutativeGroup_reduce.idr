@@ -47,33 +47,55 @@ assoc_and_neutral_bis {c} x y = let aux : (Plus (Neg x) (Plus x y) ~= Plus (Plus
 -- Decides if pdt1 is before pdt2
 total
 isBefore_pdtOfVar : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (pdt1:ProductOfVariables setAndMult g c1) -> (pdt2:ProductOfVariables setAndMult g c2) -> Bool
-isBefore_pdtOfVar (LastVar _ _ k1) (LastVar _ _ k2) = minusOrEqual_Fin k1 k2
-isBefore_pdtOfVar (LastVar _ _ k1) (VarMultProduct _ k2 pov2) = minusOrEqual_Fin k1 k2
-isBefore_pdtOfVar (VarMultProduct _ k1 pov1) (LastVar _ _ k2) = minusOrEqual_Fin k1 k2
-isBefore_pdtOfVar (VarMultProduct _ k1 pov1) (VarMultProduct _ k2 pov2) = minusOrEqual_Fin k1 k2
+isBefore_pdtOfVar (LastVar _ _ k1) (LastVar _ _ k2) = minusStrict_Fin k1 k2 -- I think is ok
+isBefore_pdtOfVar (LastVar _ _ k1) (VarMultProduct _ k2 pov2) = minusOrEqual_Fin k1 k2 -- Here we accept if k1=k2
+isBefore_pdtOfVar (VarMultProduct _ k1 pov1) (LastVar _ _ k2) = minusStrict_Fin k1 k2 -- But here, k1 has to be strictily lower than k2 since k1 is followed by some variables
+isBefore_pdtOfVar (VarMultProduct _ k1 pov1) (VarMultProduct _ k2 pov2) = (minusStrict_Fin k1 k2) || ((k1==k2) && (isBefore_pdtOfVar pov1 pov2))
+
+
+-- Decides if pdt1 and pdt2 have the same "location" in the order
+total
+samePosition_pdtOfVar : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (pdt1:ProductOfVariables setAndMult g c1) -> (pdt2:ProductOfVariables setAndMult g c2) -> Bool
+samePosition_pdtOfVar (LastVar _ _ k1) (LastVar _ _ k2) = (k1==k2)
+samePosition_pdtOfVar (LastVar _ _ k1) (VarMultProduct _ k2 pov2) = False
+samePosition_pdtOfVar (VarMultProduct _ k1 pov1) (LastVar _ _ k2) = False
+samePosition_pdtOfVar (VarMultProduct _ k1 pov1) (VarMultProduct _ k2 pov2) = (k1==k2) && samePosition_pdtOfVar pov1 pov2
+
 
 
 -- Decides if mon1 is before mon2
 total
 isBefore_mon : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (mon1:Monomial setAndMult g c1) -> (mon2:Monomial setAndMult g c2) -> Bool
 -- generic pattern
-isBefore_mon (ConstantMonomial _ _ const1) _ = True -- a constant always comes before anything
+isBefore_mon (ConstantMonomial _ _ const1) _ = False -- a constant always comes at the end
 -- 
-isBefore_mon (ProdOfVarWithConst _ const1 prod1) (ConstantMonomial _ _ const2) = False -- I'm not sure that's needed, but I prefer to put the constant monomial in front
-isBefore_mon (ProdOfVarWithConst _ const1 prod1) _ = True
+isBefore_mon (ProdOfVarWithConst _ const1 prod1) (ConstantMonomial _ _ const2) = True -- There are some variables in prod1, so it's ordered
+isBefore_mon (ProdOfVarWithConst _ const1 prod1) (ProdOfVarWithConst _ const2 prod2) = isBefore_pdtOfVar prod1 prod2
+isBefore_mon (ProdOfVarWithConst _ const1 prod1) (ProdOfVar _ prod2) = isBefore_pdtOfVar prod1 prod2 -- we ignore the constant and immediately look at the product of variables
 
-isBefore_mon (ProdOfVar _ prod1) (ConstantMonomial _ _ const2) = False -- the constant monomial should come before
-isBefore_mon (ProdOfVar _ prod1) (ProdOfVarWithConst _ const2 prod2) = False -- idem, the monomial with the constant should come first
+isBefore_mon (ProdOfVar _ prod1) (ConstantMonomial _ _ const2) = True -- the constant monomial comes effectively after
+isBefore_mon (ProdOfVar _ prod1) (ProdOfVarWithConst _ const2 prod2) = isBefore_pdtOfVar prod1 prod2
 isBefore_mon (ProdOfVar _ prod1) (ProdOfVar _ prod2) = isBefore_pdtOfVar prod1 prod2
 
 
--- Decides if prod1 is before prod2
+
+-- Decides if mon1 and mon2 have the same "location" in the order
+total
+samePosition_mon : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (mon1:Monomial setAndMult g c1) -> (mon2:Monomial setAndMult g c2) -> Bool
+samePosition_mon (ConstantMonomial _ _ const1) (ConstantMonomial _ _ const2) = True
+samePosition_mon (ProdOfVarWithConst _ const1 prod1) (ProdOfVarWithConst _ const2 prod2) = samePosition_pdtOfVar prod1 prod2
+samePosition_mon (ProdOfVar _ prod1) (ProdOfVar _ prod2) = samePosition_pdtOfVar prod1 prod2
+samePosition_mon _ _ = False
+
+
+-- Decides if prod1 comes (stricly) before prod2
 total
 isBefore : {c:Type} -> {c_set:Set c} -> {setAndMult:SetWithMult c c_set} -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (prod1:ProductOfMonomials setAndMult g c1) -> (prod2:ProductOfMonomials setAndMult g c2) -> Bool
-isBefore (LastMonomial _ mon1) (LastMonomial _ mon2) = isBefore_mon mon1 mon2
-isBefore (LastMonomial _ mon1) (MonomialMultProduct _ mon2 prod2) = isBefore_mon mon1 mon2
-isBefore (MonomialMultProduct _ mon1 prod1) (LastMonomial _ mon2) = isBefore_mon mon1 mon2
-isBefore (MonomialMultProduct _ mon1 prod1) (MonomialMultProduct _ mon2 prod2) = isBefore_mon mon1 mon2
+isBefore (LastMonomial _ mon1) (LastMonomial _ mon2) = isBefore_mon mon1 mon2 -- I think is ok
+isBefore (LastMonomial _ mon1) (MonomialMultProduct _ mon2 prod2) = (isBefore_mon mon1 mon2) || (samePosition_mon mon1 mon2) -- I think is ok
+-- I have to think about 3xy5z and 3xy8u for the next two lines (did I fix it correctly ?)
+isBefore (MonomialMultProduct _ mon1 prod1) (LastMonomial _ mon2) = isBefore_mon mon1 mon2 -- Here we use the (strict) isBefore
+isBefore (MonomialMultProduct _ mon1 prod1) (MonomialMultProduct _ mon2 prod2) = (isBefore_mon mon1 mon2) || ((samePosition_mon mon1 mon2) && (isBefore prod1 prod2))
 
 							
 									

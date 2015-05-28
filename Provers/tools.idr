@@ -545,6 +545,13 @@ minusOrEqual_Fin FZ (FS j') = True
 minusOrEqual_Fin (FS i') FZ = False
 minusOrEqual_Fin (FS i') (FS j') = minusOrEqual_Fin i' j'
 
+minusStrict_Fin : {n:Nat} -> (i:Fin n) -> (j:Fin m) -> Bool
+minusStrict_Fin FZ FZ = False
+minusStrict_Fin FZ (FS j') = True
+minusStrict_Fin (FS i') FZ = False
+minusStrict_Fin (FS i') (FS j') = minusStrict_Fin i' j'
+
+
 	
 -- convert i from an element of Fin n to an element of Fin (S m), provided that (S m) is greater or equal to n
 total

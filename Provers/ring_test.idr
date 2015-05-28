@@ -199,9 +199,16 @@ compare_expAr_expBr x y = ringDecideEq (%instance) (expAr x y) (expBr x y)
 -- (which causes a crash only when you apply then to a specific value for x)
 proof_expAr_expBr : (x:ZZ) -> (y:ZZ) -> (x * (y + 3) = x*3 + x*y)
 proof_expAr_expBr x y = let (Just ok) = compare_expAr_expBr x y in ok
--- RESULT : TO SEE !
+-- RESULT : IS OK FOR ALL X AND Y NOW !
     
-    
+-- Let's debug it 
+-- evaluate :
+--(\x,y => debugRing (%instance) (%instance) (expAr x y) (expBr x y))
+
+
+
+
+
 
     
     
