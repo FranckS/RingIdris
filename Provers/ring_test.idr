@@ -207,11 +207,83 @@ proof_expAr_expBr x y = let (Just ok) = compare_expAr_expBr x y in ok
 
 
 
+-- ---------------------------------
+-- TEST 1 : Test if ((((3*x)*(y*2))*u) + (x * (y - y))) + (3*((x*y)*(5*g))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))
+-- ---------------------------------
 
+--  ((((3*x)*(y*2))*u) + (x * (y - y))) + (3*((x*y)*(5*g)))
+{-
+x = VarR _ (RealVariable _ _ _ _ FZ)
+y = VarR _ (RealVariable _ _ _ _ (FS FZ))
+u = VarR _ (RealVariable _ _ _ _ (FS (FS FZ))))
+g = VarR _ (RealVariable _ _ _ _ (FS (FS (FS FZ))
+-}
 
-
+expCr : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ExprR (%instance) [x,y,u,g] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g))))
+expCr x y u g = PlusR
+					(PlusR
+						(MultR
+							(MultR 
+								(MultR (ConstR _ _ 3) (VarR _ (RealVariable _ _ _ _ FZ))) -- 3*x
+								(MultR (VarR _ (RealVariable _ _ _ _ (FS FZ))) (ConstR _ _ 2)) -- y*2
+							)
+							(VarR _ (RealVariable _ _ _ _ (FS (FS FZ)))) -- u
+						)
+						(MultR
+							(VarR _ (RealVariable _ _ _ _ FZ)) -- x
+							(MinusR (VarR _ (RealVariable _ _ _ _ (FS FZ))) (VarR _ (RealVariable _ _ _ _ (FS FZ)))) -- y-y
+						)
+					)	
+					(MultR
+						(ConstR _ _ 3) -- 3
+						(MultR
+							(MultR (VarR _ (RealVariable _ _ _ _ FZ)) (VarR _ (RealVariable _ _ _ _ (FS FZ)))) -- x*y 
+							(MultR (ConstR _ _ 5) (VarR _ (RealVariable _ _ _ _ (FS (FS (FS FZ)))))) -- 5*g
+						)
+					)	
+					
     
-    
+   
+expDr : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> ExprR (%instance) [x,y,u] (((((3*x)*(y*2))*u)))
+expDr x y u =  MultR
+				(MultR 
+					(MultR (ConstR _ _ 3) (VarR _ (RealVariable _ _ _ _ FZ))) -- 3*x
+					(MultR (VarR _ (RealVariable _ _ _ _ (FS FZ))) (ConstR _ _ 2)) -- y*2
+				)
+				(VarR _ (RealVariable _ _ _ _ (FS (FS FZ)))) -- u
+
+-- Evaluate this to debug :	
+-- (\x,y,u => debugRing (%instance) (%instance) (expDr x y u) (expDr x y u))
+
+
+-- Something different to understand the problem
+expEr : (x:ZZ)  -> (y:ZZ) -> ExprR (%instance) [x,y] ((3+x)*(y+2))
+expEr x y = (MultR 
+				(PlusR (ConstR _ _ 3) (VarR _ (RealVariable _ _ _ _ FZ))) -- 3*x
+				(PlusR (VarR _ (RealVariable _ _ _ _ (FS FZ))) (ConstR _ _ 2)) -- y*2
+			)   
+-- This one is ok   
+   
+
+   
+expFr : (x:ZZ)  -> (y:ZZ) -> ExprR (%instance) [x,y] ((3*x)*y)
+expFr x y =  MultR 
+				(MultR (ConstR _ _ 3) (VarR _ (RealVariable _ _ _ _ FZ))) -- 3*x
+				(VarR _ (RealVariable _ _ _ _ (FS FZ))) -- y
+
+				
+-- Evaluate this to debug :	
+-- (\x,y => debugRing (%instance) (%instance) (expFr x y) (expFr x y))
+				
+				
+   
+   
+   
+   
+   
+   
+   
+   
     
 ---------- Proofs ----------
 Provers.ring_test.Mmult_ZZ_zero'_1 = proof

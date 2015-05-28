@@ -314,8 +314,8 @@ shuffleProductRight : {c:Type} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c}
 shuffleProductRight {c} p g (ConstR _ _ const1) = (_ ** (ConstR _ _ const1, set_eq_undec_refl {c} _))
 shuffleProductRight {c} p g (VarR _ v) = (_ ** (VarR _ v, set_eq_undec_refl {c} _))
 shuffleProductRight p g (NegR e) = 
-    let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g (NegR e) in
-    (_ ** (e_ih1, ?MshuffleProductRight1))
+	let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g e in -- I think there was a big problem here...
+    (_ ** (NegR e_ih1, ?MshuffleProductRight1))
 shuffleProductRight p g (PlusR e1 e2) = 
     let (r_ih1 ** (e_ih1, p_ih1)) = shuffleProductRight p g e1 in
     let (r_ih2 ** (e_ih2, p_ih2)) = shuffleProductRight p g e2 in
@@ -411,15 +411,16 @@ shuffleProductRight p g (MultR (MultR e11 e12) (MultR e21 e22)) =
 
 -- Ex : -(a+b) becomes (-b) + (-a), -(a*b) becomes (-a) * b
 -- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
+total
 propagateNeg' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 propagateNeg' p (NegR (PlusR e1 e2)) =
-	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in
-	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p (NegR e2)) in
-		((Plus r_ih2 r_ih1) ** (PlusR e_ih2 e_ih1, ?MpropagateNeg'_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call
+		((Plus (Neg r_ih2) (Neg r_ih1)) ** (PlusR (NegR e_ih2) (NegR e_ih1), ?MpropagateNeg'_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
 propagateNeg' p (NegR (MultR e1 e2)) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in -- We do not forget to propate the Neg inside of the product (we chose the first argument)
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in -- We do not forget to propate the Neg inside of the product (we chose the first argument)
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
-		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg'_2))
+		((Mult (Neg r_ih1) r_ih2) ** (MultR (NegR e_ih1) e_ih2, ?MpropagateNeg'_2)) -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call which was done on (NegR e1)
 propagateNeg' p (NegR e) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg' p e in
 		((Neg r_ih1) ** (NegR e_ih1, ?MpropagateNeg'_3))
@@ -1024,19 +1025,20 @@ Provers.ring_reduce.MpropagateNeg'_1 = proof
   mrefine set_eq_undec_refl 
   mrefine set_eq_undec_sym
   mrefine set_eq_undec_sym
+  mrefine Neg_preserves_equiv
+  mrefine Neg_preserves_equiv
   exact p_ih2
   exact p_ih1
 
 Provers.ring_reduce.MpropagateNeg'_2 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Neg (Mult c1 c2))
-  exact (Mult (Neg c1) c2)
-  mrefine set_eq_undec_refl
+  exact (Neg (Mult r_ih1 r_ih2))
+  exact (Mult (Neg r_ih1) r_ih2)
+  mrefine Neg_preserves_equiv 
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
   mrefine Mult_preserves_equiv 
-  mrefine set_eq_undec_sym
-  mrefine set_eq_undec_sym
-  mrefine set_eq_undec_sym
   mrefine lemmaRing2
   exact p_ih1
   exact p_ih2
@@ -1366,6 +1368,7 @@ Provers.ring_reduce.MshuffleProductRight2 = proof
 
 Provers.ring_reduce.MshuffleProductRight1 = proof
   intros
+  mrefine Neg_preserves_equiv
   exact p_ih1
 
 Provers.ring_reduce.Mdevelop_fix_1 = proof
