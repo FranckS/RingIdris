@@ -467,9 +467,74 @@ elimDoubleNeg' {c} p e1 =
     (_ ** (e1, set_eq_undec_refl {c} _))    
     
 
+
+
+moveNegToFront_Left_mon : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+moveNegToFront_Left_mon {c} p (ConstR _ _ const1) = 
+	(_ ** (ConstR _ _ const1, set_eq_undec_refl {c} _))
+moveNegToFront_Left_mon {c} p (VarR _ v) = 
+	(_ ** (VarR _ v, set_eq_undec_refl {c} _))
+moveNegToFront_Left_mon {c} p (NegR e) = 
+        (_ ** (NegR e, set_eq_undec_refl {c} _))
+moveNegToFront_Left_mon p (MultR (NegR a) b) = 
+        let (r_ih1 ** (e_ih1, p_ih1)) = moveNegToFront_Left_mon p (MultR a b) in
+        (_ ** (NegR e_ih1, ?MmoveNegToFront_Left_mon_1))
+moveNegToFront_Left_mon {c} p (MultR a b) = 
+        (_ ** (MultR a b, set_eq_undec_refl {c} _))
+
+
+moveNegToFront_Left_pol : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+moveNegToFront_Left_pol p (PlusR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegToFront_Left_pol p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (moveNegToFront_Left_pol p e2) in
+		(_ ** (PlusR e_ih1 e_ih2, ?MmoveNegToFront_Left_pol_1))
+moveNegToFront_Left_pol {c} p (ConstR _ _ const1) = 
+	(_ ** (ConstR _ _ const1, set_eq_undec_refl {c} _))
+moveNegToFront_Left_pol {c} p (VarR _ v) = 
+	(_ ** (VarR _ v, set_eq_undec_refl {c} _))
+moveNegToFront_Left_pol p (NegR e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegToFront_Left_pol p e) in
+            (_ ** (NegR e_ih1, ?MmoveNegToFront_Left_pol_2))
+moveNegToFront_Left_pol p (MultR a b) = moveNegToFront_Left_mon p (MultR a b)
+    
+   
+moveNegToFront_Right_mon : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+moveNegToFront_Right_mon {c} p (ConstR _ _ const1) = 
+	(_ ** (ConstR _ _ const1, set_eq_undec_refl {c} _))
+moveNegToFront_Right_mon {c} p (VarR _ v) = 
+	(_ ** (VarR _ v, set_eq_undec_refl {c} _))
+moveNegToFront_Right_mon {c} p (NegR e) = 
+        (_ ** (NegR e, set_eq_undec_refl {c} _))
+moveNegToFront_Right_mon p (MultR a (NegR b)) = 
+        let (r_ih1 ** (e_ih1, p_ih1)) = moveNegToFront_Right_mon p (MultR a b) in
+        (_ ** (NegR e_ih1, ?MmoveNegToFront_Right_mon_1))
+moveNegToFront_Right_mon {c} p (MultR a b) = 
+        (_ ** (MultR a b, set_eq_undec_refl {c} _))
+
+
+moveNegToFront_Right_pol : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+moveNegToFront_Right_pol p (PlusR e1 e2) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegToFront_Right_pol p e1) in
+	let (r_ih2 ** (e_ih2, p_ih2)) = (moveNegToFront_Right_pol p e2) in
+		(_ ** (PlusR e_ih1 e_ih2, ?MmoveNegToFront_Right_pol_1))
+moveNegToFront_Right_pol {c} p (ConstR _ _ const1) = 
+	(_ ** (ConstR _ _ const1, set_eq_undec_refl {c} _))
+moveNegToFront_Right_pol {c} p (VarR _ v) = 
+	(_ ** (VarR _ v, set_eq_undec_refl {c} _))
+moveNegToFront_Right_pol p (NegR e) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = (moveNegToFront_Right_pol p e) in
+            (_ ** (NegR e_ih1, ?MmoveNegToFront_Right_pol_2))
+moveNegToFront_Right_pol p (MultR a b) = moveNegToFront_Right_mon p (MultR a b)
     
     
     
+moveNegToFrontInAllMonomials : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+moveNegToFrontInAllMonomials p e = 
+	let (r_1 ** (e_1, p_1)) = (moveNegToFront_Left_pol p e) in
+	let (r_2 ** (e_2, p_2)) = (moveNegToFront_Right_pol p e_1) in
+            (_ ** (e_2, ?MmoveNegToFrontInAllMonomials_1))
+        
+{-    
 -- For a product A * B, we decide to move the neg before the product if there is one
 -- Ex : (-c * v) -> -(c*v)
 -- Ex : (v1 * -v2) -> -(v1*c2)
@@ -513,7 +578,7 @@ moveNegInPolynomial p (NegR e) =
 moveNegInPolynomial p (MultR e1 e2) = 
 	moveNegInMonomial p (MultR e1 e2)
 
-
+-}
 	
 total
 simplifyWithConstant_Monomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (monomial:Monomial setAndMult g c1) -> (c2 ** (Monomial setAndMult g c2, c1~=c2))
@@ -772,7 +837,7 @@ ring_reduce p e =
   let (r_4 ** (e_4, p_4)) = develop_fix p e_3 in
 	  
   let (r_5 ** (e_5, p_5)) = shuffleProductRight p _ e_4 in -- Needed for the encoding
-  let (r_6 ** (e_6, p_6)) = moveNegInPolynomial p e_5 in -- Needed for the encoding, because we want each product of monomials to start with the Neg (if any), and not to contain Negs in the middle of them
+  let (r_6 ** (e_6, p_6)) = moveNegToFrontInAllMonomials p e_5 in -- Needed for the encoding, because we want each product of monomials to start with the Neg (if any), and not to contain Negs in the middle of them
   let (r_7 ** (e_7, p_7)) = elimDoubleNeg' p e_6 in -- Needed because we've moved some Neg just before
   -- Then encoding, call to commutativeGroup prover, and decoding
   let (r_8 ** (e_8, p_8)) = code_reduceCG_andDecode p e_7 in
@@ -964,6 +1029,65 @@ Provers.ring_reduce.MmultiplyProdOfVar_1 = proof
   mrefine set_eq_undec_refl 
   exact p_ih1
 
+
+Provers.ring_reduce.MmoveNegToFrontInAllMonomials_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact r_1
+  exact r_2
+  exact p_1
+  mrefine set_eq_undec_refl 
+  exact p_2
+
+
+Provers.ring_reduce.MmoveNegToFront_Right_pol_2 = proof
+  intros
+  mrefine Neg_preserves_equiv 
+  exact p_ih1 
+
+
+Provers.ring_reduce.MmoveNegToFront_Right_pol_1 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+
+Provers.ring_reduce.MmoveNegToFront_Right_mon_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Neg (Mult c1 c2))
+  exact (Neg r_ih1)
+  mrefine lemmaRing1
+  mrefine set_eq_undec_refl 
+  mrefine Neg_preserves_equiv 
+  exact p_ih1
+
+
+Provers.ring_reduce.MmoveNegToFront_Left_pol_2 = proof
+  intros
+  mrefine Neg_preserves_equiv 
+  exact p_ih1
+
+
+Provers.ring_reduce.MmoveNegToFront_Left_pol_1 = proof
+  intros
+  mrefine Plus_preserves_equiv 
+  exact p_ih1
+  exact p_ih2
+
+
+Provers.ring_reduce.MmoveNegToFront_Left_mon_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (Neg (Mult c1 c2))
+  exact (Neg r_ih1)
+  mrefine lemmaRing2
+  mrefine set_eq_undec_refl 
+  mrefine Neg_preserves_equiv 
+  exact p_ih1
+
+{-
 Provers.ring_reduce.MmoveNegInPolynomial_2 = proof
   intros
   mrefine Neg_preserves_equiv 
@@ -1014,6 +1138,8 @@ Provers.ring_reduce.MmoveNegInMonomial_2 = proof
 Provers.ring_reduce.MmoveNegInMonomial_1 = proof
   intros
   mrefine lemmaRing2
+
+-}
 
 Provers.ring_reduce.MpropagateNeg'_1 = proof
   intros

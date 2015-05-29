@@ -194,7 +194,7 @@ expBr x y = PlusR (MultR (VarR _ (RealVariable _ _ _ _ FZ)) (ConstR _ _ 3)) (Mul
 compare_expAr_expBr : (x:ZZ) -> (y:ZZ) -> Maybe (x * (y + 3) = x*3 + x*y)
 compare_expAr_expBr x y = ringDecideEq (%instance) (expAr x y) (expBr x y) 
 
--- Later, we will have a real tactic "CommutativeGroup" which can fail. At this point, we will
+-- Later, we will have a real tactic "Ring" which can fail. At this point, we will
 -- not have a missing case for "Nothing", which enables now to manipulate some false proof
 -- (which causes a crash only when you apply then to a specific value for x)
 proof_expAr_expBr : (x:ZZ) -> (y:ZZ) -> (x * (y + 3) = x*3 + x*y)
@@ -208,7 +208,7 @@ proof_expAr_expBr x y = let (Just ok) = compare_expAr_expBr x y in ok
 
 
 -- ---------------------------------
--- TEST 1 : Test if ((((3*x)*(y*2))*u) + (x * (y - y))) + (3*((x*y)*(5*g))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))
+-- TEST 2 : Test if ((((3*x)*(y*2))*u) + (x * (y - y))) + (3*((x*y)*(5*g))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))
 -- ---------------------------------
 
 --  ((((3*x)*(y*2))*u) + (x * (y - y))) + (3*((x*y)*(5*g)))
@@ -242,6 +242,54 @@ expCr x y u g = PlusR
 						)
 					)	
 					
+-- Evaluate this to debug :	
+-- (\x,y,u,g => debugRing (%instance) (%instance) (expCr x y u g) (expDr x y u g))
+-- WORKS NOW !
+
+
+-- (((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))
+expC2r : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ExprR (%instance) [x,y,u,g] ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
+expC2r x y u g =
+            PlusR
+                (MultR
+                    (MultR
+                        (MultR (ConstR _ _ 3) (VarR _ (RealVariable _ _ _ _ FZ)))
+                        (MultR (VarR _ (RealVariable _ _ _ _ (FS FZ))) (ConstR _ _ 5))
+                    )
+                    (VarR _ (RealVariable _ _ _ _ (FS (FS (FS FZ)))))
+                )
+            
+                (MultR
+                    (ConstR _ _ 3)
+                    (MultR
+                        (MultR (VarR _ (RealVariable _ _ _ _ FZ)) (VarR _ (RealVariable _ _ _ _ (FS FZ))))
+                        (MultR (ConstR _ _ 2) (VarR _ (RealVariable _ _ _ _ (FS (FS FZ)))))
+                    )
+                )
+            
+compare_expCr_expC2r : (x:ZZ) -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> Maybe ((((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
+compare_expCr_expC2r x y u g = ringDecideEq (%instance) (expCr x y u g) (expC2r x y u g) 
+
+-- Later, we will have a real tactic "Ring" which can fail. At this point, we will
+-- not have a missing case for "Nothing", which enables now to manipulate some false proof
+-- (which causes a crash only when you apply then to a specific value for x)
+proof_expCr_expC2r : (x:ZZ) -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ((((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
+proof_expCr_expC2r x y u g = let (Just ok) = compare_expCr_expC2r x y u g in ok
+-- RESULT : IT WORKS !!!!!!!!!!
+    
+-- You can also see the normalised terms :
+-- evaluate :
+-- (\x,y,u,g => debugRing (%instance) (%instance) (expCr x y u g) (expC2r x y u g))
+-- THAT ALSO SHOWS SOMETHING GREAT WHICH IS THAT WHAT TAKES A LONG TIME IS THE PRINTING OF THE PROOF !
+-- BECAUSE WHEN WE JUST PRINT THE NORMALISED TERMS (WITH debugRing), THIS IS REALLY FAST (INSTANT !)
+-- AND SINCE IT CAN'T BE THE SYNTACTICAL TEST WHICH TAKES SO MUCH TIME, WE CONCLUDE THAT
+-- IT'S THE PRINTING OF THE PROOF WHICH IS THE BOTTLENECK. NOT ITS GENERATION ! GREAT !
+
+
+
+-- ---------------------------------
+-- PREVIOUS LITTLE TESTS
+-- ---------------------------------
     
    
 expDr : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> ExprR (%instance) [x,y,u] (((((3*x)*(y*2))*u)))
@@ -254,6 +302,7 @@ expDr x y u =  MultR
 
 -- Evaluate this to debug :	
 -- (\x,y,u => debugRing (%instance) (%instance) (expDr x y u) (expDr x y u))
+-- WORKS NOW !
 
 
 -- Something different to understand the problem
@@ -274,7 +323,7 @@ expFr x y =  MultR
 				
 -- Evaluate this to debug :	
 -- (\x,y => debugRing (%instance) (%instance) (expFr x y) (expFr x y))
-				
+-- WORKS NOW !				
 				
    
    
