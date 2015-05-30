@@ -65,7 +65,6 @@ lemmaExtension (gh::gt) g' (FZ {k=k}) = Refl
 lemmaExtension (gh::gt) g' (FS {k=Z} pi) = ?MlemmaExtension_1 -- This case is impossible : just elim the elemen of (Fin 0) that we have in the context
 lemmaExtension (gh::gt) g' (FS {k=S pk} pi) = let ih = lemmaExtension gt g' pi in ?MlemmaExtension_2
 
-
 	
 -- NOT total : We don't treat if the variable is not a real variable, but we don't care since fake variables are only for encodings, and the user will never use them directly
 weaken : {c:Type} -> {n:Nat} -> {m:Nat} -> {g:Vect n c} -> (g':Vect m c) -> (ExprMa p (neg fakeSetAndNeg) fakeSetAndMult g x) -> (ExprMa p (neg fakeSetAndNeg) fakeSetAndMult (g ++ g') x)
@@ -75,19 +74,35 @@ weaken {n=n} {m=m} {g=g} g' (VarMa p _ _ (RealVariable _ _ _ _ i)) =
 	let pExt = lemmaExtension g g' i in
 		rewrite pExt in (VarMa {n=plus n m} p _ _ (RealVariable _ _ _ _ (convertFin _ i m))) 
 
-	
-	
-{-    
-%reflection
-reflectTerm : {c:Type} -> {n:Nat} -> (p:Magma c) -> (g : Vect n c) -> (x:c) -> (g' ** (ExprMa p (neg fakeSetAndNeg) setAndMult	(g' ++ g) x))
-reflectTerm p g (Plus a b) g with (reflectList g a)
-	| (g' ** a') with (reflectList (g' ++ g) b)
-		| (g'' ** ys') = ((g'' ++ g') **
-							rewrite (sym (appendAssociative g'' g' g)) in
-								PlusMa (weaken g'' a') b')
     
-    -}
+    
+-- Just a try : Reflects only from Nat    
+%reflection
+reflectTermNat : {n:Nat} -> (p:Magma Nat) -> (g : Vect n Nat) -> (x:Nat) -> (g' ** (ExprMa p (neg (FakeSetAndNeg (%instance))) (FakeSetAndMult (%instance)) (g ++ g') x))
+reflectTermNat p g (a+b) =
+--	let (g' ** a') = reflectTermNat p g a in
+--	let (g'' ** ys') = reflectTermNat p (g ++ g') b in
+		?MZ 
+{- ((g' ++ g'') **
+							rewrite (sym (appendAssociative g g' g'')) in
+								PlusMa (weaken g'' a') b')
+   
+   -}	
 
+-- Generalized version
+%reflection
+reflectTerm : {c:Type} -> {n:Nat} -> (p:Magma c) -> (g : Vect n c) -> (x:c) -> (g' ** (ExprMa p (neg (FakeSetAndNeg (%instance))) (FakeSetAndMult (%instance)) (g ++ g') x))
+reflectTerm p g (Plus a b) =
+--	let (g' ** a') = reflectTerm p g a in
+--	let (g'' ** ys') = reflectTerm p (g ++ g') b in
+		?MZ 
+{- ((g' ++ g'') **
+							rewrite (sym (appendAssociative g g' g'')) in
+								PlusMa (weaken g'' a') b')
+   
+   -}	
+   
+   
 
 ---------- Proofs ----------   
 {-
