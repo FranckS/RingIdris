@@ -37,8 +37,7 @@ magmaDecideEq p setAndNeg e1 e2 =
     let (r_e2 ** (e_e2, p_e2)) = magmaReduce e2 in
     buildProofMagma p setAndNeg e_e1 e_e2 p_e1 p_e2
 
-
-
+     
 ---------- Proofs ----------                
 Provers.magma_reduce.MmagmaReduce1 = proof
   intros
@@ -58,5 +57,6 @@ Provers.magma_reduce.MbuildProofMagma = proof
 
 
 
-
-
+  
+  
+  
