@@ -76,13 +76,13 @@ weaken {n=n} {m=m} {g=g} g' (VarMa p _ _ (RealVariable _ _ _ _ i)) =
 
     
     
--- Just a try : Reflects only from Nat    
+-- Just a trivial try : Reflects only from Nat    
 %reflection
 reflectTermNat : {n:Nat} -> (p:Magma Nat) -> (g : Vect n Nat) -> (x:Nat) -> (g' ** (ExprMa p (neg (FakeSetAndNeg (%instance))) (FakeSetAndMult (%instance)) (g ++ g') x))
-reflectTermNat p g (a+b) =
---	let (g' ** a') = reflectTermNat p g a in
---	let (g'' ** ys') = reflectTermNat p (g ++ g') b in
-		?MZ 
+reflectTermNat p g (a+b) with (reflectTermNat p g a)
+    reflectTermNat p g (a+b) | (g' ** a') with (reflectTermNat p (g ++ g') b) 
+        reflectTermNat p g (a+b) | (g' ** a') | (g'' ** b') = ?MZ -- Problem at typechecking. It says "Incomplete term..."
+  
 {- ((g' ++ g'') **
 							rewrite (sym (appendAssociative g g' g'')) in
 								PlusMa (weaken g'' a') b')
