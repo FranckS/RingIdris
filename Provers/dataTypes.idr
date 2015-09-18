@@ -239,11 +239,16 @@ ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
 -- This bit is for the trasnlation Ring -> Commutative Group
 -- -----------------------------------------------------------
 
-record SetWithNeg : (c:Type) -> (Set c) -> Type where
-	MkSetWithNeg : {c:Type} -> (c_set:Set c) -> (neg:c->c) -> (neg_preserves_equiv : (c1:c) -> (c1':c) -> (c1 ~= c1') -> (neg c1 ~= neg c1')) -> SetWithNeg c c_set
+record SetWithNeg (c:Type) (c_set:Set c) where
+	constructor MkSetWithNeg
+    c_set:Set c
+    neg:c->c
+    neg_preserves_equiv : (c1:c) -> (c1':c) -> c1 ~= c1' -- ((~= c_set) c1 c1') -> ((~= c_set) (neg c1) (neg c1'))
 
-record SetWithMult : (c:Type) -> (Set c) -> Type where
-    MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : (c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
+record SetWithMult (c:Type) (c_set:Set c) where
+    constructor MkSetWithMult 
+    mult:c->c->c 
+    mult_preserves_equiv : (c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> ((~= c_set) c1 c1') -> ((~= c_set) c2 c2') -> ((~= c_set) (mult c1 c2) (mult c1' c2'))            
   
 -- Just a term encapsulating a fake neg (which is the identity function) and a proof that this neg preserves equality
 FakeSetAndNeg : {c:Type} -> (c_is_set:Set c) -> SetWithNeg c c_is_set
