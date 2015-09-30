@@ -1,9 +1,10 @@
-module AutoAssoc
+module NewAutoAssoc
 
 
 import Decidable.Equality
 import Data.Fin
 import Data.Vect
+import NewAutoAssoc_tools
 
 -- Expr is a reflection of a list, indexed over the concrete list,
 -- and over a set of list variables.
@@ -111,10 +112,7 @@ using (x : List a, y : List a, G : Vect n (List a))
      let (Just ok) = e1_e2_testEq xs ys zs in ok
 		 
 
-		 
 
-		 
-		 
 -- new test		 
 		 
   e3 : (xs, ys : List a) -> 
@@ -160,11 +158,109 @@ using (x : List a, y : List a, G : Vect n (List a))
   magic3 = \xs, ys => 
      let (Just ok) = e5_e6_testEq xs ys in ok	     
  
+ 
+-- ---------------------
+-- Automatic reflection 
+-- ---------------------
 
+	
+total	
+lemmaExtension : {c:Type} -> {n:Nat} ->	{m:Nat} -> (g:Vect n c) -> (g':Vect m c) -> (i:Fin n) -> (index i g = index (convertFin _ i m) (g++g'))
+lemmaExtension Nil g' (FZ {k=k}) impossible
+lemmaExtension (gh::gt) g' (FZ {k=k}) = Refl
+lemmaExtension (gh::gt) g' (FS {k=Z} pi) = let proofOfFalse : Void = elimFinZero pi in -- Just elim the element of (Fin 0) that we have in the context to build an inhabitant of False (Void)
+												?MlemmaExtension_1 -- Just elim the inhabitant of False that we have constructed in the context
+lemmaExtension (gh::gt) g' (FS {k=S pk} pi) = let ih = lemmaExtension gt g' pi in ?MlemmaExtension_2
+
+	
+total
+weaken : {n:Nat} -> {m:Nat} -> {G:Vect n (List a)} -> {x:List a} -> (G':Vect m (List a)) -> (Expr G x) -> (Expr (G ++ G') x)
+weaken G' ENil = ENil
+weaken G' (App e1 e2) = App (weaken G' e1) (weaken G' e2)
+weaken {n=n} {m=m} {G=G} G' (Var i) =
+	let pExt = lemmaExtension G G' i in
+		rewrite pExt in (Var (convertFin _ i m)) 
+
+     
+total
+isElement : {n:Nat} -> (x : a) -> (G : Vect n a) -> Maybe (i:Fin n ** (index i G = x))
+isElement x [] = Nothing
+isElement x (y :: ys) with (prim__syntactic_eq _ _ x y)
+	isElement x (x :: ys) | Just Refl = Just (FZ ** Refl) -- [| Stop |]
+	isElement x (y :: ys) | Nothing = let recCall = isElement x ys in -- [| Pop (isElem x ys) |]  
+										case recCall of
+										Nothing => Nothing
+										Just (i' ** p') => Just ((FS i') ** ?MLA) 
+  
+ 
+{-
+-- Reflects lists to Expr  
+%reflection
+reflectList : {n:Nat} -> (G : Vect n (List a)) -> (x:List a) -> (m ** (G' : Vect m (List a) ** (Expr (G ++ G') x)))
+reflectList {n=n} G Nil = (Z ** ([] ** (ENil {n=n+0} {G=G++[]}))) -- What the hell. Why do I have to give precisely the Z for m ?
+reflectList {n=n} G (x :: xs) with (reflectList G xs)
+     | (m ** (G' ** xs')) with (isElement (List.(::) x []) (G ++ G'))
+        | Just i = (_ ** (G' ** (App (Var i) xs')))
+        | Nothing = ?MTOSEE -- ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
+
+-}
+   
+   
+        
+{-
+ 
+%reflection
+reflectList : (G : List (List a)) ->
+          (xs : List a) -> (G' ** Expr (G' ++ G) xs)
+reflectList G [] = ([] ** ENil)
+
+reflectList G (x :: xs) with (reflectList G xs)
+     | (G' ** xs') with (isElem (List.(::) x []) (G' ++ G))
+        | Just p = (G' ** App (Var p) xs')
+        | Nothing = ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
+
+reflectList G (xs ++ ys) with (reflectList G xs)
+     | (G' ** xs') with (reflectList (G' ++ G) ys)
+         | (G'' ** ys') = ((G'' ++ G') **
+                              rewrite (sym (appendAssociative G'' G' G)) in
+                                 App (weaken G'' xs') ys')
+reflectList G t with (isElem t G)
+            | Just p = ([] ** Var p)
+            | Nothing = ([t] ** Var Stop) 
+ 
+ 
+-} 
+ 
+     
+-- ----------------------------------------------------     
+-- Theoretical bit, not relevant for the implementation 
+-- ----------------------------------------------------
+                   
+decode : {G:Vect n (List a)} -> (Expr G x) -> List a
+decode ENil = []
+decode {G=G} (Var i) = index i G
+decode (App e1 e2) = (decode e1) ++ (decode e2)     
+     
+
+-- lemma
+total
+decode_correct : {G:Vect n (List a)} -> {x:List a} -> (e : Expr G x) -> (decode e = x)
+decode_correct ENil = Refl
+decode_correct (Var i) = Refl
+decode_correct (App e1 e2) = 
+	let e1_decode_ok = decode_correct e1 in
+	let e2_decode_ok = decode_correct e2 in
+		rewrite e1_decode_ok in (rewrite e2_decode_ok in Refl)
+ 
+ 
+ 
+-- Main theorem
+-- theoremIdentity : {G:Vect n (List a)} -> (x:List a) -> decode ( -- I need to have the encode function (reflection) defined here, in order to be able to talk about it. To be added.
+ 
      
 ---------- Proofs ----------
 
-AutoAssoc.appRExpr1 = proof {
+NewAutoAssoc.appRExpr1 = proof {
   intros;
   rewrite sym xprf;
   rewrite sym yprf;
@@ -173,7 +269,7 @@ AutoAssoc.appRExpr1 = proof {
 }
 
 
-appRExpr2 = proof {
+NewAutoAssoc.appRExpr2 = proof {
   intros;
   rewrite xprf;
   rewrite sym yprf;
@@ -181,12 +277,33 @@ appRExpr2 = proof {
   exact Refl
 }
 
-bp1 = proof {
+NewAutoAssoc.bp1 = proof {
   intros;
   refine Just;
   rewrite sym lp;
   rewrite sym rp;
   exact Refl
 }
+
+
+
+-- ---------------------
+-- Automatic reflection 
+-- ---------------------
+-- Just uses the proof of Void that we have constructed in the context
+NewAutoAssoc.MlemmaExtension_1 = proof
+  intros
+  exact (void proofOfFalse)
+
+NewAutoAssoc.MlemmaExtension_2 = proof
+  intros
+  rewrite (sym ih)
+  rewrite (pre_convertFin_proofIrr pi _ (LTESucc (GTE_plus pk m)) (GTE_plus (S pk) m))
+  mrefine Refl
+
+
+
+
+
 
 

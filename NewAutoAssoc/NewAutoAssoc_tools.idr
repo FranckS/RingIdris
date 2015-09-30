@@ -1,0 +1,177 @@
+module NewAutoAssoc_tools
+
+import Decidable.Equality
+import Data.Fin
+import Data.Vect
+
+%default total
+
+
+
+lower_value : (x:Nat) -> (y:Nat) -> (LTE x y) -> LTE x (S y)
+lower_value Z Z LTEZero = LTEZero
+lower_value (S px) Z LTEZero impossible
+lower_value (S px) (S py) (LTESucc p) = LTESucc (lower_value _ _ p)
+lower_value Z (S py) p = LTEZero
+
+greater_than_succ : (x:Nat) -> (y:Nat) -> (GTE x (S y)) -> (GTE x y)
+greater_than_succ (S px) Z (LTESucc p) = LTEZero
+greater_than_succ (S px) (S py) (LTESucc p) = lower_value (S py) px p
+
+S_both_side : (x:Nat) -> (y:Nat) -> (x=y) -> (S x = S y)
+S_both_side x y P = ?M_S_both_side_1
+
+using (A:Type, B:Type)
+    data or : A -> B -> Type where
+        Left : A -> or A B
+        Right : B -> or A B
+
+LTE_0_one_case : (n:Nat) -> (LTE n Z) -> (n=Z)
+LTE_0_one_case Z LTEZero = Refl
+LTE_0_one_case (S pn) (LTESucc p) impossible        
+
+-- (1 >= n) -> (n=0) or (n=1)     
+GTE_1_two_cases : (n:Nat) -> (GTE (S Z) n) -> or (n=Z) (n=(S Z))
+-- case 1>=0 (which is 0<=1 by def of >=)
+GTE_1_two_cases Z (LTEZero {right=S Z}) = Left Refl
+GTE_1_two_cases (S pn) (LTESucc n) = let pn_is_zero : (pn=Z) = ?M_GTE_1_two_cases_1 in
+                                        ?M_GTE_1_two_cases_2
+
+a_plus_zero : (a:Nat) -> (a+Z = a)
+a_plus_zero Z = Refl
+a_plus_zero (S pa) = S_both_side _ _ (a_plus_zero pa)
+                                        
+                                        
+GTE_S : (a:Nat) -> (b:Nat) -> (GTE a b) -> (GTE (S a) (S b))
+GTE_S a b p = LTESucc p                                         
+        
+        
+LTE_same : (a:Nat) -> LTE a a
+LTE_same Z = LTEZero
+LTE_same (S pa) = LTESucc (LTE_same pa)        
+        
+        
+GTE_plus : (a:Nat) -> (b:Nat) -> GTE (a+b) a
+-- Proof by induction on a
+GTE_plus a Z = let a_plus_zero_is_a : (a+Z = a) = a_plus_zero a in
+                -- this is just (LTE_same a) but with a rewriting for the goal
+                ?MGTE_plus_1
+GTE_plus Z (S pb) = LTEZero
+GTE_plus (S pa) (S pb) = LTESucc (GTE_plus pa (S pb))
+                                        
+                                        
+GTE_deleteSucc : (a:Nat) -> (b:Nat) -> (GTE (S a) (S b)) -> GTE a b
+-- This proof is just a case analysis and not a proof by induction (there's no recursive call)
+GTE_deleteSucc Z Z p = LTEZero
+--impossible but can't tag it as it : GTE_deleteSucc Z (S Z) LTEZero = ?M1
+GTE_deleteSucc Z (S (S ppb)) (LTESucc LTEZero) impossible
+GTE_deleteSucc Z (S (S ppb)) (LTESucc (LTESucc p)) impossible
+GTE_deleteSucc Z (S pb) (LTESucc LTEZero) impossible
+GTE_deleteSucc (S pa) Z p = LTEZero
+--impossible but can't be tag as it : GTE_deleteSucc (S pa) (S pb) LTEZero = ?M1
+GTE_deleteSucc (S pa) (S pb) (LTESucc p) = p
+
+
+total
+pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
+-- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
+pre_convertFin {n=Z} (FZ) m (LTEZero) impossible
+pre_convertFin {n=Z} (FS x) m _ impossible
+-- case n= Sk, which includes two cases
+  -- case FZ
+pre_convertFin {n=S k} (FZ {k=k}) m p = FZ {k=m}
+  -- case FS x, where x is an element of Fin k
+pre_convertFin {n=S k} (FS x) (S pm) p = let m_gte_k : GTE (S pm) k = GTE_deleteSucc _ _ p in
+											 let x_conv : Fin (S pm) = pre_convertFin x pm m_gte_k in
+												FS x_conv
+-- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
+-- there is only one element to convert : FZ {k=0}. But we're having an FS, and not an FZ...
+pre_convertFin {n=S k} (FS x) Z p with (decEq k Z, decEq k (S Z))
+    pre_convertFin {n=S k} (FS x) Z p | (Yes Refl, Yes Refl) impossible
+    pre_convertFin {n=S k} (FS x) Z p | (Yes Refl, No p2) impossible
+    pre_convertFin {n=S k} (FS x) Z p | (No p1, Yes Refl) impossible
+    pre_convertFin {n=S k} (FS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
+                                                            case k_is_zero_or_one of
+                                                            Left k_is_zero => ?Mpre_convertFin_1
+                                                            Right k_is_one => ?Mpre_convertFin_2
+
+-- We know that we can use pre_convertFin because (n+x) is the successor of something (ie, can't be zero), because n
+-- can't be zero (otherwise we would have an inhabitant of Fin 0)
+convertFin : (n:Nat) -> (i:Fin n) -> (x:Nat) -> Fin (n+x)
+-- n can't be zero
+convertFin Z FZ x impossible
+convertFin Z (FS pi) x impossible
+convertFin (S pn) i x = let proofGTE : (GTE (S(pn+x)) (S pn)) = ?MconvertFin_1 in
+                        pre_convertFin i (pn+x) proofGTE
+
+
+
+testconversion1 : Fin 6
+testconversion1 = pre_convertFin {n=3} (FZ {k=2}) 5 (LTESucc (LTESucc (LTESucc LTEZero)))
+-- test ok
+
+testconversion2 : Fin 6
+testconversion2 = pre_convertFin {n=3} (FS (FZ {k=1})) 5 (LTESucc (LTESucc (LTESucc LTEZero)))
+-- test ok
+
+
+
+pre_convertFin_proofIrr : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p1:GTE (S m) n) -> (p2:GTE (S m) n) -> (pre_convertFin i m p1 = pre_convertFin i m p2)
+pre_convertFin_proofIrr FZ m p1 p2 = Refl
+pre_convertFin_proofIrr (FS pi) m p1 p2 = 
+	-- Huuum... Recursive call ? How ?
+	 ?Mpre_convertFin_proofIrr_1
+	 
+	 
+elimFinZero : (x:Fin Z) -> Void
+elimFinZero FZ impossible
+elimFinZero (FS y) impossible 
+	 
+	 
+	 
+	 
+-- Proofs	 
+	 
+-- new bits
+NewAutoAssoc_tools.M_S_both_side_1 = proof
+  intros
+  rewrite P
+  mrefine Refl
+
+NewAutoAssoc_tools.M_GTE_1_two_cases_1 = proof
+  intro pn, p
+  mrefine LTE_0_one_case 
+  mrefine p
+  
+NewAutoAssoc_tools.M_GTE_1_two_cases_2 = proof
+  intros
+  mrefine Right
+  mrefine S_both_side
+  mrefine pn_is_zero 
+  
+NewAutoAssoc_tools.MGTE_plus_1 = proof
+  intros
+  rewrite (sym a_plus_zero_is_a)
+  mrefine LTE_same
+  
+NewAutoAssoc_tools.Mpre_convertFin_1 = proof
+  intros
+  mrefine void -- is the eliminator of false, previously called FalseElim (which was a better name for the logical side :-( )
+  mrefine p1
+  mrefine k_is_zero
+
+NewAutoAssoc_tools.Mpre_convertFin_2 = proof
+  intros
+  mrefine void
+  mrefine p2
+  mrefine k_is_one
+
+NewAutoAssoc_tools.MconvertFin_1 = proof
+  intros
+  mrefine GTE_S
+  mrefine GTE_plus
+  
+  
+  
+  
+  
