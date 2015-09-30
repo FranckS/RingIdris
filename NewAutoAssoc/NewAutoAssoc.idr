@@ -190,25 +190,22 @@ isElement x (y :: ys) with (prim__syntactic_eq _ _ x y)
 	isElement x (y :: ys) | Nothing = let recCall = isElement x ys in -- [| Pop (isElem x ys) |]  
 										case recCall of
 										Nothing => Nothing
-										Just (i' ** p') => Just ((FS i') ** ?MLA) 
+										Just (i' ** p') => Just ((FS i') ** ?MisElement_1) 
   
  
-{-
+
 -- Reflects lists to Expr  
 %reflection
 reflectList : {n:Nat} -> (G : Vect n (List a)) -> (x:List a) -> (m ** (G' : Vect m (List a) ** (Expr (G ++ G') x)))
 reflectList {n=n} G Nil = (Z ** ([] ** (ENil {n=n+0} {G=G++[]}))) -- What the hell. Why do I have to give precisely the Z for m ?
 reflectList {n=n} G (x :: xs) with (reflectList G xs)
      | (m ** (G' ** xs')) with (isElement (List.(::) x []) (G ++ G'))
-        | Just i = (_ ** (G' ** (App (Var i) xs')))
-        | Nothing = ?MTOSEE -- ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
+        | Just (i ** proofIndex) ?= (m ** (G' ** (App (Var i) xs')))
+        | Nothing = ?MreflectList_1 -- ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
 
--}
-   
-   
-        
+
+-- Inspiration from what Edwin is doing :
 {-
- 
 %reflection
 reflectList : (G : List (List a)) ->
           (xs : List a) -> (G' ** Expr (G' ++ G) xs)
@@ -228,10 +225,27 @@ reflectList G t with (isElem t G)
             | Just p = ([] ** Var p)
             | Nothing = ([t] ** Var Stop) 
  
- 
--} 
- 
-     
+-}         
+        
+        
+-- ---------------------------------------------------------------------------------------------------------------------------------------------
+-- What is under shows that %reflection is not dangerous for what we are doing : we produce something which is forced to have the right index !
+-- ---------------------------------------------------------------------------------------------------------------------------------------------
+
+data StupidNat : Nat -> Type where
+	Zero : StupidNat Z
+	One : StupidNat (S Z)
+	Succ : (StupidNat n) -> StupidNat (S n)
+   
+%reflection
+encode : (x:Nat) -> StupidNat x
+-- Good thing, the (stupid!) line above is rejected : the %reflection notation still procudes something TYPED !
+-- That means that in my real function reflectList, I can't return something which doesn't have the right index
+--encode Z = One
+encode Z = Zero
+encode (S px) = Succ (encode px)
+   
+
 -- ----------------------------------------------------     
 -- Theoretical bit, not relevant for the implementation 
 -- ----------------------------------------------------
@@ -287,9 +301,9 @@ NewAutoAssoc.bp1 = proof {
 
 
 
--- ---------------------
--- Automatic reflection 
--- ---------------------
+-- -----------------------------------
+-- Proofs for the automatic reflection 
+-- ------------------------------------
 -- Just uses the proof of Void that we have constructed in the context
 NewAutoAssoc.MlemmaExtension_1 = proof
   intros
@@ -301,9 +315,12 @@ NewAutoAssoc.MlemmaExtension_2 = proof
   rewrite (pre_convertFin_proofIrr pi _ (LTESucc (GTE_plus pk m)) (GTE_plus (S pk) m))
   mrefine Refl
 
+NewAutoAssoc.MisElement_1 = proof
+  intros
+  exact (elemInBigerVect _ x p' y)
 
 
 
-
-
+  
+  
 

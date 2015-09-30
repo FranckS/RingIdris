@@ -128,7 +128,12 @@ elimFinZero FZ impossible
 elimFinZero (FS y) impossible 
 	 
 	 
+-- for all vector v, if the ith element of v is elem, then the (i+1)th element of any vector with one more element on the left is still elem	 
+elemInBigerVect : {T:Type} -> {v : Vect n T} -> (i:Fin n) -> (elem:T) -> (proofInside : index i v = elem) -> (head:T) -> (index (FS i) (head::v) = elem) 
+elemInBigerVect fZ elem proofInside = ?MelemInBigerVect_1 -- why can't I just give proofInside here and need to do it in proof mode ?
+elemInBigerVect (FS i') elem proofInside = ?MelemInBigerVect_2
 	 
+
 	 
 -- Proofs	 
 	 
@@ -171,7 +176,12 @@ NewAutoAssoc_tools.MconvertFin_1 = proof
   mrefine GTE_S
   mrefine GTE_plus
   
+NewAutoAssoc_tools.MelemInBigerVect_1 = proof
+  intros
+  exact proofInside 
   
-  
-  
+NewAutoAssoc_tools.MelemInBigerVect_2 = proof
+  intros
+  exact proofInside 
+
   
