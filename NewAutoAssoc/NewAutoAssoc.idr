@@ -249,7 +249,7 @@ encode (S px) = Succ (encode px)
 -- ----------------------------------------------------     
 -- Theoretical bit, not relevant for the implementation 
 -- ----------------------------------------------------
-                   
+total           
 decode : {G:Vect n (List a)} -> (Expr G x) -> List a
 decode ENil = []
 decode {G=G} (Var i) = index i G
@@ -267,11 +267,28 @@ decode_correct (App e1 e2) =
 		rewrite e1_decode_ok in (rewrite e2_decode_ok in Refl)
  
  
+-- -----------------------------------------------------------------------------
+-- Just three getters for (m ** (G ** e)) needed for expressing our main theorem
+-- -----------------------------------------------------------------------------
+total
+getSizeVector : {x:List a} -> (G:Vect n (List a)) -> (arg:(m:Nat ** (G':Vect m (List a) ** Expr (G++G') x))) -> Nat
+getSizeVector G (m ** (G' ** e)) = m
+
+total
+getContext : {x:List a} -> (G:Vect n (List a)) -> (arg:(m:Nat ** (G':Vect m (List a) ** Expr (G++G') x))) -> Vect (getSizeVector G arg) (List a)
+getContext G (m ** (G' ** e)) = G'
+
+total
+getExp : {x:List a} -> (G:Vect n (List a)) -> (arg:(m:Nat ** (G':Vect m (List a) ** Expr (G++G') x))) -> Expr (G++(getContext G arg)) x
+getExp G (m ** (G' ** e)) = e
  
--- Main theorem
--- theoremIdentity : {G:Vect n (List a)} -> (x:List a) -> decode ( -- I need to have the encode function (reflection) defined here, in order to be able to talk about it. To be added.
- 
-     
+-- Main theorem : for all x, the decode of the encode of x gives x
+--theoremIdentity : (G:Vect n (List a)) -> (x:List a) -> (let (m ** (G' ** e)) = reflectList G x in decode e = x  -- I need to have the encode function (reflection) defined here, in order to be able to talk about it. To be added.
+theoremIdentity : {a:Type} -> {n:Nat} -> (G:Vect n (List a)) -> (x:List a) -> (decode (getExp G (reflectList G x)) = x) 
+theoremIdentity G [] = Refl
+theoremIdentity G (h::t) = ?MtheoremIdentity_1 -- Should be easy once reflect is defined for (h::t) !
+
+    
 ---------- Proofs ----------
 
 NewAutoAssoc.appRExpr1 = proof {
