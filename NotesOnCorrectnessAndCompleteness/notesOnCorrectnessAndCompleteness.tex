@@ -1,0 +1,56 @@
+% Franck's notes on correctness and completeness !
+% last revision : 30 Sept 2015
+\documentclass{llncs}
+%
+\usepackage{makeidx}  % allows for indexgeneration
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage[literate]{idrislang} 
+%\usepackage{multicol}
+
+
+%
+\begin{document}
+%
+\frontmatter          % for the preliminaries
+%
+\pagestyle{headings}  % switches on printing of running heads
+%\addtocmark{Hamiltonian Mechanics} % additional mark in the TOC
+%
+
+\mainmatter              % start of the contributions
+%
+\title{Notes on correctness and completeness of the approach we've followed and comparison with Coq} 
+%
+\titlerunning{Notes on correctness and completeness}  % abbreviated title (for running head)
+%                                     also used for the TOC unless
+%                                     \toctitle is used
+%
+\author{Franck Slama}
+%
+\authorrunning{Franck Slama} % abbreviated author list (for running head)
+%
+%%%% list of authors for the TOC (use if author list has to be modified)
+%%%\tocauthor{}
+%
+\institute{University of St Andrews, St Andrews, United Kingdom\\
+\email{fs39@st-andrews.ac.uk}
+%,\\ WWW home page:
+%\texttt{http://users/\homedir iekeland/web/welcome.html}
+}
+
+\maketitle              % typeset the title of the contribution
+
+
+
+Our correctness lemma :
+$\forall x y,\ norm (T(x)) = T(y) \rightarrow x = y$
+
+If the normalisation of the reflection of x gives the reflection of y, then x=y
+
+
+
+
+\end{document}
