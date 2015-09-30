@@ -239,7 +239,7 @@ data StupidNat : Nat -> Type where
    
 %reflection
 encode : (x:Nat) -> StupidNat x
--- Good thing, the (stupid!) line above is rejected : the %reflection notation still procudes something TYPED !
+-- Good thing, the (stupid!) line just under is rejected : the %reflection notation still procudes something TYPED !
 -- That means that in my real function reflectList, I can't return something which doesn't have the right index
 --encode Z = One
 encode Z = Zero
