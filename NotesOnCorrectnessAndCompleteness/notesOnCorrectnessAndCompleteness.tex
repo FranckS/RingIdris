@@ -44,9 +44,55 @@
 \maketitle              % typeset the title of the contribution
 
 
+\section{Correctness}
 
-Our correctness lemma :
-$\forall x y,\ norm (T(x)) = T(y) \rightarrow x = y$
+We note $C$ the concrete type on which we aim to prove things like $a=b$ (ie, both $a$ and $b$ have type $C$).
+\\
+\\
+There is a type for reflected terms of type $C$, noted $ExprC$.
+There could be a specialised type for normalised reflected elements $ExprNC$, but in our implementation, we still use $ExprC$ for that, which means that we've got $ExprNC = ExprC$ (this is not the case in Coq's implementation).
+\\
+\\
+Now, something important and new in our approach, is that $ExprC$ is indexed over $C$ (i.e., $ExprC$ has type $C\ \rightarrow\ Type$). This index represents the concrete term (of type $C$) which is encoded by this encoding.
+For each element $e$ of type $ExprC\ c$, we will note $e_c$ to explicitly show the index of this term.
+\\
+\\
+In the formalism presented in [1], which describes Coq's implementation of the Ring tactic, they use a function $\phi_{C} : ExprC\ \rightarrow\ C$ to get back the concrete element.
+They've got the same thing for the type of normalised polynomials, with the function $\phi_{NC} : ExprNC\ \rightarrow\ C$. 
+In our formalism, we don't need such functions, but we could write them. This function would simply return the index. If we don't want to cheat by simply returning the index (which is not good in term of erasure, even if it doesn't really matter here), we can easily recompute this index, and show that $\forall (c:C) (e:ExprC\ c), \phi_C (e) = c$ which really means that this function has in fact just returned the index.
+\\
+\\
+In their formalism, they also use a metaification function, also called the function of automatic reflection. They define it in LTac, and we define it with  by using $\%syntax$ in Idris, which allows to pattern match on syntax rather that on constructors. The idea of this function is simply to compute the reflected term (of type ExprC c) representing a concrete value $c$ of type $C$.
+In their formalism, this function isn't typed. Is our formalism, where the abstract values are index over the concrete one, and thanks to the fact that $\%syntax$ allows to produce typed terms, we define it with this type : $\tau : (c:C)\ \rightarrow\ ExprC\ c$. In this sense, we can talk about type safe reflection : the term produced by the automatic reflection is guarantee to be a faithful representation of the concrete term we've given in input.
+\\
+\\
+Now, what we want to do is to try to prove $a=b$. For that, we will compute the encoding of $a$ and $b$, namely, $\tau\ a$ and $\tau\ b$.  The first thing to notice here is that $\tau\ a$ has for index $a$, as described by the type of the function $\tau$. We can thus write $(\tau\ a)_a$ in order to emphasize on the fact that $\tau\ a$ has for index $a$. We've got the same for $(\tau\ b)$ that we will write $(\tau\ b)_b$.
+\\
+\\
+Now, we're going to run the normalisation algorithm on both $(\tau\ a)_a$ and $(\tau\ b)_b$. The normalisation procedure has this profile: \\
+$norm : \forall\ c,\ ExprC\ c\ \rightarrow\ (c'\ **\ (Expr\ c',\ c=c'))$. \\
+That means that running the normalisation algorithm on $(\tau\ a)_a$ will produce a dependent pair composed of an element $(a':C)$ and a term of type $ExprC \ a'$, that we write $(norm((\tau\ a)_a))_{a'}$, which is a term indexed over the new index $a'$. This function also produces a proof of $a=a'$.
+\\
+\\
+The same thing happens when we run the normalisation algorithm on $(\tau\ b)_b$ : that produces a value $(b':C)$, a term $(norm((\tau\ b)_b))_{b'}$ which has for index the $b'$ which has just been produced, and a proof that $b=b'$.
+\\
+\\
+Now, we're going to compare syntactically $(norm((\tau\ a)_a))_{a'}$ and $(norm((\tau\ b)_b))_{b'}$. What is really important is that if they're syntactically the same, then they're forced to be indexed over the same index : if an element of $ExprC\ a'$ equals (syntactically!) en element of $ExprC\ b'$, then this implies $a'=b'$\footnote{In fact, in our implementation, we don't even bother and this function of syntactical comparison directly produces the proof of equality of the indices if the two reflected terms are syntactically the same : it has for type $(ExprC\ a') \rightarrow (ExprC\ b')\ \rightarrow\ Maybe(a'=b')$ and not $(e1:ExprC\ a') \rightarrow (e2:ExprC\ b')\ \rightarrow\ Maybe(e1=e2)$. This is simply because we're not interested in the proof of equality between the reflected terms, so instead of producing it, and having an external lemma $extLemma:forall (a'\ b':C)\ (e1:ExprC\ a')\ (e2:ExprC\ b'),\ (e1=e2)\ \rightarrow\ (a'=b')$, which says that if two reflected terms are equal, then their index are also equal, we simply just produces the proof we need.}.
+\\
+\\
+So, if they're syntactically exactly equivalent, then we've also got $a'=b'$. But since we already had $a=a'$ and $b=b'$, we can compose these three proofs to produce the produce a proof of the desired property $a=b$. 
+\\
+In fact, everything has been made possible thanks to the following property, which doesn't even need to be expressed because it is already in the type of the function $norm$ :
+$\forall (x\ y\ :\ C),\ norm ((T(x))_x) = Y_y \rightarrow x = y$
+
+In their approach, because they don't follow this kind of "type-safe reflection", they do need a correctness lemma, which says : \\
+$\forall (e1:ExprC)(e2:ExprC),\ \phi_{NC}\ (norm\ e1)\ =\ \phi_C\ e1$.
+So, what will happen is that they will compute (norm\ e1) and (norm\ e2). 
+
+
+
+
+
 
 If the normalisation of the reflection of x gives the reflection of y, then x=y
 
