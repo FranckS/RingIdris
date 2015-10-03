@@ -43,6 +43,8 @@
 
 \maketitle              % typeset the title of the contribution
 
+\abstract
+I compare briefly Coq's ring prover and the provers for different algebraic structures we've built for Idris. I just focus on the correctness and completeness in theses notes.
 
 \section{Correctness}
 
@@ -54,7 +56,7 @@ There could be a specialised type for normalised reflected elements $ExprNC$, bu
 \\
 \\
 Now, something important and new in our approach, is that $ExprC$ is indexed over $C$ (i.e., $ExprC$ has type $C\ \rightarrow\ Type$). This index represents the concrete term (of type $C$) which is encoded by this encoding.
-For each element $e$ of type $ExprC\ c$, we will note $e_c$ to explicitly show the index of this term.
+For each element $e$ of type $ExprC\ c$, we will note $e_c$ to explicitly show the index of this term (which can entirely be computed by the type-checker).
 \\
 \\
 In the formalism presented in [1], which describes Coq's implementation of the Ring tactic, they use a function $\phi_{C} : ExprC\ \rightarrow\ C$ to get back the concrete element.
@@ -77,25 +79,34 @@ That means that running the normalisation algorithm on $(\tau\ a)_a$ will produc
 The same thing happens when we run the normalisation algorithm on $(\tau\ b)_b$ : that produces a value $(b':C)$, a term $(norm((\tau\ b)_b))_{b'}$ which has for index the $b'$ which has just been produced, and a proof that $b=b'$.
 \\
 \\
-Now, we're going to compare syntactically $(norm((\tau\ a)_a))_{a'}$ and $(norm((\tau\ b)_b))_{b'}$. What is really important is that if they're syntactically the same, then they're forced to be indexed over the same index : if an element of $ExprC\ a'$ equals (syntactically!) en element of $ExprC\ b'$, then this implies $a'=b'$\footnote{In fact, in our implementation, we don't even bother and this function of syntactical comparison directly produces the proof of equality of the indices if the two reflected terms are syntactically the same : it has for type $(ExprC\ a') \rightarrow (ExprC\ b')\ \rightarrow\ Maybe(a'=b')$ and not $(e1:ExprC\ a') \rightarrow (e2:ExprC\ b')\ \rightarrow\ Maybe(e1=e2)$. This is simply because we're not interested in the proof of equality between the reflected terms, so instead of producing it, and having an external lemma $extLemma:forall (a'\ b':C)\ (e1:ExprC\ a')\ (e2:ExprC\ b'),\ (e1=e2)\ \rightarrow\ (a'=b')$, which says that if two reflected terms are equal, then their index are also equal, we simply just produces the proof we need.}.
+Now, we're going to compare syntactically $(norm((\tau\ a)_a))_{a'}$ and $(norm((\tau\ b)_b))_{b'}$. What is really important is that if they're syntactically the same, then they're forced to be indexed over the same index : if an element of $ExprC\ a'$ equals (syntactically!) en element of $ExprC\ b'$, then this implies \footnote{In fact, in our implementation, we don't even bother and this function of syntactical comparison directly produces the proof of equality of the indices if the two reflected terms are syntactically the same : it has for type $(ExprC\ a') \rightarrow (ExprC\ b')\ \rightarrow\ Maybe(a'=b')$ and not $(e1:ExprC\ a') \rightarrow (e2:ExprC\ b')\ \rightarrow\ Maybe(e1=e2)$. This is simply because we're not interested in the proof of equality between the reflected terms, so instead of producing it, and having later an external lemma $extLemma:forall (a'\ b':C)\ (e1:ExprC\ a')\ (e2:ExprC\ b'),\ (e1=e2)\ \rightarrow\ (a'=b')$, which says that if two reflected terms are equal, then their index are also equal, we simply directly produce the proof we need.} $a'=b'$ \footnote{Note that the default equality is heterogeneous in Idris}.
 \\
 \\
 So, if they're syntactically exactly equivalent, then we've also got $a'=b'$. But since we already had $a=a'$ and $b=b'$, we can compose these three proofs to produce the produce a proof of the desired property $a=b$. 
 \\
-In fact, everything has been made possible thanks to the following property, which doesn't even need to be expressed because it is already in the type of the function $norm$ :
-$\forall (x\ y\ :\ C),\ norm ((T(x))_x) = Y_y \rightarrow x = y$
-
+In fact, everything has been made possible thanks to the following property (which doesn't even need to be expressed because it is already in the type of the function $norm$) : \\
+$\forall (x\ y\ :\ C),\ norm ((\tau(x))_x) = Y_y \rightarrow x = y$
+\\
+\\
 In their approach, because they don't follow this kind of "type-safe reflection", they do need a correctness lemma, which says : \\
-$\forall (e1:ExprC)(e2:ExprC),\ \phi_{NC}\ (norm\ e1)\ =\ \phi_C\ e1$.
-So, what will happen is that they will compute (norm\ e1) and (norm\ e2). 
-
-
-
-
-
-
-If the normalisation of the reflection of x gives the reflection of y, then x=y
-
+$\forall (e:ExprC),\ \phi_{NC}\ (norm\ e)\ =\ \phi_C\ e$. \\
+So, what will happen is that they will compute $(norm\ \tau(a))$ and $(norm\ \tau(b))$, exactly like us. 
+Then, like us, they will compare these two values syntactically. If they are equal, then they get
+$(norm\ \tau(a)) = (norm\ \tau(b))$. By applying $\phi_{NC}$ to both sides of this equality, they get $(\phi_{NC} (norm\ \tau(a))) = \phi_{NC} ((norm\ \tau(b)))$. But since $\phi_{NC} (norm\ \tau(a)) = \phi_C\ (\tau(a))$ and $\phi_{NC} (norm\ \tau(b)) = \phi_C\ (\tau(b))$ (from their correctness lemma), they get : \\
+$\phi_C (\tau(a)) = \phi_C (\tau(b))$. \\
+Now, if the functions $\phi_C$ and $\tau$ have been correctly defined, we should have $\forall x, \phi_C (\tau(x)) = x$. The problem is that this lemma hasn't been proved, and can't even be expressed, simply because the function $\tau$ is defined by using LTac. Unlike the $\%syntax$ directive in Idris, which still produces "normal" (typed) functions on which we can reason, LTac intend to define untyped things, which lie outside the world of terms and types of Coq.
+\\
+However, that doesn't break the correctness of their approach, because the correctness is in fact ensured by Coq's typechecker. When you try to produce a proof of $a=b$, there's no risk to produce a proof of $\phi_C (\tau(a)) = \phi_C (\tau(b))$, which is indeed an equality proof on the type $C$. If the typechecker will be able to unify together the left hand sides $a$ and $\phi_C (\tau(a))$, and together the right hand sides $b$ and $\phi_C (\tau(b))$, then the system will consider that they have generated a valid proof of $a=b$. If not, then the type-system will shout.
+\\
+Obviously, this can affect the completeness of the approach. Let's imagine that the function $\tau$ (defined in Ltac), always return the encoding of the constant $O:C$. Let's also imagine that the function $\phi_C$ is well defined (ie, it pattern matches on the constructor of ExprC, and returns the underlying expressions of type $C$). Then, every time we will apply this tactic, it will produce $expr_0$ (reflecting $O$) for both $\tau(a)$ and $\tau(b)$. The normalisation will give $norm(expr_O)$ for both $norm(\tau(a))$ and $norm(\tau(b))$ (we don't care of what it actually computes), which are therefore equal : 
+$norm(expr_O) = norm(expr_O)$. By applying $\phi_{NC}$ on both side we will get $\phi_{NC} (norm(expr_O)) = \phi_{NC} (norm(expr_O))$. By applying the correctness lemma 2 times, we get :
+$\phi_C (expr_O) = \phi_C (expr_O)$. Since $\phi_C$ is supposed to be correct, $\phi_C$ applied on the encoding of $O$ should give back $O$. We've therefore produce a proof of $0=0$. That means that this equality is the only one we can prove in this system where $\tau$ has been defined to always return the same term. We've completely lost the completeness.
+\\
+\\
+Here, we see clearly the big advantage of our type-safe reflection : we're absolutely sure that $\tau(x)$ is a faithful representation of $x$, because $\tau(x)$ has for type $\tau : (c:C)\ \rightarrow\ ExprC\ c$. And we don't need a function $\tau$ to get back the concrete values, as we already have them available at the type level !
+\\
+\\
+Now, one could be tempted to think that having the property $\forall x, \phi_C (\tau(x)) = x$ (which is not hard to get) is enough for ensuring the completeness. In fact, that's not enough, but that's necessary. As shown before, without this property, the prover they've build is still correct but might be completely unusable because completely incomplete. But that's not enough.
 
 
 
