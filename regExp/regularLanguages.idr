@@ -68,13 +68,13 @@ data (~=) : {A:Type} -> RegularExpression A -> RegularExpression A -> Type where
 	-- The product of languages is associative
 	ProductAssociative : {A:Type} -> (r:RegularExpression A) -> (s:RegularExpression A) -> (t:RegularExpression A) -> ((r.s) . t) ~= (r . (s.t))
 	
-	-- Epsilon  is neutral for the product
+	-- Epsilon is neutral for the product
 	ProductNeutral_1 : {A:Type} -> (r:RegularExpression A) -> (r . Epsilon) ~= r
 	ProductNeutral_2 : {A:Type} -> (r:RegularExpression A) -> (Epsilon . r) ~= r
 	
 	-- Distributivity of the product of languages over the Plus
 	ProductDistributiveOverPlus_1 : {A:Type} -> (r:RegularExpression A) -> (s:RegularExpression A) -> (t:RegularExpression A) -> (r . (s+t)) ~= ((r.s) + (s.t)) -- REALLY ? I have to spaces dots between the ".' otherwise it doesn't typecheck ?
-	ProductDistributiveOverPlus_2 : {A:Type} -> (r:RegularExpression A) -> (s:RegularExpression A) -> (t:RegularExpression A) -> ((s+t) . r) ~= (s.r + t.r)	 -- This little problem doesn't happen here
+	ProductDistributiveOverPlus_2 : {A:Type} -> (r:RegularExpression A) -> (s:RegularExpression A) -> (t:RegularExpression A) -> ((s+t) . r) ~= ((s . r) + (t . r))	 -- This little problem doesn't happen here
 	
 	-- ------------------------------- --
 	-- Pre Semi-Ring with extra axioms --
@@ -107,10 +107,12 @@ data (~=) : {A:Type} -> RegularExpression A -> RegularExpression A -> Type where
 -- -----------------------------------
 
 -- Reflexivity : forall r, r=r
+total
 RE_eq_refl : {A:Type} -> (r:RegularExpression A) -> r ~= r
 RE_eq_refl r = SyntacticalEqual r -- Easy, we have it by definition
 
 -- Symmetry : forall r,s, r=s -> s=r
+total
 RE_eq_sym : {A:Type} -> (r:RegularExpression A) -> (s:RegularExpression A) -> (r ~= s) -> (s ~= r)
 RE_eq_sym r s p = RE_eq_Symmetry r s p -- Same here : it's easy as we have it by definition
 
@@ -122,13 +124,26 @@ RE_eq_transitivity _ _ _ (SyntacticalEqual _) p2 = p2
 -- To be continued...
 
 
+-- This thing should certainly be an axiom (ie, in the definition of "~=".
+-- I don't think there's any way to prove it
+Product_preserves_eq : {A:Type} -> (r1 : RegularExpression A) -> (r1' : RegularExpression A) -> 
+	(r2 : RegularExpression A) -> (r2' : RegularExpression A) -> (r1 ~= r1') -> (r2 ~= r2') -> (r1 . r2 ~= r1' . r2')
+Product_preserves_eq r1 r1' r2 r2' p1 p2 = ?MProduct_preserves_eq_1	
 
--- This is an attempt of proving one of the axioms (ProductSecondNeutral_2) defining the equivalence relation on regular expression
-pr_ProductNeutral_2 : {A:Type} -> (r:RegularExpression A) -> ((Empty . r) ~= Empty)
-pr_ProductNeutral_2 r = let paux1 : (r . r ~= (r + Empty) . r) = ?MMMM1 in
-						let paux2 : ((r + Empty) . r ~= (r . r) + (Empty . r)) = ?M2 in
-						let paux3 : (r . r ~= (r . r) + (Empty . r)) = ?M3 in -- RE_eq_transitivity _ _ _ paux1 paux2 in -- Uses the transitivity of eq
-						?MMM	-- To finish the proof, I'll need the lemma x = x + y -> 0 = y. Now the question is, can I prove this, without having opposite elements ? (we are in a pre semi-ring only, not a ring)
+	
+-- Huuum... Is it really better to have this axiom rather than ProductAbsorbingElement_2 ?
+addLeft : {A:Type} -> (r1 : RegularExpression A) -> (r2 : RegularExpression A) -> (left : RegularExpression A) -> (left+r1 ~= left+r2) -> (r1~=r2)
+addLeft _ _ left (SyntacticalEqual (left+r1)) = SyntacticalEqual r1
+addLeft r1 r2 left (RE_eq_Symmetry (left+r2) (left+r1) p) = ?MX
+-- Huuum...	
+	
+	
+-- This is an attempt of proving one of the axioms (ProductAbsorbingElement_2) defining the equivalence relation on regular expression
+pr_ProductAbsorbingElement_2 : {A:Type} -> (r:RegularExpression A) -> ((Empty . r) ~= Empty)
+pr_ProductAbsorbingElement_2 r = let paux1 : (r . r ~= (r + Empty) . r) = ?Mpr_ProductAbsorbingElement_2_1 in
+			let paux2 : ((r + Empty) . r ~= (r . r) + (Empty . r)) = ProductDistributiveOverPlus_2 _ _ _ in
+			let paux3 : (r . r ~= (r . r) + (Empty . r)) = ?Mpr_ProductAbsorbingElement_2_2 in -- Uses the transitivity of eq with the two proofs paux1 and paux2
+				?Mpr_ProductAbsorbingElement_2_3 -- Yes, I can do it without having the lemma x = x + y -> 0 = y ! (Reminder : we are in a pre semi-ring only, not a ring, we don't have Minus here)
 
 
 
@@ -136,7 +151,8 @@ data ProductionRule : (A:Type) -> (n:Nat) -> Type where -- A production rule for
 	Prod1 : {A:Type} -> {n:Nat} -> (X:Fin n) -> (a:A) -> (Y:Fin n) -> ProductionRule A n -- X -> a Y
 	Prod2 : {A:Type} -> {n:Nat} -> (X:Fin n) -> (a:A) -> ProductionRule A n -- X -> a
 	Prod3 : {A:Type} -> {n:Nat} -> (X:Fin n) -> ProductionRule A n -- X -> Epsilon
-
+	Prod4 : {A:Type} -> {n:Nat} -> (X:Fin n) -> (Y:Fin n) -> ProductionRule A n -- X -> Y
+	
 
 -- A (right regular) grammar (with n non terminals) is a collection of rules
 data Grammar : (A:Type) -> (n:Nat) -> Type where
@@ -173,6 +189,9 @@ equationOfNonTerminal (AddProdRule (Prod2 X a) g') U with (eq_dec_fin U X)
 equationOfNonTerminal (AddProdRule (Prod3 X) g') U with (eq_dec_fin U X)
 	equationOfNonTerminal (AddProdRule (Prod3 X) g') U | Just prEq = Epsilon + equationOfNonTerminal g' U
 	equationOfNonTerminal (AddProdRule (Prod3 X) g') U | Nothing = equationOfNonTerminal g' U
+equationOfNonTerminal (AddProdRule (Prod4 X Y) g') U with (eq_dec_fin U X)
+	equationOfNonTerminal (AddProdRule (Prod4 X Y) g') U | Just prEq = (Symbol (NonTerminal Y)) + (equationOfNonTerminal g' U)
+	equationOfNonTerminal (AddProdRule (Prod4 X Y) g') U | Nothing = (equationOfNonTerminal g' U)
 -- For the last production rule
 equationOfNonTerminal (AddLastProdRule (Prod1 X a Y)) U with (eq_dec_fin U X)
 	equationOfNonTerminal (AddLastProdRule (Prod1 X a Y)) U | Just prEq = (Symbol (Terminal a)) . (Symbol (NonTerminal Y))
@@ -183,19 +202,37 @@ equationOfNonTerminal (AddLastProdRule (Prod2 X a)) U with (eq_dec_fin U X)
 equationOfNonTerminal (AddLastProdRule (Prod3 X)) U with (eq_dec_fin U X)
 	equationOfNonTerminal (AddLastProdRule (Prod3 X)) U | Just prEq = Epsilon
 	equationOfNonTerminal (AddLastProdRule (Prod3 X)) U | Nothing = Empty
+equationOfNonTerminal (AddLastProdRule (Prod4 X Y)) U with (eq_dec_fin U X)
+	equationOfNonTerminal (AddLastProdRule (Prod4 X Y)) U | Just prEq = (Symbol (NonTerminal Y))
+	equationOfNonTerminal (AddLastProdRule (Prod4 X Y)) U | Nothing = Empty
 	
+
+total
+unwrap : {A:Type} -> {n:Nat} -> RegularExpression (TerminalOrNonTerminal A n) -> (RegularExpression A) 
+unwrap (Symbol (Terminal a)) = Symbol a
+unwrap (Symbol (NonTerminal N)) = ?AXIOM_UNWRAP_TOTAL
+unwrap Epsilon = Epsilon
+unwrap Empty = Empty
+unwrap (e1+e2) = (unwrap e1) + (unwrap e2)
+unwrap (e1 . e2) = (unwrap e1) . (unwrap e2)
+unwrap (Star e) = Star (unwrap e)
+
 
 -- Solves the equation X=eq where eq is an equation (a regular expression with terminals or the non terminal X)
 total
 ardenSolver : {A:Type} -> {n:Nat} -> (X:Fin n) -> (eq:RegularExpression (TerminalOrNonTerminal A n)) -> RegularExpression A
--- Will need a real arden solver ! This trivial stuff which doesn't deal with non terminal is for testing purposes only !
-ardenSolver X Epsilon = Epsilon
-ardenSolver X Empty = Empty
-ardenSolver X (Symbol (Terminal a)) = Symbol a
-ardenSolver X (Symbol (NonTerminal N)) = ?MmagicalArden -- Will be the hardest part
-ardenSolver X (e1+e2) = (ardenSolver X e1) + (ardenSolver X e2)
-ardenSolver	X (e1 . e2) = (ardenSolver X e1) . (ardenSolver X e2)
-ardenSolver X (Star e) = (ardenSolver X e) -- I don't think this case can happen, as Arden produces the Star, so we should not have them in input
+-- Solving equations live X = a.X + b, or X = b + a.X, or X = a.X (note : it can't be X = X.a because we deal with right regular grammars)
+-- X = a.X + b -> X = a*.b by Arden theorem
+ardenSolver X ((a . (Symbol (NonTerminal Y))) + b) = -- Y can only be X because we've unfolded all the non terminals which were not X
+    (Star (unwrap a)) . (unwrap b)
+-- X = b + a.X -> X = a*.b by Arden theorem
+ardenSolver X (b + (a . (Symbol (NonTerminal Y)))) = -- Y can only be X because we've unfolded all the non terminals which were not X
+    (Star (unwrap a)) . (unwrap b)
+-- X = a.X -> X = Empty by Arden Theorem (because X = aX -> X = aX + Empty -> X = a*.Empty = Empty, which cas also be seen because there's no rule for stoping the recursivity)
+ardenSolver X (a . (Symbol (NonTerminal Y))) = 
+    -- the equation X = a.X has Empty for solution : "there's no rule for stoping the recursivity"
+    Empty 
+ardenSolver X other = unwrap other
 
 
 total
@@ -224,7 +261,7 @@ mutual
 	
 	languageOfNonTerminal : {A:Type} -> {n:Nat} -> (Grammar A n) -> (U:Fin n) -> RegularExpression A
 	languageOfNonTerminal g U = let eq_U = equationOfNonTerminal g U in 
-									ardenSolver U (unfold g eq_U U)
+					ardenSolver U (unfold g eq_U U)
 	
 
 -- Computes the language generated by a grammar (which contains at least one non terminal, usually denoted S and called the axiom)
@@ -270,6 +307,50 @@ L_g1 = languageOfGrammar g1
 
 
 
+
+
+{- Just a simple testing
+g2 = {
+	p1 : S -> a S
+	p2 : S -> U
+	p3 : U -> b U
+	p3 : U -> epsilon
+	}
+The language should be a*.b*.epsilon (which is simplifiable to a*.b* but that does not matter) 
+-}
+ 
+-- The 4 production rules
+-- Reminder : S (called the axiom of the grammar is considered to be FZ, so we have to obei this rule)
+p1_2 : ProductionRule Alph 2
+p1_2 = Prod1 FZ A FZ -- S -> a S
+
+p2_2 : ProductionRule Alph 2
+p2_2 = Prod4 FZ (FS FZ) -- S -> U
+
+p3_2 : ProductionRule Alph 2
+p3_2 = Prod1 (FS FZ) B (FS FZ) -- U -> b U
+
+p4_2 : ProductionRule Alph 2
+p4_2 = Prod3 (FS FZ) -- U -> epsilon
+
+-- Grammar over the Alphabet Alph, with 2 non terminals
+g2 : Grammar Alph 2
+g2 = AddProdRule p1_2 (AddProdRule p2_2 (AddProdRule p3_2 (AddLastProdRule p4_2)))
+
+
+-- Computes automatically the language generated by the grammar g2
+L_g2 : RegularExpression Alph
+L_g2 = languageOfGrammar g2
+
+
+
+
+
+
+
+
+
+
 {-
 languageOfNonTerminal' : {A:Type} -> {n:Nat} -> (Grammar A n) -> (U:Fin n) -> RegularExpression A
 languageOfNonTerminal' g U = languageOfNonTerminal'_aux g U [] where
@@ -283,3 +364,35 @@ languageOfNonTerminal' g U = languageOfNonTerminal'_aux g U [] where
 
 
 
+
+---------- Proofs ----------
+
+Main.Mpr_ProductAbsorbingElement_2_1 = proof
+  intros
+  mrefine Product_preserves_eq 
+  mrefine RE_eq_sym 
+  mrefine RE_eq_refl 
+  mrefine UnionNeutral_1
+
+Main.Mpr_ProductAbsorbingElement_2_2 = proof
+  intros
+  mrefine RE_eq_transitivity 
+  exact (r + Empty) . r
+  exact paux1
+  exact paux2  
+
+Main.Mpr_ProductAbsorbingElement_2_3 = proof
+  intros
+  mrefine addLeft 
+  exact (r . r)
+  mrefine RE_eq_transitivity 
+  exact (r . r)
+  mrefine RE_eq_sym 
+  mrefine RE_eq_sym 
+  exact paux3
+  mrefine UnionNeutral_1
+  
+  
+  
+  
+  
