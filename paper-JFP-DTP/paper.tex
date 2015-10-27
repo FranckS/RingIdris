@@ -1,0 +1,133 @@
+% paper.tex
+
+\NeedsTeXFormat{LaTeX2e}
+
+\documentclass{jfp1}
+
+\usepackage{float}
+
+%%% Macros for the guide only %%%
+\providecommand\AMSLaTeX{AMS\,\LaTeX}
+\newcommand\eg{\emph{e.g.}\ }
+\newcommand\etc{\emph{etc.}}
+\newcommand\bcmdtab{\noindent\bgroup\tabcolsep=0pt%
+  \begin{tabular}{@{}p{10pc}@{}p{20pc}@{}}}
+\newcommand\ecmdtab{\end{tabular}\egroup}
+\newcommand\rch[1]{$\longrightarrow\rlap{$#1$}$\hspace{1em}}
+\newcommand\lra{\ensuremath{\quad\longrightarrow\quad}}
+
+\title[Automatically proving equivalence by type-safe reflection]
+      {Automatically proving equivalence by type-safe reflection}
+
+ \author[Franck Slama and Edwin Brady]
+        {FRANCK SLAMA and EDWIN BRADY\\
+         University of St Andrews, United Kingdom\\
+         \email{fs39@st-andrews.ac.uk, ecb10@st-andrews.ac.uk}}
+
+\jdate{December 2015}
+\pubyear{2016}
+\pagerange{\pageref{firstpage}--\pageref{lastpage}}
+\doi{S0956796801004857}
+
+\newtheorem{lemma}{Lemma}[section]
+
+\begin{document}
+
+\label{firstpage}
+
+\maketitle
+
+\begin{abstract}
+% The abstract should be at most 300 words for the Journal of Functional Programming
+Idris is a general purpose purely functional programming language with dependent types, aiming to bring type-based program verification techniques to functional programmers. One common difficulty with programming with dependent types is that proof obligations arise naturally once programs become even moderately sized. For example, implementing an adder for binary numbers indexed over their natural number equivalents will naturally lead to proof obligations for equalities of expressions over natural numbers. 
+As far as possible, we would like to solve such proof obligations automatically. In this paper, we show one way to automate such proofs by reflection. We will show how representing Idris expressions in a reflected form, indexed by the original Idris expression, leads to straightforward construction and manipulation of proofs.
+With this type-safe reflection technique, the resulting expressions are guaranteed to be faithful representations of the corresponding inputs and any generated proof is guaranteed to be a proof of the required property. 
+We will first present the technique on a small example, where we aim to automatically prove equalities with universally quantified lists and the associative concatenation operation, and later show how this idea is generalised to various kind of properties (or axioms) that might be available (for example : commutativity, distributivity, existence of neutral elements...), leading to a hierarchy of reflexive tactics for Monoids, Commutative Monoids, Groups, Commutative Groups, Rings, and so on, written in Idris, for proving different kind of equivalence. We will also show how each tactic reuses the other ones from the simplest structures, thus avoiding as much as possible the duplication of code.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+Proving that one term is equal to another one within some theories is something quite common in formal certification. Of course, the two things are usually not syntactically equal --this case would be trivial--, but they are equal according to a set of properties. These properties are either obtained by implementation (the implementation of $+$ for natural numbers satisfies the property of associativity for example), or by axioms if we are working within an axiomatised structure. 
+
+If we consider a function $f\ :\ A \rightarrow B$, and two functions $sem_A\ :\ A \rightarrow SEM$ and $sem_B\ : \ B \rightarrow SEM$ of interpretation which associate a semantic to each type A and B, and if this semantic says everything we care bout for the behaviour of $f$, then the lemma of correctness of f can be expressed as $forall\ a:A,\ semA\ a = semB (f\ a)$.
+The equality symbol $=$ here means "propositionally equal", but it could also be some kind of equivalence relation on $SEM$. Even in the case of the propositional equality, proving this kind of lemma is not trivial, because of the nature of the propositional equality in dependent types theories.
+
+\subsection{The propositional equality}
+In Mathematics, the equality is a proposition, which can hold or not, which can be disproved, etc...
+Since in type theory, propositions are seen as types, the proposition that two elements $a$ and $b$ are equal must correspond to a type. Thus, if $a$ and $b$ are of type\footnote{It can be usefull sometimes to allow the writing of heterogeneous equalities. This is done by HMeq which follows exactly the same idea as the standard, homogeneous, equality that we've reminded} $A$, then the type $Id_A(a, b)$ represents the proposition "$a$ is equal to $b$". If this type is inhabited, then $a$ is said to be propositionally equal to $b$.
+Thus, Id is a type family (parametrised by the type $A$) indexed over two elements of A : $Id (A:Type)\ :\ A \rightarrow A \rightarrow Type$. Often, for convenience, we write $a\ =_A\ b$ instead of $Id_A\ a\ b$, but that denotes the same type.
+
+Of course, the judgemental equality was needed to be included in the propositional equal. That is to say, if two terms are definitionally equal, then they should be provably equal.
+Definitional equality basically contains unfolding of functions and (alpha, beta, iota...) reductions, until we can't reduce any more.
+For example, if $f\ :\ \mathbb{N}\ \rightarrow\ \mathbb{N}$ is defined by $f\ x\ \equiv\ x\ +\ 2$, then $f\ 5$ is definitionally equal to $7$.
+Definitional equality is noted by $\equiv$.
+
+The judgemental equality is something which can't be negated or assumed : we can't talk about this primitive equality inside the theory. Whether or not two expressions are equal by definition is a just a matter of expanding out the definitions.
+
+In these type theories, the judgemental equality is captured by the propositional equality simply be giving constructors to the type $Id(a,a)$ and nothing when "$a$ is not $b$".
+We can see it in the very common definition of Id :
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+Id (A:Type) : A -> A -> Type :=
+  Refl : forall a:A, Id a a
+\end{verbatim}
+\end{center}
+%\caption{The type Id}
+\figrule
+\end{figure}
+
+The only chance for $(Id_A\ a\ b)$ to be inhabited is therefore that $a$ should be $b$ (by definition!). In this case, the constructor $Refl$ helps to create a proof of this equality : $Refl\ a$ is precisely the proof which says that $a=_Aa$. 
+
+When reading these definitions, one could incorrectly think that the propositional equality is a simple wrapper of the judgemental equality. This is not the case : the propositional equality doesn't only contains the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. This induction principle says that if a proposition holds for the base cases, and if it can be showed that when it holds for some terms then it will also hold for the bigger terms obtained by using the other constructors, then this proposition will hold for any term of this type.
+
+Because this proposition can be any proposition, it can also be the propositional equality. That means that the axiom of induction principle has made the type $Id(a,b)$ bigger than it was before, and there are therefore things which are provably equal which unfortunately aren't equal syntactically after an expanding of all the definitions. The activity of proving equality therefore becomes in these theories a human activity, and is not decidable automatically in the general case by the type-checker.
+
+\subsection{Using dependent types increases the  
+
+\subsection{A motivating little example}
+
+
+
+\begin{thebibliography}{}
+ \bibitem[\protect\citename{Augustsson and Johnsson, }1987]{AJ187}
+   Augustsson,~L. and Johnsson,~T. (1987) LML users' manual. PMG
+   Report, Department of Computer Science, Chalmers University of
+   Technology, Goteborg, Sweden.
+ \bibitem[\protect\citename{Butcher, }1981]{Butcher}
+   Butcher,~J. (1981) Copy-editing: the Cambridge handbook.
+   Cambridge University Press.
+ \bibitem[\protect\citename{Chicago, }1982]{Chicago}
+   The Chicago manual of style. University of Chicago Press.
+ \bibitem[\protect\citename{Conklin, }1987]{JC87}
+   Conklin,~J. (1987) Hypertext: an introduction and survey.
+   \emph{IEEE Computer}, 20~(9): pp.~17--41.
+ \bibitem[\protect\citename{Dijkstra, }1976]{EWD76}
+   Dijkstra,~E.~W. (1976) \emph{A Discipline of Programming}.
+   Prentice-Hall.
+ \bibitem[\protect\citename{Knuth, }1984]{DEK84}
+   Knuth,~D.~E. (1984) Literate programming. \emph{BCS Comput. J.}
+   27~(2): 97--111 (May).
+ \bibitem[\protect\citename{Lamport, }1986]{LaTeX}
+   Lamport,~L. (1986) \LaTeX: a document preparation system
+   (2nd edition). Addison-Wesley, New York.
+ \bibitem[\protect\citename{Reynolds, }1969]{JCR69}
+   Reynolds,~J.~C. (1969) Transformation systems and the
+   algebraic structure of atomic formulas. In B. Meltzer and
+   D. Michie (editors), \emph{Machine Intelligence 5}, pp.~135--151.
+   Edinburgh University Press.
+ \bibitem[\protect\citename{Toyn \emph{et al.}, }1987]{TDR87}
+   Toyn,~I., Dix,~A. and Runciman,~C. (1987) Performance
+   polymorphism. In \emph{Functional Programming Languages and
+   Computer Architecture, Lecture Notes in Computer Science, 274},
+   pp.~325--346. Springer-Verlag.
+\end{thebibliography}
+
+\label{lastpage}
+
+\end{document}
+
+% end of JFP2egui.tex

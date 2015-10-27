@@ -14,7 +14,7 @@ using (x : List a, y : List a, G : Vect n (List a))
        Var  : (i : Fin n) -> Expr G (index i G)
        ENil : Expr G []
 
--- Fully right associative list expressions
+-- Fully left associative list expressions
 
   data RExpr : (G : Vect n (List a)) -> List a -> Type where
        RApp : RExpr G x -> (i : Fin n) -> RExpr G (x ++ index i G)
