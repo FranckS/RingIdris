@@ -1,0 +1,159 @@
+\section{Introduction}
+
+Proving that one term is equal to another one within some theories is something quite common in formal certification. The two terms are usually not syntactically equal --this case would be trivial--, but they are equal according to some properties. These properties are either obtained by implementation (the implementation of $+$ for natural numbers satisfies the property of associativity for example), or by axioms if we are working within an axiomatised structure. 
+
+If we consider a function $f\ :\ A \rightarrow B$, and two functions $sem_A\ :\ A \rightarrow SEM$ and $sem_B\ : \ B \rightarrow SEM$ of interpretation which associate a semantic to each type A and B, and if this semantic says everything we care bout for the behaviour of $f$, then the lemma of correctness of f can be expressed as $forall\ a:A,\ semA\ a = semB (f\ a)$.
+The equality symbol $=$ here is the propositionally equality, but it could also be some kind of equivalence relation on $SEM$. Even in the case of the propositional equality, proving this kind of lemma is not trivial, because of the nature of the propositional equality in Intentional Type Theories.
+
+\subsection{The propositional equality and the jugmental equality in Intentional Type Theories}
+In Mathematics, the equality is a proposition, which can hold or not, which can be disproved, etc...
+Since in type theory, propositions are seen as types, the proposition that two elements $a$ and $b$ are equal must correspond to a type. Thus, if $a$ and $b$ are of type\footnote{It can be usefull sometimes to allow the writing of heterogeneous equalities. This is done by HMeq which follows exactly the same idea as the standard, homogeneous, equality that we've reminded} $A$, then the type $Id_A(a, b)$ represents the proposition "$a$ is equal to $b$". If this type is inhabited, then $a$ is said to be provably equal to $b$.
+Thus, Id is a type family (parametrised by the type $A$) indexed over two elements of A : $Id (A:Type)\ :\ A \rightarrow A \rightarrow Type$. Often, for convenience, $Id_A\ a\ b$ is written $a\ =_A\ b$.
+This equality is the equality which can be manipulated in the language. There is another --more primitive-- notion of equality in Intentional Type Theories, called judgemental (or definitional equality). This second equality means "equal by definition". The judgemental equality is something which can't be negated or assumed : we can't talk about this primitive equality inside the theory. Whether or not two expressions are equal by definition is a just a matter of expanding out the definitions. For example, if $f\ :\ \mathbb{N}\ \rightarrow\ \mathbb{N}$ is defined by $f\ x\ \equiv\ x\ +\ 2$, then $f\ 5$ is definitionally equal to $7$. Definitional equality basically contains unfolding of functions and (beta, iota...) reductions, until no more reduction can be performed.
+Definitional equality is noted by $\equiv$.
+
+The judgemental equality was needed to be included in the propositional equal, because what is equal by definition should be provably equal.
+This is accomplished by giving constructors to the type $Id(a,a)$ and nothing when "$a$ is not $b$".
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+Id (A:Type) : A -> A -> Type :=
+  Refl : forall a:A, Id a a
+\end{verbatim}
+\end{center}
+%\caption{The type Id}
+\figrule
+\end{figure}
+
+The only chance for $(Id_A\ a\ b)$ to be inhabited is therefore that $a$ should be $b$ (by definition!). In this case, the constructor $Refl$ helps to create a proof of this equality : $Refl\ a$ is precisely the proof which says that $a=_Aa$. 
+
+When reading these definitions, one could incorrectly think that the propositional equality is a simple wrapper of the judgemental equality. This is not the case : the propositional equality doesn't only contains the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. This induction principle says that if a proposition holds for the base cases, and if it can be showed that when it holds for some terms then it will also hold for the bigger terms obtained by using the other constructors, then this proposition will hold for any term of this type.
+
+Because this proposition can be any proposition, it can also be the propositional equality. That means that the axiom of induction principle has made the type $Id(a,b)$ bigger than it was before, and there are therefore things which are provably equal which unfortunately aren't equal syntactically after an expanding of all the definitions. The activity of proving equality therefore becomes in these theories a human activity, and is not decidable automatically in the general case by the type-checker.
+
+For example, we can prove that $n+0 = n$ by induction, even if $n+0 \not\equiv n$ with the usual definition of $+$, recursive on its first argument. 
+
+These proofs are usually omitted "on the paper" for the ordinary every day maths, but they are required by proof assistants, no matter how obvious they are. Currently, in the Idris\footnote{Idris is a relatively new, purely functional, and dependently typed programming language with full dependent types} programming language, they are done by hand, and they are made of a potentially long sequence of rewriting, where each step of rewriting uses one of the available properties. 
+These proofs are the every day routine when we are working in a dependently typed language, as Idris, and especially when we're intensively indexing types over values in order to capture certain logical properties.
+For example, If a type $T$ is indexed over natural numbers, then the definition of a function which has co-domain $T$ will often require to prove that the index of the produced term is equal to the expected index. This proof will use properties of natural numbers and their usual operations : symmetry and commutativity for +, existence of neutral element for +, etc.
+
+\subsection{A motivating little example}
+We introduce a little example which shows how these lemmas appear when we index a type by values like natural numbers.
+Let's define the types of $Bit$ and $Binary$ number, both indexed over the value they represent, expressed in base ten as a natural number.
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+data Bit : Nat -> Type where
+     b0 : Bit Z
+     b1 : Bit (S Z)
+     
+data Binary : (width : Nat) -> (value : Nat) 
+              -> Type where
+     zero : Binary Z Z
+     (#) : Binary w v -> Bit bit 
+           -> Binary (S w) (bit + 2 * v)
+\end{verbatim}
+\end{center}
+\caption{Bit and binary number}
+\figrule
+\end{figure}
+
+This type of binary numbers\footnote{This representation allows to represent a binary number of width zero with the constructor $zero$, but instead we could have decided to replace this constructor with a constructor taking one bit as parameter and producing a binary number of width one. The representation we've chosen is a bit easier to manipulate.}  has two constructors, and the most interesting one is $\#$ which enables to construct bigger binary numbers : we can extend a binary number $bin$ by adding a digit to its right, and the value represented by this new binary number is two times the value represented by $bin$ plus the value represented by the added digit.
+
+Now, we're tempted to write the addition between two binary numbers.
+We start with an auxiliary function which adds three bits (the third one will latter play the role of the carry), and produces the two bits of the result.
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+addBit : Bit x -> Bit y -> Bit c ->
+          (bX ** (bY ** 
+              (Bit bX, Bit bY, 
+                  c + x + y = bY + 2 * bX)))
+addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, _)))
+addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, _)))
+addBit b0 b1 b0 = (_ ** (_ ** (b0, b1, _)))
+addBit b0 b1 b1 = (_ ** (_ ** (b1, b0, _)))
+addBit b1 b0 b0 = (_ ** (_ ** (b0, b1, _)))
+addBit b1 b0 b1 = (_ ** (_ ** (b1, b0, _)))
+addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, _)))
+addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, _)))
+\end{verbatim}
+\end{center}
+\caption{Addition of three bits}
+\figrule
+\end{figure}
+
+In fact, this function produces a dependent pair. The first component is the value $bX$ represented by the first bit produced (of type $Bit\ bX$), and the second component is itself another dependent pair. This second dependent pair is composed of the value $bY$ represented by the second bit produced, and of a triple containing finally the two bits produced and the proof that these two bits are effectively encoding the result of the addition we had to perform.
+For example, with the line corresponding to the computation $1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$) and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
+
+Again, we note that there is no need to produce any lemma of correctness about $addBit$ afterwards : the correct by construction style in which it is written already gives the property that we want : that the two bits produced effectively represent the addition of the three bits given in input.
+
+Now, we want to define a function adding two binary numbers and a bit (used as a carry). We decide that this addition will only work for two binary numbers expressed with the same number of bits, and we produce a result with one more bit, and this result should of course represent the value $c + x + y$ if $c$ is representing the value of the input bit, and if $x$ and $y$ are representing the values of the two binary numbers given in input. Thus, we're tempted to write :
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+adc : Binary w x -> Binary w y -> Bit c 
+     -> Binary (S w) (c + x + y)
+adc zero zero carry = zero # carry
+adc (numx # bX) (numy # bY) carry
+   = let (v1 ** (v2 ** (carry0, lsb, _))) = 
+      addBit bX bY carry in
+          adc numx numy carry0 # lsb
+\end{verbatim}
+\end{center}
+\caption{Addition of two binary numbers}
+\figrule
+\end{figure}
+
+Unfortunately, the types are mismatching for the two cases expressed by this pattern matching. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we're providing a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\] [I AM SURPRISED HERE BY THE TYPE OF THE PROVIDED TERM].
+The problem is even worse for the second line where the result is expected to have type \[plus\ (plus\ c\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0)))\] while we're trying to provide a term of type \[plus\ v2\ (plus\ (plus\ (plus\ v1\ v)\ v)\ (plus\ (plus (plus\ v1\ v)\ v)\ 0))\]
+For this kind of situation, Idris provides the possibility to write a provisional definition\footnote{provisional definitions are described with the brief overview of the language in page XX} with the syntax "?=". Using a provisional definitions here will make the definition being accepted, but we will have to prove afterwards that in both patterns, the term provided can be converted into a term which has the right type.
+However, for both of these two patterns, it is possible to prove the equality between the expected and the provided types, and this is even stronger than we need. These proofs will be made of a series of rewriting, and each rewriting will use a property about the operation $+$ on natural numbers.
+For example, the proof for the second pattern look like this :
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+adc_lemma_2 = proof {
+    intros;
+    rewrite sym (plusZeroRightNeutral x);
+    [...]
+    rewrite sym (plusAssociative (plus c (plus bit0 (plus v v))) bit1 (plus v1 v1));
+    rewrite (plusAssociative c (plus bit0 (plus v v)) bit1);
+    rewrite plusCommutative bit1 (plus v v);
+    [...]
+    rewrite (plusAssociative (plus (plus x v) v1) (plus x v) v1);
+    trivial;
+\end{verbatim}
+\end{center}
+\caption{Proof by hand of the correspondence between expected and provided types for the second pattern of the definition of adc}
+\figrule
+\end{figure}
+
+
+Thus, this kind of proofs consists of a potentially long sequence of rewriting, every rewriting step using one property of the theory. Without some specific automation, this sequence of rewriting is done by the user of the proof assistant. This is time consuming, and just a little change in the left or the right hand side of the equality will most of the time invalidate completely the proof done by hand. This mean that just a little change in our datatypes, or in the definitions of $addBit$ and $adc$ will requires us to replace this proof by another one doing the same job : assuring the correspondance betwen the expected index and the given index. The re-usability of this kind of proofs is indeed very low, since they are performing rewritings for a very specific term.
+
+If we look at the proof we've written by hand, we realize that we're only using the existence of neutral elements (this is the lemma $plusZeroRightNeutral$), and the associativity and commutativity of $+$. Thus, we're rewriting a term by using the properties of a commutative group.
+
+We would like to let a solver for commutative groups to find the proof on its own.
+This is a something doable because algebraic structures like monoid, group, commutative group and ring have all a very nice property : every element in them has a canonical represent. Thus these kind of proofs can be automatically produced by a tactic by simply computing the normal forms for each side of the equality, and then comparing them with the syntactical equality (Leibniz equality).
+
+\subsection{Our contributions}
+
+Algebraic solvers, like ring solvers, are already implemented for various proof assistants, including Coq and Agda. In this paper, we describe a certified implementation of an automatic solver for equalities on algebraic structures, for the Idris language. The interesting thing that we're going to present in this paper lies in the way we construct it, which is a "correct by construction" style, with the same spirit as the functions we've written above.
+
+In this paper, we focus on some specific theories, which are the following algebraic structures : magmas, semi-group, monoid, group and Abelian group.
+
+Each tactic will be implemented by reflection, and the reason for this will be discussed in section [Blabla]. Working by reflection for implementing tactics has been done several times, as in [paper Coq ring] for the implementation of a ring solver for the Coq proof assistant. We will compare our approach with other implementation of this kind of tactics in section [Blabla]. \\
+\\
+Our contribution mainly consists of three points :
+\begin{itemize}
+	\item 1) We follow a "correct by construction" approach for implementing the reduction procedures, instead of implementing a normalization procedure, and proving afterwards that this function effectively computes a normal form. The approach will be presented in section 2 on a smaller problem, and on section 3 for the complete hierarchy of algebraic structures. Details of the normalization procedures are given in section 4.
+	\item 2) For achieving the first goal, we are extensively using dependent types in order to capture the interesting properties that matter for assuring the correctness of the method. We use an original representation of reflected terms which embeds the denoted --concrete-- value represented. The reflected terms become indexed over the concrete ones. These representations are presented in section 2 for the toy example, and in section 3 for the real problem.
+	\item 3) We develop a hierarchy of tactics which enables to increase a lot the reusability of each solver : we reuse as much as possible each solver in the implementation of the other solvers for the above structures. For example simplifying neutral elements is only implemented at the monoid level, and each level above monoid reuse it. As it will be discussed in section 4, reusability can be quite tricky to get when we want to reuse a solver from a structure above which is less expressive. For example, reusing the monoid solver for the group solver is not trivial, since we lose the possibility to express the negations $-x$ and minus $x-y$ operations.
+\end{itemize}
