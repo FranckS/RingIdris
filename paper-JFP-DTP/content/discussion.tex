@@ -1,0 +1,36 @@
+\section {Discussion}
+
+	\subsection{Comparison with a traditional approach}
+
+What we would do without type-safe reflection, and when the normalisation functions are not correct by construction : defining a (weekly typed) normalisation a function, and latter on, a lemma about this normalisation function. Building the tactic with this lemma.
+cf extra slides 33-34-35-36 of my STP talk.
+
+	\subsection {Comparison with Coq's approach}
+	
+Exactly as above, but let the typechecker do more work.
+cf extra slides 37-38 of my STP talk.
+
+	\subsection {Correctness and completeness}
+
+		\subsubsection{Correctness}
+		
+Idea : obtained by construction. In fact, what we really needed to produce was the proof of equality, and not the normalised terms. The only two things we have to ensure are :
+\begin{itemize}
+\item not having introduces any axioms
+\item not having introduced any non total function (is it really needed in fact if all this stuff only exists at typecheck and not at runtime? I guess it's fine as long as we haven't used non-total functions to illegitimately extract proof of lemmas)
+\end{itemize}
+
+If we meet the two conditions above, we simply can't produce a false proof of a statement, because the typechecker would complain. Like in Coq's approach where they just see if the typecheck is ok to apply $f\_correct\ (reflect\ a)\ (reflect\ b)$ in order to prove $a=b$. The typecheck only agrees if $reify\ (reflect\ a) = reify(reflect\ b)$ can be unified with $a=b$, which is the case if the $reify$ and $reflect$ functions have been correctly defined.
+		
+		\subsubsection{Completeness}
+		
+Idea 1 : Having a complete tactic is important, because otherwise the tactic is not usable often, and thus is not really valuable. However, having a formal proof of the completeness in the system itself isn't really interesting. As long as we do not meet an equality that should be provable, and which isn't proved by our tactic, there is no problem. And if this situation does happen, nothing really bad really happened : no inconsistencies have been introduced, etc. The tactic just refuses to do it automatically for the programmer. The human can still try to attempt it. \\
+\\
+Idea 2 : Completeness is not, as one could imagine : \\
+$a=b \rightarrow norm\ (reflect\ a) = norm\ (reflect\ b)$
+The reason is that we could just rewrite the hypothesis in the goal, without having to inspect the behaviour of the $norm$ function. That would prove nothing interesting.
+Completeness is in fact $norm\ (reflect\ a) \neq norm(reflect\ b) \rightarrow a \neq b$, which is in fact :
+$decideEq\ (reflect\ a)\ (reflect\ b) = Nothing \rightarrow a \neq b$.
+This thing is terrible to prove in the proof assistant. It has never been done for this problem (not for Coq's ring prover, not for Agda ring prover). Can I do it for the little example with natural numbers though ? \\
+\\
+Idea 3 : We have the guarantee that we aren't losing any totality because of the $reflect$ function because of our index ! This is another extra advantage of our approach. We know that $reify\ (reflect\ a)$ is always unifiable with $a$ in our case. Coq's approach doesn't have this guarantee, and could potentially lose some completeness if this property is not always true.

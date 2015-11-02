@@ -10,7 +10,7 @@ The equality symbol $=$ is the propositional equality, as it was the case in the
 \subsection{The propositional equality and the jugmental equality in Intentional Type Theories}
 In Mathematics, the equality is a proposition, which can hold or not, which can be disproved, etc...
 Since in type theory, propositions are seen as types, the proposition that two elements $a$ and $b$ are equal must correspond to a type. Thus, if $a$ and $b$ are of type\footnote{It can be usefull sometimes to allow the writing of heterogeneous equalities, and in this case, HMeq (which is the standard equality in Idris) can be used. It follows exactly the same idea as the standard, homogeneous, equality that we've reminded} $A$, then the type $Id_A(a, b)$ represents the proposition "$a$ is equal to $b$". If this type is inhabited, then $a$ is said to be provably equal to $b$.
-Thus, Id is a type family (parametrised by the type $A$) indexed over two elements of A : $Id (A:Type)\ :\ A \rightarrow A \rightarrow Type$. Often, for convenience, $Id_A\ a\ b$ is written $a\ =_A\ b$.
+Thus, Id is a type family (parametrised by the type $A$) indexed over two elements of A. That gives $Id (A:Type)\ :\ A \rightarrow A \rightarrow Type$. Often, for convenience, $Id_A\ a\ b$ is written $a\ =_A\ b$.
 This equality is the equality which can be manipulated in the language. There is another --more primitive-- notion of equality in Intentional Type Theories, called judgemental equality, or definitional equality. This second equality means "equal by definition". The judgemental equality is something which can't be negated or assumed : we can't talk about this primitive equality inside the theory. Whether or not two expressions are equal by definition is a just a matter of expanding out the definitions. For example, if $f\ :\ \mathbb{N}\ \rightarrow\ \mathbb{N}$ is defined by $f\ x\ \equiv\ x\ +\ 2$, then $f\ 5$ is definitionally equal to $7$. Definitional equality basically contains unfolding of functions and (beta, iota...) reductions, until no more reduction can be performed.
 Definitional equality is noted by $\equiv$.
 
@@ -41,7 +41,7 @@ These proofs are the every day routine when we are working in a dependently type
 For example, If a type $T$ is indexed over natural numbers, then the definition of a function which has co-domain $T$ will often require to prove that the index of the produced term is equal to the expected index. This proof will use properties of natural numbers and their usual operations : symmetry and commutativity for +, existence of neutral element for +, etc.
 
 \subsection{A motivating little example}
-We introduce a little example which shows how these lemmas appear when we index a type by values like natural numbers.
+We introduce a little example which shows how these proof obligations appear when we index a type by values like natural numbers.
 Let's define the types of $Bit$ and $Binary$ number, both indexed over the value they represent, expressed in base ten as a natural number.
 \begin{figure}[H]
 \figrule
@@ -51,11 +51,9 @@ data Bit : Nat -> Type where
      b0 : Bit Z
      b1 : Bit (S Z)
      
-data Binary : (width : Nat) -> (value : Nat) 
-              -> Type where
+data Binary : (width : Nat) -> (value : Nat) -> Type where
      zero : Binary Z Z
-     (#) : Binary w v -> Bit bit 
-           -> Binary (S w) (bit + 2 * v)
+     (#) : Binary w v -> Bit bit -> Binary (S w) (bit + 2 * v)
 \end{verbatim}
 \end{center}
 \caption{Bit and binary number}
@@ -71,10 +69,8 @@ We start with an auxiliary function which adds three bits (the third one will la
 \figrule
 \begin{center}
 \begin{verbatim}
-addBit : Bit x -> Bit y -> Bit c ->
-          (bX ** (bY ** 
-              (Bit bX, Bit bY, 
-                  c + x + y = bY + 2 * bX)))
+addBit : Bit x -> Bit y -> Bit c -> (bX ** (bY ** 
+              (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
 addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, _)))
 addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, _)))
 addBit b0 b1 b0 = (_ ** (_ ** (b0, b1, _)))
@@ -94,17 +90,15 @@ For example, with the line corresponding to the computation $1_2 + 0_2 + 0_2 = (
 
 We note that there is no need to produce any lemma of correctness about $addBit$ afterwards : the correct by construction style in which it is written already gives the property that we want : the two bits produced effectively represent the addition of the three bits given in input.
 
-Now, we want define a function adding two binary numbers and a bit (used as a carry). We decide that this addition will only work for two binary numbers expressed with the same number of bits, and we produce a result with one more bit, and this result should of course represent the value $c + x + y$ if $c$ is representing the value of the input bit, and if $x$ and $y$ are representing the values of the two binary numbers given in input. Thus, we're tempted to write :
+Now, we want to define a function adding two binary numbers and a bit (used as a carry). We decide that this addition will only work for two binary numbers expressed with the same number of bits, and we produce a result with one more bit, and this result should of course represent the value $c + x + y$ if $c$ is representing the value of the input bit, and if $x$ and $y$ are representing the values of the two binary numbers given in input. Thus, we're tempted to write :
 \begin{figure}[H]
 \figrule
 \begin{center}
 \begin{verbatim}
-adc : Binary w x -> Binary w y -> Bit c 
-     -> Binary (S w) (c + x + y)
+adc : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
 adc zero zero carry = zero # carry
 adc (numx # bX) (numy # bY) carry
-   = let (v1 ** (v2 ** (carry0, lsb, _))) = 
-      addBit bX bY carry in
+   = let (v1 ** (v2 ** (carry0, lsb, _))) = addBit bX bY carry in
           adc numx numy carry0 # lsb
 \end{verbatim}
 \end{center}
@@ -114,8 +108,8 @@ adc (numx # bX) (numy # bY) carry
 
 Unfortunately, the types are mismatching for the two cases expressed by this pattern matching. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we're providing a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\] [I AM SURPRISED HERE BY THE TYPE OF THE PROVIDED TERM].
 The problem is even worse for the second line where the result is expected to have type \[plus\ (plus\ c\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0)))\] while we're trying to provide a term of type \[plus\ v2\ (plus\ (plus\ (plus\ v1\ v)\ v)\ (plus\ (plus (plus\ v1\ v)\ v)\ 0))\]
-For this kind of situation, Idris provides the possibility to write a provisional definition\footnote{provisional definitions are described with the brief overview of the language in page XX} with the syntax "?=". Using a provisional definitions here will make the definition being accepted, but we will have to prove afterwards that in both patterns, the term provided can be converted into a term which has the right type.
-However, for both of these two patterns, it is possible to prove the equality between the expected and the provided types, which is even more than we need. These proofs will be made of a series of rewriting, and each rewriting will use a property about the operation $+$ on natural numbers.
+For this kind of situation, Idris provides the possibility to write a provisional definition with the syntax "?=". Using a provisional definitions here will make the definition being accepted, but it also generated two proof obligations, which say that for both patterns, the provided term can be converted into a term which has the expected type.
+For both of these two patterns, it is possible to prove the equality between the expected and the provided types, because this function is correct. These proofs are made of a series of rewriting, and each rewriting uses a property about the operation $+$ on natural numbers.
 For example, the proof for the second pattern look like this :
 \begin{figure}[H]
 \figrule
@@ -138,7 +132,7 @@ adc_lemma_2 = proof {
 \end{figure}
 
 
-Thus, this kind of proofs consists of a potentially long sequence of rewriting, where every rewriting step uses one of the available properties. Without some specific automation, this sequence of rewriting is done by the user of the proof assistant. This is time consuming, and just a little change in the left or the right hand side of the equality will most of the time invalidate completely the proof done by hand. This mean that just a little change in our datatypes, or in the definitions of $addBit$ and $adc$ will requires us to replace this proof by another one doing the same job : assuring the correspondance betwen the expected index and the given index. The re-usability of this kind of proofs is indeed very low, since they are performing rewritings for a very specific term.
+Thus, this kind of proofs consists of a potentially long sequence of rewriting, where every rewriting step uses one of the available properties. Without some specific automation, this sequence of rewriting is done by the user of the proof assistant. This is time consuming, and just a little change in the left or the right hand side of the equality will most of the time invalidate completely the proof done by hand. This mean that just a little change in our datatypes, or in the definitions of $addBit$ and $adc$ will requires us to replace this proof by another one doing the same job, which is assuring the correspondence between the expected index and the given index. The re-usability of this kind of proofs is indeed very low, since they are performing rewritings for a very specific term.
 
 If we look at the proof we've written by hand, we realize that we're only using the existence of neutral elements (this is the lemma $plusZeroRightNeutral$), and the associativity and commutativity of $+$. Thus, we're rewriting a term by using the properties of a commutative group.
 
@@ -148,11 +142,11 @@ This is a something doable because algebraic structures like monoid, group, comm
 \subsection{Our contributions}
 
 Algebraic provers, like ring provers, are already implemented for various proof assistants, including Coq and Agda. In this paper, we describe a certified implementation of an automatic prover for equalities in various algebraic structures, including Monoid, Groups and Rings (potentially commutative), for the Idris language. The novelty is in the approach that we follow, using a new kind of type-safe reflection.
-Working by reflection for implementing tactics has been done several times, as in [paper Coq ring] for the implementation of a ring solver for the Coq proof assistant, but their reflection mechanism  doesn't provide any guarantee, contrary to our type-safe reflection. We will compare our approach with other implementation of this kind of tactics in section [Blabla]. \\
+Working by reflection for implementing tactics has been done several times, as in [ref 1] for the implementation of a ring solver for the Coq proof assistant, but their reflection mechanism  doesn't provide any guarantee, contrary to our type-safe reflection. We will compare our approach with other implementation of this kind of tactics in section 6. \\
 \\
 Our contribution mainly consists of three points :
 \begin{itemize}
-	\item 1) We present a new type-safe reflection mechanism, where the reflected terms are indexed over the concrete inputs, thus providing an easy way to pull out the proofs easily, and providing two guarantees. The first one is that the reflection of a term is guaranteed to be a faithful representation of the term. The second is that any generated proof is guaranteed to be a proof of the required property, thus increasing the totality of the prover. The basic ideas of the technique is presented in the section 2 on a smaller problem with only natural numbers and the addition, and is represented for the real problem in the section 3 and 4. Discussion about the totality is provided in section 7.	
+	\item 1) We present a new type-safe reflection mechanism, where the reflected terms are indexed over the concrete inputs, thus providing an easy way to pull out the proofs easily, and providing two guarantees. The first one is that the reflection of a term is guaranteed to be a faithful representation of the term. The second is that any generated proof is guaranteed to be a proof of the required property, thus increasing the totality of the prover. The basic ideas of the technique are first presented in the section 2 on a smaller problem with only natural numbers and the addition, and are adapted for the hierarchy of tactics in the section 3 and 4. Discussion about the totality is provided in section 7.	
 	\item 2) The normalisation procedures are implemented by following a correct by construction approach, instead of implementing a normalization procedure, and proving afterwards that this function effectively computes a normal form. This approach is much more suitable for programming languages like Idris. Again, this approach will be presented in section 2 on the smaller problem, and on section 4 for the complete hierarchy of algebraic structures.
-	\item 3) We develop a hierarchy of tactics which enables to increase a lot the reusability of each solver : we reuse as much as possible each solver in the implementation of the other solvers for the above structures. For example simplifying neutral elements is only implemented at the monoid level, and each level above monoid reuse it. As it will be discussed in section 4, reusability can be quite tricky to get when we want to reuse a solver from a structure above which is less expressive. For example, reusing the monoid solver for the group solver is not trivial, since we lose the possibility to express the negations $-x$ and minus $x-y$ operations.
+	\item 3) We develop a hierarchy of tactics which enables to increase a lot the reusability of each solver : we reuse as much as possible each solver in the implementation of the other solvers for the above structures. For example simplifying neutral elements is only implemented at the monoid level, and each level above monoid reuses it. As it will be discussed in section 4, reusability can be quite tricky to get when we want to reuse a solver from a structure above which is less expressive. For example, reusing the monoid solver for the group solver is not trivial, since we lose the possibility to express the negations $-x$ and minus $x-y$ operations.
 \end{itemize}

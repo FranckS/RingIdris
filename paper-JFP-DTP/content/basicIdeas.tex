@@ -11,10 +11,10 @@ Thus, in definitive, in this section, we want to write a decision procedure, abl
 
 When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. On the example 1, after abstraction of the variables, the goal becomes simply $(x1 + x2) + (x3 + x4) = (x1 + (x2 + x3)) + x4$, which is something of the general form $x=y$.
 The general idea --which will also apply for the more general and bigger problem detailed in the next sections-- will be to normalize both sides of the "potential equality" $x=y$, and afterwards to compare them using Leibniz syntactical equality.
-The goal of the normalization is of course to compute a canonical representation for a number $x$, such that any other number provably equal to $x$ (by using the two available properties) will have the same canonical representation. For example, the normalisation might transform $x+((y+Z)+z)$ into $(x+y)+z$ if we decide that the normalisaiton form will be the complete left associative form. It will then be possible to decide the equality by simply comparing the normalised left and right hand sides with a simple syntactical equality. \\
+The goal of the normalization is to compute a canonical representation for a number $x$, such that any other number provably equal to $x$ (by using the two available properties) will have the same canonical representation. For example, the normalisation might transform $x+((y+Z)+z)$ into $(x+y)+z$ if we decide that the normalisaiton form will be the complete left associative form (and every addition between an element $a$ and zero should be simplified to $a$). It will then be possible to decide the equality by simply comparing the normalised left and right hand sides with a simple syntactical equality. This is in fact what we do all the time that we have to decide if two things, written differently, are equal or not. When a human is given two mathematical polynomials and has to decide the equality of these functions, a technique that always works is to decide once and for all a normal representation of polynomials, and to put both ponynomials in this form. If the normalised form are the same, then the two original polynomials are equal, otherwise they do not represent the same computation.\\
 \\
-In fact, such a normalisation function can't be written, because in the LHS and RHS of $x=y$, we potentially have variables which have been universally quantified. And the normalization function needs to do different treatments for a "variable natural number" (a number which has been universally quantified) and for the constant $Z$. This is not possible yet, because once the variables are abstracted, they are just normal values of type $Nat$, and nothing tells us where they are in the left and right hand side of the equality : this information only exists at the level of the ASTs representing the two terms.
-For this reason, we will work by reflection, as we will do for the hierarchy of tactics in the next section. In this smaller example, it means that we will define a datatype which will be used as an encoding of natural numbers, or more precisely, an encoding of natural numbers composed of "variable numbers", $Z$, and additions of these. This datatype will allow us to know the internal structure of a number, ie, where the variables and constants are.
+In fact, such a normalisation function can't be written directly, because in the LHS and RHS of $x=y$, we potentially have variables which have been universally quantified. And the normalization function needs to do different treatments for a "variable natural number" (a number which has been universally quantified) and for the constant $Z$. This is not possible yet, because once the variables are abstracted, they are just normal values of type $Nat$, and nothing tells us where they are in the left and right hand side of the equality. Indeed, this information only exists at the level of the ASTs representing the two terms.
+For this reason, we will work by reflection. In this little example, it means that we will define a datatype which will be used as an encoding of natural numbers, or more precisely, an encoding of natural numbers composed of "variable numbers", $Z$, and additions of these things. This datatype will allow us to know the internal structure of a number, ie, where the variables and constants are.
 Indeed, this datatype will allow pattern matching. Previously, we were only able to pattern match a natural number against the constructors $Z$ and $S$, which wasn't what we needed.  With the first approximation of the datatype $Expr$ presented in the Fig 6, we will be allowed to pattern match an encoding of number against the constructor $Plus$, $Var$ and $Zero$, which gives us the informations we want.
 
 
@@ -31,7 +31,7 @@ data Expr : (gam : Vect n Nat) -> Type where
             Expr gam Z
 \end{verbatim}
 \end{center}
-\caption{First version of reflected numbers}
+\caption{First version of reflected natural numbers}
 \figrule
 \end{figure}
 
@@ -59,11 +59,11 @@ Plus (Plus (Var gam fZ)
 
 If we continue with this first definition of $Expr$, the normalisation function will certainly take an Expr and produce another Expr, and we will need to prove the following lemma afterwards : \\
 $\forall\ e:Expr\ \Gamma,\ reify\ (reduce\ e)\ =\ reify\ e$ \\
-where $reify$ is a function computing the interpretation of an Expr in a context $\Gamma$, that is to say, the number that this Expr is encoding.
+where $reify$ is a function computing the interpretation of an Expr in a context $\Gamma$, that is to say, the natural number that this Expr is encoding.
 This proof can be quite tricky to make because it relies on the complete behaviour of the reduction and on the way the interpretation is computed.
 For this little example, the reduction procedure will not be too heavy, but in the next sections, with more sophisticated algebraic structures, we will have more rewriting rules to deal with and it will certainly become more problematic to "unfold" the definition of a gigantic reduction procedure. \\
 \\
-To avoid these two sources of complexity, we add an index to the type $Expr$ which is the concrete number that an Expr is encoding. Thus, it won't be necessary to define the $interpretation$ function. \\
+To avoid these two sources of complexity, we add an index to the type $Expr$, and this index is the concrete number that an Expr is encoding. Thus, it won't be necessary to define the $reify$ function, as we will know directly the concrete element reflected by a term of type $Expr$ just by looking at its index. \\
 
 
 \begin{figure}[H]
@@ -71,12 +71,10 @@ To avoid these two sources of complexity, we add an index to the type $Expr$ whi
 \begin{center}
 \begin{verbatim}
 using (x : Nat, y : Nat, gam : Vect n Nat)
-  data Expr : (Vect n Nat) -> Nat 
-               -> Type where
+  data Expr : (Vect n Nat) -> Nat -> Type where
        Plus : Expr gam x -> Expr gam y -> 
               Expr gam (x + y)
-       Var  : (i : Fin n) -> 
-              Expr gam (index i gam)
+       Var  : (i : Fin n) -> Expr gam (index i gam)
        Zero : Expr gam Z
 \end{verbatim}
 \end{center}
@@ -89,6 +87,7 @@ When an expression is a variable, the denoted number is simply the corresponding
 Also, the $Zero$ expression denotes the natural number $Z$.
 Finally, if $e1$ is an expression encoding the number $x$, and $e2$ is an expression encoding the number $y$, then the expression $Plus\ e1\ e2$ denotes the number $(x + y)$.
 
+
 \subsection{A correct by construction approach}
 
 We want to write the reduction function on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is now indexed over the real --concrete-- number : a term of type $Expr\ \Gamma\ x$ is the encoding of the number $x$.
@@ -99,7 +98,7 @@ Note that this function can't simply produce an $Expr\ \Gamma\ x$, because the n
 And in fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
 The reason is that when we try to automatically prove $x=y$, these proofs $x=x'$ and $y=y'$ will be the crucial part for the construction of the desired proof. \\
 \\
-We have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$\footnote{These encodings have to be produced by hand by the user for this small simple problem, but for the real collection of tactics, we will program an automatic metaification}.
+We have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$\footnote{These encodings have to be produced by hand by the user for this little tool example, but for the real collection of tactics, we will program an automatic reflection mechanism}.
 We will normalize $e1$, and this will give a new number $x'$, a new expression $e1':Expr\ \Gamma\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new number $y$, an expression $e2':Expr\ \Gamma\ y'$, and a proof of $y=y'$. \\
 Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality because these two expressions are in normal form :
 
@@ -107,19 +106,13 @@ Now, we can compare $e1'$ and $e2'$ using a standard syntactical equality becaus
 \figrule
 \begin{center}
 \begin{verbatim}
-eqExpr : (e : Expr gam x) -> (e' : Expr gam y) 
-         -> Maybe (e = e')
-eqExpr (Plus x y) (Plus x' y') 
-        with (eqExpr x x', eqExpr y y')
-  eqExpr (Plus x y) (Plus x y) 
-        | (Just refl, Just refl) = Just refl
-  eqExpr (Plus x y) (Plus x' y') 
-        | _ = Nothing
+eqExpr : (e : Expr gam x) -> (e' : Expr gam y) -> Maybe (e = e')
+eqExpr (Plus x y) (Plus x' y') with (eqExpr x x', eqExpr y y')
+  eqExpr (Plus x y) (Plus x y) | (Just refl, Just refl) = Just refl
+  eqExpr (Plus x y) (Plus x' y') | _ = Nothing
 eqExpr (Var i) (Var j) with (decEq i j)
-  eqExpr (Var i) (Var i) 
-        | (Yes refl) = Just refl
-  eqExpr (Var i) (Var j) 
-        | _ = Nothing
+  eqExpr (Var i) (Var i) | (Yes refl) = Just refl
+  eqExpr (Var i) (Var j) | _ = Nothing
 eqExpr Zero Zero = Just refl
 eqExpr _ _ = Nothing
 \end{verbatim}
@@ -136,12 +129,10 @@ By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the n
 \figrule
 \begin{center}
 \begin{verbatim}
-buildProof : {x : Nat} -> {y : Nat} 
-       -> Expr gam x' -> Expr gam y' 
-       -> (x = x') -> (y = y') 
-       -> Maybe (x = y)
+buildProof : {x : Nat} -> {y : Nat} -> Expr gam x' -> Expr gam y' 
+           -> (x = x') -> (y = y') -> Maybe (x = y)
 buildProof e e' lp rp with (eqExpr e e')
-  buildProof e e lp rp | Just refl = ?bp1
+  buildProof e e lp rp | Just refl = ?MbuildProof
   buildProof e e' lp rp | Nothing = Nothing
 \end{verbatim}
 \end{center}
@@ -149,18 +140,14 @@ buildProof e e' lp rp with (eqExpr e e')
 \figrule
 \end{figure}
 
-As we mentioned, the proof for the metavariable is just a rewriting of the two equalities :
+As we mentioned, the proof for the metavariable $MbuildProof$ is just a rewriting of the two equalities :
 
 \begin{figure}[H]
 \figrule
 \begin{center}
 \begin{verbatim}
-  bp1 = proof {
-  intros;
-  refine Just;
-  rewrite sym p1;
-  rewrite sym p2;
-  exact refl;
+  MbuildProof = proof {
+  intros; refine Just; rewrite sym p1; rewrite sym p2; exact refl;
 }  
 \end{verbatim}
 \end{center}
@@ -192,8 +179,7 @@ Now, we need to define the function reduce. To do that, we have to decide a cano
 \figrule
 \begin{center}
 \begin{verbatim}
-data LExpr : (gam : Vect n Nat) -> Nat 
-             -> Type where
+data LExpr : (gam : Vect n Nat) -> Nat -> Type where
      LPlus : LExpr gam x -> (i : Fin n) 
              -> LExpr gam (x + index i gam)
      LZero : LExpr gam Z
@@ -263,10 +249,7 @@ Proving this goal uses the property of associativity after rewriting the goal wi
 \begin{center}
 \begin{verbatim}
 plusLExpr1 = proof {
-  intros;
-  rewrite sym xprf;
-  rewrite sym yprf;
-  rewrite prf;
+  intros; rewrite sym xprf; rewrite sym yprf; rewrite prf;
   mrefine plusAssociative;
 }
 \end{verbatim}
@@ -282,10 +265,7 @@ And the metavariable plusLExpr2 uses the fact that $Z$ is a neutral element for 
 \begin{center}
 \begin{verbatim}
 plusLExpr2 = proof
-  intros
-  rewrite xprf 
-  rewrite (sym yprf)
-  mrefine plusZeroRightNeutral
+  intros; rewrite xprf; rewrite (sym yprf); mrefine plusZeroRightNeutral
 \end{verbatim}
 \end{center}
 \caption{Proof of the metavariable plusLExpr2}
@@ -298,8 +278,7 @@ We can now define the reduction, which is just the composition of the two previo
 \figrule
 \begin{center}
 \begin{verbatim}
-  reduce : Expr gam x -> 
-           (x' ** (Expr gam x', x = x'))
+  reduce : Expr gam x -> (x' ** (Expr gam x', x = x'))
   reduce e = 
      let (x' ** (e', prf)) = expr_l e in
          (x' ** (l_expr e', prf))
@@ -310,7 +289,7 @@ We can now define the reduction, which is just the composition of the two previo
 \end{figure}
 
 
-At the moment, what we've got is not exactly a real tactic, in the sense that we only have a function which produces a value of type $Maybe (x = y)$. A real tactic would be a coating of this function, which could properly fail when the two terms are not equal. However, here, when $x\ne y$, the function $testEq$ will simply produce the value $Nothing$. \\
+At the moment, what we've got is not exactly a real tactic, in the sense that we only have a function which produces a value of type $Maybe (x = y)$. A real tactic would be a wrapper of this function that could properly fail with an error message when the two terms are not equal. However, here, when $x\ne y$, the function $testEq$ will simply produce the value $Nothing$. \\
 
 \subsection{Usage of the "tactic"}
 
@@ -348,10 +327,8 @@ The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can gener
 \begin{center}
 \begin{verbatim}
 e1_e2_testEq : (x, y, z : Nat) 
-       -> Maybe (((x + y) + (x + z)) 
-                  = (x + ((y + x) + z)))
-e1_e2_testEq x y z = testEq (e1 x y z)
-                            (e2 x y z)
+             -> Maybe (((x + y) + (x + z)) = (x + ((y + x) + z)))
+e1_e2_testEq x y z = testEq (e1 x y z) (e2 x y z)
 \end{verbatim}
 \end{center}
 \caption{Test of equality betwen e1 and e2}
@@ -367,13 +344,11 @@ And if we ask for the evaluation of this term, we should obtain $Just$ and a pro
 \begin{verbatim}
 #\x => \y => \z => e1_e2_testEq x y z
 
-\x => \y => \z => Just (replace (sym (replace 
-  (sym (replace (plusZeroRightNeutral x) 
-  (plusAssociative x 0 y))) (replace 
-  (sym (replace (plusZeroRightNeutral x) 
-  (plusAssociative x 0 z))) (replace (replace 
-  (plusZeroRightNeutral (plus xy)) 
-  (plusAssociative (plus x y) 0 x)) [...]
+\x => \y => \z => Just (replace (sym (replace (sym (replace 
+(plusZeroRightNeutral x) (plusAssociative x 0 y))) (replace 
+(sym (replace (plusZeroRightNeutral x) (plusAssociative x 0 z))) (replace 
+(replace (plusZeroRightNeutral (plus xy)) (plusAssociative (plus x y) 0 x)) 
+[...]
 : (x : Nat) -> (y : Nat) -> (z : Nat) 
   -> Maybe ((x + y) + x + z 
             = x+ (y + x) + z)
