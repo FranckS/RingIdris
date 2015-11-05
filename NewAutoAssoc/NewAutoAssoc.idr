@@ -187,10 +187,11 @@ isElement : {n:Nat} -> (x : a) -> (G : Vect n a) -> Maybe (i:Fin n ** (index i G
 isElement x [] = Nothing
 isElement x (y :: ys) with (prim__syntactic_eq _ _ x y)
 	isElement x (x :: ys) | Just Refl = Just (FZ ** Refl) -- [| Stop |]
-	isElement x (y :: ys) | Nothing = let recCall = isElement x ys in -- [| Pop (isElem x ys) |]  
-										case recCall of
-										Nothing => Nothing
-										Just (i' ** p') => Just ((FS i') ** ?MisElement_1) 
+	isElement x (y :: ys) | Nothing = let recCall = isElement x ys in 
+				       -- [| Pop (isElem x ys) |]  
+					case recCall of
+						Nothing => Nothing
+						Just (i' ** p') => Just ((FS i') ** ?MisElement_1) 
   
  
 
@@ -200,8 +201,12 @@ reflectList : {n:Nat} -> (G : Vect n (List a)) -> (x:List a) -> (m ** (G' : Vect
 reflectList {n=n} G Nil = (Z ** ([] ** (ENil {n=n+0} {G=G++[]}))) -- What the hell. Why do I have to give precisely the Z for m ?
 reflectList {n=n} G (x :: xs) with (reflectList G xs)
      | (m ** (G' ** xs')) with (isElement (List.(::) x []) (G ++ G'))
-        | Just (i ** proofIndex) ?= (m ** (G' ** (App (Var i) xs')))
-        | Nothing = ?MreflectList_1 -- ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
+        | Just (i ** proofIndex) = let prEqual:(Expr (G++G') (x::xs) = Expr (G++G') (index i (G++G') ++ xs)) = ?MreflectList_1 in
+				   let this = App (Var i) xs' in 
+				      (m ** (G' ** ?MreflectList_2)) 	-- (G' ** (App (Var i) xs')))
+	| Nothing ?= -- (rewrite (indexOfLastElem (G++G') x) in 
+		    let this = App (Var (lastElement' (n+m))) (weaken [[x]] xs') in -- (rewrite (plusAssoc n m 1) in (rewrite (sym (vectAppendAssociative G G' [[x]])) in (App (Var FZ) (weaken [[x]] xs')))) in
+			((m+1) ** ((G'++[[x]]) ** this)) -- ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
 
 
 -- Inspiration from what Edwin is doing :
@@ -283,7 +288,7 @@ getExp : {x:List a} -> (G:Vect n (List a)) -> (arg:(m:Nat ** (G':Vect m (List a)
 getExp G (m ** (G' ** e)) = e
  
 -- Main theorem : for all x, the decode of the encode of x gives x
---theoremIdentity : (G:Vect n (List a)) -> (x:List a) -> (let (m ** (G' ** e)) = reflectList G x in decode e = x  -- I need to have the encode function (reflection) defined here, in order to be able to talk about it. To be added.
+--theoremIdentity : (G:Vect n (List a)) -> (x:List a) -> (let (m ** (G' ** e)) = reflectList G x in decode e = x os
 theoremIdentity : {a:Type} -> {n:Nat} -> (G:Vect n (List a)) -> (x:List a) -> (decode (getExp G (reflectList G x)) = x) 
 theoremIdentity G [] = Refl
 theoremIdentity G (h::t) = ?MtheoremIdentity_1 -- Should be easy once reflect is defined for (h::t) !
@@ -337,8 +342,15 @@ NewAutoAssoc.MisElement_1 = proof
   intros
   exact (elemInBigerVect _ x p' y)
 
+NewAutoAssoc.MreflectList_1 = proof
+  intros
+  rewrite (sym proofIndex)
+  exact Refl
 
-
+NewAutoAssoc.MreflectList_2 = proof
+  intros
+  exact (rewrite prEqual in this)
   
   
-
+  
+  

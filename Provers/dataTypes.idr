@@ -102,7 +102,7 @@ class dataTypes.Monoid c => dataTypes.Group c where
 --%logging 0
 
 
--- We only ask the "user" for the proof that Neg preserves the quivalence, and we automatically deduce that Minus also preserves the equivalence (since Minus is defined by using Neg)
+-- We only ask the "user" for the proof that Neg preserves the equivalence, and we automatically deduce that Minus also preserves the equivalence (since Minus is defined by using Neg)
 Minus_preserves_equiv : {c:Type} -> (dataTypes.Group c)
                         -> {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1 ~= c1') -> (c2 ~= c2') -> ((Minus c1 c2) ~= (Minus c1' c2'))
 Minus_preserves_equiv p H1 H2 = ?MMinus_preserves_equiv_1
@@ -120,7 +120,7 @@ class CommutativeGroup c => Ring c where
     One : c
     Mult : c -> c -> c
     
-    -- The new Mult operation should preserve the quivalence
+    -- The new Mult operation should preserve the equivalence
     Mult_preserves_equiv : {c1:c} -> {c2:c} -> {c1':c} -> {c2':c} -> (c1~=c1') -> (c2~=c2') -> ((Mult c1 c2) ~= (Mult c1' c2'))
     
     Mult_assoc : (c1:c) -> (c2:c) -> (c3:c) -> (Mult (Mult c1 c2) c3) ~= (Mult c1 (Mult c2 c3))
@@ -239,6 +239,14 @@ ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
 -- This bit is for the trasnlation Ring -> Commutative Group
 -- -----------------------------------------------------------
 
+record SetWithNeg : (c:Type) -> (Set c) -> Type where
+  MkSetWithNeg : {c:Type} -> (c_set:Set c) -> (neg:c->c) -> (neg_preserves_equiv : (c1:c) -> (c1':c) -> (c1 ~= c1') -> (neg c1 ~= neg c1')) -> SetWithNeg c c_set
+
+record SetWithMult : (c:Type) -> (Set c) -> Type where
+  MkSetWithMult : {c:Type} -> (c_set:Set c) -> (mult:c->c->c) -> (mult_preserves_equiv : (c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> (c1~=c1') -> (c2~=c2') -> ((mult c1 c2) ~= (mult c1' c2'))) -> SetWithMult c c_set
+
+-- The two record above will become something like this with the latter version of Idris :
+{-
 record SetWithNeg (c:Type) (c_set:Set c) where
 	constructor MkSetWithNeg
     c_set:Set c
@@ -249,6 +257,7 @@ record SetWithMult (c:Type) (c_set:Set c) where
     constructor MkSetWithMult 
     mult:c->c->c 
     mult_preserves_equiv : (c1:c) -> (c2:c) -> (c1':c) -> (c2':c) -> ((~= c_set) c1 c1') -> ((~= c_set) c2 c2') -> ((~= c_set) (mult c1 c2) (mult c1' c2'))            
+-}  
   
 -- Just a term encapsulating a fake neg (which is the identity function) and a proof that this neg preserves equality
 FakeSetAndNeg : {c:Type} -> (c_is_set:Set c) -> SetWithNeg c c_is_set

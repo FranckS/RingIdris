@@ -7,6 +7,12 @@ import Data.Vect
 %default total
 
 
+leftDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> A
+leftDep (a ** b) = a
+
+rightDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> B (leftDep x)
+rightDep (a ** b) = b
+
 
 lower_value : (x:Nat) -> (y:Nat) -> (LTE x y) -> LTE x (S y)
 lower_value Z Z LTEZero = LTEZero
@@ -72,6 +78,11 @@ GTE_deleteSucc (S pa) Z p = LTEZero
 GTE_deleteSucc (S pa) (S pb) (LTESucc p) = p
 
 
+plus_one_equals_succ : (n:Nat) -> (n+1 = S n)
+plus_one_equals_succ Z = Refl
+plus_one_equals_succ (S pn) = let p_ihn : (pn + 1 = S pn) = plus_one_equals_succ pn in ?Mplus_one_equals_succ_1
+				  
+
 total
 pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
 -- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
@@ -130,10 +141,35 @@ elimFinZero (FS y) impossible
 	 
 -- for all vector v, if the ith element of v is elem, then the (i+1)th element of any vector with one more element on the left is still elem	 
 elemInBigerVect : {T:Type} -> {v : Vect n T} -> (i:Fin n) -> (elem:T) -> (proofInside : index i v = elem) -> (head:T) -> (index (FS i) (head::v) = elem) 
-elemInBigerVect fZ elem proofInside = ?MelemInBigerVect_1 -- why can't I just give proofInside here and need to do it in proof mode ?
+elemInBigerVect fZ elem proofInside = ?MelemInBigerVect_1 -- why I can't just give proofInside here and need to do it in proof mode ?
 elemInBigerVect (FS i') elem proofInside = ?MelemInBigerVect_2
 	 
 
+lastElement : (pn:Nat) -> Fin (S pn)
+lastElement Z = FZ
+lastElement (S ppn) = FS (lastElement ppn)
+
+lastElement' : (pn:Nat) -> Fin(pn+1)
+lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_succ pn in
+                    -- This is just a call to the other function lastElement with the argument pn, but with a rewriting of the goal
+                    ?MlastElement'_1
+     
+lastElement_defEquiv : (pn:Nat) -> (lastElement pn = lastElement' pn)     
+     
+     
+indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastElement' n) (v++[x]) = x 	 
+indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
+indexOfLastElem (vh::vt) x = let paux = indexOfLastElem vt x in ?MindexOfLastElem_2
+
+	 
+f_equal : {A:Type} -> {B:Type} -> (f:A->B) -> (x:A) -> (y:A) -> (x=y) -> (f x = f y)
+f_equal f x y p = ?Mf_equal	 
+	 
+	 
+appendSingleton : {T:Type} -> (x:T) -> (xs:List T) -> ([x]++xs = x::xs)
+appendSingleton x [] = Refl
+appendSingleton x (xsh::xst) = Refl
+	 
 	 
 -- Proofs	 
 	 
@@ -159,6 +195,11 @@ NewAutoAssoc_tools.MGTE_plus_1 = proof
   rewrite (sym a_plus_zero_is_a)
   mrefine LTE_same
   
+NewAutoAssoc_tools.Mplus_one_equals_succ_1 = proof
+  intros
+  rewrite p_ihn 
+  exact Refl  
+  
 NewAutoAssoc_tools.Mpre_convertFin_1 = proof
   intros
   mrefine void -- is the eliminator of false, previously called FalseElim (which was a better name for the logical side :-( )
@@ -176,6 +217,16 @@ NewAutoAssoc_tools.MconvertFin_1 = proof
   mrefine GTE_S
   mrefine GTE_plus
   
+NewAutoAssoc_tools.MlastElement'_1 = proof
+  intros
+  rewrite pn_plus_1_equals_Spn 
+  rewrite (sym pn_plus_1_equals_Spn)
+  exact (lastElement pn)  
+  
+NewAutoAssoc_tools.MindexOfLastElem_1 = proof
+  intros
+  exact Refl  
+  
 NewAutoAssoc_tools.MelemInBigerVect_1 = proof
   intros
   exact proofInside 
@@ -184,4 +235,8 @@ NewAutoAssoc_tools.MelemInBigerVect_2 = proof
   intros
   exact proofInside 
 
+NewAutoAssoc_tools.Mf_equal = proof
+  intros
+  rewrite p
+  exact Refl
   
