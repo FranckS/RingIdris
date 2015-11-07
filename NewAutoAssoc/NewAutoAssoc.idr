@@ -28,6 +28,7 @@ using (x : List a, y : List a, G : Vect n (List a))
 -- The idea is that we use this proof to build a proof of equality of
 -- list appends
 
+  total
   expr_r : Expr G x -> (x' ** (RExpr G x', x = x'))
   expr_r ENil = (_ ** (RNil, Refl))
   expr_r (Var i) = (_ ** (RApp RNil i, Refl))
@@ -45,6 +46,7 @@ using (x : List a, y : List a, G : Vect n (List a))
 
 -- ...and back again
 
+  total
   r_expr : RExpr G x -> Expr G x
   r_expr RNil = ENil
   r_expr (RApp xs i) = App (r_expr xs) (Var i)
@@ -52,6 +54,7 @@ using (x : List a, y : List a, G : Vect n (List a))
 -- Convert an expression to some other equivalent expression (which
 -- just happens to be normalised to right associative form)
 
+  total
   reduce : Expr G x -> (x' ** (Expr G x', x = x'))
   reduce e = let (x' ** (e', prf)) = expr_r e in
                  (x' ** (r_expr e', prf))
@@ -59,6 +62,7 @@ using (x : List a, y : List a, G : Vect n (List a))
 -- Build a proof that two expressions are equal. If they are, we'll know
 -- that the indices are equal.
 
+  total
   eqExpr : (e : Expr G x) -> (e' : Expr G y) ->
            Maybe (e = e')
   eqExpr (App x y) (App x' y') with (eqExpr x x', eqExpr y y')
@@ -70,6 +74,7 @@ using (x : List a, y : List a, G : Vect n (List a))
   eqExpr ENil ENil = Just Refl
   eqExpr _ _ = Nothing
 
+  total
   buildProof : {x : List a} -> {y : List a} ->
                Expr G ln -> Expr G rn ->
                (x = ln) -> (y = rn) -> Maybe (x = y) 
@@ -77,6 +82,7 @@ using (x : List a, y : List a, G : Vect n (List a))
     buildProof e e lp rp  | Just Refl = ?bp1
     buildProof e e' lp rp | Nothing = Nothing
 
+  total
   testEq : Expr G x -> Expr G y -> Maybe (x = y)
   testEq l r = let (ln ** (l', lPrf)) = reduce l in 
                let (rn ** (r', rPrf)) = reduce r in
@@ -194,9 +200,16 @@ isElement x (y :: ys) with (prim__syntactic_eq _ _ x y)
 						Just (i' ** p') => Just ((FS i') ** ?MisElement_1) 
   
  
+ Expr_eq_components : {a:Type} -> {x:Nat} -> {y:Nat} -> {vect1:Vect x (List a)} -> {vect2:Vect y (List a)} -> {v1:List a} -> {v2:List a} -> 
+		      (x=y) -> (vect1=vect2) -> (v1=v2) ->
+		      (Expr {n=x} vect1 v1 = Expr {n=y} vect2 v2)
+Expr_eq_components {a=a} {x=x} {y=y} {vect1=vect1} {vect2=vect2} {v1=v1} {v2=v2} p1 p2 p3 = ?PROBLEM_TYPECHECK_HERE -- f_equal_threeArgs (\u:Nat => \v:Vect u (List a) => \w:List a => Expr {a=a} {n=u} v w) x y vect1 vect2 v1 v2
+
+ 
 
 -- Reflects lists to Expr  
 %reflection
+total
 reflectList : {n:Nat} -> (G : Vect n (List a)) -> (x:List a) -> (m ** (G' : Vect m (List a) ** (Expr (G ++ G') x)))
 reflectList {n=n} G Nil = (Z ** ([] ** (ENil {n=n+0} {G=G++[]}))) -- What the hell. Why do I have to give precisely the Z for m ?
 reflectList {n=n} G (x :: xs) with (reflectList G xs)
@@ -204,9 +217,14 @@ reflectList {n=n} G (x :: xs) with (reflectList G xs)
         | Just (i ** proofIndex) = let prEqual:(Expr (G++G') (x::xs) = Expr (G++G') (index i (G++G') ++ xs)) = ?MreflectList_1 in
 				   let this = App (Var i) xs' in 
 				      (m ** (G' ** ?MreflectList_2)) 	-- (G' ** (App (Var i) xs')))
-	| Nothing ?= -- (rewrite (indexOfLastElem (G++G') x) in 
+	| Nothing = -- (rewrite (indexOfLastElem (G++G') x) in 
 		    let this = App (Var (lastElement' (n+m))) (weaken [[x]] xs') in -- (rewrite (plusAssoc n m 1) in (rewrite (sym (vectAppendAssociative G G' [[x]])) in (App (Var FZ) (weaken [[x]] xs')))) in
-			((m+1) ** ((G'++[[x]]) ** this)) -- ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
+		    let paux0:(Expr ((G++G')++[[x]]) (x::xs) = Expr ((G++G')++[[x]]) ([x]++xs)) = ?MreflectList_3 in
+		    let paux:(index (lastElement' (n+m)) ((G++G')++[[x]]) = [x]) = ?MreflectList_4 in
+		    let paux2:([x]++xs = (index (lastElement' (n+m)) ((G++G') ++ [[x]])) ++ xs) = ?MreflectList_5 in
+		    let this' : (Expr ((G++G') ++ [[x]]) ([x]++xs)) = ?MreflectList_6 in
+		    let paux3 : ((Expr (G++(G'++[[x]])) ([x]++xs)) = (Expr ((G++G')++[[x]]) ([x]++xs))) = ?MreflectList_7 in
+			?MreflectList_8 -- ((m+1) ** ((G'++[[x]]) ** this)) -- ([x] :: G' ** App (Var Stop) (weaken [[x]] xs'))
 
 
 -- Inspiration from what Edwin is doing :
@@ -243,6 +261,7 @@ data StupidNat : Nat -> Type where
 	Succ : (StupidNat n) -> StupidNat (S n)
    
 %reflection
+total
 encode : (x:Nat) -> StupidNat x
 -- Good thing, the (stupid!) line just under is rejected : the %reflection notation still procudes something TYPED !
 -- That means that in my real function reflectList, I can't return something which doesn't have the right index
@@ -289,6 +308,7 @@ getExp G (m ** (G' ** e)) = e
  
 -- Main theorem : for all x, the decode of the encode of x gives x
 --theoremIdentity : (G:Vect n (List a)) -> (x:List a) -> (let (m ** (G' ** e)) = reflectList G x in decode e = x os
+total
 theoremIdentity : {a:Type} -> {n:Nat} -> (G:Vect n (List a)) -> (x:List a) -> (decode (getExp G (reflectList G x)) = x) 
 theoremIdentity G [] = Refl
 theoremIdentity G (h::t) = ?MtheoremIdentity_1 -- Should be easy once reflect is defined for (h::t) !
@@ -350,7 +370,37 @@ NewAutoAssoc.MreflectList_1 = proof
 NewAutoAssoc.MreflectList_2 = proof
   intros
   exact (rewrite prEqual in this)
+
+NewAutoAssoc.MreflectList_3 = proof
+  intros
+  exact Refl  
   
+NewAutoAssoc.MreflectList_4 = proof
+  intros
+  mrefine indexOfLastElem   
   
+NewAutoAssoc.MreflectList_5 = proof
+  intros
+  exact (rewrite paux in Refl) -- Fix Idris : I can just do (rewrite paux)
+
+NewAutoAssoc.MreflectList_6 = proof
+  intros
+  exact (rewrite paux2 in this)  
+
+NewAutoAssoc.MreflectList_7 = proof
+  intros
+  mrefine Expr_eq_components 
+  mrefine plusAssociative
+  mrefine vectAppendAssociative 
+  exact Refl  
   
-  
+NewAutoAssoc.MreflectList_8 = proof
+  intros
+  mrefine MkSigma 
+  exact (m+1)
+  mrefine MkSigma 
+  exact (G'++[[x]])
+  exact (rewrite paux3 in this')
+
+
+

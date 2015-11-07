@@ -152,23 +152,33 @@ lastElement (S ppn) = FS (lastElement ppn)
 lastElement' : (pn:Nat) -> Fin(pn+1)
 lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_succ pn in
                     -- This is just a call to the other function lastElement with the argument pn, but with a rewriting of the goal
-                    ?MlastElement'_1
+                    rewrite pn_plus_1_equals_Spn in lastElement pn -- Fix Idris here : if I do EXACTLY the same in proof mode, then when proving the 
+								   -- matavariable MlastElement_defEquiv_1 from the next definition, the definition of lastElement' doesn't unfold well
+								   -- (see previous def of lastElement' in proof mode on the github history)
      
 lastElement_defEquiv : (pn:Nat) -> (lastElement pn = lastElement' pn)     
-     
+lastElement_defEquiv Z = Refl
+lastElement_defEquiv (S pn) = ?MlastElement_defEquiv_2
      
 indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastElement' n) (v++[x]) = x 	 
 indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
-indexOfLastElem (vh::vt) x = let paux = indexOfLastElem vt x in ?MindexOfLastElem_2
+indexOfLastElem (vh::vt) x = let paux = indexOfLastElem vt x in ?MindexOfLastElem_2 -- Will use elemInBigerVect and the induction hypothesis paux
 
 	 
 f_equal : {A:Type} -> {B:Type} -> (f:A->B) -> (x:A) -> (y:A) -> (x=y) -> (f x = f y)
 f_equal f x y p = ?Mf_equal	 
-	 
+
+f_equal_threeArgs : {A:Type} -> {B:Type} -> {C:Type} -> {D:Type} -> (f:A -> B -> C -> D) -> 
+		    (x1:A) -> (y1:A) -> (x2:B) -> (y2:B) -> (x3:C) -> (y3:C) ->
+		    (x1=y1) -> (x2=y2) -> (x3=y3) -> 
+		    (f x1 x2 x3 = f y1 y2 y3)
+f_equal_threeArgs f x1 y1 x2 y2 x3 y3 p1 p2 p3 = ?Mf_equal_threeArgs_1 
+
 	 
 appendSingleton : {T:Type} -> (x:T) -> (xs:List T) -> ([x]++xs = x::xs)
 appendSingleton x [] = Refl
 appendSingleton x (xsh::xst) = Refl
+	 	 
 	 
 	 
 -- Proofs	 
@@ -217,12 +227,6 @@ NewAutoAssoc_tools.MconvertFin_1 = proof
   mrefine GTE_S
   mrefine GTE_plus
   
-NewAutoAssoc_tools.MlastElement'_1 = proof
-  intros
-  rewrite pn_plus_1_equals_Spn 
-  rewrite (sym pn_plus_1_equals_Spn)
-  exact (lastElement pn)  
-  
 NewAutoAssoc_tools.MindexOfLastElem_1 = proof
   intros
   exact Refl  
@@ -239,4 +243,14 @@ NewAutoAssoc_tools.Mf_equal = proof
   intros
   rewrite p
   exact Refl
+  
+NewAutoAssoc_tools.Mf_equal_threeArgs_1 = proof
+  intros
+  rewrite p1
+  rewrite p2 
+  rewrite p3
+  exact Refl
+  
+  
+  
   
