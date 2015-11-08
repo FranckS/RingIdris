@@ -36,6 +36,15 @@ LTE_0_one_case : (n:Nat) -> (LTE n Z) -> (n=Z)
 LTE_0_one_case Z LTEZero = Refl
 LTE_0_one_case (S pn) (LTESucc p) impossible        
 
+
+
+Succ_LTE_1_one_case : (n:Nat) -> (LTE (S n) 1) -> (n=Z)
+Succ_LTE_1_one_case Z pr = Refl
+Succ_LTE_1_one_case (S pn) pr = 
+      -- The absurd thing that we have in the context implies the absurd thing that we have to prove by using LTE (S a) (S b) -> LTE a b (to write)
+     ?MSucc_LTE_1_one_case_1 -- LTE_0_one_case (S (S pn)) pr in
+
+     
 -- (1 >= n) -> (n=0) or (n=1)     
 GTE_1_two_cases : (n:Nat) -> (GTE (S Z) n) -> or (n=Z) (n=(S Z))
 -- case 1>=0 (which is 0<=1 by def of >=)
@@ -55,7 +64,7 @@ GTE_S a b p = LTESucc p
 LTE_same : (a:Nat) -> LTE a a
 LTE_same Z = LTEZero
 LTE_same (S pa) = LTESucc (LTE_same pa)        
-        
+              
         
 GTE_plus : (a:Nat) -> (b:Nat) -> GTE (a+b) a
 -- Proof by induction on a
@@ -83,6 +92,7 @@ plus_one_equals_succ Z = Refl
 plus_one_equals_succ (S pn) = let p_ihn : (pn + 1 = S pn) = plus_one_equals_succ pn in ?Mplus_one_equals_succ_1
 				  
 
+				 
 total
 pre_convertFin : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p:GTE (S m) n) -> Fin (S m)
 -- case  n=0, which mean 0<= Sm, but impossible because we're having an element of Fin 0
@@ -126,17 +136,24 @@ testconversion2 = pre_convertFin {n=3} (FS (FZ {k=1})) 5 (LTESucc (LTESucc (LTES
 -- test ok
 
 
-
-pre_convertFin_proofIrr : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p1:GTE (S m) n) -> (p2:GTE (S m) n) -> (pre_convertFin i m p1 = pre_convertFin i m p2)
-pre_convertFin_proofIrr FZ m p1 p2 = Refl
-pre_convertFin_proofIrr (FS pi) m p1 p2 = 
-	-- Huuum... Recursive call ? How ?
-	 ?Mpre_convertFin_proofIrr_1
-	 
-	 
 elimFinZero : (x:Fin Z) -> Void
 elimFinZero FZ impossible
 elimFinZero (FS y) impossible 
+	 
+
+elimFinZero' : (n:Nat) -> (Fin n) -> (p:n=Z) -> Void
+elimFinZero' n i p = ?MelimFinZero'_1
+
+
+pre_convertFin_proofIrr : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p1:GTE (S m) n) -> (p2:GTE (S m) n) -> (pre_convertFin i m p1 = pre_convertFin i m p2)
+pre_convertFin_proofIrr FZ m p1 p2 = Refl
+pre_convertFin_proofIrr (FS pi) (S pm) p1 p2 = 
+	 let ihn = pre_convertFin_proofIrr pi pm (GTE_deleteSucc (S pm) _ p1) (GTE_deleteSucc (S pm) _ p2) in
+	 -- Fix Idris : in proof mode, I can't do a "mrefine f_equal". Instead, I have to do the "rewrite..." with everything. Why ? See the proof of Mpre_convertFin_proofIrr_1.
+	 ?Mpre_convertFin_proofIrr_1    
+pre_convertFin_proofIrr (FS pi) Z p1 p2 =
+	 -- let paux1:(k=Z) = ?Mpre_convertFin_proofIrr_2 in
+	 ?Mpre_convertFin_proofIrr_3	 
 	 
 	 
 -- for all vector v, if the ith element of v is elem, then the (i+1)th element of any vector with one more element on the left is still elem	 
@@ -160,13 +177,33 @@ lastElement_defEquiv : (pn:Nat) -> (lastElement pn = lastElement' pn)
 lastElement_defEquiv Z = Refl
 lastElement_defEquiv (S pn) = ?MlastElement_defEquiv_2
      
+
+rewrite_fin_element : {n:Nat} -> (i:Fin n) -> (n':Nat) -> (p:n=n') -> ((=) {A=Fin n} {B=Fin n'} i (rewrite (sym p) in i)) -- Fix Idris ! I can't just write i = (rewrite (sym p) in i)
+rewrite_fin_element i n' p = ?Mrewrite_fin_element_1
+
+     
 indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastElement' n) (v++[x]) = x 	 
 indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
-indexOfLastElem (vh::vt) x = let paux = indexOfLastElem vt x in ?MindexOfLastElem_2 -- Will use elemInBigerVect and the induction hypothesis paux
+indexOfLastElem (vh::vt) x = let paux = indexOfLastElem vt x in 
+			     -- let paux2 : (index (replace (sym (Mplus_one_equals_succ_1 n (plus_one_equals_succ n))) (FS (lastElement n))) = (FS (lastElement n))) = ?MindexOfLastElem_2 in
+			     ?MindexOfLastElem_3 -- Will use elemInBigerVect and the induction hypothesis paux and rewrite_fin_element
+			     -- rewrite (rewrite_fin_element (FS (lastElement _)) _ (sym (Mplus_one_equals_succ_1 _ (plus_one_equals_succ _)))) in Refl
 
-	 
+
+indexOfFS : {T:Type} -> {n:Nat} -> (i:Fin n) -> (vh:T) -> (vt:Vect n T) -> index (FS i) (vh::vt) = index i vt
+indexOfFS FZ vh (vth::vtt) = Refl
+indexOfFS (FS pi) vh (vth::vtt) = Refl
+
+
 f_equal : {A:Type} -> {B:Type} -> (f:A->B) -> (x:A) -> (y:A) -> (x=y) -> (f x = f y)
 f_equal f x y p = ?Mf_equal	 
+
+f_equal_twoArgs : {A:Type} -> {B:Type} -> {C:Type} -> (f:A -> B -> C) -> 
+		    (x1:A) -> (y1:A) -> (x2:B) -> (y2:B) ->
+		    (x1=y1) -> (x2=y2) -> 
+		    (f x1 x2 = f y1 y2)
+f_equal_twoArgs f x1 y1 x2 y2 p1 p2 = ?Mf_equal_twoArgs_1 
+
 
 f_equal_threeArgs : {A:Type} -> {B:Type} -> {C:Type} -> {D:Type} -> (f:A -> B -> C -> D) -> 
 		    (x1:A) -> (y1:A) -> (x2:B) -> (y2:B) -> (x3:C) -> (y3:C) ->
@@ -174,7 +211,15 @@ f_equal_threeArgs : {A:Type} -> {B:Type} -> {C:Type} -> {D:Type} -> (f:A -> B ->
 		    (f x1 x2 x3 = f y1 y2 y3)
 f_equal_threeArgs f x1 y1 x2 y2 x3 y3 p1 p2 p3 = ?Mf_equal_threeArgs_1 
 
-	 
+
+f_equal_typeConstructor_threeArgs : {A:Type} -> {B:Type} -> {C:Type} -> (f:A -> B -> C -> Type) ->
+		    (x1:A) -> (y1:A) -> (x2:B) -> (y2:B) -> (x3:C) -> (y3:C) ->
+		    (x1=y1) -> (x2=y2) -> (x3=y3) -> 
+		    (f x1 x2 x3 = f y1 y2 y3)
+f_equal_typeConstructor_threeArgs f x1 y1 x2 y2 x3 y3 p1 p2 p3 = ?Mf_equal_typeConstructor_threeArgs_1
+
+
+	    
 appendSingleton : {T:Type} -> (x:T) -> (xs:List T) -> ([x]++xs = x::xs)
 appendSingleton x [] = Refl
 appendSingleton x (xsh::xst) = Refl
@@ -226,6 +271,22 @@ NewAutoAssoc_tools.MconvertFin_1 = proof
   intros
   mrefine GTE_S
   mrefine GTE_plus
+
+NewAutoAssoc_tools.Mpre_convertFin_proofIrr_1 = proof
+  intros
+  exact (f_equal (\i => FS i) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p1)) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p2)) ihn)  
+  
+NewAutoAssoc_tools.Mpre_convertFin_proofIrr_3 = proof
+  intros
+  mrefine void
+  mrefine elimFinZero'
+  exact k
+  exact pi
+  exact (Succ_LTE_1_one_case k p1)
+    
+NewAutoAssoc_tools.MelimFinZero'_1 = proof
+  intros
+  exact (elimFinZero (rewrite (sym p) in i))  
   
 NewAutoAssoc_tools.MindexOfLastElem_1 = proof
   intros
@@ -244,6 +305,12 @@ NewAutoAssoc_tools.Mf_equal = proof
   rewrite p
   exact Refl
   
+NewAutoAssoc_tools.Mf_equal_twoArgs_1 = proof
+  intros
+  rewrite p1
+  rewrite p2
+  exact Refl  
+  
 NewAutoAssoc_tools.Mf_equal_threeArgs_1 = proof
   intros
   rewrite p1
@@ -251,6 +318,11 @@ NewAutoAssoc_tools.Mf_equal_threeArgs_1 = proof
   rewrite p3
   exact Refl
   
-  
+NewAutoAssoc_tools.Mf_equal_typeConstructor_threeArgs_1 = proof
+  intros
+  rewrite p1
+  rewrite p2
+  rewrite p3
+  exact Refl  
   
   
