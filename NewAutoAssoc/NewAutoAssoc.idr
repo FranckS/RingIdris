@@ -200,11 +200,16 @@ isElement x (y :: ys) with (prim__syntactic_eq _ _ x y)
 						Just (i' ** p') => Just ((FS i') ** ?MisElement_1) 
   
   
-total 
+total
 Expr_eq_components : {a:Type} -> {x:Nat} -> {y:Nat} -> {vect1:Vect x (List a)} -> {vect2:Vect y (List a)} -> {v1:List a} -> {v2:List a} -> 
 		      (x=y) -> (vect1=vect2) -> (v1=v2) ->
 		      (Expr {n=x} vect1 v1 = Expr {n=y} vect2 v2)
-Expr_eq_components {a=a} {x=x} {y=y} {vect1=vect1} {vect2=vect2} {v1=v1} {v2=v2} p1 p2 p3 = ?PROBLEM_TYPECHECK_HERE -- f_equal_typeConstructor_threeArgs (\u:Nat => \v:Vect u (List a) => \w:List a => Expr {a=a} {n=u} v w) x y vect1 vect2 v1 v2 p1 p2 p3
+-- I can't simply do (f_equal_typeConstructor_threeArgs (\u:Nat => \v:Vect u (List a) => \w:List a => Expr {a=a} {n=u} v w) x y vect1 vect2 v1 v2 p1 p2 p3)
+-- Instead, I would need a dependent rewrite, which doesn't exists in Idris, so I do it "in the language", with the dependent pattern matching
+Expr_eq_components {a=a} {x=x} {y=y} {vect1=vect1} {vect2=vect2} {v1=v1} {v2=v2} p1 p2 p3 with (p1) 
+  Expr_eq_components {a=a} {x=x} {y=x} {vect1=vect1} {vect2=vect2} {v1=v1} {v2=v2} p1 p2 p3 | (Refl) with (p2)
+    Expr_eq_components {a=a} {x=x} {y=x} {vect1=vect1} {vect2=vect1} {v1=v1} {v2=v2} p1 p2 p3 | (Refl) | (Refl) with (p3)
+      Expr_eq_components {a=a} {x=x} {y=x} {vect1=vect1} {vect2=vect1} {v1=v1} {v2=v1} p1 p2 p3 | (Refl) | (Refl) | (Refl) = Refl
 
  
 
@@ -375,10 +380,10 @@ NewAutoAssoc.MreflectList_2 = proof
 NewAutoAssoc.MreflectList_3 = proof
   intros
   exact Refl  
-  
+
 NewAutoAssoc.MreflectList_4 = proof
   intros
-  mrefine indexOfLastElem   
+  mrefine indexOfLastElem     
   
 NewAutoAssoc.MreflectList_5 = proof
   intros
@@ -402,6 +407,7 @@ NewAutoAssoc.MreflectList_8 = proof
   mrefine MkSigma 
   exact (G'++[[x]])
   exact (rewrite paux3 in this')
+
 
 
 

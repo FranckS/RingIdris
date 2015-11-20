@@ -37,12 +37,27 @@ LTE_0_one_case Z LTEZero = Refl
 LTE_0_one_case (S pn) (LTESucc p) impossible        
 
 
+LTE_deleteSucc : (a:Nat) -> (b:Nat) -> (LTE (S a) (S b)) -> LTE a b
+-- This proof is just a case analysis and not a proof by induction (there's no recursive call)
+LTE_deleteSucc Z Z p = LTEZero
+LTE_deleteSucc Z (S pb) p = LTEZero
+-- first argument is a Succ
+LTE_deleteSucc (S pa) Z (LTESucc LTEZero) impossible
+LTE_deleteSucc (S (S ppa)) Z (LTESucc LTEZero) impossible
+LTE_deleteSucc (S (S ppa)) Z (LTESucc (LTESucc p)) impossible
+LTE_deleteSucc (S pa) (S pb) (LTESucc p) = p
+
+
+LTE_lower_than_zero : {x:Nat} -> (LTE x 0) -> (x=0)
+LTE_lower_than_zero LTEZero = Refl
+LTE_lower_than_zero (LTESucc n) impossible
+
 
 Succ_LTE_1_one_case : (n:Nat) -> (LTE (S n) 1) -> (n=Z)
 Succ_LTE_1_one_case Z pr = Refl
 Succ_LTE_1_one_case (S pn) pr = 
       -- The absurd thing that we have in the context implies the absurd thing that we have to prove by using LTE (S a) (S b) -> LTE a b (to write)
-     ?MSucc_LTE_1_one_case_1 -- LTE_0_one_case (S (S pn)) pr in
+     ?MSucc_LTE_1_one_case_1
 
      
 -- (1 >= n) -> (n=0) or (n=1)     
@@ -76,15 +91,7 @@ GTE_plus (S pa) (S pb) = LTESucc (GTE_plus pa (S pb))
                                         
                                         
 GTE_deleteSucc : (a:Nat) -> (b:Nat) -> (GTE (S a) (S b)) -> GTE a b
--- This proof is just a case analysis and not a proof by induction (there's no recursive call)
-GTE_deleteSucc Z Z p = LTEZero
---impossible but can't tag it as it : GTE_deleteSucc Z (S Z) LTEZero = ?M1
-GTE_deleteSucc Z (S (S ppb)) (LTESucc LTEZero) impossible
-GTE_deleteSucc Z (S (S ppb)) (LTESucc (LTESucc p)) impossible
-GTE_deleteSucc Z (S pb) (LTESucc LTEZero) impossible
-GTE_deleteSucc (S pa) Z p = LTEZero
---impossible but can't be tag as it : GTE_deleteSucc (S pa) (S pb) LTEZero = ?M1
-GTE_deleteSucc (S pa) (S pb) (LTESucc p) = p
+GTE_deleteSucc a b p = LTE_deleteSucc b a p
 
 
 plus_one_equals_succ : (n:Nat) -> (n+1 = S n)
@@ -152,8 +159,7 @@ pre_convertFin_proofIrr (FS pi) (S pm) p1 p2 =
 	 -- Fix Idris : in proof mode, I can't do a "mrefine f_equal". Instead, I have to do the "rewrite..." with everything. Why ? See the proof of Mpre_convertFin_proofIrr_1.
 	 ?Mpre_convertFin_proofIrr_1    
 pre_convertFin_proofIrr (FS pi) Z p1 p2 =
-	 -- let paux1:(k=Z) = ?Mpre_convertFin_proofIrr_2 in
-	 ?Mpre_convertFin_proofIrr_3	 
+	 ?Mpre_convertFin_proofIrr_2	 
 	 
 	 
 -- for all vector v, if the ith element of v is elem, then the (i+1)th element of any vector with one more element on the left is still elem	 
@@ -172,21 +178,28 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
                     rewrite pn_plus_1_equals_Spn in lastElement pn -- Fix Idris here : if I do EXACTLY the same in proof mode, then when proving the 
 								   -- matavariable MlastElement_defEquiv_1 from the next definition, the definition of lastElement' doesn't unfold well
 								   -- (see previous def of lastElement' in proof mode on the github history)
-     
+  
+{-  
 lastElement_defEquiv : (pn:Nat) -> (lastElement pn = lastElement' pn)     
 lastElement_defEquiv Z = Refl
 lastElement_defEquiv (S pn) = ?MlastElement_defEquiv_2
+-}  
+  
      
 
-rewrite_fin_element : {n:Nat} -> (i:Fin n) -> (n':Nat) -> (p:n=n') -> ((=) {A=Fin n} {B=Fin n'} i (rewrite (sym p) in i)) -- Fix Idris ! I can't just write i = (rewrite (sym p) in i)
-rewrite_fin_element i n' p = ?Mrewrite_fin_element_1
+
+-- Hourray ! I can do it because I can pattern match p with (only) Refl
+fin_replace : {n:Nat} -> {n':Nat} -> (i:Fin n) -> (eq:n=n') -> (replace eq i = i)
+fin_replace i Refl = Refl
 
      
 indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastElement' n) (v++[x]) = x 	 
 indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
-indexOfLastElem (vh::vt) x = let paux = indexOfLastElem vt x in 
+indexOfLastElem {n=S pn} (vh::vt) x = let paux = indexOfLastElem vt x in 
 			     -- let paux2 : (index (replace (sym (Mplus_one_equals_succ_1 n (plus_one_equals_succ n))) (FS (lastElement n))) = (FS (lastElement n))) = ?MindexOfLastElem_2 in
-			     ?MindexOfLastElem_3 -- Will use elemInBigerVect and the induction hypothesis paux and rewrite_fin_element
+			     let paux2 : ((=) {A=Fin (S (pn+1))} {B=Fin (S (S pn))} (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (FS (lastElement pn)) ) = ?MindexOfLastElem_2 in
+			     -- let paux3 : (index (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (vh::vt++[x]) = index (FS (lastElement pn)) (vh::vt++[x])) = ?MindexOfLastElem_3 in 
+			     ?MindexOfLastElem_4 -- Will use elemInBigerVect and the induction hypothesis paux and rewrite_fin_element
 			     -- rewrite (rewrite_fin_element (FS (lastElement _)) _ (sym (Mplus_one_equals_succ_1 _ (plus_one_equals_succ _)))) in Refl
 
 
@@ -224,6 +237,28 @@ appendSingleton : {T:Type} -> (x:T) -> (xs:List T) -> ([x]++xs = x::xs)
 appendSingleton x [] = Refl
 appendSingleton x (xsh::xst) = Refl
 	 	 
+
+{-
+-- Fix Idris : if I only give the first line of the definition by induction on the vect, Idris doesn't complain about the fact that this function isn't total (even If tagged as total) 
+index_simpl1 : {T:Type} -> {n:Nat} -> (vect:Vect (S (S n)) T) -> 
+		 (index (replace (sym (replace (plus_one_equals_succ n) Refl)) (FS (lastElement n))) vect =  index (FS (lastElement n)) vect)
+index_simpl1 {n=Z} (h::t) = Refl
+index_simpl1 {n=S Z} (h::t) = ?Mindex_simpl1_1
+index_simpl1 {n=S (S Z)} (h::t) = ?Mindex_simpl1_2
+index_simpl1 {n=S (S (S n'))} (h::t) = 
+  -- let ihn = index_simpl1 {n=S (S n')} t in 
+	 ?Mindex_simpl1_3
+-}
+
+
+-- index_replace_mkType : {T:Type} -> {n:Nat} -> {n':Nat} -> (i:Fin n) -> (vect:Vect n T) -> (eq:n=n') -> Type
+-- index_replace_mkType i vect eq ?= (index (replace eq i) vect = index i vect)
+
+
+-- index_replace : {T:Type} -> {n:Nat} -> {n':Nat} -> (i:Fin n) -> (vect:Vect n T) -> (eq:n=n') -> (index (replace eq i) vect = index i vect)
+	 
+	 
+
 	 
 	 
 -- Proofs	 
@@ -234,6 +269,11 @@ NewAutoAssoc_tools.M_S_both_side_1 = proof
   rewrite P
   mrefine Refl
 
+NewAutoAssoc_tools.MSucc_LTE_1_one_case_1 = proof
+  intros
+  let prAux = LTE_deleteSucc _ _ pr
+  exact (LTE_lower_than_zero prAux)  
+  
 NewAutoAssoc_tools.M_GTE_1_two_cases_1 = proof
   intro pn, p
   mrefine LTE_0_one_case 
@@ -276,7 +316,7 @@ NewAutoAssoc_tools.Mpre_convertFin_proofIrr_1 = proof
   intros
   exact (f_equal (\i => FS i) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p1)) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p2)) ihn)  
   
-NewAutoAssoc_tools.Mpre_convertFin_proofIrr_3 = proof
+NewAutoAssoc_tools.Mpre_convertFin_proofIrr_2 = proof
   intros
   mrefine void
   mrefine elimFinZero'
@@ -291,6 +331,10 @@ NewAutoAssoc_tools.MelimFinZero'_1 = proof
 NewAutoAssoc_tools.MindexOfLastElem_1 = proof
   intros
   exact Refl  
+  
+NewAutoAssoc_tools.MindexOfLastElem_2 = proof
+  intros
+  mrefine fin_replace 
   
 NewAutoAssoc_tools.MelemInBigerVect_1 = proof
   intros
@@ -324,5 +368,18 @@ NewAutoAssoc_tools.Mf_equal_typeConstructor_threeArgs_1 = proof
   rewrite p2
   rewrite p3
   exact Refl  
+  
+{-  
+NewAutoAssoc_tools.Mindex_simpl1_1 = proof
+  intros
+  compute
+  exact Refl
+  
+NewAutoAssoc_tools.Mindex_simpl1_2 = proof
+  intros
+  compute
+  exact Refl  
+  -}
+
   
   

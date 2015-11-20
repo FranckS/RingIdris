@@ -45,7 +45,7 @@ What can be mentionned :
 	This two things are somehow orthogonal
 	
 - 4) Proving and testing
-	Paper for TaP (Tests and Proofs 2016), wo located with STAF (Software Technologies: Applications and Foundations), in Vienna, Austria
+	Paper for TaP (Tests and Proofs 2016), co located with STAF (Software Technologies: Applications and Foundations), in Vienna, Austria
 	* Abstracts: 29 January 2016
     * Papers: 5 February 2016
     (the conference is 5-7 July 2016, Vienna, Austria)
@@ -71,6 +71,21 @@ What can be mentionned :
 	THat means that we've replaced the uncertainity about "did we write a correct predicate isSorted" which should capture all sorted lists, by the (hopefully weaker) uncertainity about "did we write a correct generator"
 	I think that it's easier to generate exemple of what we want to capture, rather than to describe it. That's a nice formulation.
 	
-	Now, better, with depend types, we can write a type "SortedList". That goes a bit to the 3rd paper.
+	Now, better, with depend types, we can write a type "SortedList". That goes a bit in relation with the 3rd paper.
+
 	
-	
+5) Better language for proving and testing (predicates essentially) ?
+
+  - builts in predicates, that should work for various data types (is sorted, contains, ...)
+      should work for any datatypes with a certain arity of constructors. recursive equations.
+      This is for the STRUCTURE part I think (cf idea 4))
+  - automatic way to test new predicates, by generating (syntactically) examples that fulfil the predicate
+      predicate on data -> datas
+      ex : isSorted -> listes qui sont triées
+  - automatic extraction of programs from specifications. I'm sure that for a certain class of logical formulae, we can construct automatically programs that respect the logical formulae
+      predicate on programs -> programs
+      
+  - dependent types ?
+    If so, I want to allow the "rewrite" even if the result gives something which doesn't typecheck.
+    Is this safe ?
+  
