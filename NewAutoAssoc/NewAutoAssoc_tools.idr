@@ -192,16 +192,48 @@ lastElement_defEquiv (S pn) = ?MlastElement_defEquiv_2
 fin_replace : {n:Nat} -> {n':Nat} -> (i:Fin n) -> (eq:n=n') -> (replace eq i = i)
 fin_replace i Refl = Refl
 
-     
+-- My trick : in order to be able to write the type (index (replace eq i) vect = index i vect), we already need to do a dependent pattern maching...
+index_replace_type : {T:Type} -> {n:Nat} -> {n':Nat} -> (i:Fin n) -> (vect:Vect n T) -> (eq:n=n') -> Type
+index_replace_type i vect eq with (eq)
+  index_replace_type i vect eq | (Refl) = (index (replace eq i) vect = index i vect)
+
+-- ... and thanks to this little trick, we can write the auxiliary lemma we need...
+index_replace : {T:Type} -> {n:Nat} -> {n':Nat} -> (i:Fin n) -> (vect:Vect n T) -> (eq:n=n') -> (index_replace_type i vect eq)
+index_replace i vect eq with (eq)
+  index_replace i vect eq | (Refl) = Refl
+
+  
+trick_vect_size : {T:Type} -> {n:Nat} -> (vh:T) -> (vt:Vect n T) -> (x:T) -> (Vect (S (S n)) T) 
+trick_vect_size vh vt x ?= vh::vt++[x]  
+  
+-- ... and this auxiliary lemma is going to be useful for proving the metavariable MindexOfLastElem_4 of this lemma
 indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastElement' n) (v++[x]) = x 	 
 indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
-indexOfLastElem {n=S pn} (vh::vt) x = let paux = indexOfLastElem vt x in 
+indexOfLastElem {n=S pn} (vh::vt) x = 
+			     let paux = indexOfLastElem vt x in 
+			     let paux2 : ((=) {A=Fin (S (pn+1))} {B=Fin (S (S pn))} (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (FS (lastElement pn)) ) = ?MindexOfLastElem_2 in
+			     let paux3 = index_replace (FS (lastElement pn)) (trick_vect_size vh vt x) (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) in
+			     ?MindexOfLastElem_4 -- Will use elemInBigerVect and the induction hypothesis called paux and paux2 or paux3
+			     -- Damn, I can't do rewrite (index_replace (FS (lastElement pn)) (vh::vt++[x]) (sym (replace (plus_one_equals_succ pn) Refl)))
+			     -- in order to start the proof of this metavariable. There's a problem with the type of index_replace which is not unfolded as it should be. Why ?
+		
+{-		     
+indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastElement' n) (v++[x]) = x 	 
+indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
+indexOfLastElem {n=S pn} (vh::vt) x with (fin_replace (FS (lastElement pn)) (sym (replace (plus_one_equals_succ pn) Refl)))
+  indexOfLastElem {n=S pn} (vh::vt) x | (Refl) = ?MXXY
+  -} 
+  
+{-
+  = let paux = indexOfLastElem vt x in 
 			     -- let paux2 : (index (replace (sym (Mplus_one_equals_succ_1 n (plus_one_equals_succ n))) (FS (lastElement n))) = (FS (lastElement n))) = ?MindexOfLastElem_2 in
 			     let paux2 : ((=) {A=Fin (S (pn+1))} {B=Fin (S (S pn))} (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (FS (lastElement pn)) ) = ?MindexOfLastElem_2 in
 			     -- let paux3 : (index (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (vh::vt++[x]) = index (FS (lastElement pn)) (vh::vt++[x])) = ?MindexOfLastElem_3 in 
 			     ?MindexOfLastElem_4 -- Will use elemInBigerVect and the induction hypothesis paux and rewrite_fin_element
 			     -- rewrite (rewrite_fin_element (FS (lastElement _)) _ (sym (Mplus_one_equals_succ_1 _ (plus_one_equals_succ _)))) in Refl
-
+			     -}			     
+			     
+			     
 
 indexOfFS : {T:Type} -> {n:Nat} -> (i:Fin n) -> (vh:T) -> (vt:Vect n T) -> index (FS i) (vh::vt) = index i vt
 indexOfFS FZ vh (vth::vtt) = Refl
@@ -328,6 +360,11 @@ NewAutoAssoc_tools.MelimFinZero'_1 = proof
   intros
   exact (elimFinZero (rewrite (sym p) in i))  
   
+NewAutoAssoc_tools.trick_vect_size_lemma_1 = proof
+  intros
+  rewrite (plus_one_equals_succ n)
+  exact value  
+  
 NewAutoAssoc_tools.MindexOfLastElem_1 = proof
   intros
   exact Refl  
@@ -368,6 +405,9 @@ NewAutoAssoc_tools.Mf_equal_typeConstructor_threeArgs_1 = proof
   rewrite p2
   rewrite p3
   exact Refl  
+  
+  
+  
   
 {-  
 NewAutoAssoc_tools.Mindex_simpl1_1 = proof
