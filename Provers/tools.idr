@@ -15,9 +15,9 @@ import Provers.dataTypes
 
 %default total
 
--- -------------------------------------------------------------
--- A) TOOLS AND LEMMAS FOR PAIRS, DEPENDENT PAIRS AND FUNCTIONS
--- -------------------------------------------------------------
+-- --------------------------------------------------------------------------
+-- A) TOOLS AND LEMMAS FOR PAIRS, DEPENDENT PAIRS, FUNCTIONS, AND BASIC LOGIC
+-- --------------------------------------------------------------------------
 
 left : {A:Type} -> {B:Type} -> (A,B)  -> A
 left (x,y) = x
@@ -44,6 +44,15 @@ f_equal f x y p = ?Mf_equal
 rewriteIn : {A':Type} -> {B':Type} -> {A:A'} -> {B:B'} -> (C:Type) -> (a:A) -> (p:A=B) -> (B -> C) -> C
 rewriteIn C a p f = ?MrewriteIn_1
 -}
+
+elimFinZero : (x:Fin Z) -> Void
+elimFinZero FZ impossible
+elimFinZero (FS y) impossible 
+
+
+elimFinZero' : (n:Nat) -> (Fin n) -> (p:n=Z) -> Void
+elimFinZero' n i p = ?MelimFinZero'_1
+
 
 -- -------------------------------
 -- B) TOOLS AND LEMMAS FOR GROUPS
@@ -288,6 +297,27 @@ using (A:Type, B:Type)
 LTE_0_one_case : (n:Nat) -> (LTE n Z) -> (n=Z)
 LTE_0_one_case Z LTEZero = Refl
 LTE_0_one_case (S pn) (LTESucc p) impossible
+
+
+LTE_deleteSucc : (a:Nat) -> (b:Nat) -> (LTE (S a) (S b)) -> LTE a b
+-- This proof is just a case analysis and not a proof by induction (there's no recursive call)
+LTE_deleteSucc Z Z p = LTEZero
+LTE_deleteSucc Z (S pb) p = LTEZero
+-- first argument is a Succ
+LTE_deleteSucc (S pa) Z (LTESucc LTEZero) impossible
+LTE_deleteSucc (S (S ppa)) Z (LTESucc LTEZero) impossible
+LTE_deleteSucc (S (S ppa)) Z (LTESucc (LTESucc p)) impossible
+LTE_deleteSucc (S pa) (S pb) (LTESucc p) = p  
+
+LTE_lower_than_zero : {x:Nat} -> (LTE x 0) -> (x=0)
+LTE_lower_than_zero LTEZero = Refl
+LTE_lower_than_zero (LTESucc n) impossible
+
+Succ_LTE_1_one_case : (n:Nat) -> (LTE (S n) 1) -> (n=Z)
+Succ_LTE_1_one_case Z pr = Refl
+Succ_LTE_1_one_case (S pn) pr = 
+      -- The absurd thing that we have in the context implies the absurd thing that we have to prove by using LTE (S a) (S b) -> LTE a b (to write)
+     ?MSucc_LTE_1_one_case_1
 
 
 -- (1 >= n) -> (n=0) or (n=1)     
@@ -577,6 +607,18 @@ pre_convertFin {n=S k} (FS x) Z p with (decEq k Z, decEq k (S Z))
                                                             Left k_is_zero => ?Mpre_convertFin_1
                                                             Right k_is_one => ?Mpre_convertFin_2
 
+                                                            
+total
+pre_convertFin_proofIrr : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p1:GTE (S m) n) -> (p2:GTE (S m) n) -> (pre_convertFin i m p1 = pre_convertFin i m p2)
+pre_convertFin_proofIrr FZ m p1 p2 = Refl
+pre_convertFin_proofIrr (FS pi) (S pm) p1 p2 = 
+	 let ihn = pre_convertFin_proofIrr pi pm (GTE_deleteSucc (S pm) _ p1) (GTE_deleteSucc (S pm) _ p2) in
+	 -- Fix Idris : in proof mode, I can't do a "mrefine f_equal". Instead, I have to do the "rewrite..." with everything. Why ? See the proof of Mpre_convertFin_proofIrr_1.
+	 ?Mpre_convertFin_proofIrr_1    
+pre_convertFin_proofIrr (FS pi) Z p1 p2 =
+	 ?Mpre_convertFin_proofIrr_2	                                                            
+                           
+                           
 -- We know that we can use pre_convertFin because (n+x) is the successor of something (ie, can't be zero), because n
 -- can't be zero (otherwise we would have an inhabitant of Fin 0)
 convertFin : (n:Nat) -> (i:Fin n) -> (x:Nat) -> Fin (n+x)
@@ -748,6 +790,10 @@ Provers.tools.Mf_equal = proof
   rewrite p
   exact Refl
   
+Provers.tools.MelimFinZero'_1 = proof
+  intros
+  exact (elimFinZero (rewrite (sym p) in i))   
+  
   
 -- Part B) : Groups
 
@@ -911,6 +957,11 @@ Provers.tools.M_S_both_side_1 = proof
   intros
   rewrite P
   mrefine Refl
+  
+Provers.tools.MSucc_LTE_1_one_case_1 = proof
+  intros
+  let prAux = LTE_deleteSucc _ _ pr
+  exact (LTE_lower_than_zero prAux)    
   
 Provers.tools.M_GTE_1_two_cases_1 = proof
   intro pn, p
@@ -1260,6 +1311,18 @@ Provers.tools.Mpre_convertFin_2 = proof
   mrefine p2
   mrefine k_is_one
 
+Provers.tools.Mpre_convertFin_proofIrr_1 = proof
+  intros
+  exact (f_equal (\i => FS i) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p1)) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p2)) ihn)  
+  
+Provers.tools.Mpre_convertFin_proofIrr_2 = proof
+  intros
+  mrefine void
+  mrefine elimFinZero'
+  exact k
+  exact pi
+  exact (Succ_LTE_1_one_case k p1)  
+  
 Provers.tools.MconvertFin_1 = proof
   intros
   mrefine GTE_S

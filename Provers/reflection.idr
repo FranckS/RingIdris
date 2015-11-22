@@ -12,6 +12,8 @@ import Data.Fin
 import Provers.dataTypes
 import Provers.tools
 
+import Provers.magma_test
+
 -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- PREVIOUS ATTEMPT WITH ELEM (Edwin's Idea)
 -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -49,25 +51,19 @@ weakenElem {n} m i =
 -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- My attempt : directly with Fin. Which is good since I've chosen to work with Fin at the start (not not with Elem). Unfortunately, that was certainly a little mistake) ---
 -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	
-total
-pre_convertFin_proofIrr : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p1:GTE (S m) n) -> (p2:GTE (S m) n) -> (pre_convertFin i m p1 = pre_convertFin i m p2)
-pre_convertFin_proofIrr FZ m p1 p2 = Refl
-pre_convertFin_proofIrr (FS pi) m p1 p2 = 
-	-- Huuum... Recursive call ? How ?
-	 ?Mpre_convertFin_proofIrr_1
-	
-	
+
+
 total	
 lemmaExtension : {c:Type} -> {n:Nat} ->	{m:Nat} -> (g:Vect n c) -> (g':Vect m c) -> (i:Fin n) -> (index i g = index (convertFin _ i m) (g++g'))
 lemmaExtension Nil g' (FZ {k=k}) impossible
 lemmaExtension (gh::gt) g' (FZ {k=k}) = Refl
-lemmaExtension (gh::gt) g' (FS {k=Z} pi) = ?MlemmaExtension_1 -- This case is impossible : just elim the elemen of (Fin 0) that we have in the context
+lemmaExtension (gh::gt) g' (FS {k=Z} pi) = let proofOfFalse : Void = elimFinZero pi in -- Just elim the element of (Fin 0) that we have in the context to build an inhabitant of False (Void)
+					       ?MlemmaExtension_1 -- Just elim the inhabitant of False that we have constructed in the context
 lemmaExtension (gh::gt) g' (FS {k=S pk} pi) = let ih = lemmaExtension gt g' pi in ?MlemmaExtension_2
-
+						  
 	
 -- NOT total : We don't treat if the variable is not a real variable, but we don't care since fake variables are only for encodings, and the user will never use them directly
-weaken : {c:Type} -> {n:Nat} -> {m:Nat} -> {g:Vect n c} -> (g':Vect m c) -> (ExprMa p (neg fakeSetAndNeg) fakeSetAndMult g x) -> (ExprMa p (neg fakeSetAndNeg) fakeSetAndMult (g ++ g') x)
+weaken : {c:Type} -> {p:Magma c} -> {n:Nat} -> {m:Nat} -> {g:Vect n c} -> (g':Vect m c) -> (ExprMa p (neg (FakeSetAndNeg (magma_to_set_class p))) (FakeSetAndMult (magma_to_set_class p)) g x) -> (ExprMa p (neg (FakeSetAndNeg (magma_to_set_class p))) (FakeSetAndMult (magma_to_set_class p)) (g ++ g') x)
 weaken g' (ConstMa _ _ _ g const1) = ConstMa _ _ _ (g++g') const1
 weaken g' (PlusMa _ _ e1 e2) = PlusMa _ _ (weaken g' e1) (weaken g' e2)
 weaken {n=n} {m=m} {g=g} g' (VarMa p _ _ (RealVariable _ _ _ _ i)) =
@@ -75,22 +71,28 @@ weaken {n=n} {m=m} {g=g} g' (VarMa p _ _ (RealVariable _ _ _ _ i)) =
 		rewrite pExt in (VarMa {n=plus n m} p _ _ (RealVariable _ _ _ _ (convertFin _ i m))) 
 
     
+total
+convertVectInExprMa : {c:Type} -> {p:Magma c} -> {n:Nat} -> {g:Vect n c} -> {x:c} -> 
+		      {n':Nat} -> {g':Vect n' c} -> (n'=n) -> (g'=g) ->
+			  (ExprMa p (neg (FakeSetAndNeg (magma_to_set_class p))) (FakeSetAndMult (magma_to_set_class p)) g x) ->
+			  (ExprMa p (neg (FakeSetAndNeg (magma_to_set_class p))) (FakeSetAndMult (magma_to_set_class p)) g' x)
+convertVectInExprMa prEqN prEqG e with (prEqN)
+  convertVectInExprMa prEqN prEqG e | (Refl) with (prEqG)
+    convertVectInExprMa prEqN prEqG e | (Refl) | (Refl) = e -- Fix Idris : it works if I give directly e but if I put a metavariable, there's a bug when I try to prove it
     
 -- Just a trivial try : Reflects only from Nat    
+-- %logging 1   
 %reflection
-reflectTermNat : {n:Nat} -> (p:Magma Nat) -> (g : Vect n Nat) -> (x:Nat) -> (g' ** (ExprMa p (neg (FakeSetAndNeg (%instance))) (FakeSetAndMult (%instance)) (g ++ g') x))
-{-
-reflectTermNat p g (a+b) with (reflectTermNat p g a)
-    reflectTermNat p g (a+b) | (g' ** a') with (reflectTermNat p (g ++ g') b) 
-        reflectTermNat p g (a+b) | (g' ** a') | (g'' ** b') = ?MZ -- Problem at typechecking. It says "Incomplete term..."
--}  
-
-
-{- ((g' ++ g'') **
-							rewrite (sym (appendAssociative g g' g'')) in
-								PlusMa (weaken g'' a') b')
-   
-   -}	
+reflectTermNat : {n:Nat} -> (g : Vect n Nat) -> (x:Nat) -> (n' ** (g' ** (ExprMa {n=n+n'} (%instance) (neg (FakeSetAndNeg (magma_to_set_class (%instance)))) (FakeSetAndMult (magma_to_set_class (%instance))) (g ++ g') x)))
+reflectTermNat {n=n} g (a+b) with (reflectTermNat g a)
+  reflectTermNat {n=n} g (a+b) | (n' ** (g' ** a')) with (reflectTermNat (g ++ g') b) 
+    reflectTermNat {n=n} g (a+b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+      let this = PlusMa (neg (FakeSetAndNeg (magma_to_set_class (%instance)))) (FakeSetAndMult (magma_to_set_class (%instance))) (weaken g'' a') b' in
+	  ((n' + n'') ** ((g'++g'') ** (convertVectInExprMa (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+	  -- Fix Idris : Huge problem if convertVectInExprMa was taking proofs that (n=n') and (g=g') (instead of the other way arround) and if I give the "sym" for these proofs here.
+-- %logging 0  
+  
+  
 
 -- Generalized version
 %reflection
@@ -108,16 +110,18 @@ reflectTerm p g (Plus a b) =
    
 
 ---------- Proofs ----------   
-{-
-Provers.reflection.MweakenElem_1 = proof
-  intros
-  rewrite prAux1
-  exact fin_n_m
-  -}
 
+Provers.reflection.MlemmaExtension_1 = proof
+  intros
+  exact (void proofOfFalse)  
+  
 Provers.reflection.MlemmaExtension_2 = proof
   intros
   rewrite (sym ih)
   rewrite (pre_convertFin_proofIrr pi _ (LTESucc (GTE_plus pk m)) (GTE_plus (S pk) m))
   mrefine Refl
 
+
+  
+  
+  

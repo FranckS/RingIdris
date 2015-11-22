@@ -30,7 +30,8 @@ import Provers.monoid_test
 import Provers.commutativeMonoid_test
 import Provers.group_test
 import Provers.commutativeGroup_test
---import Provers.ring_test
+-- import Provers.ring_test -- The test file for Ring is not added now (even if it works!) because of the few auxiliary lemmas about * 
+			    -- needed for the definition of the instance of the typeclass Ring which aren't proven yet
 
 import Provers.reflection
 
