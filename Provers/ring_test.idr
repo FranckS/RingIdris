@@ -48,6 +48,7 @@ mult_ZZ_zero' (NegS (S pa)) =
 
 total
 mult_ZZ_assoc : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (multZ (multZ x y) z = multZ x (multZ y z))
+{-
 mult_ZZ_assoc (Pos a) (Pos b) (Pos c) = f_equal _ _ _ (sym (multAssociative a b c))
 
 mult_ZZ_assoc (Pos Z) (Pos Z) (NegS Z) = Refl
@@ -112,11 +113,11 @@ mult_ZZ_assoc (NegS (S pa)) (NegS Z) (NegS Z) = ?MH5
 mult_ZZ_assoc (NegS (S pa)) (NegS Z) (NegS (S pc)) = ?MH6
 mult_ZZ_assoc (NegS (S pa)) (NegS (S pb)) (NegS Z) = ?MH7
 mult_ZZ_assoc (NegS (S pa)) (NegS (S pb)) (NegS (S pc)) = ?MH8
-
+-}
 
 
 mult_ZZ_dist : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (multZ x (plusZ y z)) = (plusZ (multZ x y) (multZ x z))
-
+{-
 mult_ZZ_dist (Pos a) (Pos b) (Pos c) = f_equal _ _ _ (multDistributesOverPlusRight a b c)
 mult_ZZ_dist (Pos a) (Pos b) (NegS c) = ?MX2
 mult_ZZ_dist (Pos a) (NegS b) (Pos c) = ?MX3
@@ -125,14 +126,14 @@ mult_ZZ_dist (NegS a) (Pos b) (Pos c) = ?MX5
 mult_ZZ_dist (NegS a) (Pos b) (NegS c) = ?MX6
 mult_ZZ_dist (NegS a) (NegS b) (Pos c) = ?MX7
 mult_ZZ_dist (NegS a) (NegS b) (NegS c) = ?MX8
-
+-}
 
 mult_ZZ_comm : (x:ZZ) -> (y:ZZ) -> (multZ x y = multZ y x)
 
 
 total
 mult_ZZ_dist2 : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> (multZ (plusZ x y) z) = (plusZ (multZ x z) (multZ y z))
--- We can use the fact that * is commutative in ZZ ((ZZ, +, *) form a Commutative Ring even if we're going to only use it as a Ring
+-- We can use the fact that * is commutative in ZZ. ((ZZ, +, *) form a Commutative Ring even if we're going to only use it as a Ring
 mult_ZZ_dist2 x y z = 
 	let paux1:((multZ z (plusZ x y))=(plusZ (multZ z x) (multZ z y))) = mult_ZZ_dist z x y in
 	let paux2:(multZ z x = multZ x z) = mult_ZZ_comm z x in
@@ -287,6 +288,8 @@ proof_expCr_expC2r x y u g = let (Just ok) = compare_expCr_expC2r x y u g in ok
 
 
 
+
+
 -- ---------------------------------
 -- PREVIOUS LITTLE TESTS
 -- ---------------------------------
@@ -346,6 +349,7 @@ Provers.ring_test.Mmult_preserves_equiv_ZZ_1 = proof
   rewrite pEq2'
   mrefine Refl  
   
+{-  
 Provers.ring_test.Mmult_ZZ_assoc_1 = proof
   intros
   rewrite (sym (mult_zero' pa))
@@ -355,6 +359,7 @@ Provers.ring_test.Mmult_ZZ_assoc_2 = proof
   intros
   rewrite (sym (mult_zero' pa))
   exact Refl  
+-}  
   
 Provers.ring_test.Mmult_ZZ_dist2_1 = proof
   intros

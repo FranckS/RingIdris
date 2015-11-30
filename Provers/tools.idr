@@ -467,6 +467,21 @@ switch_double_succ Z Z = Refl
 switch_double_succ Z (S pb) = ?Mswitch_double_succ_1
 switch_double_succ (S pa) Z = ?Mswitch_double_succ_2
 switch_double_succ (S pa) (S pb) = let ih = switch_double_succ pa (S pb) in ?Mswitch_double_succ_3
+									   
+	
+-- Will be certainly useful for proving the distributivity on Z	
+{-									   
+mult_Nat_distributivity : (a:Nat) -> (b:Nat) -> (c:Nat) -> (a * (b+c) = (a*b) + (a*c))
+mult_Nat_distributivity Z Z Z = Refl
+mult_Nat_distributivity Z Z (S pc) = Refl
+mult_Nat_distributivity Z (S pb) Z = Refl
+mult_Nat_distributivity Z (S pb) (S pc) = Refl
+mult_Nat_distributivity (S pa) Z Z = let paux:(mult pa 0 = 0) = ?Mmult_Nat_distributivity_1 in
+										 ?Mmult_Nat_distributivity_2
+mult_Nat_distributivity (S pa) Z (S pc) = let ih = mult_Nat_distributivity pa Z (S pc) in ?Mmult_Nat_distributivity_3
+mult_Nat_distributivity (S pa) (S pb) Z = let ih = mult_Nat_distributivity pa (S pb) Z in ?Mmult_Nat_distributivity_4
+mult_Nat_distributivity (S pa) (S pb) (S pc) = let ih = mult_Nat_distributivity pa (S pb) (S pc) in ?Mmult_Nat_distributivity_5
+-}
 
 -- D.2) Arith for Z
 
@@ -652,6 +667,13 @@ nextElement (S Z) (FZ {k=Z}) = FZ {k=Z}
 nextElement (S pn) (FS {k=pn} pi) = FS (nextElement pn pi)
 
 
+
+
+-- for all vector v, if the ith element of v is elem, then the (i+1)th element of any vector with one more element on the left is still elem	 
+elemInBigerVect : {T:Type} -> {v : Vect n T} -> (i:Fin n) -> (elem:T) -> (proofInside : index i v = elem) -> (head:T) -> (index (FS i) (head::v) = elem) 
+elemInBigerVect fZ elem proofInside = ?MelemInBigerVect_1 -- why I can't just give proofInside here and need to do it in proof mode ?
+elemInBigerVect (FS i') elem proofInside = ?MelemInBigerVect_2
+
 lastElement : (pn:Nat) -> Fin (S pn)
 lastElement Z = FZ
 lastElement (S ppn) = FS (lastElement ppn)
@@ -661,6 +683,51 @@ lastElement' pn = let pn_plus_1_equals_Spn : (pn+1 = S pn) = plus_one_equals_suc
                     -- This is just a call to the other function lastElement with the argument pn, but with a rewriting of the goal
                     ?MlastElement'_1
 
+                    
+total    
+indexOfFS : {T:Type} -> {n:Nat} -> (i:Fin n) -> (vh:T) -> (vt:Vect n T) -> index (FS i) (vh::vt) = index i vt
+indexOfFS FZ vh (vth::vtt) = Refl
+indexOfFS (FS pi) vh (vth::vtt) = Refl    
+    
+total
+index_n_plus_0 : {c:Type} -> {n:Nat} -> (g:Vect n c) -> (i:Fin n) -> (index (replace (sym (a_plus_zero n)) i) (g ++ []) = index i g)    
+index_n_plus_0 Nil i = Refl
+index_n_plus_0 {n=S pn} (h::t) (FS pi) = let ih = index_n_plus_0 t pi in 
+												?Mindex_n_plus_0_1
+index_n_plus_0 (h::t) FZ = ?Mindex_n_plus_0_2                    
+                    
+  
+  
+ -- Hourray ! I can do it because I can pattern match p with (only) Refl
+fin_replace : {n:Nat} -> {n':Nat} -> (i:Fin n) -> (eq:n=n') -> (replace eq i = i)
+fin_replace i Refl = Refl
+
+-- My trick : in order to be able to write the type (index (replace eq i) vect = index i vect), we already need to do a dependent pattern maching...
+index_replace_type : {T:Type} -> {n:Nat} -> {n':Nat} -> (i:Fin n) -> (vect:Vect n T) -> (eq:n=n') -> Type
+index_replace_type i vect eq with (eq)
+  index_replace_type i vect eq | (Refl) = (index (replace eq i) vect = index i vect)
+
+-- ... and thanks to this little trick, we can write the auxiliary lemma we need...
+index_replace : {T:Type} -> {n:Nat} -> {n':Nat} -> (i:Fin n) -> (vect:Vect n T) -> (eq:n=n') -> (index_replace_type i vect eq)
+index_replace i vect eq with (eq)
+  index_replace i vect eq | (Refl) = Refl
+
+  
+trick_vect_size : {T:Type} -> {n:Nat} -> (vh:T) -> (vt:Vect n T) -> (x:T) -> (Vect (S (S n)) T) 
+trick_vect_size vh vt x ?= vh::vt++[x]   
+         
+indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastElement' n) (v++[x]) = x 	 
+indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
+indexOfLastElem {n=S pn} (vh::vt) x = 
+			     let paux = indexOfLastElem vt x in 
+			     let paux2 : ((=) {A=Fin (S (pn+1))} {B=Fin (S (S pn))} (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (FS (lastElement pn)) ) = ?MindexOfLastElem_2 in
+			     let paux3 = index_replace (FS (lastElement pn)) (trick_vect_size vh vt x) (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) in
+			     ?MindexOfLastElem_3 -- Will use elemInBigerVect and the induction hypothesis called paux and paux2 or paux3
+			     -- Damn, I can't do rewrite (index_replace (FS (lastElement pn)) (vh::vt++[x]) (sym (replace (plus_one_equals_succ pn) Refl)))
+			     -- in order to start the proof of this metavariable. There's a problem with the type of index_replace which is not unfolded as it should be. Why ?
+
+    
+         
 -- -----------------------------------
 -- F) VECTOR TOOLS
 -- -----------------------------------
@@ -1118,6 +1185,13 @@ Provers.tools.Mswitch_double_succ_3 = proof
   rewrite (plus_succ_right pb (S (S pa)))
   exact (f_equal (\x => S x) _ _ ih)  
   
+{-  
+Provers.tools.Mmult_Nat_distributivity_2 = proof
+  intros
+  rewrite (sym paux)
+  mrefine plusZeroRightNeutral  
+  -}  
+  
 -- D.2) Arith for Z
 
 Provers.tools.Ma_plusZ_zero_1 = proof
@@ -1333,6 +1407,28 @@ Provers.tools.MlastElement'_1 = proof
   rewrite pn_plus_1_equals_Spn 
   rewrite (sym pn_plus_1_equals_Spn)
   exact (lastElement pn)
+  
+Provers.tools.trick_vect_size_lemma_1 = proof
+  intros
+  rewrite (plus_one_equals_succ n)
+  exact value    
+  
+Provers.tools.MindexOfLastElem_1 = proof
+  intros
+  exact Refl  
+  
+Provers.tools.MindexOfLastElem_2 = proof
+  intros
+  mrefine fin_replace   
+  
+Provers.tools.MelemInBigerVect_1 = proof
+  intros
+  exact proofInside 
+  
+Provers.tools.MelemInBigerVect_2 = proof
+  intros
+  exact proofInside   
+  
   
 -- Part F : Vector tools
 
@@ -1661,6 +1757,8 @@ Provers.tools.MlemmaRing4_3 = proof
   mrefine set_eq_undec_sym 
   exact p3
   mrefine group_doubleNeg 
+
+
 
 
 
