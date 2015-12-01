@@ -132,19 +132,24 @@ reflectTermZForRing {n=n} g (a+b) with (reflectTermZForRing g a)
   reflectTermZForRing {n=n} g (a+b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
     reflectTermZForRing {n=n} g (a+b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
       let this = PlusR (weakenR g'' a') b' in
-	  ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+	       ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
 -- Reflecting substractions...
 reflectTermZForRing {n=n} g (a-b) with (reflectTermZForRing g a)
   reflectTermZForRing {n=n} g (a-b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
     reflectTermZForRing {n=n} g (a-b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
       let this = MinusR (weakenR g'' a') b' in
-	  ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+	       ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+-- Reflecting opposites
+reflectTermZForRing {n=n} g (negate a) with (reflectTermZForRing g a)
+    reflectTermZForRing {n=n} g (negate a) | (n' ** (g' ** a')) = 
+      let this = NegR a' in
+        (n' ** (g' ** this))
 -- Reflecting products....
 reflectTermZForRing {n=n} g (a*b) with (reflectTermZForRing g a)
   reflectTermZForRing {n=n} g (a*b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
     reflectTermZForRing {n=n} g (a*b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
       let this = MultR (weakenR g'' a') b' in
-	  ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+	       ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
 -- Reflecting constants...
 reflectTermZForRing {n=n} g (Pos number) = (Z ** ([] ** ConstR (%instance) _ (Pos number)))
 reflectTermZForRing {n=n} g (Neg number) = (Z ** ([] ** ConstR (%instance) _ (Neg number)))
@@ -212,10 +217,40 @@ full_auto x y u g = let (nbAddedLHS ** (gammaAddedLHS ** lhs)) = reflectTermZFor
 
 
 %reflection
-reflectTerm : {c:Type} -> {n:Nat} -> (p:Ring c) -> (g : Vect n c) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR p (g ++ g') x)))
-reflectTerm p g (Plus a b) =
-		?REAL_REFLECTION_TO_DO
-	
+reflectTermForRing : {c:Type} -> {n:Nat} -> (p:Ring c) -> (g : Vect n c) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR p (g ++ g') x)))
+
+reflectTermForRing {n=n} p g (Plus a b) with (reflectTermForRing p g a)
+-- Reflecting sums...
+  reflectTermForRing {n=n} p g (Plus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') b) 
+    reflectTermForRing {n=n} p g (Plus a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+      let this = PlusR (weakenR g'' a') b' in
+         ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+-- Reflecting substractions...
+reflectTermForRing {n=n} p g (Minus a b) with (reflectTermForRing p g a)
+  reflectTermForRing {n=n} p g (Minus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') b) 
+    reflectTermForRing {n=n} p g (Minus a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+      let this = MinusR (weakenR g'' a') b' in
+         ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+-- Reflecting opposites
+reflectTermForRing {n=n} p g (Neg a) with (reflectTermForRing p g a)
+    reflectTermForRing {n=n} p g (Neg a) | (n' ** (g' ** a')) = 
+      let this = NegR a' in
+        (n' ** (g' ** this))
+-- Reflecting products....
+reflectTermForRing {n=n} p g (Mult a b) with (reflectTermForRing p g a)
+  reflectTermForRing {n=n} p g (Mult a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') b) 
+    reflectTermForRing {n=n} p g (Mult a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+      let this = MultR (weakenR g'' a') b' in
+         ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+-- How can I do it for constants ?...
+-- reflectTermForRing {n=n} p g constant = (Z ** ([] ** ConstR p _ constant))
+-- Hopefully, at this stage, it can only be a single variable...    
+reflectTermForRing {n=n} p g t with (isElement t g)
+  | Just (i ** pr) = let this = VarR {n=n+Z} {g=g++Data.VectType.Vect.Nil} p (RealVariable {n=n+Z} _ _ _ (g++Data.VectType.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
+               ?MreflectTermForRing_1 -- (Z ** (Data.VectType.Vect.Nil ** this))
+  | Nothing = let this = VarR {n=n+S Z} {g=g++[t]} p (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
+               ?MreflectTermForRing_2 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))  	
+
    
    
 
@@ -279,3 +314,30 @@ Provers.reflection.MreflectTermZForRing_2 = proof
   exact ([t])
   compute
   exact (replace (indexOfLastElem g t) this)  
+
+Provers.reflection.MreflectTermForRing_1 = proof
+  intros
+  mrefine MkSigma
+  exact Z
+  compute
+  mrefine MkSigma
+  exact Nil
+  compute
+  rewrite pr
+  rewrite (index_n_plus_0 g i)
+  exact this  
+  
+Provers.reflection.MreflectTermForRing_2 = proof
+  intros
+  mrefine MkSigma
+  exact (S Z)
+  compute
+  mrefine MkSigma
+  exact ([t])
+  compute
+  exact (replace (indexOfLastElem g t) this)  
+
+
+
+
+
