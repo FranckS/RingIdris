@@ -218,7 +218,6 @@ full_auto x y u g = let (nbAddedLHS ** (gammaAddedLHS ** lhs)) = reflectTermZFor
 
 %reflection
 reflectTermForRing : {c:Type} -> {n:Nat} -> (p:Ring c) -> (g : Vect n c) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR p (g ++ g') x)))
-
 reflectTermForRing {n=n} p g (Plus a b) with (reflectTermForRing p g a)
 -- Reflecting sums...
   reflectTermForRing {n=n} p g (Plus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') b) 
@@ -251,6 +250,17 @@ reflectTermForRing {n=n} p g t with (isElement t g)
   | Nothing = let this = VarR {n=n+S Z} {g=g++[t]} p (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
                ?MreflectTermForRing_2 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))  	
 
+
+-- CURRENT PROBLEMS WITH THE AUTOMATIC REFLECTION :
+-- ------------------------------------------------
+-- There are two problems at the moment with the general automatic reflection for Ring (which is just above) :
+-- 1) It doesn't reflects the effective implementation of the abstract operations (Plus,Minus,Mult...) of the typeclass.
+-- for example, if you test (\xx,yy,uu,gg:ZZ => leftDep ( rightDep( reflectTermForRing {c=ZZ} (%instance) [] (xx+yy+uu+gg)))) then it goes
+-- directly in the last case, and it adds the whole formulae in the context.
+-- -> Idris needs to be improved for (really) allowing reflection with abstract operation that might become concrete with an actual instance. At the moment,
+-- idris allows it, but it doesn't work as expected
+-- 2) Thinking of the (general) reflection of constants. How can I do it ? I don't know anything about the futur constructors of the type I'm parsing, so I can't 
+-- do the same thing I was doing for ZZ (look at the function reflectTermZforRing in the case of a constant)
    
    
 
