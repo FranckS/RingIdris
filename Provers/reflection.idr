@@ -30,7 +30,7 @@ import Provers.magma_test
 -- Unfortunately, I've developped the entire collection of provers with Fin. Instead of changing completely the provers (that would be a nightmare as Fin is present everywhere !), 
 -- I'll just adapt the automatic reflection, which becomes a bit more complicated.
 -- The key element of my reflection machinery is the usage of the function isElement, which returns an index AND the proof that this index effectively works. That enables
--- to simulate the behaviour of Elem that I do not have. I would say that my approach for the reflection is therefore the usual Coq approach, in the sense that I use many more external lemmas.
+-- to simulate the behaviour of Elem that I do not have. I would say that my approach for the reflection is therefore the usual Coq approach, in the sense that I use more external lemmas.
 -- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -56,9 +56,9 @@ isElement x (y :: ys) with (prim__syntactic_eq _ _ x y)
 						Just (i' ** p') => Just ((FS i') ** ?MisElement_1) 		
 		
 
--- -----------------------
--- TEST FROM Nat TO MAGMA
--- -----------------------
+-- -----------------------------------------------
+-- REFLECTION FROM Nat (SEEN AS A MAGMA) TO ExprMa
+-- -----------------------------------------------
 	
 -- NOT total : We don't treat if the variable is not a real variable, but we don't care since fake variables are only for encodings, and the user will never use them directly
 weaken : {c:Type} -> {p:Magma c} -> {n:Nat} -> {m:Nat} -> {g:Vect n c} -> (g':Vect m c) -> (ExprMa p (neg (FakeSetAndNeg (magma_to_set_class p))) (FakeSetAndMult (magma_to_set_class p)) g x) -> (ExprMa p (neg (FakeSetAndNeg (magma_to_set_class p))) (FakeSetAndMult (magma_to_set_class p)) (g ++ g') x)
@@ -81,7 +81,7 @@ convertVectInExprMa prEqN prEqG e with (prEqN)
     
         
     
--- Just a trivial try : Reflects only from Nat to a Magma  
+-- Reflects only from Nat (seen as a Magma) to ExprMa
 -- %logging 1   
 %reflection
 reflectTermNat : {n:Nat} -> (g : Vect n Nat) -> (x:Nat) -> (n' ** (g':Vect n' Nat ** (ExprMa {c=Nat} {n=n+n'} (%instance) (neg (FakeSetAndNeg (magma_to_set_class (%instance)))) (FakeSetAndMult (magma_to_set_class (%instance))) (g ++ g') x)))
@@ -99,9 +99,9 @@ reflectTermNat {n=n} g t with (isElement t g)
 							 ?MreflectTermNat_2 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))  
   
  
--- ----------------------
--- TEST FROM ZZ TO RING
--- ----------------------
+-- ----------------------------------------------
+-- REFLECTION FROM ZZ (SEEN AS A RING) TO ExprR
+-- ----------------------------------------------
  
  
 -- NOT total : We don't treat if the variable is not a real variable, but we don't care since fake variables are only for encodings, and the user will never use them directly
@@ -124,65 +124,98 @@ convertVectInExprR prEqN prEqG e with (prEqN)
     
     
  
--- Reflects only from ZZ to Ring 
+-- Reflects only from ZZ (seen as a Ring) to ExprR 
 %reflection
 reflectTermZForRing : {n:Nat} -> (g : Vect n ZZ) -> (x:ZZ) -> (n' ** (g':Vect n' ZZ ** (ExprR {c=ZZ} {n=n+n'} (%instance) (g ++ g') x)))
--- reflectTermZForRing g arg = ?MTRUC
+-- Reflecting sums...
 reflectTermZForRing {n=n} g (a+b) with (reflectTermZForRing g a)
   reflectTermZForRing {n=n} g (a+b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
     reflectTermZForRing {n=n} g (a+b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
       let this = PlusR (weakenR g'' a') b' in
 	  ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+-- Reflecting substractions...
+reflectTermZForRing {n=n} g (a-b) with (reflectTermZForRing g a)
+  reflectTermZForRing {n=n} g (a-b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
+    reflectTermZForRing {n=n} g (a-b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+      let this = MinusR (weakenR g'' a') b' in
+	  ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+-- Reflecting products....
+reflectTermZForRing {n=n} g (a*b) with (reflectTermZForRing g a)
+  reflectTermZForRing {n=n} g (a*b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
+    reflectTermZForRing {n=n} g (a*b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+      let this = MultR (weakenR g'' a') b' in
+	  ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+-- Reflecting constants...
+reflectTermZForRing {n=n} g (Pos number) = (Z ** ([] ** ConstR (%instance) _ (Pos number)))
+reflectTermZForRing {n=n} g (Neg number) = (Z ** ([] ** ConstR (%instance) _ (Neg number)))
+-- Hopefully, at this stage, it can only be a single variable... 	  
 reflectTermZForRing {n=n} g t with (isElement t g)
 	| Just (i ** p) = let this = VarR {c=ZZ} {n=n+Z} {g=g++Data.VectType.Vect.Nil} (%instance) (RealVariable {n=n+Z} _ _ _ (g++Data.VectType.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
 							 ?MreflectTermZForRing_1 -- (Z ** (Data.VectType.Vect.Nil ** this))
 	| Nothing = let this = VarR {c=ZZ} {n=n+S Z} {g=g++[t]} (%instance) (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
 							 ?MreflectTermZForRing_2 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))  
   
- 
- 
+
+-- ------------------------------------------------------------------------------------------------- 
+-- TEST OF THE REFLECTION MECHANISM FROM ZZ (SEEN AS A RING) TO ExprR :
+
 -- Let's try the automatic reflection
-{-
-expCr_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ExprR (%instance) [x,y,u,g] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g))))
-expCr_automatic x y u g = rightDep (rightDep (reflectTermZForRing [] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) ))
+-- With the example ((((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
+-- that has been studied in ring_test.idr
 
-exprC2r_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ExprR (%instance) [x,y,u,g] ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
-exprC2r_automatic x y u g = rightDep (rightDep (reflectTermZForRing [] ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) ))
+-- -------------------------------------------------------------------------------------------------
 
-compare_automatic : (x:ZZ) -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> Maybe ((((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
-compare_automatic x y u g = ringDecideEq (%instance) (expCr_automatic x y u g) (expC2r_automatic x y u g) 
+-- Reflects only the LHS
+ exprCr_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> (newG_size ** (newG:Vect newG_size ZZ ** (ExprR (%instance) newG (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))))))
+ exprCr_automatic x y u g = let (nAdded ** (gAdded ** exprReflected)) = reflectTermZForRing [] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) in
+ 								(_ ** (_ ** exprReflected))
 
--- Later, we will have a real tactic "Ring" which can fail. At this point, we will
--- not have a missing case																																																																								 for "Nothing", which enables now to manipulate some false proof
--- (which causes a crash only when you apply then to a specific value for x)
-proof_automatic : (x:ZZ) -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ((((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
-proof_automatic x y u g = let (Just ok) = compare_automatic x y u g in ok 
--} 
- 
- 
+
+-- ------------------------------------------------------------------------------------
+-- For testing the reflection of the LHS :
+-- ----------------------------------------
+-- 1) Showing the context that has been built automatically for the LHS : 
+--    (\x,y,u,g => leftDep (rightDep (exprCr_automatic x y u g)))
+-- 2) Showing the reflected expression that has been built automatically for the LHS :
+--    (\x,y,u,g => rightDep (rightDep (exprCr_automatic x y u g)))
+-- ------------------------------------------------------------------------------------
+
+-- Reflects only the RHS
+ exprC2r_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> (newG_size ** (newG:Vect newG_size ZZ ** (ExprR (%instance) newG ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))))))
+ exprC2r_automatic x y u g = let (nAdded ** (gAdded ** exprReflected)) = reflectTermZForRing [] ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) in
+ 								(_ ** (_ ** exprReflected))
+
+-- ------------------------------------------------------------------------------------
+-- For testing the reflection of the RHS :
+-- ----------------------------------------
+-- 1) Showing the context that has been built automatically for the RHS : 
+--    (\x,y,u,g => leftDep (rightDep (exprC2r_automatic x y u g)))
+-- 2) Showing the reflected expression thaa has been built automatically for the RHS :
+--    (\x,y,u,g => rightDep (rightDep (exprC2r_automatic x y u g)))
+-- ------------------------------------------------------------------------------------
+
+-- Note : the context generated automatically for the LHS is [x,y,u,g], but the one for the RHS is [x,y,g,u] because of the order of appearance of the variables
+
+
+-- Now, let's try to do the reflection AND the proving, all in automatic mode...
+
 full_auto : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ((((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
-full_auto x y u g = let (nbAddedLHS ** (gAddedLHS ** lhs)) = reflectTermZForRing [] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) in
-						 let (nbAddedRHS ** (gAddedRHS ** rhs)) = reflectTermZForRing gAddedLHS ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) in
-							let (Just ok) = ringDecideEq (%instance) (lhs x y u g) (rhs x y u g) in ok
+full_auto x y u g = let (nbAddedLHS ** (gammaAddedLHS ** lhs)) = reflectTermZForRing [] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) in
+						 let (nbAddedRHS ** (gammaAddedRHS ** rhs)) = reflectTermZForRing gammaAddedLHS ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) in
+							let (Just ok) = ringDecideEq (%instance) (weakenR gammaAddedRHS lhs) rhs in ok
  
  
  
--- ---------------------------------------------------
--- GENERALISED VERSION GOING FROM ANY TYPE c TO MAGMA
--- ---------------------------------------------------
+-- ---------------------------------------------------------------------
+-- GENERALISED VERSION GOING FROM ANY TYPE c (SEEN AS A RING) TO ExprR
+-- ---------------------------------------------------------------------
 
 
 %reflection
-reflectTerm : {c:Type} -> {n:Nat} -> (p:Magma c) -> (g : Vect n c) -> (x:c) -> (g' ** (ExprMa p (neg (FakeSetAndNeg (%instance))) (FakeSetAndMult (%instance)) (g ++ g') x))
+reflectTerm : {c:Type} -> {n:Nat} -> (p:Ring c) -> (g : Vect n c) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR p (g ++ g') x)))
 reflectTerm p g (Plus a b) =
---	let (g' ** a') = reflectTerm p g a in
---	let (g'' ** ys') = reflectTerm p (g ++ g') b in
 		?REAL_REFLECTION_TO_DO
-{- ((g' ++ g'') **
-							rewrite (sym (appendAssociative g g' g'')) in
-								PlusMa (weaken g'' a') b')
-   
-   -}	
+	
    
    
 
