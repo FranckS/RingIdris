@@ -122,44 +122,52 @@ convertVectInExprR prEqN prEqG e with (prEqN)
   convertVectInExprR prEqN prEqG e | (Refl) with (prEqG)
     convertVectInExprR prEqN prEqG e | (Refl) | (Refl) = e -- Fix Idris : it works if I give directly e but if I put a metavariable, there's a bug when I try to prove it
     
+
     
+total
+TypeReflectConstants : {c:Type} -> (p:Ring c) -> Type
+TypeReflectConstants {c=c} p = ({n:Nat} -> (g:Vect n c) -> (x:c) -> Maybe (ExprR p g x))
+
  
 -- Reflects only from ZZ (seen as a Ring) to ExprR 
 %reflection
-reflectTermZForRing : {n:Nat} -> (g : Vect n ZZ) -> (x:ZZ) -> (n' ** (g':Vect n' ZZ ** (ExprR {c=ZZ} {n=n+n'} (%instance) (g ++ g') x)))
+reflectTermZForRing : {n:Nat} -> (g : Vect n ZZ) -> (reflectCst:TypeReflectConstants {c=ZZ} (%instance)) -> (x:ZZ) -> (n' ** (g':Vect n' ZZ ** (ExprR {c=ZZ} {n=n+n'} (%instance) (g ++ g') x)))
 -- Reflecting sums...
-reflectTermZForRing {n=n} g (a+b) with (reflectTermZForRing g a)
-  reflectTermZForRing {n=n} g (a+b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
-    reflectTermZForRing {n=n} g (a+b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+reflectTermZForRing {n=n} g reflectCst (a+b) with (reflectTermZForRing g reflectCst a)
+  reflectTermZForRing {n=n} g reflectCst (a+b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') reflectCst b) 
+    reflectTermZForRing {n=n} g reflectCst (a+b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
       let this = PlusR (weakenR g'' a') b' in
 	       ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
 -- Reflecting substractions...
-reflectTermZForRing {n=n} g (a-b) with (reflectTermZForRing g a)
-  reflectTermZForRing {n=n} g (a-b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
-    reflectTermZForRing {n=n} g (a-b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+reflectTermZForRing {n=n} g reflectCst (a-b) with (reflectTermZForRing g reflectCst a)
+  reflectTermZForRing {n=n} g reflectCst (a-b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') reflectCst b) 
+    reflectTermZForRing {n=n} g reflectCst (a-b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
       let this = MinusR (weakenR g'' a') b' in
 	       ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
 -- Reflecting opposites
-reflectTermZForRing {n=n} g (negate a) with (reflectTermZForRing g a)
-    reflectTermZForRing {n=n} g (negate a) | (n' ** (g' ** a')) = 
+reflectTermZForRing {n=n} g reflectCst (negate a) with (reflectTermZForRing g reflectCst a)
+    reflectTermZForRing {n=n} g reflectCst (negate a) | (n' ** (g' ** a')) = 
       let this = NegR a' in
         (n' ** (g' ** this))
 -- Reflecting products....
-reflectTermZForRing {n=n} g (a*b) with (reflectTermZForRing g a)
-  reflectTermZForRing {n=n} g (a*b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') b) 
-    reflectTermZForRing {n=n} g (a*b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+reflectTermZForRing {n=n} g reflectCst (a*b) with (reflectTermZForRing g reflectCst a)
+  reflectTermZForRing {n=n} g reflectCst (a*b) | (n' ** (g' ** a')) with (reflectTermZForRing (g ++ g') reflectCst b) 
+    reflectTermZForRing {n=n} g reflectCst (a*b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
       let this = MultR (weakenR g'' a') b' in
 	       ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
--- Reflecting constants...
-reflectTermZForRing {n=n} g (Pos number) = (Z ** ([] ** ConstR (%instance) _ (Pos number)))
-reflectTermZForRing {n=n} g (Neg number) = (Z ** ([] ** ConstR (%instance) _ (Neg number)))
--- Hopefully, at this stage, it can only be a single variable... 	  
-reflectTermZForRing {n=n} g t with (isElement t g)
-	| Just (i ** p) = let this = VarR {c=ZZ} {n=n+Z} {g=g++Data.VectType.Vect.Nil} (%instance) (RealVariable {n=n+Z} _ _ _ (g++Data.VectType.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
-							 ?MreflectTermZForRing_1 -- (Z ** (Data.VectType.Vect.Nil ** this))
-	| Nothing = let this = VarR {c=ZZ} {n=n+S Z} {g=g++[t]} (%instance) (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
-							 ?MreflectTermZForRing_2 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))  
-  
+-- Constants and variables
+reflectTermZForRing {n=n} g reflectCst t =
+	case reflectCst g t of
+	  -- If reflectConstants has decided that this thing is a constant, then we trust it...
+	  Just this => ?MreflectTermZForRing_1 -- I just return (Z ** ([] ** this)) with a few conversions for having the type aggreing (because n+0=n and g++[] = [] at the same time)
+	  -- If not, then it should be considered as a variable
+	  Nothing => case (isElement t g) of
+					Just (i ** pr) => let this2 = VarR {n=n+Z} {g=g++Data.VectType.Vect.Nil} (%instance) (RealVariable {n=n+Z} _ _ _ (g++Data.VectType.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
+											?MreflectTermZForRing_2 -- (Z ** (Data.VectType.Vect.Nil ** this))
+					Nothing => let this3 = VarR {n=n+S Z} {g=g++[t]} (%instance) (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
+											?MreflectTermZForRing_3 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))
+
+     
 
 -- ------------------------------------------------------------------------------------------------- 
 -- TEST OF THE REFLECTION MECHANISM FROM ZZ (SEEN AS A RING) TO ExprR :
@@ -169,10 +177,18 @@ reflectTermZForRing {n=n} g t with (isElement t g)
 -- that has been studied in ring_test.idr
 
 -- -------------------------------------------------------------------------------------------------
+total
+%reflection
+reflectConstantsForZ : TypeReflectConstants {c=ZZ} (%instance)
+-- Fix Idris : I can't talk about {n=n} here (I don't need it though)
+reflectConstantsForZ g (Pos number) = Just (ConstR (%instance) g (Pos number))
+reflectConstantsForZ g (NegS number) = Just (ConstR (%instance) g (NegS number))
+reflectConstantsForZ g _ = Nothing
+
 
 -- Reflects only the LHS
- exprCr_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> (newG_size ** (newG:Vect newG_size ZZ ** (ExprR (%instance) newG (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))))))
- exprCr_automatic x y u g = let (nAdded ** (gAdded ** exprReflected)) = reflectTermZForRing [] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) in
+exprCr_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> (newG_size ** (newG:Vect newG_size ZZ ** (ExprR (%instance) newG (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))))))
+exprCr_automatic x y u g = let (nAdded ** (gAdded ** exprReflected)) = reflectTermZForRing [] reflectConstantsForZ (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) in
  								(_ ** (_ ** exprReflected))
 
 
@@ -186,8 +202,8 @@ reflectTermZForRing {n=n} g t with (isElement t g)
 -- ------------------------------------------------------------------------------------
 
 -- Reflects only the RHS
- exprC2r_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> (newG_size ** (newG:Vect newG_size ZZ ** (ExprR (%instance) newG ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))))))
- exprC2r_automatic x y u g = let (nAdded ** (gAdded ** exprReflected)) = reflectTermZForRing [] ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) in
+exprC2r_automatic : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> (newG_size ** (newG:Vect newG_size ZZ ** (ExprR (%instance) newG ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))))))
+exprC2r_automatic x y u g = let (nAdded ** (gAdded ** exprReflected)) = reflectTermZForRing [] reflectConstantsForZ ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) in
  								(_ ** (_ ** exprReflected))
 
 -- ------------------------------------------------------------------------------------
@@ -205,22 +221,18 @@ reflectTermZForRing {n=n} g t with (isElement t g)
 -- Now, let's try to do the reflection AND the proving, all in automatic mode...
 
 full_auto : (x:ZZ)  -> (y:ZZ) -> (u:ZZ) -> (g:ZZ) -> ((((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) = (((3*x)*(y*5))*g) + (3*((x*y)*(2*u))))
-full_auto x y u g = let (nbAddedLHS ** (gammaAddedLHS ** lhs)) = reflectTermZForRing [] (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) in
-						 let (nbAddedRHS ** (gammaAddedRHS ** rhs)) = reflectTermZForRing gammaAddedLHS ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) in
+full_auto x y u g = let (nbAddedLHS ** (gammaAddedLHS ** lhs)) = reflectTermZForRing [] reflectConstantsForZ (((((3*x)*(y*2))*u) + (x * (y-y))) + (3*((x*y)*(5*g)))) in
+						let (nbAddedRHS ** (gammaAddedRHS ** rhs)) = reflectTermZForRing gammaAddedLHS reflectConstantsForZ ((((3*x)*(y*5))*g) + (3*((x*y)*(2*u)))) in
 							let (Just ok) = ringDecideEq (%instance) (weakenR gammaAddedRHS lhs) rhs in ok
  
  
- 
+
 -- ---------------------------------------------------------------------
 -- GENERALISED VERSION GOING FROM ANY TYPE c (SEEN AS A RING) TO ExprR
 -- ---------------------------------------------------------------------
 
-TypeReflectConstants : {c:Type} -> (p:Ring c) -> Type
-TypeReflectConstants {c=c} p = ({n:Nat} -> (g:Vect n c) -> (x:c) -> Maybe (ExprR p g x))
-
-
 %reflection
-reflectTermForRing : {c:Type} -> {n:Nat} -> (p:Ring c) -> (g : Vect n c) -> (reflectConstants:TypeReflectConstants p) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR p (g ++ g') x)))
+reflectTermForRing : {c:Type} -> {n:Nat} -> (p:Ring c) -> (g : Vect n c) -> (reflectCst:TypeReflectConstants p) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR p (g ++ g') x)))
 reflectTermForRing {n=n} p g reflectCst (Plus a b) with (reflectTermForRing p g reflectCst a)
 -- Reflecting sums...
   reflectTermForRing {n=n} p g reflectCst (Plus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') reflectCst b) 
@@ -318,11 +330,26 @@ Provers.reflection.MreflectTermZForRing_1 = proof
   mrefine MkSigma
   exact Nil
   compute
-  rewrite p
-  rewrite (index_n_plus_0 g i)
+  mrefine convertVectInExprR 
+  exact n
+  exact g
+  mrefine plusZeroRightNeutral
+  mrefine vectNilRightNeutral 
   exact this  
   
 Provers.reflection.MreflectTermZForRing_2 = proof
+  intros
+  mrefine MkSigma
+  exact Z
+  compute
+  mrefine MkSigma
+  exact Nil
+  compute
+  rewrite pr
+  rewrite (index_n_plus_0 g i)
+  exact this2  
+  
+Provers.reflection.MreflectTermZForRing_3 = proof
   intros
   mrefine MkSigma
   exact (S Z)
@@ -330,7 +357,8 @@ Provers.reflection.MreflectTermZForRing_2 = proof
   mrefine MkSigma
   exact ([t])
   compute
-  exact (replace (indexOfLastElem g t) this)  
+  exact (replace (indexOfLastElem g t) this3)  
+
 
 Provers.reflection.MreflectTermForRing_1 = proof
   intros
