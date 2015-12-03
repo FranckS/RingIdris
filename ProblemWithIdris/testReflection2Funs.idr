@@ -5,11 +5,11 @@ Last version : 3rd December 2015
 Compiles with Idris 0.9.17.1-git:756bfb1 (1rst May 2015 : https://github.com/idris-lang/Idris-dev/commit/756bfb1373895da0abaf5ce606c71258273edf3e)
 
 This file shows two problems with the reflection facility :
-- I looks like a function defined with %reflection can't call another one
+- 1) I looks like a function defined with %reflection can't call another one
 	-> that would be useful for having a handler for constants only for example 
 	  (in my work, I need to implement an automatic reflection for any type that behaves as a Ring, 
 	  but I can't know beforehand what the constants are going to be, so would like that the user could pass a function dealing only with the reflection of constants)
-	-> Adding a "_" pattern that should not change anything did change the result
+- 2) Adding a "_" pattern that should not change anything did change the result
 -}
 
 -- Just a (pretty useless) syntax for reflecting natural numbers with additions, variables and constants
@@ -40,7 +40,7 @@ test1 = (\x,y => reflectNatToMyNat (x+y))
 
 
 -- --------------------------
--- THAT DOESN'T WORK :
+-- THE FIRST PROBLEM :
 -- --------------------------
 
 -- This is the type of a handler for constants only
@@ -77,7 +77,7 @@ test2 : Nat -> Nat -> MyNat
 test2 = (\x,y => reflectNatToMyNat' reflectNatConstants (x+y))	  
 	  
 -- ------------------------------------------------------------
--- There is in fact a second problem with reflectNatToMyNat' :
+-- SECOND PROBLEM WITH reflectNatToMyNat' :
 -- ------------------------------------------------------------
 
 -- Here I should get (MySucc MyZero), and I do get it
