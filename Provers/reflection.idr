@@ -278,8 +278,7 @@ reflectTermForRing {n=n} p g reflectCst t =
 -- directly in the last case, and it adds the whole formulae in the context.
 -- -> Idris needs to be improved for (really) allowing reflection with abstract operation that might become concrete with an actual instance. At the moment,
 -- idris allows it, but it doesn't work as expected
--- 2) Thinking of the (general) reflection of constants. How can I do it ? I don't know anything about the futur constructors of the type I'm parsing, so I can't 
--- do the same thing I was doing for ZZ (look at the function reflectTermZforRing in the case of a constant)
+-- 2) Problem with Idris's %reflection when calling subfunction. See the issue open on Github here : https://github.com/idris-lang/Idris-dev/issues/2843
    
    
 
