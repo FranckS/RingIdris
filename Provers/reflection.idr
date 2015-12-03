@@ -216,7 +216,7 @@ exprC2r_automatic x y u g = let (nAdded ** (gAdded ** exprReflected)) = reflectT
 -- ------------------------------------------------------------------------------------
 
 -- Note : the context generated automatically for the LHS is [x,y,u,g], but the one for the RHS is [x,y,g,u] because of the order of appearance of the variables
-
+-- Update : that does not work anymore for the moment, because of the handler for constants only. I think there is a problem with Idris' %reflection machanism
 
 -- Now, let's try to do the reflection AND the proving, all in automatic mode...
 
