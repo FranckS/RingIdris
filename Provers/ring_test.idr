@@ -288,6 +288,146 @@ proof_expCr_expC2r x y u g = let (Just ok) = compare_expCr_expC2r x y u g in ok
 
 
 
+-- -------------------------------------------------------------
+-- TEST OF A + B + C where B normalise to Zero or to a constant
+-- -------------------------------------------------------------
+
+-- When B reduces to Zero
+
+expAring : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> ExprR (%instance) [x,y,z] ((x + (y * (1-1))) + z)
+expAring x y z = PlusR 
+				(PlusR (VarR _ (RealVariable _ _ _ _ FZ))
+				       (MultR (VarR _ (RealVariable _ _ _ _ (FS FZ)))
+					          (MinusR (ConstR _ _ 1)
+							          (ConstR _ _ 1))))
+				(VarR _ (RealVariable _ _ _ _ (FS (FS FZ))))
+
+
+
+expBring : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> ExprR (%instance) [x,y,z] (z+x)
+expBring x y z = PlusR (VarR _ (RealVariable _ _ _ _ (FS (FS FZ))))
+						(VarR _ (RealVariable _ _ _ _ FZ))
+
+
+compare_expAring_expBring : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> Maybe (((x + (y * (1-1))) + z) = (z+x))
+compare_expAring_expBring x y z = ringDecideEq (%instance) (expAring x y z) (expBring x y z)
+-- Ok, works for all x, y and z
+
+
+-- When B reduces to a constant
+
+expCring : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> ExprR (%instance) [x,y,z] ((x + ((1+(y-y)) * 5)) + z)
+expCring x y z = PlusR 
+				(PlusR (VarR _ (RealVariable _ _ _ _ FZ))
+				       (MultR (PlusR (ConstR _ _ 1)
+				       				 (MinusR (VarR _ (RealVariable _ _ _ _ (FS FZ)))
+				       				 		 (VarR _ (RealVariable _ _ _ _ (FS FZ)))))
+				       		  (ConstR _ _ 5)))
+				(VarR _ (RealVariable _ _ _ _ (FS (FS (FZ)))))
+
+
+
+expDring : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> ExprR (%instance) [x,y,z] (z+(5+x))
+expDring x y z = PlusR (VarR _ (RealVariable _ _ _ _ (FS (FS FZ))))
+						(PlusR (ConstR _ _ 5)
+								(VarR _ (RealVariable _ _ _ _ FZ)))
+
+
+compare_expCring_expDring : (x:ZZ) -> (y:ZZ) -> (z:ZZ) -> Maybe (((x + ((1+(y-y)) * 5)) + z) = (z+(5+x)))
+compare_expCring_expDring x y z = ringDecideEq (%instance) (expCring x y z) (expDring x y z)
+-- Ok, works for all x, y and z
+
+
+-- -------------------------------------------------------------
+-- TEST OF 1 * something
+-- -------------------------------------------------------------
+
+expEring : (x:ZZ) -> ExprR (%instance) [x] x
+expEring x = VarR _ (RealVariable _ _ _ _ FZ)
+
+expFring : (x:ZZ) -> ExprR (%instance) [x] (1*x)
+expFring x = MultR (ConstR _ _ 1)
+					(VarR _ (RealVariable _ _ _ _ FZ))
+
+expGring : (x:ZZ) -> ExprR (%instance) [x] (x*1)
+expGring x = MultR (VarR _ (RealVariable _ _ _ _ FZ))
+					(ConstR _ _ 1)
+
+
+compare_expEring_expFring : (x:ZZ) -> Maybe (x = 1*x)
+compare_expEring_expFring x = ringDecideEq (%instance) (expEring x) (expFring x)
+-- ok !
+
+
+compare_expEring_expGring : (x:ZZ) -> Maybe (x = x*1)
+compare_expEring_expGring x = ringDecideEq (%instance) (expEring x) (expGring x)
+-- not ok
+
+-- -------------------------------------------------------------
+-- TEST OF -1 * something
+-- -------------------------------------------------------------
+
+expHring : (x:ZZ) -> ExprR (%instance) [x] (-x)
+expHring x = NegR (VarR _ (RealVariable _ _ _ _ FZ))
+
+expIring : (x:ZZ) -> ExprR (%instance) [x] ((-1)*x)
+expIring x = MultR (ConstR _ _ (-1))
+					(VarR _ (RealVariable _ _ _ _ FZ))
+
+expI'ring : (x:ZZ) -> ExprR (%instance) [x] ((-1)*x)
+expI'ring x = MultR (NegR (ConstR _ _ 1))
+					(VarR _ (RealVariable _ _ _ _ FZ))
+
+expJring : (x:ZZ) -> ExprR (%instance) [x] (x*(-1))
+expJring x = MultR (VarR _ (RealVariable _ _ _ _ FZ))
+					(ConstR _ _ (-1))
+
+expJ'ring : (x:ZZ) -> ExprR (%instance) [x] (x*(-1))
+expJ'ring x = MultR (VarR _ (RealVariable _ _ _ _ FZ))
+					(NegR (ConstR _ _ 1))
+
+
+-- Does -x = -1 * x ? (two attemps)
+compare_expHring_expIring : (x:ZZ) -> Maybe (-x = (-1)*x)
+compare_expHring_expIring x = ringDecideEq (%instance) (expHring x) (expIring x)
+-- does not work
+
+compare_expHring_expI'ring : (x:ZZ) -> Maybe (-x = (-1)*x)
+compare_expHring_expI'ring x = ringDecideEq (%instance) (expHring x) (expI'ring x)
+-- works
+
+-- Does -x = x * (-1) ? (two attemps also)
+
+compare_expHring_expJring : (x:ZZ) -> Maybe (-x = x * (-1))
+compare_expHring_expJring x = ringDecideEq (%instance) (expHring x) (expJring x)
+-- does not work
+
+compare_expHring_expJ'ring : (x:ZZ) -> Maybe (-x = x * (-1))
+compare_expHring_expJ'ring x = ringDecideEq (%instance) (expHring x) (expJ'ring x)
+-- does not work
+
+
+-- -------------------------------------------------------------
+-- TEST OF x * 0
+-- -------------------------------------------------------------
+expKring : (x:ZZ) -> ExprR (%instance) [x] 0
+expKring x = ConstR _ _ 0
+
+expLring : (x:ZZ) -> ExprR (%instance) [x] (x*0)
+expLring x = MultR (VarR _ (RealVariable _ _ _ _ FZ))
+					(ConstR _ _ 0)
+
+expMring : (x:ZZ) -> ExprR (%instance) [x] (0*x)
+expMring x = MultR (ConstR _ _ 0)
+					(VarR _ (RealVariable _ _ _ _ FZ))
+
+-- Does 0 = x*0 ?
+compare_expKring_expLring : (x:ZZ) -> Maybe (0 = x*0)
+compare_expKring_expLring x = ringDecideEq (%instance) (expKring x) (expLring x)
+
+-- Does 0 = 0*x ?
+compare_expKring_expMring : (x:ZZ) -> Maybe (0 = 0*x)
+compare_expKring_expMring x = ringDecideEq (%instance) (expKring x) (expMring x)
 
 
 -- ---------------------------------

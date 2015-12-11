@@ -602,7 +602,7 @@ simplifyWithConstant_ProdOfMon c p g proofZero proofOne (LastMonomial _ monomial
 		(_ ** (LastMonomial _ e1, ?MsimplifyWithConstant_ProdOfMon_1)) -- Because of this, we might finish with just a constant monomial equal to Zero, so we will need to check that any expression containing a productOfMonomials can't be simplified by removing this prodOfMon.
 simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ monomial prodOfMon) = 
 	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
-	let (r_ih2 ** (e_ih2, p_ih2)) = simplifyWithConstant_ProdOfMon c p g proofZero proofOne  prodOfMon in
+	let (r_ih2 ** (e_ih2, p_ih2)) = simplifyWithConstant_ProdOfMon c p g proofZero proofOne prodOfMon in
 	case e1 of
 		(ConstantMonomial g _ r1) =>
 		-- we return the constant monomial Zero
@@ -611,7 +611,7 @@ simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ m
 			Nothing => (_ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_3))
 		-- nothing to simplify here for a ProdOfVar or for a ProfOfVarWithConst
 		_ => ( _ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_4))
-
+    -- Should I do the simplification for One here as well ? 
 
 	
 	
@@ -769,9 +769,10 @@ decodeProductOfMonomials c p g (MonomialMultProduct _ mon prod) =
 		
 -- NEW : If an encoding is just a constant, we "decrypt" it, so that the CommutativeGroup level will be able to simplify it with other constants		
 total
-decryptConstant : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprCG p setAndMult g c1) -> (c2 ** (ExprCG p setAndMult g c2, c1~=c2))		
-decryptConstant p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ConstantMonomial _ _ const1)))) = (_ ** (ConstCG _ _ _ const1, ?MdecryptConstant_1))
-decryptConstant p setAndMult e = (_ ** (e, ?MdecryptConstant_2))
+decryptConstantAndVariable : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprCG p setAndMult g c1) -> (c2 ** (ExprCG p setAndMult g c2, c1~=c2))		
+decryptConstantAndVariable p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ConstantMonomial _ _ const1)))) = (_ ** (ConstCG _ _ _ const1, ?MdecryptConstant_1))
+decryptConstantAndVariable p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVar _ (LastVar _ _ i))))) = (_ ** (VarCG _ _ (RealVariable _ _ _ _ i), ?MNEWTEST))
+decryptConstantAndVariable p setAndMult e = (_ ** (e, ?MdecryptConstant_2))
 		
 		
 -- NEW : does a bit of simplification after having encoded the product of monomials : 1 * v1v2v3 -> v1v2v3 and 0*v1v2v3 -> 0
@@ -793,7 +794,7 @@ encodeToCG c p g (NegR e) =
 encodeToCG c p g (MultR e1 e2) =
 	let (r_1 ** (pdtOfMon, p_1)) = encodeToProductOfMonomials c p g (MultR e1 e2) in
 	let (r_2 ** (pdtOfMon2, p_2)) = simplifyWithConstant_ProdOfMon c p g (\x => zeroAbsorbant2 c p x) (\x => right (Mult_neutral x)) pdtOfMon in -- NEW : simplifications in the product of monomials
-	let (r_3 ** (res, p_3)) = decryptConstant (ring_to_commutativeGroup_class p) _ (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon2)) in -- NEW : if the resulted product of monomial is a constant, we transform it into a real constant, so that constant will be able to be simplified at the CG level
+	let (r_3 ** (res, p_3)) = decryptConstantAndVariable (ring_to_commutativeGroup_class p) _ (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon2)) in -- NEW : if the resulted product of monomial is a constant, we transform it into a real constant, so that constant will be able to be simplified at the CG level
         (_ ** (res, ?MencodeToCG_5))
 
 	
