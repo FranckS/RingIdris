@@ -580,69 +580,8 @@ moveNegInPolynomial p (MultR e1 e2) =
 
 -}
 	
-total
-simplifyWithConstant_Monomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (monomial:Monomial setAndMult g c1) -> (c2 ** (Monomial setAndMult g c2, c1~=c2))
-simplifyWithConstant_Monomial c p g proofZero proofOne (ProdOfVar _ prodOfVar) = (_ ** (ProdOfVar _ prodOfVar, ?MsimplifyWithConstant_Monomial_1))
-simplifyWithConstant_Monomial c p g proofZero proofOne (ProdOfVarWithConst _ const1 prodOfVar) = 
-	case set_eq const1 Zero of
-		-- 0 * v1v2v3 -> 0
-		Just prEqualZero => (_ ** (ConstantMonomial g _ Zero, ?MsimplifyWithConstant_Monomial_2))
-		Nothing => 
-		case set_eq const1 One of
-			-- 1 * v1v2v3... -> v1*v2v*v3...
-			Just prEqualOne => (_ ** (ProdOfVar _ prodOfVar, ?MsimplifyWithConstant_Monomial_3))
-			Nothing => (_ ** (ProdOfVarWithConst _ const1 prodOfVar, ?MsimplifyWithConstant_Monomial_4))
-simplifyWithConstant_Monomial c p g proofZero proofOne (ConstantMonomial g _ const1) = (_ ** (ConstantMonomial g _ const1, ?MsimplifyWithConstant_Monomial_5))
 	
-
-total
-simplifyWithConstant_ProdOfMon : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (prodOfMon:ProductOfMonomials setAndMult g c1) -> (c2 ** (ProductOfMonomials setAndMult g c2, c1~=c2))
-simplifyWithConstant_ProdOfMon c p g proofZero proofOne (LastMonomial _ monomial) = 
-	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
-		(_ ** (LastMonomial _ e1, ?MsimplifyWithConstant_ProdOfMon_1)) -- Because of this, we might finish with just a constant monomial equal to Zero, so we will need to check that any expression containing a productOfMonomials can't be simplified by removing this prodOfMon.
-simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ monomial prodOfMon) = 
-	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
-	let (r_ih2 ** (e_ih2, p_ih2)) = simplifyWithConstant_ProdOfMon c p g proofZero proofOne prodOfMon in
-	case e1 of
-		(ConstantMonomial g _ r1) =>
-		-- we return the constant monomial Zero
-		case set_eq r1 Zero of
-			Just prEqualZero => (_ ** (LastMonomial _ (ConstantMonomial g _ Zero), ?MsimplifyWithConstant_ProdOfMon_2))
-			Nothing => (_ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_3))
-		-- nothing to simplify here for a ProdOfVar or for a ProfOfVarWithConst
-		_ => ( _ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_4))
-    -- Should I do the simplification for One here as well ? 
-
-	
-	
-decodeProdOfVar : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfVar:ProductOfVariables (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
-decodeProdOfVar c p g (LastVar g _ k) = (_ ** (VarR p (RealVariable _ _ _ g k), ?MdecodeProdOfVar_1))
-decodeProdOfVar c p g (VarMultProduct _ k prodOfVar) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = decodeProdOfVar c p g prodOfVar in
-		(_ ** (MultR (VarR p (RealVariable _ _ _ g k)) e_ih1, ?MdecodeProdOfVar_2))
-	
-	
-    
-encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
--- The only thing we can get are : 
--- a Var, a Constant, a Mult between a const and a var and a Mult between a var and a var
--- (Mult between const and const is impossible because we could have deal with that directly, and Mult between var and const would not make a monomial so we would have already deal with it as well) 
-encodeToMonomial c p g (ConstR _ _ const1) = (_ ** (ConstantMonomial _ _ const1, set_eq_undec_refl {c} _))
-encodeToMonomial c p g (VarR _ (RealVariable _ _ _ _ i)) = (_ ** (ProdOfVar _ (LastVar _ _ i), set_eq_undec_refl {c} _))
-encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ (RealVariable _ _ _ _ i))) = (_ ** (ProdOfVarWithConst _ const1 (LastVar _ _ i), set_eq_undec_refl {c} _))
-encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVariable _ _ _ _ j))) = (_ ** (ProdOfVar _ (VarMultProduct _ i (LastVar _ _ j)), set_eq_undec_refl {c} _))
-
-
-
-decodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (monomial:Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
-decodeMonomial c p g (ProdOfVar _ prodOfVar) = decodeProdOfVar c p g prodOfVar
-decodeMonomial c p g (ProdOfVarWithConst _ const1 prodOfVar) = 
-	let (r1 ** (e1, p1)) = decodeProdOfVar c p g prodOfVar in
-		(_ ** (MultR (ConstR _ _ const1) e1, ?MdecodeMonomial_1))
-decodeMonomial c p g (ConstantMonomial g _ const1) = (_ ** (ConstR _ _ const1, ?MdecodeMonomial_2))
-
-
-
+-- Moved here because simplifyWithConstant_ProdOfMon needs it
 --%logging 3 
 multiplyProdOfVar : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c} 
 								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -- I don't understand why I get an error message if I give Mult_preserves_equiv here... I suspect a problem in Idris
@@ -702,9 +641,92 @@ multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (MonomialM
 	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ (Mult const1 const2) prodVar) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_14))
 -- For this case, the output is weird (with a product of two constant monomial), but so was the input
 multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
-	(_ ** (MonomialMultProduct _ (ConstantMonomial _ _ (Mult const1 const2)) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_15))
+	(_ ** (MonomialMultProduct _ (ConstantMonomial _ _ (Mult const1 const2)) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_15))	
+	
+	
+	
+total
+simplifyWithConstant_Monomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (monomial:Monomial setAndMult g c1) -> (c2 ** (Monomial setAndMult g c2, c1~=c2))
+simplifyWithConstant_Monomial c p g proofZero proofOne (ProdOfVar _ prodOfVar) = (_ ** (ProdOfVar _ prodOfVar, ?MsimplifyWithConstant_Monomial_1))
+simplifyWithConstant_Monomial c p g proofZero proofOne (ProdOfVarWithConst _ const1 prodOfVar) = 
+	case set_eq const1 Zero of
+		-- 0 * v1v2v3 -> 0
+		Just prEqualZero => (_ ** (ConstantMonomial g _ Zero, ?MsimplifyWithConstant_Monomial_2))
+		Nothing => 
+		case set_eq const1 One of
+			-- 1 * v1v2v3... -> v1*v2v*v3...
+			Just prEqualOne => (_ ** (ProdOfVar _ prodOfVar, ?MsimplifyWithConstant_Monomial_3))
+			Nothing => (_ ** (ProdOfVarWithConst _ const1 prodOfVar, ?MsimplifyWithConstant_Monomial_4))
+simplifyWithConstant_Monomial c p g proofZero proofOne (ConstantMonomial g _ const1) = (_ ** (ConstantMonomial g _ const1, ?MsimplifyWithConstant_Monomial_5))
+	
+
+total
+simplifyWithConstant_ProdOfMon : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (prodOfMon:ProductOfMonomials setAndMult g c1) -> (c2 ** (ProductOfMonomials setAndMult g c2, c1~=c2))
+simplifyWithConstant_ProdOfMon c p g proofZero proofOne (LastMonomial _ monomial) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
+		(_ ** (LastMonomial _ e1, ?MsimplifyWithConstant_ProdOfMon_1)) -- Because of this, we might finish with  just a constant monomial equal to Zero, so we will need to check that any expression containing a productOfMonomials can't be simplified by removing this prodOfMon.
+-- New part added
+simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ monomial1 (LastMonomial _ monomial2)) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial1 in
+	let (r2 ** (e2, p2)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial2 in
+		case e2 of
+			(ConstantMonomial g _ r2) =>
+			case set_eq r2 Zero of
+				Just prEqualZero => (_ ** (LastMonomial _ (ConstantMonomial g _ Zero), ?MNEW))
+				Nothing => case set_eq r2 One of
+								Just prEqualOne => (_ ** (LastMonomial _ monomial1, ?MNEW2))
+								Nothing => case set_eq r2 (Neg One) of
+											Just prEqualNegOne => let eHead = ConstantMonomial _ _ (Provers.dataTypes.Neg One) in
+																	let (rProd ** (eProd, pProd)) = multiplyMonomialAndProductOfMonomials _ eHead (LastMonomial _ e1) in
+																	(_ ** (eProd, ?MNEW3))
+											Nothing => (_ ** (MonomialMultProduct _ monomial1 (LastMonomial _ monomial2), set_eq_undec_refl {c} _))
+			_ => (_ ** (MonomialMultProduct _ e1 (LastMonomial _ e2), ?MNEW4))
+-- Old part
+simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ monomial prodOfMon) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
+	let (r_ih2 ** (e_ih2, p_ih2)) = simplifyWithConstant_ProdOfMon c p g proofZero proofOne prodOfMon in
+	case e1 of
+		(ConstantMonomial g _ r1) =>
+		-- we return the constant monomial Zero
+		case set_eq r1 Zero of
+			Just prEqualZero => (_ ** (LastMonomial _ (ConstantMonomial g _ Zero), ?MsimplifyWithConstant_ProdOfMon_2))
+			Nothing => (_ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_3))
+		-- nothing to simplify here for a ProdOfVar or for a ProfOfVarWithConst
+		_ => ( _ ** (MonomialMultProduct _ e1 e_ih2, ?MsimplifyWithConstant_ProdOfMon_4))
+    -- Should I do the simplification for One here as well ? 
+	-- No, it's not needed because something like 1*(1*x) has been "parsed" as a unique monomial (1*1)*x
+	
+	
+	
+	
+	
+decodeProdOfVar : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfVar:ProductOfVariables (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeProdOfVar c p g (LastVar g _ k) = (_ ** (VarR p (RealVariable _ _ _ g k), ?MdecodeProdOfVar_1))
+decodeProdOfVar c p g (VarMultProduct _ k prodOfVar) = 
+	let (r_ih1 ** (e_ih1, p_ih1)) = decodeProdOfVar c p g prodOfVar in
+		(_ ** (MultR (VarR p (RealVariable _ _ _ g k)) e_ih1, ?MdecodeProdOfVar_2))
+	
+	
     
-    
+encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
+-- The only thing we can get are : 
+-- a Var, a Constant, a Mult between a const and a var and a Mult between a var and a var
+-- (Mult between const and const is impossible because we would have deal with that directly, and Mult between var and const would not make a monomial so we would have already deal with it as well) 
+encodeToMonomial c p g (ConstR _ _ const1) = (_ ** (ConstantMonomial _ _ const1, set_eq_undec_refl {c} _))
+encodeToMonomial c p g (VarR _ (RealVariable _ _ _ _ i)) = (_ ** (ProdOfVar _ (LastVar _ _ i), set_eq_undec_refl {c} _))
+encodeToMonomial c p g (MultR (ConstR _ _ const1) (VarR _ (RealVariable _ _ _ _ i))) = (_ ** (ProdOfVarWithConst _ const1 (LastVar _ _ i), set_eq_undec_refl {c} _))
+encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVariable _ _ _ _ j))) = (_ ** (ProdOfVar _ (VarMultProduct _ i (LastVar _ _ j)), set_eq_undec_refl {c} _))
+
+
+
+decodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (monomial:Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeMonomial c p g (ProdOfVar _ prodOfVar) = decodeProdOfVar c p g prodOfVar
+decodeMonomial c p g (ProdOfVarWithConst _ const1 prodOfVar) = 
+	let (r1 ** (e1, p1)) = decodeProdOfVar c p g prodOfVar in
+		(_ ** (MultR (ConstR _ _ const1) e1, ?MdecodeMonomial_1))
+decodeMonomial c p g (ConstantMonomial g _ const1) = (_ ** (ConstR _ _ const1, ?MdecodeMonomial_2))
+
+
     
     
 

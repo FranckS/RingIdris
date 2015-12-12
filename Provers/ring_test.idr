@@ -345,23 +345,24 @@ compare_expCring_expDring x y z = ringDecideEq (%instance) (expCring x y z) (exp
 expEring : (x:ZZ) -> ExprR (%instance) [x] x
 expEring x = VarR _ (RealVariable _ _ _ _ FZ)
 
-expFring : (x:ZZ) -> ExprR (%instance) [x] (1*x)
+expFring : (x:ZZ) -> ExprR (%instance) [x] (1*(1*x))
 expFring x = MultR (ConstR _ _ 1)
-					(VarR _ (RealVariable _ _ _ _ FZ))
+					(MultR (ConstR _ _ 1)
+						  (VarR _ (RealVariable _ _ _ _ FZ)))
 
 expGring : (x:ZZ) -> ExprR (%instance) [x] (x*1)
 expGring x = MultR (VarR _ (RealVariable _ _ _ _ FZ))
 					(ConstR _ _ 1)
 
 
-compare_expEring_expFring : (x:ZZ) -> Maybe (x = 1*x)
+compare_expEring_expFring : (x:ZZ) -> Maybe (x = 1*(1*x))
 compare_expEring_expFring x = ringDecideEq (%instance) (expEring x) (expFring x)
 -- ok !
 
 
 compare_expEring_expGring : (x:ZZ) -> Maybe (x = x*1)
 compare_expEring_expGring x = ringDecideEq (%instance) (expEring x) (expGring x)
--- not ok
+-- now it's ok !
 
 -- -------------------------------------------------------------
 -- TEST OF -1 * something
@@ -404,7 +405,7 @@ compare_expHring_expJring x = ringDecideEq (%instance) (expHring x) (expJring x)
 
 compare_expHring_expJ'ring : (x:ZZ) -> Maybe (-x = x * (-1))
 compare_expHring_expJ'ring x = ringDecideEq (%instance) (expHring x) (expJ'ring x)
--- does not work
+-- now it works !
 
 
 -- -------------------------------------------------------------
@@ -421,13 +422,16 @@ expMring : (x:ZZ) -> ExprR (%instance) [x] (0*x)
 expMring x = MultR (ConstR _ _ 0)
 					(VarR _ (RealVariable _ _ _ _ FZ))
 
--- Does 0 = x*0 ?
-compare_expKring_expLring : (x:ZZ) -> Maybe (0 = x*0)
-compare_expKring_expLring x = ringDecideEq (%instance) (expKring x) (expLring x)
-
 -- Does 0 = 0*x ?
-compare_expKring_expMring : (x:ZZ) -> Maybe (0 = 0*x)
-compare_expKring_expMring x = ringDecideEq (%instance) (expKring x) (expMring x)
+compare_expKring_expLring : (x:ZZ) -> Maybe (0 = 0*x)
+compare_expKring_expLring x = ringDecideEq (%instance) (expKring x) (expMring x)
+-- works
+
+-- Does 0 = x*0 ?
+compare_expKring_expMring : (x:ZZ) -> Maybe (0 = x*0)
+compare_expKring_expMring x = ringDecideEq (%instance) (expKring x) (expLring x)
+-- now it works !
+
 
 
 -- ---------------------------------
