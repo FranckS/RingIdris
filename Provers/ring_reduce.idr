@@ -418,7 +418,7 @@ propagateNeg' p (NegR (PlusR e1 e2)) =
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call
 		((Plus (Neg r_ih2) (Neg r_ih1)) ** (PlusR (NegR e_ih2) (NegR e_ih1), ?MpropagateNeg'_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
 propagateNeg' p (NegR (MultR e1 e2)) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in -- We do not forget to propate the Neg inside of the product (we chose the first argument)
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in -- We do not forget to propagate the Neg inside of the product (we chose the first argument)
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
 		((Mult (Neg r_ih1) r_ih2) ** (MultR (NegR e_ih1) e_ih2, ?MpropagateNeg'_2)) -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call which was done on (NegR e1)
 propagateNeg' p (NegR e) = 
@@ -583,65 +583,70 @@ moveNegInPolynomial p (MultR e1 e2) =
 	
 -- Moved here because simplifyWithConstant_ProdOfMon needs it
 --%logging 3 
-multiplyProdOfVar : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c} 
-								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -- I don't understand why I get an error message if I give Mult_preserves_equiv here... I suspect a problem in Idris
-								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2) -- Since the problem arises when the 2 SetWithMult are the same. So be carefull, this function now expects a fake unused argument
-								-> (c3 ** ((ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} (MkSetWithMult {c=c} (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c3), Mult c1 c2 ~= c3))
+multiplyProdOfVar : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {setAndMult:SetWithMult c (ring_to_set p)} -> {c1:c} -> {c2:c} 
+								-> (multAssoc : (x : c) -> (y : c) -> (z : c) -> mult setAndMult (mult setAndMult x y) z ~= mult setAndMult x (mult setAndMult y z))
+								-> (multPreservesEquiv : {x : c} -> {x' : c} -> {y : c} -> {y':c} -> (x ~= x') -> (y ~= y') -> mult setAndMult x y ~= mult setAndMult x' y')
+								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} setAndMult g c1) -- I don't understand why I get an error message if I give Mult_preserves_equiv here... I suspect a problem in Idris
+								-> (ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} setAndMult g c2) -- Since the problem arises when the 2 SetWithMult are the same. So be carefull, this function now expects a fake unused argument
+								-> (c3 ** ((ProductOfVariables {c=c} {n=n} {c_set=ring_to_set p} setAndMult g c3), mult setAndMult c1 c2 ~= c3))
                                 
-multiplyProdOfVar {c} p (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduct _ k1 (LastVar _ _ k2), set_eq_undec_refl {c} _))                
-multiplyProdOfVar {c} p (LastVar _ _ k1) (VarMultProduct _ k2 pdv) = (_ ** (VarMultProduct _ k1 (VarMultProduct _ k2 pdv), set_eq_undec_refl {c} _))
-multiplyProdOfVar p (VarMultProduct _ k1 pdv) (LastVar _ _ k2) = 
-	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar p pdv (LastVar _ _ k2) in
+multiplyProdOfVar {c} p multAssoc multPreservesEquiv (LastVar _ _ k1) (LastVar _ _ k2) = (_ ** (VarMultProduct _ k1 (LastVar _ _ k2), set_eq_undec_refl {c} _))                
+multiplyProdOfVar {c} p multAssoc multPreservesEquiv (LastVar _ _ k1) (VarMultProduct _ k2 pdv) = (_ ** (VarMultProduct _ k1 (VarMultProduct _ k2 pdv), set_eq_undec_refl {c} _))
+multiplyProdOfVar p multAssoc multPreservesEquiv (VarMultProduct _ k1 pdv) (LastVar _ _ k2) = 
+	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar p multAssoc multPreservesEquiv pdv (LastVar _ _ k2) in
 		(_ ** (VarMultProduct _ k1 newpdv, ?MmultiplyProdOfVar_1))
-multiplyProdOfVar p (VarMultProduct _ k1 pdv1) (VarMultProduct _ k2 pdv2) = 
-	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar p pdv1 (VarMultProduct _ k2 pdv2) in
+multiplyProdOfVar p multAssoc multPreservesEquiv (VarMultProduct _ k1 pdv1) (VarMultProduct _ k2 pdv2) = 
+	let (r_ih1 ** (newpdv, p_ih1)) = multiplyProdOfVar p multAssoc multPreservesEquiv pdv1 (VarMultProduct _ k2 pdv2) in
 		(_ ** (VarMultProduct _ k1 newpdv, ?MmultiplyProdOfVar_2))
 
 --%logging 0                
 
 -- Returns a product of monomial that can be composed of either only one monomial (if they were concatenable together), or a product of two monomials
-multiplyMonomialAndProductOfMonomials : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c} -> (Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2) -- If I give the _ parameter to the ProductOfMonomial, I've got a senseless error message...
-	-> (c3 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c3, Mult c1 c2 ~= c3))
+multiplyMonomialAndProductOfMonomials : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {setAndMult:SetWithMult c (ring_to_set p)} -> {c1:c} -> {c2:c}
+										-> (multAssoc : (x : c) -> (y : c) -> (z : c) -> mult setAndMult (mult setAndMult x y) z ~= mult setAndMult x (mult setAndMult y z))
+										-> (multPreservesEquiv : {x : c} -> {x' : c} -> {y : c} -> {y':c} -> (x ~= x') -> (y ~= y') -> mult setAndMult x y ~= mult setAndMult x' y')
+										-> (Monomial setAndMult g c1) -> (ProductOfMonomials setAndMult g c2) -- If I give the _ parameter to the ProductOfMonomial, I've got a senseless error message...
+										-> (c3 ** (ProductOfMonomials setAndMult g c3, mult setAndMult c1 c2 ~= c3))
 -- This case will give only one monomial
-multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
-	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p prodVar1 prodVar2 in
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
+	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p multAssoc multPreservesEquiv prodVar1 prodVar2 in
         (_ ** (LastMonomial _ (ProdOfVar _ prodVar1Var2), p_1))
 -- This case gives two monomials
-multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)) = 
-    (_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)), ?MmultiplyMonomialAndProductOfMonomials_2)) -- FIX ME : Why does Idris refuses (set_eq_undec_refl _) for the proof (I have to do the same in proof mode...)
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const prodVar2)), ?MmultiplyMonomialAndProductOfMonomials_2)) -- FIX ME : Why does Idris refuses (set_eq_undec_refl _) for the proof (I have to do the same in proof mode...)
 -- To see
-multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVar _ prodVar2) prodOfMon) = 
-    let (r1 ** (mon1, p1)) = multiplyProdOfVar p prodVar1 prodVar2 in  
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVar _ prodVar2) prodOfMon) = 
+	let (r1 ** (mon1, p1)) = multiplyProdOfVar p multAssoc multPreservesEquiv prodVar1 prodVar2 in  
         (_ ** (MonomialMultProduct _ (ProdOfVar _ mon1) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_3))
-multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon) = 
-    (_ **(MonomialMultProduct _ (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon), ?MmultiplyMonomialAndProductOfMonomials_4))
-multiplyMonomialAndProductOfMonomials p (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
-	(_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon), ?MmultiplyMonomialAndProductOfMonomials_5))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon) = 
+    (_ **(MonomialMultProduct _ (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon), ?MNEWFIX6))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVar _ prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon), ?MNEWFIX7))
     
-multiplyMonomialAndProductOfMonomials p (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
-	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p prodVar1 prodVar2 in
-		(_ ** (LastMonomial _ (ProdOfVarWithConst _ const1 prodVar1Var2), ?MmultiplyMonomialAndProductOfMonomials_6))
-multiplyMonomialAndProductOfMonomials p (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar2)) = 
-	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar2)), ?MmultiplyMonomialAndProductOfMonomials_7))
-multiplyMonomialAndProductOfMonomials p (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVar _ prodVar2) prodOfMon) = 
-	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p prodVar1 prodVar2 in
-		(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1Var2) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_8))
-multiplyMonomialAndProductOfMonomials p (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon) = 
-	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon), ?MmultiplyMonomialAndProductOfMonomials_9))
-multiplyMonomialAndProductOfMonomials p (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
-	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon), ?MmultiplyMonomialAndProductOfMonomials_10))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVar _ prodVar2)) = 
+	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p multAssoc multPreservesEquiv prodVar1 prodVar2 in
+		(_ ** (LastMonomial _ (ProdOfVarWithConst _ const1 prodVar1Var2), ?MNEWFIX8))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar2)) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar2)), ?MNEWFIX9))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVar _ prodVar2) prodOfMon) = 
+	let (r_1 ** (prodVar1Var2, p_1)) = multiplyProdOfVar p multAssoc multPreservesEquiv prodVar1 prodVar2 in
+		(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1Var2) prodOfMon, ?MNEWFIX10))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar2) prodOfMon), ?MNEWFIX11))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon), ?MNEWFIX12))
     
-multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (LastMonomial _ (ProdOfVar _ prodVar)) = 
-	(_ ** (LastMonomial _ (ProdOfVarWithConst _ const1 prodVar), ?MmultiplyMonomialAndProductOfMonomials_11))
-multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar)) = 
-	(_ ** (LastMonomial _ (ProdOfVarWithConst _ (Mult const1 const2) prodVar), ?MmultiplyMonomialAndProductOfMonomials_12))
-multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ProdOfVar _ prodVar) prodOfMon) =
-	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_13))
-multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar) prodOfMon) = 
-	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ (Mult const1 const2) prodVar) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_14))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ConstantMonomial _ _ const1) (LastMonomial _ (ProdOfVar _ prodVar)) = 
+	(_ ** (LastMonomial _ (ProdOfVarWithConst _ const1 prodVar), ?MNEWFIX13))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ConstantMonomial _ _ const1) (LastMonomial _ (ProdOfVarWithConst _ const2 prodVar)) = 
+	(_ ** (LastMonomial _ (ProdOfVarWithConst _ (Mult const1 const2) prodVar), ?MNEWFIX14))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ProdOfVar _ prodVar) prodOfMon) =
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodVar) prodOfMon, ?MNEWFIX15))
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodVar) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ProdOfVarWithConst _ (Mult const1 const2) prodVar) prodOfMon, ?MNEWFIX16))
 -- For this case, the output is weird (with a product of two constant monomial), but so was the input
-multiplyMonomialAndProductOfMonomials p (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
-	(_ ** (MonomialMultProduct _ (ConstantMonomial _ _ (Mult const1 const2)) prodOfMon, ?MmultiplyMonomialAndProductOfMonomials_15))	
+multiplyMonomialAndProductOfMonomials p multAssoc multPreservesEquiv (ConstantMonomial _ _ const1) (MonomialMultProduct _ (ConstantMonomial _ _ const2) prodOfMon) = 
+	(_ ** (MonomialMultProduct _ (ConstantMonomial _ _ (Mult const1 const2)) prodOfMon, ?MNEWFIX17))	
 	
 	
 	
@@ -661,30 +666,37 @@ simplifyWithConstant_Monomial c p g proofZero proofOne (ConstantMonomial g _ con
 	
 
 total
-simplifyWithConstant_ProdOfMon : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)} -> (proofZero : (x:c) -> mult setAndMult Zero x ~= Zero) -> (proofOne : (x:c) -> mult setAndMult One x ~= x) -> {c1:c} -> (prodOfMon:ProductOfMonomials setAndMult g c1) -> (c2 ** (ProductOfMonomials setAndMult g c2, c1~=c2))
-simplifyWithConstant_ProdOfMon c p g proofZero proofOne (LastMonomial _ monomial) = 
-	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
+simplifyWithConstant_ProdOfMon : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {setAndMult:SetWithMult c (ring_to_set p)}
+								-> (multAssoc : (x : c) -> (y : c) -> (z : c) -> mult setAndMult (mult setAndMult x y) z ~= mult setAndMult x (mult setAndMult y z))
+								-> (multPreservesEquiv : (x : c) -> (x' : c) -> (y : c) -> (y':c) -> (x ~= x') -> (y ~= y') -> mult setAndMult x y ~= mult setAndMult x' y')
+								-> (proofZeroL : (x:c) -> mult setAndMult Zero x ~= Zero) 
+								-> (proofZeroR : (x:c) -> mult setAndMult x Zero ~= Zero)
+								-> (proofOneL : (x:c) -> mult setAndMult One x ~= x) 
+								-> (proofOneR : (x:c) -> mult setAndMult x One ~= x)
+								-> {c1:c} -> (prodOfMon:ProductOfMonomials setAndMult g c1) -> (c2 ** (ProductOfMonomials setAndMult g c2, c1~=c2))
+simplifyWithConstant_ProdOfMon c p g multAssoc multPreservesEquiv proofZeroL proofZeroR proofOneL proofOneR (LastMonomial _ monomial) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZeroL proofOneL monomial in
 		(_ ** (LastMonomial _ e1, ?MsimplifyWithConstant_ProdOfMon_1)) -- Because of this, we might finish with  just a constant monomial equal to Zero, so we will need to check that any expression containing a productOfMonomials can't be simplified by removing this prodOfMon.
 -- New part added
-simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ monomial1 (LastMonomial _ monomial2)) = 
-	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial1 in
-	let (r2 ** (e2, p2)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial2 in
+simplifyWithConstant_ProdOfMon c p g multAssoc multPreservesEquiv proofZeroL proofZeroR proofOneL proofOneR (MonomialMultProduct _ monomial1 (LastMonomial _ monomial2)) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZeroL proofOneL monomial1 in
+	let (r2 ** (e2, p2)) = simplifyWithConstant_Monomial c p g proofZeroL proofOneL monomial2 in
 		case e2 of
 			(ConstantMonomial g _ r2) =>
 			case set_eq r2 Zero of
-				Just prEqualZero => (_ ** (LastMonomial _ (ConstantMonomial g _ Zero), ?MNEW))
+				Just prEqualZero => (_ ** (LastMonomial _ (ConstantMonomial g _ Zero), ?MsimplifyWithConstant_ProdOfMon_new_1))
 				Nothing => case set_eq r2 One of
-								Just prEqualOne => (_ ** (LastMonomial _ monomial1, ?MNEW2))
+								Just prEqualOne => (_ ** (LastMonomial _ monomial1, ?MsimplifyWithConstant_ProdOfMon_new_2))
 								Nothing => case set_eq r2 (Neg One) of
 											Just prEqualNegOne => let eHead = ConstantMonomial _ _ (Provers.dataTypes.Neg One) in
-																	let (rProd ** (eProd, pProd)) = multiplyMonomialAndProductOfMonomials _ eHead (LastMonomial _ e1) in
-																	(_ ** (eProd, ?MNEW3))
+																	let (rProd ** (eProd, pProd)) = multiplyMonomialAndProductOfMonomials p ?MsimplifyWithConstant_ProdOfMon_param1 ?MsimplifyWithConstant_ProdOfMon_param2 eHead (LastMonomial _ e1) in
+																	(_ ** (eProd, ?MsimplifyWithConstant_ProdOfMon_new_3))
 											Nothing => (_ ** (MonomialMultProduct _ monomial1 (LastMonomial _ monomial2), set_eq_undec_refl {c} _))
-			_ => (_ ** (MonomialMultProduct _ e1 (LastMonomial _ e2), ?MNEW4))
+			_ => (_ ** (MonomialMultProduct _ e1 (LastMonomial _ e2), ?MsimplifyWithConstant_ProdOfMon_new_4))
 -- Old part
-simplifyWithConstant_ProdOfMon c p g proofZero proofOne (MonomialMultProduct _ monomial prodOfMon) = 
-	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZero proofOne monomial in
-	let (r_ih2 ** (e_ih2, p_ih2)) = simplifyWithConstant_ProdOfMon c p g proofZero proofOne prodOfMon in
+simplifyWithConstant_ProdOfMon c p g multAssoc multPreservesEquiv proofZeroL proofZeroR proofOneL proofOneR(MonomialMultProduct _ monomial prodOfMon) = 
+	let (r1 ** (e1, p1)) = simplifyWithConstant_Monomial c p g proofZeroL proofOneL monomial in
+	 let (r_ih2 ** (e_ih2, p_ih2)) = simplifyWithConstant_ProdOfMon c p g multAssoc multPreservesEquiv proofZeroL proofZeroR proofOneL proofOneR prodOfMon in
 	case e1 of
 		(ConstantMonomial g _ r1) =>
 		-- we return the constant monomial Zero
@@ -756,7 +768,7 @@ encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) (VarR _ v)) =
 encodeToProductOfMonomials c p g (MultR (ConstR _ _ const1) e2) = 
 	let (r_1 ** (monomial, p_1)) = encodeToMonomial c p g (ConstR _ _ const1) in
 	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeToProductOfMonomials c p g e2 in
-	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials p monomial productOfMonomials in
+	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials p Mult_assoc Mult_preserves_equiv monomial productOfMonomials in
 		(_ ** (e_3, ?MencodeToProductOfMonomials_5))
         
 -- This case gives a product of 2 monomials
@@ -776,7 +788,7 @@ encodeToProductOfMonomials c p g (MultR (VarR _ v1) (VarR _ v2)) =
 encodeToProductOfMonomials c p g (MultR (VarR _ v1) e2) =
 	let (r_1 ** (monomial, p_1)) = encodeToMonomial c p g (VarR _ v1) in
 	let (r_ih2 ** (productOfMonomials, p_ih2)) = encodeToProductOfMonomials c p g e2 in
-	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials p monomial productOfMonomials in
+	let (r_3 ** (e_3, p_3)) = multiplyMonomialAndProductOfMonomials p ?MencodeToProductOfMonomials_arg1 ?MencodeToProductOfMonomials_arg2 monomial productOfMonomials in
 		(_ ** (e_3, ?MencodeToProductOfMonomials_8))
             
 
@@ -792,9 +804,9 @@ decodeProductOfMonomials c p g (MonomialMultProduct _ mon prod) =
 -- NEW : If an encoding is just a constant, we "decrypt" it, so that the CommutativeGroup level will be able to simplify it with other constants		
 total
 decryptConstantAndVariable : {c:Type} -> (p:CommutativeGroup c) -> (setAndMult:SetWithMult c (commutativeGroup_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprCG p setAndMult g c1) -> (c2 ** (ExprCG p setAndMult g c2, c1~=c2))		
-decryptConstantAndVariable p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ConstantMonomial _ _ const1)))) = (_ ** (ConstCG _ _ _ const1, ?MdecryptConstant_1))
-decryptConstantAndVariable p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVar _ (LastVar _ _ i))))) = (_ ** (VarCG _ _ (RealVariable _ _ _ _ i), ?MNEWTEST))
-decryptConstantAndVariable p setAndMult e = (_ ** (e, ?MdecryptConstant_2))
+decryptConstantAndVariable p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ConstantMonomial _ _ const1)))) = (_ ** (ConstCG _ _ _ const1, ?MdecryptConstantAndVariable_1))
+decryptConstantAndVariable p setAndMult (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVar _ (LastVar _ _ i))))) = (_ ** (VarCG _ _ (RealVariable _ _ _ _ i), ?MdecryptConstantAndVariable_2))
+decryptConstantAndVariable p setAndMult e = (_ ** (e, ?MdecryptConstantAndVariable_3))
 		
 		
 -- NEW : does a bit of simplification after having encoded the product of monomials : 1 * v1v2v3 -> v1v2v3 and 0*v1v2v3 -> 0
@@ -815,7 +827,7 @@ encodeToCG c p g (NegR e) =
 -- In the case of a mult, we know that we have a "product of monomials", we just need to encode to it
 encodeToCG c p g (MultR e1 e2) =
 	let (r_1 ** (pdtOfMon, p_1)) = encodeToProductOfMonomials c p g (MultR e1 e2) in
-	let (r_2 ** (pdtOfMon2, p_2)) = simplifyWithConstant_ProdOfMon c p g (\x => zeroAbsorbant2 c p x) (\x => right (Mult_neutral x)) pdtOfMon in -- NEW : simplifications in the product of monomials
+	let (r_2 ** (pdtOfMon2, p_2)) = simplifyWithConstant_ProdOfMon c p g ?MencodeToCG_arg1 ?MencodeToCG_arg2 (\x => zeroAbsorbant2 c p x) (\x => zeroAbsorbant c p x) (\x => right (Mult_neutral x)) (\x => left (Mult_neutral x)) pdtOfMon in -- NEW : simplifications in the product of monomials
 	let (r_3 ** (res, p_3)) = decryptConstantAndVariable (ring_to_commutativeGroup_class p) _ (VarCG _ _ (EncodingProductOfMonomials _ Neg _ pdtOfMon2)) in -- NEW : if the resulted product of monomial is a constant, we transform it into a real constant, so that constant will be able to be simplified at the CG level
         (_ ** (res, ?MencodeToCG_5))
 
@@ -891,6 +903,16 @@ debugRing p c_show e1 e2 =
 		"left side normalised = " ++ leftSideNormalised ++ " ############### Right side normalised = " ++ rightSideNormalised
     
 ---------- Proofs ----------
+Provers.ring_reduce.MencodeToProductOfMonomials_arg2 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact __pi_arg
+  exact __pi_arg17
+
+Provers.ring_reduce.MencodeToProductOfMonomials_arg1 = proof
+  intros
+  mrefine Mult_assoc 
+
 Provers.ring_reduce.MencodeToProductOfMonomials_8 = proof
   intros
   mrefine eq_preserves_eq 
@@ -923,6 +945,8 @@ Provers.ring_reduce.MencodeToProductOfMonomials_5 = proof
   exact p_1
   exact p_ih2
 
+-- Proofs to re-adapt with the lattest changes
+{-
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_15 = proof
   intros
   mrefine set_eq_undec_sym 
@@ -1013,18 +1037,22 @@ Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_5 = proof
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_4 = proof
   intros
   mrefine set_eq_undec_refl 
-
+-}
+  
+  
+-- Fix Idris : proofs done in proofs mode, but then Idris doesn't want them !  
+{-  
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_3 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Mult (Mult c1 c_mon) c_prod)
-  exact (Mult r1 c_prod)
+  exact (mult setAndMult (mult setAndMult c1 c_mon) c_prod)
+  exact (mult setAndMult r1 c_prod)
   mrefine set_eq_undec_sym 
   mrefine set_eq_undec_refl
-  mrefine Mult_preserves_equiv 
-  mrefine Mult_assoc 
+  mrefine multPreservesEquiv
+  mrefine multAssoc  
   exact p1
-  mrefine set_eq_undec_refl
+  mrefine set_eq_undec_refl 
  
 Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_2 = proof
   intros
@@ -1033,25 +1061,26 @@ Provers.ring_reduce.MmultiplyMonomialAndProductOfMonomials_2 = proof
 Provers.ring_reduce.MmultiplyProdOfVar_2 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Mult (index k1 g) (Mult c_prod (Mult (index k2 g) (c_prod1))))
-  exact (Mult (index k1 g) r_ih1)
-  mrefine Mult_assoc 
+  exact (mult setAndMult (index k1 g) (mult setAndMult c_prod (mult setAndMult (index k2 g) (c_prod1))))
+  exact (mult setAndMult (index k1 g) r_ih1)
+  refine multAssoc 
   mrefine set_eq_undec_refl
-  mrefine Mult_preserves_equiv 
-  mrefine set_eq_undec_refl
+  refine multPreservesEquiv 
+  mrefine set_eq_undec_refl 
   exact p_ih1
   
 Provers.ring_reduce.MmultiplyProdOfVar_1 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Mult (index k1 g) (Mult c_prod (index k2 g)))
-  exact (Mult (index k1 g) r_ih1)
-  mrefine Mult_assoc 
+  exact (mult setAndMult (index k1 g) (mult setAndMult c_prod (index k2 g)))
+  exact (mult setAndMult (index k1 g) (mult setAndMult c_prod (index k2 g)))
+  refine multAssoc
+  refine multPreservesEquiv 
   mrefine set_eq_undec_refl 
-  mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_sym
   mrefine set_eq_undec_refl 
   exact p_ih1
-
+  -}
 
 Provers.ring_reduce.MmoveNegToFrontInAllMonomials_1 = proof
   intros
@@ -1246,6 +1275,16 @@ Provers.ring_reduce.MelimDoubleNeg'_4 = proof
   exact p_ih1
   exact p_ih2
 
+Provers.ring_reduce.MencodeToCG_arg2 = proof
+  intros
+  mrefine Mult_preserves_equiv 
+  exact __pi_arg
+  exact __pi_arg15 
+
+Provers.ring_reduce.MencodeToCG_arg1 = proof
+  intros
+  mrefine Mult_assoc   
+  
 Provers.ring_reduce.MencodeToCG_5 = proof
   intros
   mrefine eq_preserves_eq 
@@ -1305,14 +1344,18 @@ Provers.ring_reduce.MdecodeProductOfMonomials_1 = proof
   exact p1
   exact p_ih2  
   
-Provers.ring_reduce.MdecryptConstant_2 = proof
+Provers.ring_reduce.MdecryptConstantAndVariable_3 = proof
   intros
   mrefine set_eq_undec_refl 
 
-Provers.ring_reduce.MdecryptConstant_1 = proof
+Provers.ring_reduce.MdecryptConstantAndVariable_2 = proof
   intros
   mrefine set_eq_undec_refl 
   
+Provers.ring_reduce.MdecryptConstantAndVariable_1 = proof
+  intros
+  mrefine set_eq_undec_refl 
+    
 Provers.ring_reduce.MdecodeFromCG_7 = proof
   intros
   exact p_1
@@ -2101,7 +2144,63 @@ Provers.ring_reduce.Mcode_reduceCG_andDecode_1 = proof
   exact pReduce 
   mrefine set_eq_undec_refl 
   exact pDecode 
+  
+-- Fix Idris ! Proofs done in proof mode, but then Idris doesn't want it !  
+{-
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_new_4 = proof
+  intros
+  refine multPreservesEquiv 
+  exact p1
+  exact p2
 
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_new_2 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (mult setAndMult c_mon One)
+  exact c_mon
+  refine multPreservesEquiv 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  mrefine set_eq_undec_refl 
+  refine proofOneR 
+  exact r2
+  exact r2
+  exact p2
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_refl 
+  exact prEqualOne 
+
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_new_1 = proof
+  intros
+  mrefine eq_preserves_eq 
+  exact (mult setAndMult r1 r2)
+  exact Zero
+  mrefine multPreservesEquiv 
+  exact c_mon
+  exact r1
+  exact c_prod
+  exact r2
+  exact p1
+  exact p2
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact (mult setAndMult r1 Zero)
+  exact Zero
+  refine multPreservesEquiv 
+  mrefine set_eq_undec_refl 
+  exact prEqualZero 
+  mrefine set_eq_undec_refl 
+  exact (proofZeroR r1)  
+  -}
+  
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_param2 = proof
+  intros
+  exact (multPreservesEquiv imp imp1 imp2 imp3 __pi_arg __pi_arg17 )
+
+Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_param1 = proof
+  intros
+  exact (multAssoc x y z) 
+  
 Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_4 = proof
   intros
   mrefine mult_preserves_equiv 
@@ -2128,7 +2227,7 @@ Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_2 = proof
   exact Zero
   mrefine mult_preserves_equiv 
   mrefine set_eq_undec_refl 
-  exact (proofZero c_prod)
+  exact (proofZeroL c_prod)
   exact prEqualZero 
   mrefine set_eq_undec_refl 
 
