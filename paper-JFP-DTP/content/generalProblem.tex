@@ -1,0 +1,270 @@
+\section {Back to the general problem : A hierarchy of tactics}
+
+Now that we have introduced our ideas on this little example, it is time to apply them for our main goal, more general : the implementation of a hierarchy of tactics proving equalities in algebraic structures. Very often, the properties available on a given type are the one of a well known algebraic structure : magma, semi-group, monoid, group, commutative-group...  We will no longer only work with the properties of associativity and of right neutral element for natural numbers as we did in the previous section, but we will have available the properties of different structures, and these tactics will usable for any type that satisfies these properties.
+
+We will construct a hierarchy of type classes and will write one tactic for each of these type class. All our tactics (the group prover, the monoid prover...) will be able to work on any type, being given that an instance of the corresponding type class is provided.
+
+\subsection {Hierarchy of type classes}
+
+All our tactics will require to have a way of testing the equality between elements of the underlying set, that is to say, a way to test equality between constants. For this reason, we define a notion of "set", which only requires this equality. All the algebraic structures above will extend this type class :
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+class Set c where
+    set_eq : (x:c) -> (y:c) -> Maybe (x=y)
+\end{verbatim}
+\end{center}
+\caption{Set}
+\figrule
+\end{figure}
+
+Note that this decidable equality is weak in the sense that it only produces a proof when the two elements are equal, but it doesn't produce a proof of dis-equality when they are different -- instead, it simply produces the value $Nothing$--. That's quite natural, since we want to generate proof of equality, and not to generate counter examples for proving dis-equalities, which is another problem.
+
+Obvisouly, there will be no tactic associated to $Set$, since we have no operations and no properties associated to this structure. Therefore, equalities in a $Set$ are just the syntactical equality, and they can simply be proven with $Refl$.
+
+The first real structure, almost trivial, is the magma. A magma has just a $Plus$ operation which let us computing constants, and has no axioms about this operation.
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+class Set c => Magma c where
+    Plus : c -> c -> c
+\end{verbatim}
+\end{center}
+\caption{Magma}
+\figrule
+\end{figure}
+
+This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equiped with a $set\_eq$ operation), and if it has a $Plus$ operation.
+
+A bit more interesting is the Semi-Group type class. A semi-Group is a Magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation.
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+class Magma c => SemiGroup c where
+    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) 
+               -> (Plus (Plus c1 c2) c3 = Plus c1 (Plus c2 c3))
+\end{verbatim}
+\end{center}
+\caption{Semi-Group}
+\figrule
+\end{figure}
+
+And the Monoid structure is a Semi-Group with the property of neutral element.
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+class SemiGroup c => Monoid c where
+    Zero : c    
+    Plus_neutral_1 : (c1:c) -> (Plus Zero c1 = c1)    
+    Plus_neutral_2 : (c1:c) -> (Plus c1 Zero = c1)
+\end{verbatim}
+\end{center}
+\caption{Monoid}
+\figrule
+\end{figure}
+
+A Group is a Monoid, with two new operations. The binary operation $Minus$, and the unary operation $Neg$. We must have the property that $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group, since we can always rewrite $(a-b)$ into $(a\ +\ -b)$. We let the possibility to express a $Minus$ just for convenience for the user, as he won't have to rewrite by hand his $Minus$ operations with sums of negations.
+The second axiom, which is the most important one for a Group, is the fact that any value $c1$ admits $Neg\ c1$ for inverse, where being an inverse is the following property :
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+-- This is just a conjunctive predicate
+hasSymmetric : (c:Type) -> (p:Monoid c) -> c -> c -> Type
+hasSymmetric c p a b = (Plus a b = Zero, Plus b a = Zero)    
+  
+class Monoid c => Group c where
+    Minus : c -> c -> c
+    Neg : c -> c
+    Minus_simpl : (c1:c) -> (c2:c) -> Minus c1 c2 = Plus c1 (Neg c2) 
+    Plus_inverse : (c1:c) -> hasSymmetric c _ c1 (Neg c1)
+\end{verbatim}
+\end{center}
+\caption{Group}
+\figrule
+\end{figure}
+
+
+This hierarchy can be extended without difficulty with Abelian groups (with the axiom of commutativity), Ring, Commutative Rings...
+
+These type classes will somehow be used as predicates on types. In order to call a prover on a type $c$, the user of the system will have to satisfy the corresponding type class by providing an instance of it for his type $c$, ie, he will have to prove that the corresponding properties effectively hold for $c$.
+
+Note that the properties will either be obtained "by implementation" if the operations are real --computable-- functions, or by axioms if the user is working in an axiomatised theory where the operations ($Plus$, $Neg$, ...) are defined as axioms.
+
+As discussed in the section 2.1 on the smaller problem, the algorithm of normalization will not directly use the concrete value of type $c$, but a reflected term, indexed over the concrete value. That still holds here.
+
+
+	\subsection {Reflected terms}
+
+We need to define a datatype for reflecting terms in each algebraic structure.
+Each of these datatype is parametrised over a type $c$, which is the real type on which we want to prove equalities (the $carrier$ type). It is also indexed over an instance of the corresponding type class for $c$ (we usually call it $p$, because it behaves as a $proof$ telling that the structure $c$ has the desired properties), and indexed over a context (a vector $\Gamma$ of $n$ elements of type $c$), and also indexed over a value of type $c$, which is precisely the concrete value being encoded.
+A magma is only equipped with one operation $Plus$. Thus, we only have three concepts to express in order to reflect terms in a Magma : constants, variables, and additions.
+
+
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+data ExprMa : Magma c -> (Vect n c) -> c -> Type where
+    ConstMa : (p : Magma c) -> (gam:Vect n c) -> (c1:c)  -> ExprMa p gam c1 
+    PlusMa : {p : Magma c} -> {gam:Vect n c} -> {c1:c} -> {c2:c} 
+         -> ExprMa p gam c1 -> ExprMa p gam c2 
+         -> ExprMa p gam (Plus c1 c2) 
+    VarMa : (p:Magma c) -> {gam:Vect n c}
+         -> (i:Fin n) -> ExprMa p gam (index i gam)
+\end{verbatim}
+\end{center}
+\caption{Reflected terms for a Magma}
+\figrule
+\end{figure}
+
+When we encode a constant $c1$ in a context $\Gamma$, we use the constructor $ConstMa$ to produce a term of type $ExprMa\ p\ \Gamma\ c1$ : the index representing the concrete value is precisely this constant $c1$.
+If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (ie, a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation defined in the current instance $p$.
+
+
+%For the moment, the definition of $Variable$ is just the following:
+%
+%\begin{code}[caption=Reflected variables, captionpos=b, label=lst1:haskell2]  
+%data Variable : {c:Type} -> {n:Nat}
+%  -> (c_equal : (c1:c)->(c2:c)->Maybe(c1=c2)) 
+%  -> (Vect n c) -> c -> Type where
+%    RealVariable : (c_equal:(c1:c)->(c2:c)
+%                    ->Maybe(c1=c2))
+%          -> (gam:Vect n c) -> (i:Fin n) 
+%          -> Variable c_equal gam (index i gam) 
+%\end{code}	
+%
+%This type will be extended with some other constructors later on. For the moment, we can only %express a "real variable", referred by its index $i$. \\
+%\\
+Because there is no additional operations in a SemiGroup or in a Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
+However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
+
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+data ExprG :  Group c -> (Vect n c) -> c -> Type where
+    ConstG : (p : dataTypes.Group c) -> (gam:Vect n c) 
+      -> (c1:c) -> ExprG p gam c1
+    PlusG : {p : Group c} -> {gam:Vect n c} -> {c1:c} -> {c2:c} 
+      -> ExprG p gam c1 -> ExprG p gam c2 
+      -> ExprG p gam (Plus c1 c2)
+    MinusG : {p : Group c} -> {gam:Vect n c} -> {c1:c} -> {c2:c} 
+      -> ExprG p gam c1 -> ExprG p gam c2 
+      -> ExprG p gam (Minus c1 c2)
+    NegG : {p : Group c} -> {gam:Vect n c} -> {c1:c} 
+      -> ExprG p gam c1 -> ExprG p gam (Neg c1)
+    VarG : (p : Group c) -> {gam:Vect n c} 
+      -> (i:Fin n) -> ExprG p gam c1
+\end{verbatim}
+\end{center}
+\caption{Reflected terms in a Group}
+\figrule
+\end{figure}
+
+The index of type $c$ (the real value represented by an expression) is always expressed by using the available operations in the type class $p$, which for a group Group are $Plus$, $Minus$ and $Neg$.
+
+	\subsection {A bit of notation}
+The equality we are trying to prove is $x=y$, where $x$ and $y$ are elements of the type $c$, which  simulates a set with some properties (which make $c$ being a Semi-Group, or a Monoid, or a Group...). The fact that $c$ fulfils the specification of an algebraic structure is expressed as an instance of the corresponding type class, and this instance will be denoted as $p$.
+The reflected term for $x$ will be denoted $e1$, and this term will have the type $ExprG\ p\ \Gamma\ x$. The term $e1$ is the encoding of $x$ and its type is precisely indexed over the real value $x$, as the reflected terms embed the concrete values.
+We've got similar thing for $y$, which is encoded by $e2$, and its type is indexed over the real value $y$.
+Running the normalisation procedure on $e1$ will produce the normal form $e1'$ of type $ExprG\ p\ \Gamma\ x'$ and a proof $p1$ of $x=x'$ while running the normalisation procedure on $e2$ will produce the normal form $e2'$ of type $ExprG\ p\ \Gamma\ y'$ and a proof $p2$ of $y=y'$.
+
+	\subsection {Deciding equality}
+	
+Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equality without bruteforcing a serie of rewriting, that might even not terminate.
+These functions will compute this canonical represent, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the real value indexing the original term and the real value indexing the produced term.
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+	groupReduce : {c:Type} -> {n:Nat} -> (p:Group c) -> {gam:Vect n c} 
+	  -> {x:c} -> (ExprG p gam x) -> (x' ** (ExprG p gam x', x=x'))
+\end{verbatim}
+\end{center}
+\caption{Type of the reduction function for terms reflecting elements in a Group}
+\figrule
+\end{figure}
+
+This function has more work to do in structures with multiple axioms (like Group), than for the easier structure underneath.
+The details of these functions will be given in the next section. For the moment, we just assume that we've got such a function for each structure. We continue to give here the details for the Group structure, but the principle is exactly the same with the other structures, and the exact equivalent of what we did in the previous section with natural numbers and additions.
+
+We want to write the following function :
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+	groupDecideEq : (p:Group c) -> {gam:Vect n c} -> {x : c} -> {y : c} 
+	   -> (ExprG p gam x) -> (ExprG p gam y) 
+	   -> Maybe (x = y)
+\end{verbatim}
+\end{center}
+\caption{Type of the function for deciding equality between elements in a Group}
+\figrule
+\end{figure}
+
+The first thing this function has to do is to compute the normal form of the two expressions $e1$ and $e2$ respectively encoding $x$ and $y$.
+Then, the only thing remaining to do will be to compare syntactically $e1'$ and $e2'$, and if they are equal, then we will get $x'=y'$, and we will be able to produce the desired proof of $x=y$ by using the two proofs $p1$ and $p2$. 
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+groupDecideEq p e1 e2 =
+  let (x' ** (e1', p1)) = groupReduce p e1 in
+  let (y' ** (e2', p2)) = groupReduce p e2 in
+	     buildProofGroup p e1' e2' p1 p2
+\end{verbatim}
+\end{center}
+\caption{Decides if two elements of a group are equal}
+\figrule
+\end{figure}
+
+The syntactical test of equality between $e1'$ and $e2'$ and the composition of the two proofs is done in the auxiliary function $buildProofGroup$, similarly to what we've done on the smaller example in the previous section. 
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+buildProofGroup : (p:Group c) -> {gam:Vect n c} 
+  -> {x : c} -> {y : c} -> {x':c} -> {y':c} 
+  -> (ExprG p gam x') -> (ExprG p gam y') 
+  -> (x = x') -> (y = y') 
+  -> (Maybe (x = y))
+buildProofGroup p e1 e2 p1 p2 with (exprG_eq p _ e1 e2)
+    buildProofGroup p e1 e1 p1 p2 | Just refl = ?MbuildProofGroup
+    buildProofGroup p e1 e2 p1 p2 | Nothing = Nothing
+\end{verbatim}
+\end{center}
+\caption{Composes the two proofs if the normal forms are the same}
+\figrule
+\end{figure}
+
+The proof for the metavariable $MbuildProofGroup$ is exactly the same as the corresponding one (called $MbuildProof$) in the smallest example showed in section 2.3.
+
+
+\subsection {Automatic reflection}
+$reflect : \{n:Nat\} \rightarrow (gamma : Vect\ n\ c) \rightarrow (c1:c) \rightarrow Expr\ gamma\ c1$.
+The reflected term is guaranteed to be a faithful representation of the input $c1$. We can write this function because Idris has a $\%syntax$ command which let us do pattern maching on syntax (ie, it let us access the AST of a term), and this $\%syntax$ produces functions which are typed ! (unlike Coq's $Ltac$). 
+
+
+
+
+
+
+
+
+
