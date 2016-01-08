@@ -2,8 +2,32 @@
 
 	\subsection{Comparison with a traditional approach}
 
-What we would do without type-safe reflection, and when the normalisation functions are not correct by construction : defining a (weekly typed) normalisation a function, and latter on, a lemma about this normalisation function. Building the tactic with this lemma.
-cf extra slides 33-34-35-36 of my STP talk.
+Without our type-safe reflection mechanism, the traditional way to go for this problem would be to start with the definition of the function $reify\ :\ Expr\ \rightarrow\ c$. As we did in our approach, there is still a function for reflecting terms $reflect\ :\ c\ \rightarrow\ Expr$. Because $reflect$ is a function based on syntax,  the actual way to define depends on the facilities of the proof assistant / programming language used, but there need to be a way to write functions based on syntax. We need to prove the correctness of these two functions, and it turns out that one lemma is enough for completely specifying the expected behaviour of these two functions at the same time : $reflect\_and\_reify\_correct\ :\ \forall\ x:c,\ reify\ (reflect\ x)\ =\ x$.
+
+Then comes the normalisation function : $normalize\ :\ Expr\ \rightarrow\ Expr$. Because this function is weekly typed compared to our approach (we no longer have an index giving a guarantee about the concrete values), we need to prove a lemma of correctness about it after its definition. This lemma of correctness must say that the interpretation of the original (reflected) term is equal to the interpretation of the normalised (reflected) term. $normalize\_correct\ :\ \forall\ e:Expr,\ reify\ (normalize\ e)\ =\ reify\ e$. We have avoided the need of such a --complicated-- proof in our correct by construction approach enabled by our type-safe reflection mechanism.
+
+Now, similarly to what we've done, we need a syntactical equality test, checking whether two reflected expression are syntactically equal. The difference here is that, as often with this kind of "traditional" approach, we produce something that belongs to the world of computations, usually a (pretty uninformative) boolean.
+$beq_{Expr}\ :\ Expr\ \rightarrow\ Expr\ \rightarrow\ bool$. Because this boolean on it own is pretty uninformative, we now need a proof of correctness for this function as well, which says that if this function decides that two given terms are syntactically equal, then their interpretation are also (syntactically) equal. $beq_{Expr}\_correct\ :\ \forall (e1\ e2:Expr), beq_{Expr}\ e1\ e2\ =\ true\ \rightarrow\ reify\ e1\ =\ reify\ e2$. We did not have to do this proof either with our approach.
+
+We build now the kernel of the tactics, which is a decision procedure. 
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+decideEq : c -> c -> bool 
+decideEq x y =
+      let xRefl = reflect x in 
+      let yRefl = reflect y in
+      beq_Expr (normalise xRefl) (normalise yRefl)
+\end{verbatim}
+\end{center}
+\caption{Decision procedure}
+\figrule
+\end{figure}
+This function on its own is not going to be enough. We need to add it a correctness theorem, and this is precisely this theorem which is going to help us build the tactic we want.	
+$decideEq\_correct\ :\ \forall\  x\ y:c,\ decideEq\ x\ y\ =\ true\ \rightarrow\ x\ =\ y$. This proof can be made by combining, in this order, the three lemmas $beq_{Expr}\_correct$, $normalize\_correct$ (two times), and $reflect\_and\_reify\_correct$.
+
+Now, the tactic can be build by using this correctness theorem. When trying to prove a goal $a\ =\ b$, the tactic will apply this theorem $decideEq\_correct$. The desired proof is produced if the premise $decideEq\ a\ b\ =\ true$ holds. But whether this premise holds or not can simply be tested by running the function $decideEq$ on the two arguments $a$ and $b$. The activity of proving has effectively been replaced by the task of running a function, and a simple evaluation is now enough to produce the desired proof.
 
 	\subsection {Comparison with Coq's approach}
 	
