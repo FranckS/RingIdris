@@ -6,25 +6,33 @@ We will construct a hierarchy of type classes and will write one tactic for each
 
 \subsection {Hierarchy of type classes}
 
-All our tactics will require to have a way of testing the equality between elements of the underlying set, that is to say, a way to test equality between constants. For this reason, we define a notion of "set", which only requires this equality. All the algebraic structures above will extend this type class :
+In fact, we don't only want to be able to prove equalities, but more generally equivalence. We want to allow the user the possibility to define his own equivalence notion that interests him, assuming he's able to provide the properties that belongs to the algebraic structure that he wants to use. This equivalence relation on $c$ has the following profile $(\sim=) : (x:c) \rightarrow (y:c) \rightarrow Type$\footnote{This Type would be a Prop in system like Coq that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
+
+All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of "set", which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this type class :
 
 \begin{figure}[H]
 \figrule
 \begin{center}
 \begin{verbatim}
 class Set c where
+    (~=) : (x:c) -> (y:c) -> Type
+
+    refl : (x:c) -> x~=x
+    sym : {x:c} -> {y:c} -> (x~=y) -> (y~=x)
+    trans : {x:c} -> {y:c} -> {z:c} -> (x~=y) -> (y~=z) -> (x~=z)    
+    
     set_eq : (x:c) -> (y:c) -> Maybe (x=y)
 \end{verbatim}
 \end{center}
 \caption{Set}
 \figrule
 \end{figure}
+If the user wants to prove propositional equalities, he will simply instantiate $(\sim=)$ with the built-in $(=)$ during the definition of the instance of $Set$.
+Note that $(\sim=)$ is only weakly decidable in the sense that $set\_eq$ only produces a proof when the two elements are equivalent, but it doesn't produce a proof of dis-equivalence when they are different -- instead, it simply produces the value $Nothing$--. That's quite natural, since we want to generate proof of equivalence, and not to generate counter examples for proving dis-equivalence, which is another problem.
 
-Note that this decidable equality is weak in the sense that it only produces a proof when the two elements are equal, but it doesn't produce a proof of dis-equality when they are different -- instead, it simply produces the value $Nothing$--. That's quite natural, since we want to generate proof of equality, and not to generate counter examples for proving dis-equalities, which is another problem.
+Obviously, there will be no tactic associated to $Set$, since we have no operations and no properties associated to this structure. Therefore, equivalence in a $Set$ are just the "syntactical equivalence", and they can simply be proven with $refl$.
 
-Obvisouly, there will be no tactic associated to $Set$, since we have no operations and no properties associated to this structure. Therefore, equalities in a $Set$ are just the syntactical equality, and they can simply be proven with $Refl$.
-
-The first real structure, almost trivial, is the magma. A magma has just a $Plus$ operation which let us computing constants, and has no axioms about this operation.
+The first real structure, almost trivial, is the magma. A magma has just a $Plus$ operation which let us computing constants, and has no properties about this operation.
 
 \begin{figure}[H]
 \figrule
@@ -38,7 +46,7 @@ class Set c => Magma c where
 \figrule
 \end{figure}
 
-This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equiped with a $set\_eq$ operation), and if it has a $Plus$ operation.
+This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equiped with the equivalence relation $\sim=$ and the test $set\_eq$), and if it has a $Plus$ operation.
 
 A bit more interesting is the Semi-Group type class. A semi-Group is a Magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation.
 
@@ -177,13 +185,13 @@ The index of type $c$ (the real value represented by an expression) is always ex
 
 	\subsection {A bit of notation}
 The equality we are trying to prove is $x=y$, where $x$ and $y$ are elements of the type $c$, which  simulates a set with some properties (which make $c$ being a Semi-Group, or a Monoid, or a Group...). The fact that $c$ fulfils the specification of an algebraic structure is expressed as an instance of the corresponding type class, and this instance will be denoted as $p$.
-The reflected term for $x$ will be denoted $e1$, and this term will have the type $ExprG\ p\ \Gamma\ x$. The term $e1$ is the encoding of $x$ and its type is precisely indexed over the real value $x$, as the reflected terms embed the concrete values.
-We've got similar thing for $y$, which is encoded by $e2$, and its type is indexed over the real value $y$.
-Running the normalisation procedure on $e1$ will produce the normal form $e1'$ of type $ExprG\ p\ \Gamma\ x'$ and a proof $p1$ of $x=x'$ while running the normalisation procedure on $e2$ will produce the normal form $e2'$ of type $ExprG\ p\ \Gamma\ y'$ and a proof $p2$ of $y=y'$.
+The reflected term for $x$ will be denoted $ex$, and this term will have the type $ExprG\ p\ \Gamma\ x$. The term $ex$ is the encoding of $x$ and its type is precisely indexed over the real value $x$, as the reflected terms embed the concrete values.
+We've got similar thing for $y$, which is encoded by $ey$, and its type is indexed over the real value $y$.
+Running the normalisation procedure on $ex$ will produce the normal form $ex'$ of type $ExprG\ p\ \Gamma\ x'$ and a proof $px$ of $x=x'$ while running the normalisation procedure on $ey$ will produce the normal form $ey'$ of type $ExprG\ p\ \Gamma\ y'$ and a proof $py$ of $y=y'$.
 
 	\subsection {Deciding equality}
 	
-Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equality without bruteforcing a serie of rewriting, that might even not terminate.
+Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equality without brute-forcing a serie of rewriting, that might even not terminate.
 These functions will compute this canonical represent, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the real value indexing the original term and the real value indexing the produced term.
 
 \begin{figure}[H]
@@ -216,24 +224,24 @@ We want to write the following function :
 \figrule
 \end{figure}
 
-The first thing this function has to do is to compute the normal form of the two expressions $e1$ and $e2$ respectively encoding $x$ and $y$.
-Then, the only thing remaining to do will be to compare syntactically $e1'$ and $e2'$, and if they are equal, then we will get $x'=y'$, and we will be able to produce the desired proof of $x=y$ by using the two proofs $p1$ and $p2$. 
+The first thing this function has to do is to compute the normal form of the two expressions $ex$ and $ey$ respectively encoding $x$ and $y$.
+Then, the only thing remaining to do will be to compare syntactically $ex'$ and $ey'$, and if they are equal, then we will get $x'=y'$, and we will be able to produce the desired proof of $x=y$ by using the two proofs $px$ and $py$. 
 
 \begin{figure}[H]
 \figrule
 \begin{center}
 \begin{verbatim}
-groupDecideEq p e1 e2 =
-  let (x' ** (e1', p1)) = groupReduce p e1 in
-  let (y' ** (e2', p2)) = groupReduce p e2 in
-	     buildProofGroup p e1' e2' p1 p2
+groupDecideEq p ex ey =
+  let (x' ** (ex', px)) = groupReduce p ex in
+  let (y' ** (ey', py)) = groupReduce p ey in
+	     buildProofGroup p ex' ey' px py
 \end{verbatim}
 \end{center}
 \caption{Decides if two elements of a group are equal}
 \figrule
 \end{figure}
 
-The syntactical test of equality between $e1'$ and $e2'$ and the composition of the two proofs is done in the auxiliary function $buildProofGroup$, similarly to what we've done on the smaller example in the previous section. 
+The syntactical test of equality between $ex'$ and $ey'$ and the composition of the two proofs is done in the auxiliary function $buildProofGroup$, similarly to what we've done on the smaller example in the previous section. 
 
 \begin{figure}[H]
 \figrule
@@ -244,9 +252,9 @@ buildProofGroup : (p:Group c) -> {gam:Vect n c}
   -> (ExprG p gam x') -> (ExprG p gam y') 
   -> (x = x') -> (y = y') 
   -> (Maybe (x = y))
-buildProofGroup p e1 e2 p1 p2 with (exprG_eq p _ e1 e2)
-    buildProofGroup p e1 e1 p1 p2 | Just refl = ?MbuildProofGroup
-    buildProofGroup p e1 e2 p1 p2 | Nothing = Nothing
+buildProofGroup p ex ey px py with (exprG_eq p _ ex ey)
+    buildProofGroup p ex ex px py | Just refl = ?MbuildProofGroup
+    buildProofGroup p ex ey px py | Nothing = Nothing
 \end{verbatim}
 \end{center}
 \caption{Composes the two proofs if the normal forms are the same}

@@ -1,10 +1,22 @@
 \section {Normalisation functions and re-usability of the provers}
 
-We now describe briefly how the normalisation functions work for some of the structures, and we also explain how we've been able to reuse each prover for the more specialised underneath structures. 
+We now describe briefly how the normalisation functions work for some of the different algebraic structures, and we also explain how we've been able to reuse each prover for the more specialised underneath structures. By doing so, we show that the construction of the desired proof is always done bit by bit, because every rewriting of the reflected term is immediately justified by a little accompanying proof which shows the equivalence of the previous and new index.
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{verbatim}
+littleRewriting : (p:algebraic structure on c) -> (gam:Vect n c) -> {c1:c} 
+        -> (Expr p gam c1) -> (c2 ** (Expr p gam c2, c1=c2))
+simpleTreatment p gam e = (new expression, justification)
+\end{verbatim}
+\end{center}
+\caption{General pattern of a function doing a part of the normalisation}
+\figrule
+\end{figure}
 
 	\subsection {Normalization of terms in a Semi-Group}
-In a semigroup, we only have to deal with the property of associativity. As it was the case with the toy example in the previous section, we will have to rearrange the parenthesis on a systematical way, either left associative, or right associative. But this is not the only thing that we have to do. If $x$, $y$ and $z$ denote variables, we don't only want to transform $x+((y+4)+(5+z))$ into $(((x+y)+4)+5)+z$ if we've chosen the complete left associative form. We want first to do the addition of the constants $4$ and $5$ together (and we have the right to do so because we can rearrange the parenthesis thanks to the associativity, when constants are, like in this case, near to each other). Three possible patterns need this treatment : $(x+c1)+(c2+y)$ , $(x + c1) + c2$  and $c1 + (c2 + x)$ when $c1$ and $c2$ denote constants. The simplification between the constants $c1$ and $c2$ is denoted here as $[c1+c2]$, and this computation is done by the normalisation function of the underneath $Magma$ level, called $magmaReduce$.
-The first pattern is rewritten into $(x + [c1+c2]) + y$, the second into $x + [c1+c2]$ and the third one into $[c1 + c2] + x$.
+In a semigroup, we only have to deal with the property of associativity. As it was the case with the toy example in the previous section, we will have to rearrange the parenthesis on a systematic way, either left associative, or right associative. But this is not the only thing that we have to do. If $x$, $y$ and $z$ denote variables, we don't only want to transform $x+((y+4)+(5+z))$ into $(((x+y)+4)+5)+z$ --we assume we've chosen the complete left associative form--. We also want the constants $4$ and $5$ to be simplified together, because they are close to each other (and we have the right to do so because we can rearrange the parenthesis thanks to the associativity), and the result should be $((x+y)+9)+z$ on this example. Three possible patterns need this treatment : $(x+const1)+(const2+y)$, $(x + const1) + const2$  and $const1 + (const2 + x)$ where $const1$ and $const2$ denote constants. The simplification between the constants $const1$ and $const2$ is denoted here as $[const1+const2]$, and this computation can be done at the underneath $Magma$ level, with its normalisation function called $magmaReduce$.
+The first pattern is rewritten into $(x + [const1+const2]) + y$, the second into $x + [const1+const2]$ and the third one into $[const1 + const2] + x$.
 We show the code for the first pattern.
 
 \begin{figure}[H]
@@ -14,24 +26,27 @@ We show the code for the first pattern.
 assoc : (p:SemiGroup c) -> (gam:Vect n c) -> {c1:c} 
         -> (ExprSG p gam c1) -> (c2 ** (ExprSG p gam c2, c1=c2))
 assoc p gam (PlusSG 
-             (PlusSG e1 (ConstSG _ _ c1)) 
-             (PlusSG (ConstSG _ _ c2) e2)) =
-    let (r_ih1 ** (e_ih1, p_ih1)) = (assoc p gam e1) in
-    let (r_ih2 ** (e_ih2, p_ih2)) = (assoc p gam e2) in
+             (PlusSG ex (ConstSG _ _ const1)) 
+             (PlusSG (ConstSG _ _ const2) ey)) =
+    let (r_ihx ** (e_ihx, p_ihx)) = (assoc p gam ex) in
+    let (r_ihy ** (e_ihy, p_ihy)) = (assoc p gam ey) in
     let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma 
-                             (PlusSG (ConstSG _ _ c1) (ConstSG _ _ c2))) in
+                             (PlusSG (ConstSG _ _ const1) (ConstSG _ _ const2))) in
     let e_3' = magma_to_semiGroup p e_3 in
-        (_ ** ((PlusSG (PlusSG e_ih1 e_3') e_ih2), ?Massoc1))
+        (_ ** ((PlusSG (PlusSG e_ihx e_3') e_ihy), ?Massoc1))
 [...]
 \end{verbatim}
 \end{center}
 \caption{Computing with associativity in a Semi-Group, first pattern}
 \figrule
 \end{figure}
-
-Note that we use function of conversions between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$.
-
-After simplifying the constants computable thanks to associativity, the normalization for SemiGroup also has to rearrange the brackets on a systematic way. The fully right or fully left associative forms can both be chosen for this purpose, and the implementation is very similar to the function $expr_l$ previously described on section 2.3.
+The treatment is applied recursively on the sub-expressions $ex$ and $ey$, which produces the new expressions $e\_ihx$ and $e\_ihy$ together with the new concrete values they represent ($r\_ihx$ and $r\_ihy$) and the proofs ($p\_ihx$ and $p\_ihy$) justifying these transformation on the concrete values. Note that the simplification $[const1+const2]$ is done by calling the magma prover, which gives a new expression $e3$, even thought it could perfectly be done directly here. We wanted to show how a prover can be reused for building another prover on an easy example. The functions of conversion between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$ are helping for this task.
+\\
+A meta-variable Massoc1 has been introduced. This metavariable corresponds to a proof obligation for the following property :
+$Massoc1 : Plus\ (Plus\ x\ const1)\ (Plus\ const2\ y)\ ~=\ Plus\ (Plus\ r\_ihx\ r_3)\ r\_ihy$ in a context where there is, amongst other things, $p\_ihx : x\ ~=\ r\_ihx$, $p\_ihy : y\ ~=\ r\_ihy$ and $p_3 : Plus\ const1\ const2 ~= r\_3$.
+This lemma says that the treatment done by this function $assoc$ on this case was sound because the previous and the new concrete values are equal. It can easily be proven with a few rewritings and the use of the associativity, available from the semi-group structure. \\
+\\
+After this simplification of constants computable thanks to associativity, the normalization for SemiGroup also has to rearrange the brackets on a systematic way. The fully right or fully left associative forms can both be chosen for this purpose, and the implementation is very similar to the function $expr_l$ previously described for the smaller example on section 2.3.
 
 \subsection {Normalization of terms in a Monoid}
 

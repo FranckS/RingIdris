@@ -81,10 +81,10 @@ using (x : Nat, y : Nat, gam : Vect n Nat)
 \figrule
 \end{figure}
 
-For an expression $e\ :\ Expr\ \Gamma\ x$, we will say that "$e$ denotes (or encodes) the number $x$ in the context $\Gamma$".
+For an expression $ex\ :\ Expr\ \Gamma\ x$, we will say that "$ex$ denotes (or encodes) the number $x$ in the context $\Gamma$".
 When an expression is a variable, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ \Gamma)$.
 Also, the $Zero$ expression denotes the natural number $Z$.
-Finally, if $e1$ is an expression encoding the number $x$, and $e2$ is an expression encoding the number $y$, then the expression $Plus\ e1\ e2$ denotes the number $(x + y)$.
+Finally, if $ex$ is an expression encoding the number $x$, and $ey$ is an expression encoding the number $y$, then the expression $Plus\ ex\ ey$ denotes the concrete number $(x + y)$.
 
 
 \subsection{A correct by construction approach}
@@ -97,9 +97,8 @@ Note that this function can't simply produce an $Expr\ \Gamma\ x$, because the n
 And in fact, what really interest us in this function is precisely the proof of $x\ =\ x'$.
 The reason is that when we try to automatically prove $x=y$, these proofs $x=x'$ and $y=y'$ will be the crucial part for the construction of the desired proof. \\
 \\
-We have an expression $e1$ encoding $x$, and an expression $e2$ encoding $y$\footnote{These encodings have to be produced by hand by the user for this little tool example, but for the real collection of tactics, we will program an automatic reflection mechanism}.
-We will normalize $e1$, and this will give a new number $x'$, a new expression $e1':Expr\ \Gamma\ x'$, and a proof of $x=x'$. We will do the same with $e2$, and we will get a new number $y'$, an expression $e2':Expr\ \Gamma\ y'$, and a proof of $y=y'$. \\
-It is now enough to simply compare $e1'$ and $e2'$ using a standard syntactical equality because these two expressions are in normal form :
+We have an expression $ex$ encoding $x$, and an expression $ey$ encoding $y$. We will normalize $ex$, and this will give a new concrete number $x'$, a new expression $ex':Expr\ \Gamma\ x'$, and a proof of $x=x'$. We will do the same with $ey$, and we will get a new concrete number $y'$, an expression $ey':Expr\ \Gamma\ y'$, and a proof of $y=y'$. \\
+It is now enough to simply compare $ex'$ and $ey'$ using a standard syntactical equality because these two expressions are now supposed to be in normal form :
 
 \begin{figure}[H]
 \figrule
@@ -121,7 +120,7 @@ eqExpr _ _ = Nothing
 \end{figure}
 
 
-Now, if the two normalised expressions $e1'$ and $e2'$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$.
+Now, if the two normalised expressions $ex'$ and $ey'$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$.
 By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the normalisations) in the new equality $x'=y'$, we can get a proof of $x=y$. This is what the function $buildProof$ is doing.
 
 \begin{figure}[H]
@@ -130,9 +129,9 @@ By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the n
 \begin{verbatim}
 buildProof : {x : Nat} -> {y : Nat} -> Expr gam x' -> Expr gam y' 
            -> (x = x') -> (y = y') -> Maybe (x = y)
-buildProof e e' lp rp with (eqExpr e e')
-  buildProof e e lp rp | Just refl = ?MbuildProof
-  buildProof e e' lp rp | Nothing = Nothing
+buildProof ex' ey' lp rp with (eqExpr ex' ey')
+  buildProof ex' ex' lp rp | Just refl = ?MbuildProof
+  buildProof ex' ey' lp rp | Nothing = Nothing
 \end{verbatim}
 \end{center}
 \caption{Building the desired proof with the two proofs of equality}
@@ -140,7 +139,7 @@ buildProof e e' lp rp with (eqExpr e e')
 \end{figure}
 
 
-The $Expr\ \Gamma\ x'$ will be used as the normalised left hand size of the equality, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The $Expr\ \Gamma\ y'$ is the normalised right hand size, which now represents the value $y'$, but which was encoding $y$ before the normalisation. The function also expects the proofs that $x=x'$ and $y=y'$, and we should be able to pass them because the normalisation function also produces the proof of equality between the previous and the new concrete values.
+The $Expr\ \Gamma\ x'$ is the normalised reflected left hand size of the equality, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The $Expr\ \Gamma\ y'$ is the normalised reflected right hand size, which now represents the value $y'$, but which was encoding $y$ before the normalisation. The function also expects the proofs that $x=x'$ and $y=y'$, and we should be able to pass them because the normalisation function also produces the proof of equality between the previous and the new concrete values.
 
 As we mentioned, the proof for the metavariable $MbuildProof$ is just a rewriting of the two equalities :
 
@@ -165,10 +164,10 @@ Finally, the main function which tries to prove the equality $x=y$ simply has to
 \begin{verbatim}
   testEq : Expr gam x -> Expr gam y 
            -> Maybe (x = y)
-  testEq l r = 
-     let (x' ** (l', p1)) = reduce l in 
-     let (y' ** (r', p2)) = reduce r in
-        buildProof l' r' p1 p2 
+  testEq ex ey = 
+     let (x' ** (ex', px)) = reduce ex in 
+     let (y' ** (ey', py)) = reduce ey in
+        buildProof ex' ey' px py 
 \end{verbatim}
 \end{center}
 \caption{testEq}
