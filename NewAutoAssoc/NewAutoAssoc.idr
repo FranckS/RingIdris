@@ -17,47 +17,51 @@ using (x : List a, y : List a, G : Vect n (List a))
 
 -- Fully left associative list expressions
 
-  data RExpr : (G : Vect n (List a)) -> List a -> Type where
-       RApp : RExpr G x -> (i : Fin n) -> RExpr G (x ++ index i G)
-       RNil : RExpr G []
+  data LExpr : (G : Vect n (List a)) -> List a -> Type where
+       LApp : LExpr G x -> (i : Fin n) -> LExpr G (x ++ index i G)
+       LNil : LExpr G []
 
--- Convert an expression to a right associative expression, and return
+-- Convert an expression to a left associative expression, and return
 -- a proof that the rewriting has an equal interpretation to the original
 -- expression.
 
 -- The idea is that we use this proof to build a proof of equality of
 -- list appends
 
-  total
-  expr_r : Expr G x -> (x' ** (RExpr G x', x = x'))
-  expr_r ENil = (_ ** (RNil, Refl))
-  expr_r (Var i) = (_ ** (RApp RNil i, Refl))
-  expr_r (App ex ey) = let (xl ** (xr, xprf)) = expr_r ex in
-                       let (yl ** (yr, yprf)) = expr_r ey in
-                           appRExpr _ _ xr yr xprf yprf
-    where 
-      appRExpr : (x', y' : List a) ->
-                 RExpr G x -> RExpr G y -> (x' = x) -> (y' = y) ->
-                 (w' ** (RExpr G w', x' ++ y' = w'))
-      appRExpr x' y' rxs (RApp e i) xprf yprf
-         = let (xs ** (rec, prf)) = appRExpr _ _ rxs e Refl Refl in
-               (_ ** (RApp rec i, ?appRExpr1))
-      appRExpr x' y' rxs RNil xprf yprf = (_ ** (rxs, ?appRExpr2))
+  expr_l : Expr gam x -> (x' ** (LExpr gam x', x = x'))
+  expr_l ENil = (_ ** (LNil, Refl))
+  expr_l (Var i) = (_ ** (LApp LNil i, Refl))
+  expr_l (App ex ey) = 
+    let (x' ** (ex', px)) = expr_l ex in
+    let (y' ** (ey', py)) = expr_l ey in
+    let (res ** (normRes, Pres)) = appLExpr ex' ey' in
+      (res ** (normRes, rewrite px in (rewrite py in Pres)))
+        where 
+        appLExpr : {gam : Vect n (List a)} -> {x, y : List a} 
+              -> LExpr gam x -> LExpr gam y  
+              -> (z ** (LExpr gam z, x++y=z))
+        appLExpr {x=x} ex LNil = 
+          (_ ** (ex, rewrite (appendNilRightNeutral x) in Refl))          
+        appLExpr ex (LApp e i) =
+          let (xRec ** (rec, prfRec)) = appLExpr ex e in
+              (_ ** (LApp rec i, ?MappLExpr))
+
+
 
 -- ...and back again
 
   total
-  r_expr : RExpr G x -> Expr G x
-  r_expr RNil = ENil
-  r_expr (RApp xs i) = App (r_expr xs) (Var i)
+  l_expr : LExpr G x -> Expr G x
+  l_expr LNil = ENil
+  l_expr (LApp xs i) = App (l_expr xs) (Var i)
 
 -- Convert an expression to some other equivalent expression (which
--- just happens to be normalised to right associative form)
+-- just happens to be normalised to left associative form)
 
   total
   reduce : Expr G x -> (x' ** (Expr G x', x = x'))
-  reduce e = let (x' ** (e', prf)) = expr_r e in
-                 (x' ** (r_expr e', prf))
+  reduce e = let (x' ** (e', prf)) = expr_l e in
+                 (x' ** (l_expr e', prf))
 
 -- Build a proof that two expressions are equal. If they are, we'll know
 -- that the indices are equal.
@@ -321,24 +325,21 @@ theoremIdentity G (h::t) = ?MtheoremIdentity_1 -- Should be easy once reflect is
 
     
 ---------- Proofs ----------
+-- This proof is directly done in the definition now
+{-
+NewAutoAssoc.Mexpr_l1 = proof
+  intros
+  rewrite (sym px)
+  rewrite (sym py)
+  exact Pres
+-}
 
-NewAutoAssoc.appRExpr1 = proof {
-  intros;
-  rewrite sym xprf;
-  rewrite sym yprf;
-  rewrite prf;
-  mrefine appendAssociative
-}
-
-
-NewAutoAssoc.appRExpr2 = proof {
-  intros;
-  rewrite xprf;
-  rewrite sym yprf;
-  rewrite appendNilRightNeutral x';
+-- FIX IDRIS HERE : Why do we have a "gam" and "gam1" in the context ? We should only have ONE contaxt. It's certainly just some elaboration crap...
+NewAutoAssoc.MappLExpr = proof
+  intros
+  rewrite (sym (appendAssociative x1 x2 (index i gam1)))
+  rewrite prfRec
   exact Refl
-}
-
 
 NewAutoAssoc.bp1 = proof {
   intros;
@@ -410,6 +411,8 @@ NewAutoAssoc.MreflectList_8 = proof
 
 
 
+
+---------- Proofs ----------
 
 
 
