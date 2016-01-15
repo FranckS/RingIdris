@@ -252,15 +252,15 @@ buildProofGroup : (p:Group c) -> {$\Gamma$:Vect n c}
   -> (ExprG p $\Gamma$ x') -> (ExprG p $\Gamma$ y') 
   -> (x $\simeq$ x') -> (y $\simeq$ y') 
   -> (Maybe (x $\simeq$ y))
-buildProofGroup p ex ey px py with (exprG_eq p _ ex ey)
-    buildProofGroup p ex ex px py | Just refl = ?MbuildProofGroup
-    buildProofGroup p ex ey px py | Nothing = Nothing
+buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
+    buildProofGroup p ex' ex' px py | Just refl = ?MbuildProofGroup
+    buildProofGroup p ex' ey' px py | Nothing = Nothing
 \end{lstlisting}
 \end{center}
 \caption{Composes the two proofs if the normal forms are the same}
 \figrule
 \end{figure}
-We've used here the function $exprG\_eq$ to decide the syntactical equality between the reflected terms. This function plays the same role as $eqExpr$, presented on section 2.3 for the smaller example. Also, the proof for the metavariable $MbuildProofGroup$ is exactly the same as the corresponding one (called $MbuildProof$) for the smaller example.
+We've used here the function $exprG\_eq$ to decide the syntactical equality between the normalised reflected terms $ex'$ and $ey'$. This function plays the same role as $eqExpr$, presented on section 2.3 for the smaller example. Also, the proof for the metavariable $MbuildProofGroup$ corresponds exactly tto what was done for the metariable $MbuildProof$ in the smaller example.
 
 
 \subsection {Automatic reflection}
