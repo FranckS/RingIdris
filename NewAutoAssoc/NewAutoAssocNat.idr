@@ -105,9 +105,9 @@ using (x : Nat, y : Nat, G : Vect n Nat)
  -- a couple of test expressions
   -- LSH reflected with the first version of the reflected terms
   Xe1 : (x, y, z : Nat) -> 
-           Expr [x, y, z] ((x + y) + (x + z))
-  Xe1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
-                        (Plus (Var FZ) (Var (FS (FS FZ))))
+           XExpr [x, y, z]
+  Xe1 x y z = XPlus (XPlus (XVar FZ) (XVar (FS FZ))) 
+                    (XPlus (XVar FZ) (XVar (FS (FS FZ))))
 
 
   e1 : (x, y, z : Nat) -> 
