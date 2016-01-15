@@ -9,11 +9,20 @@ import NewAutoAssoc_tools
 -- Expr is a reflection of a Nat, indexed over the concrete Nat,
 -- and over a set of Nat variables.
 
+
+-- First attempt presented in the paper, without the index
 using (x : Nat, y : Nat, G : Vect n Nat)
+  data XExpr : (G : Vect n Nat) -> Type where
+      XPlus : XExpr G -> XExpr G -> XExpr G
+      XVar : (i:Fin n) -> XExpr G
+      XZero : XExpr G
+
+-- Second attempt, also presented in the paper
   data Expr : (G : Vect n Nat) -> Nat -> Type where
        Plus  : Expr G x -> Expr G y -> Expr G (x + y)
        Var  : (i : Fin n) -> Expr G (index i G)
        Zero : Expr G Z
+
 
 -- Fully left associative nat expressions
 
@@ -94,6 +103,12 @@ using (x : Nat, y : Nat, G : Vect n Nat)
 
 
  -- a couple of test expressions
+  -- LSH reflected with the first version of the reflected terms
+  Xe1 : (x, y, z : Nat) -> 
+           Expr [x, y, z] ((x + y) + (x + z))
+  Xe1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
+                        (Plus (Var FZ) (Var (FS (FS FZ))))
+
 
   e1 : (x, y, z : Nat) -> 
            Expr [x, y, z] ((x + y) + (x + z))
@@ -169,7 +184,7 @@ reflectNat G (x + y) =
 reflectNat {n=n} G t with (isElement t G)
             | Just (i ** p) = let result = Var {G=G++[]} (convertFin n i Z) in
                                   (Z ** ([] ** ?MreflectNat_2)) -- We don't add anything
-            | Nothing = (((S Z) ** ([t] ** Var (FZ {k=Z}))))  -- We add the variable 't' to the context
+            --| Nothing = (((S Z) ** ([t] ** Var (FZ {k=Z}))))  -- We add the variable 't' to the context
 {- 
 -- We don't care of Succ here in fact
 reflectNat {n=n} G (S x) with (reflectNat G x)

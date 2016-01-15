@@ -21,22 +21,22 @@ Indeed, this data type will allow pattern matching. Previously, we were only abl
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-data Expr : (gam : Vect n Nat) -> Type where
-     Plus : {n:Nat} -> {gam:Vect n Nat} -> 
-            Expr gam -> Expr gam -> Expr gam
-     Var  : {n:Nat} -> {gam:Vect n Nat} -> 
-            (i : Fin n) -> Expr gam
-     Zero : {n:Nat} -> (gam:Vect n Nat) -> 
-            Expr gam Z
-\end{verbatim}
+\begin{lstlisting}
+data Expr : ($\Gamma$ : Vect n Nat) -> Type where
+     Plus : {n:Nat} -> {$\Gamma$:Vect n Nat} -> 
+            Expr $\Gamma$ -> Expr $\Gamma$ -> Expr $\Gamma$
+     Var  : {n:Nat} -> {$\Gamma$:Vect n Nat} -> 
+            (i : Fin n) -> Expr $\Gamma$
+     Zero : {n:Nat} -> ($\Gamma$:Vect n Nat) -> 
+            Expr $\Gamma$ Z
+\end{lstlisting}
 \end{center}
 \caption{First version of reflected natural numbers}
 \figrule
 \end{figure}
 
 
-Variables are represent using a De Brujin-like index : (Var fZ) denotes a variable, (Var (fS fZ)) another one, and so on.
+Variables are represent using a De Brujin-like index : (Var FZ) denotes a variable, (Var (FS FZ)) another one, and so on.
 
 The type Expr is indexed over a vector of numbers $\Gamma$, which is the context of all universally quantified variables. In the example 1, we will encode $(x1 + x2) + (x3 + x4)$ and $(x1 + (x2 + x3)) + x4$ in a context where four elements are present. The first element of this context denotes the variable $x1$, the second denotes $x2$, and so on.
 Thus, the left hand side will be encoded by :
@@ -44,14 +44,14 @@ Thus, the left hand side will be encoded by :
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-Plus (Plus (Var gam fZ) 
-           (Var gam (fS fZ))) 
-     (Plus (Var gam (fS (fS fZ))) 
-           (Var gam (fS (fS (fS fZ)))))
-\end{verbatim}
+\begin{lstlisting}
+e1 : (x, y, z : Nat) -> 
+           Expr [x, y, z] ((x + y) + (x + z))
+e1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
+                (Plus (Var FZ) (Var (FS (FS FZ))))
+\end{lstlisting}
 \end{center}
-\caption{Reflected LHS of example 1}
+\caption{Reflected LHS of example 1 (with the first version of reflected natural numbers)}
 \figrule
 \end{figure}
 
@@ -68,14 +68,14 @@ To avoid this source of complexity, we add an index to the type $Expr$, and this
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-using (x : Nat, y : Nat, gam : Vect n Nat)
+\begin{lstlisting}
+using (x : Nat, y : Nat, $\Gamma$ : Vect n Nat)
   data Expr : (Vect n Nat) -> Nat -> Type where
-       Plus : Expr gam x -> Expr gam y -> 
-              Expr gam (x + y)
-       Var  : (i : Fin n) -> Expr gam (index i gam)
-       Zero : Expr gam Z
-\end{verbatim}
+       Plus : Expr $\Gamma$ x -> Expr $\Gamma$ y -> 
+              Expr $\Gamma$ (x + y)
+       Var  : (i : Fin n) -> Expr $\Gamma$ (index i $\Gamma$)
+       Zero : Expr $\Gamma$ Z
+\end{lstlisting}
 \end{center}
 \caption{Second version of reflected number with embedded denotation}
 \figrule
@@ -104,8 +104,8 @@ It is now enough to simply compare $ex'$ and $ey'$ using a standard syntactical 
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-eqExpr : (e : Expr gam x) -> (e' : Expr gam y) -> Maybe (e = e')
+\begin{lstlisting}
+eqExpr : (e : Expr $\Gamma$ x) -> (e' : Expr $\Gamma$ y) -> Maybe (e = e')
 eqExpr (Plus x y) (Plus x' y') with (eqExpr x x', eqExpr y y')
   eqExpr (Plus x y) (Plus x y) | (Just Refl, Just Refl) = Just Refl
   eqExpr (Plus x y) (Plus x' y') | _ = Nothing
@@ -114,7 +114,7 @@ eqExpr (Var i) (Var j) with (decEq i j)
   eqExpr (Var i) (Var j) | _ = Nothing
 eqExpr Zero Zero = Just Refl
 eqExpr _ _ = Nothing
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Syntactical equality between reflected terms}
 \figrule
@@ -127,13 +127,13 @@ By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the n
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-buildProof : {x : Nat} -> {y : Nat} -> Expr gam x' -> Expr gam y' 
+\begin{lstlisting}
+buildProof : {x : Nat} -> {y : Nat} -> Expr $\Gamma$ x' -> Expr $\Gamma$ y' 
            -> (x = x') -> (y = y') -> Maybe (x = y)
 buildProof ex' ey' lp rp with (eqExpr ex' ey')
   buildProof ex' ex' lp rp | Just Refl = ?MbuildProof
   buildProof ex' ey' lp rp | Nothing = Nothing
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Building the desired proof with the two proofs of equality}
 \figrule
@@ -146,11 +146,11 @@ As mentioned, the proof for the metavariable $MbuildProof$ is just a rewriting o
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
   MbuildProof = proof {
   intros; refine Just; rewrite sym p1; rewrite sym p2; exact Refl;
 }  
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{buildProof metavariable}
 \figrule
@@ -161,14 +161,14 @@ Finally, the main function which tries to prove the equality $x=y$ simply has to
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-  testEq : Expr gam x -> Expr gam y 
+\begin{lstlisting}
+  testEq : Expr $\Gamma$ x -> Expr $\Gamma$ y 
            -> Maybe (x = y)
   testEq ex ey = 
      let (x' ** (ex', px)) = reduce ex in 
      let (y' ** (ey', py)) = reduce ey in
         buildProof ex' ey' px py 
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{testEq}
 \figrule
@@ -179,12 +179,12 @@ We now need to define the function reduce. To do that, we have to decide a canon
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-data LExpr : (gam : Vect n Nat) -> Nat -> Type where
-     LPlus : LExpr gam x -> (i : Fin n) 
-             -> LExpr gam (x + index i gam)
-     LZero : LExpr gam Z
-\end{verbatim}
+\begin{lstlisting}
+data LExpr : ($\Gamma$ : Vect n Nat) -> Nat -> Type where
+     LPlus : LExpr $\Gamma$ x -> (i : Fin n) 
+             -> LExpr $\Gamma$ (x + index i $\Gamma$)
+     LZero : LExpr $\Gamma$ Z
+\end{lstlisting}
 \end{center}
 \caption{Reflected left associative numbers}
 \figrule
@@ -197,9 +197,9 @@ As part of the normalization, we write a function $expr\_l$ which converts an $E
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-expr_l : Expr gam x 
-         -> (x' ** (LExpr gam x', x = x'))
+\begin{lstlisting}
+expr_l : Expr $\Gamma$ x 
+         -> (x' ** (LExpr $\Gamma$ x', x = x'))
 expr_l Zero = (_ ** (LZero, Refl))
 expr_l (Var i) = (_ ** (LPlus LZero i, Refl))
 expr_l (Plus ex ey) = 
@@ -208,16 +208,16 @@ expr_l (Plus ex ey) =
   let (res ** (normRes, Pres)) = plusLExpr ex' ey' in
     (res ** (normRes, rewrite px in (rewrite py in Pres)))
       where 
-      plusLExpr : {gam : Vect n Nat} -> {x, y : Nat} 
-            -> LExpr gam x -> LExpr gam y  
-            -> (z ** (LExpr gam z, x+y=z))
+      plusLExpr : {$\Gamma$ : Vect n Nat} -> {x, y : Nat} 
+            -> LExpr $\Gamma$ x -> LExpr $\Gamma$ y  
+            -> (z ** (LExpr $\Gamma$ z, x+y=z))
       plusLExpr {x=x} ex LZero =
         (_ ** (ex, rewrite (plusZeroRightNeutral x) in Refl))            
       plusLExpr ex (LPlus e i) =
         let (xRec ** (rec, prfRec)) = plusLExpr ex e in
             (_ ** (LPlus rec i, ?MplusLExpr))
 
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Production of the left associative form}
 \figrule
@@ -230,15 +230,15 @@ By using the property of associativity on the goal, we now need to prove $(x1 + 
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 MplusLExpr = proof {
   intros
-  rewrite (sym (plusAssociative x1 x2 (index i gam))); rewrite prf; 
+  rewrite (sym (plusAssociative x1 x2 (index i $\Gamma$))); rewrite prf; 
   exact Refl;
 }
-\end{verbatim}
+\end{lstlisting}
 \end{center}
-\caption{Proof of the metavariable plusLExpr1}
+\caption{Proof of the metavariable MplusLExpr}
 \figrule
 \end{figure}
 
@@ -248,11 +248,11 @@ Using this new datatype $LExpr$ has changed the representation of our encoded li
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-l_expr : LExpr gam x -> Expr gam x
+\begin{lstlisting}
+l_expr : LExpr $\Gamma$ x -> Expr $\Gamma$ x
 l_expr LZero = Zero
 l_expr (LPlus x i) = Plus (l_expr x) (Var i)
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Going back from LExpr to Expr}
 \figrule
@@ -267,12 +267,12 @@ We can now define the reduction, which is just the composition of the two previo
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-  reduce : Expr gam x -> (x' ** (Expr gam x', x = x'))
+\begin{lstlisting}
+  reduce : Expr $\Gamma$ x -> (x' ** (Expr $\Gamma$ x', x = x'))
   reduce e = 
      let (x' ** (e', prf)) = expr_l e in
          (x' ** (l_expr e', prf))
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Reduction function}
 \figrule
@@ -290,21 +290,21 @@ Let's define two expressions $e1$ and $e2$, respectively representing the number
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 e1 : (x, y, z : Nat) 
     -> Expr [x, y, z] ((x+y) + (x+z))
-e1 x y z = Plus (Plus (Var fZ) 
-                      (Var (fS fZ))) 
-                (Plus (Var fZ) 
-                      (Var (fS (fS fZ))))
+e1 x y z = Plus (Plus (Var FZ) 
+                      (Var (FS FZ))) 
+                (Plus (Var FZ) 
+                      (Var (FS (FS FZ))))
 
 e2 : (x, y, z : Nat) 
      -> Expr [x, y, z] (x + ((y + x) + z))
-e2 x y z = Plus (Var fZ) 
-                (Plus (Plus (Var (fS fZ)) 
-                            (Var fZ)) 
-                      (Var (fS (fS fZ))))
-\end{verbatim}
+e2 x y z = Plus (Var FZ) 
+                (Plus (Plus (Var (FS FZ)) 
+                            (Var FZ)) 
+                      (Var (FS (FS FZ))))
+\end{lstlisting}
 \end{center}
 \caption{Two test expressions}
 \figrule
@@ -315,11 +315,11 @@ The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can gener
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 e1_e2_testEq : (x, y, z : Nat) 
              -> Maybe (((x + y) + (x + z)) = (x + ((y + x) + z)))
 e1_e2_testEq x y z = testEq (e1 x y z) (e2 x y z)
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Test of equality betwen e1 and e2}
 \figrule
@@ -331,7 +331,7 @@ And if we ask for the evaluation of this term, we should obtain $Just$ and a pro
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 #\x => \y => \z => e1_e2_testEq x y z
 
 \x => \y => \z => Just (replace (sym (replace (sym (replace 
@@ -343,7 +343,7 @@ And if we ask for the evaluation of this term, we should obtain $Just$ and a pro
 : (x : Nat) -> (y : Nat) -> (z : Nat) 
   -> Maybe ((x + y) + x + z 
             = x + (y + x) + z)
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Obtained proof}
 \figrule
@@ -359,27 +359,22 @@ Note that for the moment, even if what we have is perfectly usable and works, we
 However, we can also note that even when done by hand, there is no room for making mistakes in this simple task of encoding : we simply can't generate a wrong encoding : if $e1$ and $e2$ are not respectively reflecting $((x+y) + (x+z))$ and $(x + ((y + x) + z))$ then these definitions won't typecheck because the expected and real index won't match. [perhaps giving example of rejected wrong definition for $e1$ here]
 
 We still want an automatic way of constructing these reflected terms because what we have so far is enough to demonstrate that our "prover" works, but that's not enough for being used intensively. We want to program an automatic way of going from the concrete values (of type $Nat$), to the reflected terms (of type $Expr$). The only way to do that is to inspect the abstract syntax tree of the concrete value.
-By using Idris's reflection mechanism, we can tag a function with the keyword "\%reflection", which means that this function runs on syntax instead of values. That implies that when applying this function to some arguments, the arguments aren't reduce before the evaluation of this function.
-
+By using Idris's reflection mechanism, we can tag a function with the keyword "\%reflection", which means that this function runs on syntax instead of values. 
 
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-
+\begin{lstlisting} [mathescape]
 %reflection
-reflectList : (G : List Nat) ->
-          (x : Nat) -> (G' ** Expr (G ++ G') x)
-reflectList G Z = ([] ** Zero)
-
-...
-
-\end{verbatim}
+total
+reflectNat : {n:Nat} -> ($\Gamma$ : Vect n Nat) -> (x:Nat) -> (m ** ($\Gamma'$ : Vect m Nat ** (Expr ($\Gamma$ ++ ') x)))
+\end{lstlisting}
 \end{center}
-\caption{Reflection for natural numbers}
+\caption{Type of the function for reflecting natural numbers}
 \figrule
 \end{figure}
 
+This function takes 
 
 
 

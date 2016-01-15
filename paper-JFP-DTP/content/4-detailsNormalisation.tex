@@ -4,11 +4,11 @@ We now describe briefly how the normalisation functions work for some of the dif
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 littleRewriting : (p:algebraic structure on c) -> (gam:Vect n c) -> {c1:c} 
-        -> (Expr p gam c1) -> (c2 ** (Expr p gam c2, c1=c2))
+        -> (Expr p gam c1) -> (c2 ** (Expr p gam c2, c1 $\simeq$ c2))
 simpleTreatment p gam e = (new expression, justification)
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{General pattern of a function doing a part of the normalisation}
 \figrule
@@ -22,9 +22,9 @@ We show the code for the first pattern.
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 assoc : (p:SemiGroup c) -> (gam:Vect n c) -> {c1:c} 
-        -> (ExprSG p gam c1) -> (c2 ** (ExprSG p gam c2, c1=c2))
+        -> (ExprSG p gam c1) -> (c2 ** (ExprSG p gam c2, c1 $\simeq$ c2))
 assoc p gam (PlusSG 
              (PlusSG ex (ConstSG _ _ const1)) 
              (PlusSG (ConstSG _ _ const2) ey)) =
@@ -35,16 +35,16 @@ assoc p gam (PlusSG
     let e_3' = magma_to_semiGroup p e_3 in
         (_ ** ((PlusSG (PlusSG e_ihx e_3') e_ihy), ?Massoc1))
 [...]
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Computing with associativity in a Semi-Group, first pattern}
 \figrule
 \end{figure}
-The treatment is applied recursively on the sub-expressions $ex$ and $ey$, which produces the new expressions $e\_ihx$ and $e\_ihy$ together with the new concrete values they represent ($r\_ihx$ and $r\_ihy$) and the proofs ($p\_ihx$ and $p\_ihy$) justifying these transformation on the concrete values. Note that the simplification $[const1+const2]$ is done by calling the magma prover, which gives a new expression $e3$, even thought it could perfectly be done directly here. We wanted to show how a prover can be reused for building another prover on an easy example. The functions of conversion between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$ are helping for this task.
+The treatment is applied recursively on the sub-expressions $ex$ and $ey$, which produces the new expressions $e\_ihx$ and $e\_ihy$ together with the new concrete values they represent ($r\_ihx$ and $r\_ihy$) and the proofs ($p\_ihx$ and $p\_ihy$) justifying these transformation on the concrete values. Note that the simplification $[const1+const2]$ is done by calling the magma prover, which gives a new expression $e3$, even thought it could perfectly be done directly here, but we wanted to show how a prover can be reused for building another prover on an easy example. The functions of conversion between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$ are helping for this task.
 \\
 A meta-variable Massoc1 has been introduced. This metavariable corresponds to a proof obligation for the following property :
-$Massoc1 : Plus\ (Plus\ x\ const1)\ (Plus\ const2\ y)\ ~=\ Plus\ (Plus\ r\_ihx\ r_3)\ r\_ihy$ in a context where there is, amongst other things, $p\_ihx : x\ ~=\ r\_ihx$, $p\_ihy : y\ ~=\ r\_ihy$ and $p_3 : Plus\ const1\ const2 ~= r\_3$.
-This lemma says that the treatment done by this function $assoc$ on this case was sound because the previous and the new concrete values are equal. It can easily be proven with a few rewritings and the use of the associativity, available from the semi-group structure. \\
+$Massoc1 : Plus\ (Plus\ x\ const1)\ (Plus\ const2\ y)\ \simeq\ Plus\ (Plus\ r\_ihx\ r_3)\ r\_ihy$ in a context where there is, amongst other things, $p\_ihx : x\ \simeq\ r\_ihx$, $p\_ihy : y\ \simeq\ r\_ihy$ and $p_3 : Plus\ const1\ const2 \simeq r\_3$.
+This lemma says that the treatment done by this function $assoc$ on this pattern was sound because the previous and the new concrete values are equal. It can easily be proven with a few rewritings and the use of the associativity, available from the semi-group structure. \\
 \\
 After this simplification of constants computable thanks to associativity, the normalization for SemiGroup also has to rearrange the brackets on a systematic way. The fully right or fully left associative forms can both be chosen for this purpose, and the implementation is very similar to the function $expr_l$ previously described for the smaller example on section 2.3.
 
@@ -55,10 +55,10 @@ In a monoid, we simply have to eliminate zeros, thanks to the two properties of 
 %\begin{figure}[H]
 %\figrule
 %\begin{center}
-%\begin{verbatim}
+%\begin{lstlisting}
 %elimZero : (p:Monoid c)->(gam:Vect n c)->{c1:c} 
 %            -> (ExprMo p gam c1) 
-%            -> (c2 ** (ExprMo p gam c2, c1=c2))
+%            -> (c2 ** (ExprMo p gam c2, c1 $\simeq$ c2))
 %elimZero c p gam (PlusMo (ConstMo _ _ const1) (VarMo _ v)) 
 %        with (eq_on_set p Zero const1)
 %   elimZero c p gam (PlusMo (ConstMo _ _ Zero) (VarMo _ v)) 
@@ -76,7 +76,7 @@ In a monoid, we simply have to eliminate zeros, thanks to the two properties of 
 %          = (_ ** (PlusMo (VarMo _ v) 
 %                 (ConstMo _ _ const2), refl))
 %[...]
-%\end{verbatim}
+%\end{lstlisting}
 %\end{center}
 %\caption{Eliminating zeros in a Monoid, first pattern}
 %\figrule

@@ -2,10 +2,10 @@
 
 Proving that one term is equal to another one within some theories is something quite common in formal certification. The two terms are usually not syntactically equal --this case would be trivial--, but they are equal according to some properties. These properties are either obtained by implementation (the implementation of $+$ for natural numbers satisfies the property of associativity for example), or by axioms if we are working within an axiomatised structure. 
 
-For example, when working with natural numbers, one might need to prove the lemma $\forall\ xy:Nat,\ x*x\ +\ 3*x\ +\ x*y\ =\ x*(3+y+x)$, and when working with lists and concatenation of lists, one might need to prove something like $\forall\ l1\ l2\ l3:List A,\ ((l1\ ++\ (l2 ++ l3))\ ++\ l4\ =\ (l1++l2)\ ++\ (l3++l4)$. Proving this kind of auxiliary lemmas is time consuming, is much too specific for being reusable, and isn't the interesting part of formal certification. Therefore, we would like to be able to automatize a far as possible the constructions of proofs for this kind of lemmas for the Idris language, a dependently typed language which doesn't contain many proof automations at the moment.
-
-A common situation in formal certification is the following. We have a function $f\ :\ A \rightarrow B$, and two functions $sem_A\ :\ A \rightarrow SEM$ and $sem_B\ : \ B \rightarrow SEM$ of interpretation which associate a semantic to each type A and B. If this semantic says everything we care about for the behaviour of $f$, then the lemma of correctness of f can be expressed as $forall\ a:A,\ semA\ a = semB (f\ a)$.
-All the equality symbols $=$ we have encountered so far refer to the propositional equality. We remind the readers in the next subsection how this equality is defined in Idris, and more generally in Intentional Type Theories, and how it differs from the --more primitive-- judgemental equality.
+For example, when working with natural numbers, one might need to prove the lemma $\forall\ xy:Nat,\ x*x\ +\ 3*x\ +\ x*y\ =\ x*(3+y+x)$, and when working with lists and concatenation of lists, one might need to prove something like $\forall\ l1\ l2\ l3:List A,\ ((l1\ ++\ (l2 ++ l3))\ ++\ l4\ =\ (l1++l2)\ ++\ (l3++l4)$. Proving this kind of auxiliary lemmas is time consuming, is much too specific for being reusable, and isn't the interesting part of formal certification. Therefore, we would like to be able to automatize a far as possible the constructions of this kind of proofs for the Idris language, a dependently typed language which doesn't contain many proof automations at the moment. \\
+\\
+When doing formal certification, many functions have a lemma of correctness that talks about equality of terms. More precisely, the following situation is very familiar. The function that we wants to certify is $f\ :\ A \rightarrow B$. We have two functions $sem_A\ :\ A \rightarrow SEM$ and $sem_B\ : \ B \rightarrow SEM$ of interpretation which associate a semantic to each type A and B. If this semantic says everything that matters for the behaviour of $f$, then the lemma of correctness of f can be expressed as $forall\ a:A,\ semA\ a = semB (f\ a)$. The interesting thing is that, very often, the type $SEM$ has the structure of some nice algebraic structure, and it becomes thus possible to decide equalities in it automatically.
+All the equality symbols we have encountered so far refer to the propositional equality. We remind the readers in the next subsection how this equality is defined in Idris, and more generally in Intentional Type Theories, and how it differs from the --more primitive-- judgemental equality.
 
 \subsection{The propositional equality and the judgemental equality in Intentional Type Theories}
 In Mathematics, the equality is a proposition, which can hold or not, which can be disproved, etc...
@@ -19,10 +19,10 @@ This is accomplished by giving constructors to the type $Id(a,a)$ and nothing wh
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 Id (A:Type) : A -> A -> Type :=
   Refl : forall a:A, Id a a
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{The type Id}
 \figrule
@@ -46,7 +46,7 @@ Let's define the types of $Bit$ and $Binary$ number, both indexed over the value
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 data Bit : Nat -> Type where
      b0 : Bit Z
      b1 : Bit (S Z)
@@ -54,7 +54,7 @@ data Bit : Nat -> Type where
 data Binary : (width : Nat) -> (value : Nat) -> Type where
      zero : Binary Z Z
      (#) : Binary w v -> Bit bit -> Binary (S w) (bit + 2 * v)
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Bit and binary number}
 \figrule
@@ -68,7 +68,7 @@ We start with an auxiliary function which adds three bits (the third one will la
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 addBit : Bit x -> Bit y -> Bit c -> (bX ** (bY ** 
               (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
 addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, _)))
@@ -79,7 +79,7 @@ addBit b1 b0 b0 = (_ ** (_ ** (b0, b1, _)))
 addBit b1 b0 b1 = (_ ** (_ ** (b1, b0, _)))
 addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, _)))
 addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, _)))
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Addition of three bits}
 \figrule
@@ -94,15 +94,15 @@ Now, we want to define a function adding two binary numbers and a bit (used as a
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 adc : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
 adc zero zero carry = zero # carry
 adc (numx # bX) (numy # bY) carry
    = let (v1 ** (v2 ** (carry0, lsb, _))) = addBit bX bY carry in
           adc numx numy carry0 # lsb
-\end{verbatim}
+\end{lstlisting}
 \end{center}
-\caption{Addition of two binary numbers}
+\caption{Addition of two binary numbers and a carry}
 \figrule
 \end{figure}
 
@@ -114,7 +114,7 @@ For example, the proof for the second pattern looks like this :
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
+\begin{lstlisting}
 adc_lemma_2 = proof {
     intros;
     rewrite sym (plusZeroRightNeutral x);
@@ -125,7 +125,7 @@ adc_lemma_2 = proof {
     [...]
     rewrite (plusAssociative (plus (plus x v) v1) (plus x v) v1);
     trivial;
-\end{verbatim}
+\end{lstlisting}
 \end{center}
 \caption{Proof by hand of the correspondence between expected and provided types for the second pattern of the definition of adc}
 \figrule
