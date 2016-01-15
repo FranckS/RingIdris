@@ -233,7 +233,7 @@ By using the property of associativity on the goal, we now need to prove $(x1 + 
 \begin{lstlisting}
 MplusLExpr = proof {
   intros
-  rewrite (sym (plusAssociative x1 x2 (index i $\Gamma$))); rewrite prf; 
+  rewrite (sym (plusAssociative x1 x2 (index i $\Gamma$))); rewrite prfRec; 
   exact Refl;
 }
 \end{lstlisting}
@@ -310,7 +310,7 @@ e2 x y z = Plus (Var FZ)
 \figrule
 \end{figure}
 
-The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can generate a proof of this by using $testEq$.
+The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can generate a proof of this fact by using $testEq$.
 
 \begin{figure}[H]
 \figrule
@@ -321,7 +321,7 @@ e1_e2_testEq : (x, y, z : Nat)
 e1_e2_testEq x y z = testEq (e1 x y z) (e2 x y z)
 \end{lstlisting}
 \end{center}
-\caption{Test of equality betwen e1 and e2}
+\caption{Generating automatically the desired proof}
 \figrule
 \end{figure}
 

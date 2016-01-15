@@ -1,12 +1,12 @@
 \section {Back to the general problem : A hierarchy of tactics}
 
-Now that we have introduced our ideas on this little example, it is time to apply them for our main goal, more general : the implementation of a hierarchy of tactics proving equalities in algebraic structures. Very often, the properties available on a given type are the one of a well known algebraic structure : magma, semi-group, monoid, group, commutative-group...  We will no longer only work with the properties of associativity and of right neutral element for natural numbers as we did in the previous section, but we will have available the properties of different structures, and these tactics will usable for any type that satisfies these properties.
+Now that we have introduced our ideas on this little example, it is time to apply them for our main goal, more general : the implementation of a hierarchy of tactics proving equalities in algebraic structures. Very often, the properties available on a given type are the ones of a well known algebraic structure, like semi-group, monoid, group, ring...  We will no longer only work with the properties of associativity and of right neutral element for natural numbers as it was the case in the previous section, but we will have available the properties of different structures, and these tactics will be usable for any type that satisfies these properties.
 
-We will construct a hierarchy of type classes and will write one tactic for each of these type class. All our tactics (the group prover, the monoid prover...) will be able to work on any type, being given that an instance of the corresponding type class is provided.
+We will construct a hierarchy of type classes and will write one tactic for each of these type class. All our tactics (the ring prover, the group prover...) will be able to work on any type, being given that an instance of the corresponding type class is provided.
 
 \subsection {Hierarchy of type classes}
 
-In fact, we don't only want to be able to prove equalities, but more generally equivalence. We want to allow the user the possibility to define his own equivalence notion that interests him, assuming he's able to provide the properties that belongs to the algebraic structure that he wants to use. This equivalence relation on $c$ has the following profile $(\simeq) : (x:c) \rightarrow (y:c) \rightarrow Type$\footnote{This Type would be a Prop in system like Coq that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
+In fact, we don't only want to be able to prove equalities, but more generally equivalence. We want to give the user the possibility to define his own equivalence notion, assuming he's able to provide the properties of the structure he wants to use. This equivalence relation on $c$ has the following profile $(\simeq) : c \rightarrow y \rightarrow Type$\footnote{This 'Type' would be a 'Prop' in systems --like Coq-- that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
 
 All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of "set", which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this type class :
 
@@ -15,7 +15,7 @@ All of our tactics will require to have a way of testing this equivalence betwee
 \begin{center}
 \begin{lstlisting}
 class Set c where
-    ($\simeq$) : (x:c) -> (y:c) -> Type
+    ($\simeq$) : c -> c -> Type
 
     refl : (x:c) -> x $\simeq$ x
     sym : {x:c} -> {y:c} -> (x $\simeq$ y) -> (y $\simeq$ x)
@@ -27,12 +27,11 @@ class Set c where
 \caption{Set}
 \figrule
 \end{figure}
-If the user wants to prove propositional equalities, he will simply instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the instance of $Set$.
+If the user wants to prove propositional equalities, then he will simply instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the instance of $Set$.
 Note that $(\simeq)$ is only weakly decidable in the sense that $set\_eq$ only produces a proof when the two elements are equivalent, but it doesn't produce a proof of dis-equivalence when they are different -- instead, it simply produces the value $Nothing$--. That's quite natural, since we want to generate proof of equivalence, and not to generate counter examples for proving dis-equivalence, which is another problem.
 
-Obviously, there will be no tactic associated to $Set$, since we have no operations and no properties associated to this structure. Therefore, equivalence in a $Set$ are just the "syntactical equivalence", and they can simply be proven with $refl$.
-
-The first real structure, almost trivial, is the magma. A magma has just a $Plus$ operation which let us computing constants, and has no properties about this operation.
+Obviously, there is no tactic associated to $Set$, since we have no operations and no properties associated to this structure. Therefore, equivalence in a $Set$ are just the "syntactical equivalence", and they can simply be proven with $refl$.
+The first real structure, almost trivial, is the magma. A magma has just a $Plus$ operation, and no properties about it.
 
 \begin{figure}[H]
 \figrule
@@ -47,6 +46,7 @@ class Set c => Magma c where
 \end{figure}
 
 This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equiped with the equivalence relation $\simeq$ and the test $set\_eq$), and if it has a $Plus$ operation.
+In fact, all operations, like the Plus here, need to be "compatible" with the equality : $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow (Plus\ c1\ c2) \simeq (Plus\ c1'\ c2')$. This need only comes from the fact that we're dealing with any equivalence relation
 
 A bit more interesting is the Semi-Group type class. A semi-Group is a Magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation.
 
