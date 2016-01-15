@@ -46,7 +46,7 @@ Thus, the left hand side will be encoded by :
 \begin{center}
 \begin{lstlisting}
 e1 : (x, y, z : Nat) -> 
-           Expr [x, y, z] ((x + y) + (x + z))
+           Expr [x, y, z]
 e1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
                 (Plus (Var FZ) (Var (FS (FS FZ))))
 \end{lstlisting}
