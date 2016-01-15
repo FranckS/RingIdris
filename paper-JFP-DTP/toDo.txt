@@ -1,18 +1,21 @@
 TO DO ON THE PAPER :
 
-- In section 2, giving brief idea of the automatic reflection of terms in section 2.5 (still a few lines to write)
 
-- In section 3
-	. In section 3.5, Automatic reflection of terms to show for the real problem, certainly for Ring
+- In section 2 - Basic Problem
+    . giving a brief idea of the automatic reflection of terms in section 2.5 (still 10-15 lines to write)
 
-- In section 4, I have to finish the explanations about the various reduce functions
-    .In section 4.3 : for Monoid, how I encode negations (half a page)
-    .Writing section 4.4 about Commutative groups (a third of a page)
-    .In section 4.5 for Ring, how I do the normalisation AND how I encode products (a page)
-    .For all of the presented structures, I should certainly give a mathematical expression that shows how the normal form looks like for this algebraic structure (a few lines to add)
+- In section 3 - General Problem
+    . In section 3.5, Automatic reflection of terms to show for the real problem, for Ring (still 30-35 lines to write)
 
-- Creating a new section called Results, where we briefly go back to the original problem.
+- In section 4, I have to finish the some explanations about the various reduce functions :
+    . In section 4.3 : for Monoid, how I encode negations (less than half a page)
+    . Writing section 4.4 about Commutative groups (a third of a page)
+    . In section 4.5 for Ring, how I do the normalisation AND how I encode products (a page)
+    . For all of the presented structures, I should certainly give a mathematical expression that shows how the normal form looks like for this algebraic structure (a few lines to add)
 
-- In section 5, the discussion
-    .In section 5.2.2 : Mentioning performances when I compare our implementation to Coq (a few lines)
-    .In section 5.3.2 : Finishing the part about completeness (a few lines)
+- Section 5 - Results,
+    . going back to the original problem and showing how it's solved now (roughly a page)
+
+- In section 6 - Discussion
+    . In section 5.2.2 : Mentionning performances when I compare our implementation to Coq (a few lines)
+    . In section 5.3.2 : Finishing the part about completeness (Just roughly 5 lines missing)
