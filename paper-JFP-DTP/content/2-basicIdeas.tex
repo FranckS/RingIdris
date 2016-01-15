@@ -367,14 +367,16 @@ By using Idris's reflection mechanism, we can tag a function with the keyword "\
 \begin{lstlisting} [mathescape]
 %reflection
 total
-reflectNat : {n:Nat} -> ($\Gamma$ : Vect n Nat) -> (x:Nat) -> (m ** ($\Gamma'$ : Vect m Nat ** (Expr ($\Gamma$ ++ ') x)))
+reflectNat : {n:Nat} -> ($\Gamma$ : Vect n Nat) -> (x:Nat) 
+                   -> (m ** ($\Gamma'$ : Vect m Nat ** (Expr ($\Gamma$ ++ ') x)))
 \end{lstlisting}
 \end{center}
 \caption{Type of the function for reflecting natural numbers}
 \figrule
 \end{figure}
 
-This function takes 
+This function takes ...
+TO DO : body of this function and brief description
 
 
 
