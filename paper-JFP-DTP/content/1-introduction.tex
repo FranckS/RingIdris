@@ -20,7 +20,7 @@ This is accomplished by giving constructors to the type $Id(a,a)$ and nothing wh
 \figrule
 \begin{center}
 \begin{lstlisting}
-Id (A:Type) : A -> A -> Type :=
+Id (A:Type) : A $\rightarrow$ A $\rightarrow$ Type :=
   Refl : forall a:A, Id a a
 \end{lstlisting}
 \end{center}
@@ -47,13 +47,13 @@ Let's define the types of $Bit$ and $Binary$ number, both indexed over the value
 \figrule
 \begin{center}
 \begin{lstlisting}
-data Bit : Nat -> Type where
+data Bit : Nat $\rightarrow$ Type where
      b0 : Bit Z
      b1 : Bit (S Z)
      
-data Binary : (width : Nat) -> (value : Nat) -> Type where
+data Binary : (width : Nat) $\rightarrow$ (value : Nat) $\rightarrow$ Type where
      zero : Binary Z Z
-     (#) : Binary w v -> Bit bit -> Binary (S w) (bit + 2 * v)
+     (#) : Binary w v $\rightarrow$ Bit bit $\rightarrow$ Binary (S w) (bit + 2 * v)
 \end{lstlisting}
 \end{center}
 \caption{Bit and binary number}
@@ -69,7 +69,7 @@ We start with an auxiliary function which adds three bits (the third one will la
 \figrule
 \begin{center}
 \begin{lstlisting}
-addBit : Bit x -> Bit y -> Bit c -> (bX ** (bY ** 
+addBit : Bit x $\rightarrow$ Bit y $\rightarrow$ Bit c $\rightarrow$ (bX ** (bY ** 
               (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
 addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, _)))
 addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, _)))
@@ -96,7 +96,7 @@ We finally define the function adding two binary numbers and a bit (used as a ca
 \figrule
 \begin{center}
 \begin{lstlisting}
-adc : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
+adc : Binary w x $\rightarrow$ Binary w y $\rightarrow$ Bit c $\rightarrow$ Binary (S w) (c + x + y)
 adc zero zero carry = zero # carry
 adc (numx # bX) (numy # bY) carry
    = let (v1 ** (v2 ** (carry0, lsb, _))) = addBit bX bY carry in

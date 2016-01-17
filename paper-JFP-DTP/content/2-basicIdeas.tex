@@ -22,12 +22,12 @@ Indeed, this data type will allow pattern matching. Previously, we were only abl
 \figrule
 \begin{center}
 \begin{lstlisting}
-data Expr : ($\Gamma$ : Vect n Nat) -> Type where
-     Plus : {n:Nat} -> {$\Gamma$:Vect n Nat} -> 
-            Expr $\Gamma$ -> Expr $\Gamma$ -> Expr $\Gamma$
-     Var  : {n:Nat} -> {$\Gamma$:Vect n Nat} -> 
-            (i : Fin n) -> Expr $\Gamma$
-     Zero : {n:Nat} -> ($\Gamma$:Vect n Nat) -> 
+data Expr : ($\Gamma$ : Vect n Nat) $\rightarrow$ Type where
+     Plus : {n:Nat} $\rightarrow$ {$\Gamma$:Vect n Nat} $\rightarrow$ 
+            Expr $\Gamma$ $\rightarrow$ Expr $\Gamma$ $\rightarrow$ Expr $\Gamma$
+     Var  : {n:Nat} $\rightarrow$ {$\Gamma$:Vect n Nat} $\rightarrow$ 
+            (i : Fin n) $\rightarrow$ Expr $\Gamma$
+     Zero : {n:Nat} $\rightarrow$ ($\Gamma$:Vect n Nat) $\rightarrow$ 
             Expr $\Gamma$ Z
 \end{lstlisting}
 \end{center}
@@ -45,7 +45,7 @@ Thus, the left hand side will be encoded by :
 \figrule
 \begin{center}
 \begin{lstlisting}
-e1 : (x, y, z : Nat) -> 
+e1 : (x, y, z : Nat) $\rightarrow$ 
            Expr [x, y, z]
 e1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
                 (Plus (Var FZ) (Var (FS (FS FZ))))
@@ -70,10 +70,10 @@ To avoid this source of complexity, we add an index to the type $Expr$, and this
 \begin{center}
 \begin{lstlisting}
 using (x : Nat, y : Nat, $\Gamma$ : Vect n Nat)
-  data Expr : (Vect n Nat) -> Nat -> Type where
-       Plus : Expr $\Gamma$ x -> Expr $\Gamma$ y -> 
+  data Expr : (Vect n Nat) $\rightarrow$ Nat $\rightarrow$ Type where
+       Plus : Expr $\Gamma$ x $\rightarrow$ Expr $\Gamma$ y $\rightarrow$ 
               Expr $\Gamma$ (x + y)
-       Var  : (i : Fin n) -> Expr $\Gamma$ (index i $\Gamma$)
+       Var  : (i : Fin n) $\rightarrow$ Expr $\Gamma$ (index i $\Gamma$)
        Zero : Expr $\Gamma$ Z
 \end{lstlisting}
 \end{center}
@@ -105,7 +105,7 @@ It is now enough to simply compare $ex'$ and $ey'$ using a standard syntactical 
 \figrule
 \begin{center}
 \begin{lstlisting}
-eqExpr : (e : Expr $\Gamma$ x) -> (e' : Expr $\Gamma$ y) -> Maybe (e = e')
+eqExpr : (e : Expr $\Gamma$ x) $\rightarrow$ (e' : Expr $\Gamma$ y) $\rightarrow$ Maybe (e = e')
 eqExpr (Plus x y) (Plus x' y') with (eqExpr x x', eqExpr y y')
   eqExpr (Plus x y) (Plus x y) | (Just Refl, Just Refl) = Just Refl
   eqExpr (Plus x y) (Plus x' y') | _ = Nothing
@@ -128,8 +128,8 @@ By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the n
 \figrule
 \begin{center}
 \begin{lstlisting}
-buildProof : {x : Nat} -> {y : Nat} -> Expr $\Gamma$ x' -> Expr $\Gamma$ y' 
-           -> (x = x') -> (y = y') -> Maybe (x = y)
+buildProof : {x : Nat} $\rightarrow$ {y : Nat} $\rightarrow$ Expr $\Gamma$ x' $\rightarrow$ Expr $\Gamma$ y' 
+           $\rightarrow$ (x = x') $\rightarrow$ (y = y') $\rightarrow$ Maybe (x = y)
 buildProof ex' ey' lp rp with (eqExpr ex' ey')
   buildProof ex' ex' lp rp | Just Refl = ?MbuildProof
   buildProof ex' ey' lp rp | Nothing = Nothing
@@ -162,8 +162,7 @@ Finally, the main function which tries to prove the equality $x=y$ simply has to
 \figrule
 \begin{center}
 \begin{lstlisting}
-  testEq : Expr $\Gamma$ x -> Expr $\Gamma$ y 
-           -> Maybe (x = y)
+  testEq : Expr $\Gamma$ x $\rightarrow$ Expr $\Gamma$ y $\rightarrow$ Maybe (x = y)
   testEq ex ey = 
      let (x' ** (ex', px)) = reduce ex in 
      let (y' ** (ey', py)) = reduce ey in
@@ -180,9 +179,9 @@ We now need to define the function reduce. To do that, we have to decide a canon
 \figrule
 \begin{center}
 \begin{lstlisting}
-data LExpr : ($\Gamma$ : Vect n Nat) -> Nat -> Type where
-     LPlus : LExpr $\Gamma$ x -> (i : Fin n) 
-             -> LExpr $\Gamma$ (x + index i $\Gamma$)
+data LExpr : ($\Gamma$ : Vect n Nat) $\rightarrow$ Nat $\rightarrow$ Type where
+     LPlus : LExpr $\Gamma$ x $\rightarrow$ (i : Fin n) 
+             $\rightarrow$ LExpr $\Gamma$ (x + index i $\Gamma$)
      LZero : LExpr $\Gamma$ Z
 \end{lstlisting}
 \end{center}
@@ -199,7 +198,7 @@ As part of the normalization, we write a function $expr\_l$ which converts an $E
 \begin{center}
 \begin{lstlisting}
 expr_l : Expr $\Gamma$ x 
-         -> (x' ** (LExpr $\Gamma$ x', x = x'))
+         $\rightarrow$ (x' ** (LExpr $\Gamma$ x', x = x'))
 expr_l Zero = (_ ** (LZero, Refl))
 expr_l (Var i) = (_ ** (LPlus LZero i, Refl))
 expr_l (Plus ex ey) = 
@@ -208,9 +207,9 @@ expr_l (Plus ex ey) =
   let (res ** (normRes, Pres)) = plusLExpr ex' ey' in
     (res ** (normRes, rewrite px in (rewrite py in Pres)))
       where 
-      plusLExpr : {$\Gamma$ : Vect n Nat} -> {x, y : Nat} 
-            -> LExpr $\Gamma$ x -> LExpr $\Gamma$ y  
-            -> (z ** (LExpr $\Gamma$ z, x+y=z))
+      plusLExpr : {$\Gamma$ : Vect n Nat} $\rightarrow$ {x, y : Nat} 
+            $\rightarrow$ LExpr $\Gamma$ x -> LExpr $\Gamma$ y  
+            $\rightarrow$ (z ** (LExpr $\Gamma$ z, x+y=z))
       plusLExpr {x=x} ex LZero =
         (_ ** (ex, rewrite (plusZeroRightNeutral x) in Refl))            
       plusLExpr ex (LPlus e i) =
@@ -249,7 +248,7 @@ Using this new datatype $LExpr$ has changed the representation of our encoded li
 \figrule
 \begin{center}
 \begin{lstlisting}
-l_expr : LExpr $\Gamma$ x -> Expr $\Gamma$ x
+l_expr : LExpr $\Gamma$ x $\rightarrow$ Expr $\Gamma$ x
 l_expr LZero = Zero
 l_expr (LPlus x i) = Plus (l_expr x) (Var i)
 \end{lstlisting}
@@ -268,7 +267,7 @@ We can now define the reduction, which is just the composition of the two previo
 \figrule
 \begin{center}
 \begin{lstlisting}
-  reduce : Expr $\Gamma$ x -> (x' ** (Expr $\Gamma$ x', x = x'))
+  reduce : Expr $\Gamma$ x $\rightarrow$ (x' ** (Expr $\Gamma$ x', x = x'))
   reduce e = 
      let (x' ** (e', prf)) = expr_l e in
          (x' ** (l_expr e', prf))
@@ -292,14 +291,14 @@ Let's define two expressions $e1$ and $e2$, respectively representing the number
 \begin{center}
 \begin{lstlisting}
 e1 : (x, y, z : Nat) 
-    -> Expr [x, y, z] ((x+y) + (x+z))
+    $\rightarrow$ Expr [x, y, z] ((x+y) + (x+z))
 e1 x y z = Plus (Plus (Var FZ) 
                       (Var (FS FZ))) 
                 (Plus (Var FZ) 
                       (Var (FS (FS FZ))))
 
 e2 : (x, y, z : Nat) 
-     -> Expr [x, y, z] (x + ((y + x) + z))
+     $\rightarrow$ Expr [x, y, z] (x + ((y + x) + z))
 e2 x y z = Plus (Var FZ) 
                 (Plus (Plus (Var (FS FZ)) 
                             (Var FZ)) 
@@ -317,7 +316,7 @@ The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can gener
 \begin{center}
 \begin{lstlisting}
 e1_e2_testEq : (x, y, z : Nat) 
-             -> Maybe (((x + y) + (x + z)) = (x + ((y + x) + z)))
+             $\rightarrow$ Maybe (((x + y) + (x + z)) = (x + ((y + x) + z)))
 e1_e2_testEq x y z = testEq (e1 x y z) (e2 x y z)
 \end{lstlisting}
 \end{center}
@@ -367,16 +366,79 @@ By using Idris's reflection mechanism, we can tag a function with the keyword "\
 \begin{lstlisting} [mathescape]
 %reflection
 total
-reflectNat : {n:Nat} -> ($\Gamma$ : Vect n Nat) -> (x:Nat) 
-                   -> (m ** ($\Gamma'$ : Vect m Nat ** (Expr ($\Gamma$ ++ ') x)))
+reflectNat : {n:Nat} $\rightarrow$ ($\Gamma$ : Vect n Nat) $\rightarrow$ (x:Nat) 
+             $\rightarrow$ (m ** ($\Gamma'$ : Vect m Nat ** (Expr ($\Gamma$ ++ $\Gamma'$) x)))
 \end{lstlisting}
 \end{center}
 \caption{Type of the function for reflecting natural numbers}
 \figrule
 \end{figure}
 
-This function takes ...
-TO DO : body of this function and brief description
+This function will reflect the natural number $x$ in the context of $\Gamma$, which contains $n$ already abstracted variables. This function will compute an extension --of arbitrary size $m$-- to the context, called $\Gamma'$. This extension will contain the variables used in $x$ that weren't already present in $\Gamma$. It will also produce the reflected term, which is expressed in the complete context $\Gamma ++\ \Gamma'$, and which is, of course, indexed over the concrete value $x$.
+
+If $x$ is the natural number $Z$, then we don't have any variable to add to $\Gamma$, so the extension will be the empty vector, and the reflected expression is simply $Zero$.
+
+ \begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting} [mathescape]
+reflectNat {n=n} G Z = (Z ** ([] ** (Zero {n=n+0} {G=G++[]})))
+\end{lstlisting}
+\end{center}
+\caption{Reflecting natural numbers - first pattern}
+\figrule
+\end{figure}
+
+If the natural number to reflect is an addition $x+y$, then we will start by reflecting $x$ in the context of $\Gamma$. That will give us an extension $\Gamma'$ and an expression $ex$ of type $Expr\ (\Gamma ++\ \Gamma')\ x$. We continue by reflecting $y$, but this time in the context $(\Gamma ++\ \Gamma')$ of $n+m$ already abstracted variables, because the reflection of $x$ has potentially abstracted some new variables, and we don't want to abstract them a second time. That will give us a second extension $\Gamma''$ and an expression $ey$ of type $Expr\ ((\Gamma ++\ \Gamma')\ ++\ \Gamma'')\ y$. We now simply want to return the $Plus$ of $ex$ and $ey$, but we can't immediately, because these encodings aren't defined on the same context. The context in which $ex$ makes sense is $(\Gamma ++\ \Gamma')$, but the context in which $ey$ makes sense is $((\Gamma ++\ \Gamma')\ ++\ \Gamma'')$. We will therefore need a function of weakening that takes a reflected expression $ex$, and returns the same expression, but expressed in an augmented context.
+
+ \begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting} [mathescape]
+reflectNat $\Gamma$ (x + y) =
+     let (_ ** ($\Gamma'$ ** ex)) = (reflectNat $\Gamma$ x) in
+     let (_ ** ($\Gamma''$ ** ey)) = (reflectNat ($\Gamma$ ++ $\Gamma'$) y) in
+     let result = Plus (weaken $\Gamma''$ ex) ey in 
+        (_ ** (($\Gamma'$ ++ $\Gamma''$) ** ?MreflectNat_1))
+\end{lstlisting}
+\end{center}
+\caption{Reflecting natural numbers - second pattern}
+\figrule
+\end{figure}
+
+The total extension that has been computed is $\Gamma' ++\ \Gamma''$, and the metavariable $MreflectNat\_1$ simply uses the associativity of the append operation to prove that the provided context $((\Gamma ++\ \Gamma')\ ++\ \Gamma'')$ is equal to the expected one $(\Gamma ++\ (\Gamma'\ ++\ \Gamma''))$. \\
+\\
+The function $weaken$ is easy to write because we're adding the extension $\Gamma'$ on the right of $\Gamma$. For example, extending the context $[v,\ w,\ x]$ with $[y,\ z]$ produces the context $[v,\ w,\ x,\ y,\ z]$. The variables $v$, $w$ and $x$, which were refereed to as the first, second and third variables in $\Gamma$, are still the first, second and third variables in the complete context. That means that a variable $Var\ i$ will still be a $Var\ i$, the position $i$ hasn't changed by augmenting the context.
+
+ \begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting} [mathescape]
+weaken : {n:Nat} $\rightarrow$ {m:Nat} $\rightarrow$ {$\Gamma$:Vect n Nat} $\rightarrow$ {x:Nat} 
+          $\rightarrow$ ($\Gamma'$:Vect m Nat) $\rightarrow$ (Expr $\Gamma$ x) $\rightarrow$ (Expr ($\Gamma$ ++ $\Gamma'$) x)
+weaken $\Gamma'$ Zero = Zero
+weaken $\Gamma'$ (Plus e1 e2) = Plus (weaken $\Gamma'$ e1) (weaken $\Gamma'$ e2)
+weaken {n=n} {m=m} {$\Gamma$=$\Gamma$} $\Gamma'$ (Var i) = Var (convertFin _ i m)    
+\end{lstlisting}
+\end{center}
+\caption{Weakening function}
+\figrule
+\end{figure}
+
+
+The position $i$ hasn't changed but however, the original $i$ had type $Fin\ n$, but the new $i$ must have type $Fin\ (n+m)$. This is why we has to use $convertFin$, which returns the same element, but seen in a bigger $Fin$.
+
+
+ \begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting} [mathescape]
+convertFin : (n:Nat) $\rightarrow$ (i:Fin n) $\rightarrow$ (x:Nat) $\rightarrow$ Fin (n+x)
+\end{lstlisting}
+\end{center}
+\caption{Conversion of Fin}
+\figrule
+\end{figure}
 
 
 
