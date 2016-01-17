@@ -353,9 +353,9 @@ And we effectively get the proof of equality we wanted. As expected, this proof 
 
 \subsection{Construction of the reflected terms}
 
-Note that for the moment, even if what we have is perfectly usable and works, we had to create these encodings $e1$ and $e2$ by hand, which is easy but time consuming. We have replaced the (potentially hard) problem of proving something by the simplest problem of simply creating some encodings. This is already a huge simplification, because as it can be seen in the definitions of $e1$ and $e2$, the reflected terms completely follow the structure of the expression to encode : there's absolutely no creativity needed for this task, unlike the proving activity. The way to create the encodings is in fact so systematic that, of course, we would like to automatize it in order to get a real and completely automatic tactic.
+For the moment, even if what we have is perfectly usable and works, we had to create these encodings $e1$ and $e2$ by hand, which is easy but time consuming. We have replaced the (potentially hard) problem of proving something by the simplest problem of simply creating some encodings. This is already a huge simplification, because as it can be seen in the definitions of $e1$ and $e2$, the reflected terms completely follow the structure of the expression to encode : there's absolutely no creativity needed for this task, unlike the proving activity. The way to create the encodings is in fact so systematic that, of course, we would like to automatize it in order to get a real and completely automatic tactic.
 
-However, we can also note that even when done by hand, there is no room for making mistakes in this simple task of encoding : we simply can't generate a wrong encoding : if $e1$ and $e2$ are not respectively reflecting $((x+y) + (x+z))$ and $(x + ((y + x) + z))$ then these definitions won't typecheck because the expected and real index won't match. [perhaps giving example of rejected wrong definition for $e1$ here]
+However, we can also note that even when done by hand, there is no room for making mistakes in this simple task of encoding : we simply can't generate a wrong encoding : if $e1$ and $e2$ are not respectively reflecting $((x+y) + (x+z))$ and $(x + ((y + x) + z))$ then these definitions won't typecheck because the expected and real index won't match.
 
 We still want an automatic way of constructing these reflected terms because what we have so far is enough to demonstrate that our "prover" works, but that's not enough for being used intensively. We want to program an automatic way of going from the concrete values (of type $Nat$), to the reflected terms (of type $Expr$). The only way to do that is to inspect the abstract syntax tree of the concrete value.
 By using Idris's reflection mechanism, we can tag a function with the keyword "\%reflection", which means that this function runs on syntax instead of values. 
@@ -385,7 +385,7 @@ If $x$ is the natural number $Z$, then we don't have any variable to add to $\Ga
 reflectNat {n=n} G Z = (Z ** ([] ** (Zero {n=n+0} {G=G++[]})))
 \end{lstlisting}
 \end{center}
-\caption{Reflecting natural numbers - first pattern}
+\caption{Reflecting natural numbers - pattern for zero}
 \figrule
 \end{figure}
 
@@ -402,7 +402,7 @@ reflectNat $\Gamma$ (x + y) =
         (_ ** (($\Gamma'$ ++ $\Gamma''$) ** ?MreflectNat_1))
 \end{lstlisting}
 \end{center}
-\caption{Reflecting natural numbers - second pattern}
+\caption{Reflecting natural numbers - pattern for a plus}
 \figrule
 \end{figure}
 
@@ -428,7 +428,6 @@ weaken {n=n} {m=m} {$\Gamma$=$\Gamma$} $\Gamma'$ (Var i) = Var (convertFin _ i m
 
 The position $i$ hasn't changed but however, the original $i$ had type $Fin\ n$, but the new $i$ must have type $Fin\ (n+m)$. This is why we has to use $convertFin$, which returns the same element, but seen in a bigger $Fin$.
 
-
  \begin{figure}[H]
 \figrule
 \begin{center}
@@ -440,6 +439,42 @@ convertFin : (n:Nat) $\rightarrow$ (i:Fin n) $\rightarrow$ (x:Nat) $\rightarrow$
 \figrule
 \end{figure}
 
+We've treated the case of the constant $Z$ and the case of the addition. We now have to deal with the last possibility of a variable. For encoding a variable, we must see if this variable is already present in the context $\Gamma$ of already abstracted variables. If it is already present there, then there is no extension to build, and the reflected term is simple $Var\ (convertFin\ n\ i\ Z)$, where $i$ is the position of the variable in this context $\Gamma$. The conversion was needed because the original context was $\Gamma$, and the new one is $(\Gamma ++\ [\ ])$, which aren't automatically unifiable. However, if if this variable is missing, then we should add it, which means that we will return an extension containing this single variable. The original context $\Gamma$ had a size of $n$, and we've built an extension of size one, so the complete context has therefore size $(n+1)$. The variable that we've added is currently the last one of these  $(n+1)$ variables. If we use a function\footnote{This function doesn't have the type $(n:Nat)\ \rightarrow Fin\ n$ because there is no last element of a $Fin$ of size zero as there's no element at all}  $lastElement'\ :\ (pn:Nat)\ \rightarrow\ Fin\ (pn+1)$ to construct the last element of a $Fin$ of size $pn+1$, then the reflected term that we need to produce is simply $Var\ (lastElement'\ n)$. 
 
+ \begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting} [mathescape]
+reflectNat {n=n} $\Gamma$ t with (isElement t $\Gamma$)
+  | Just (i ** p) = let result = Var {$\Gamma$=$\Gamma$++[]} (convertFin n i Z) in
+                        (Z ** ([] ** ?MreflectNat_2))
+  | Nothing ?= (((S Z) ** ([t] ** Var {$\Gamma$=$\Gamma$++[t]} (lastElement' n))))  
+            
+\end{lstlisting}
+\end{center}
+\caption{Reflecting natural numbers - pattern for a variable}
+\figrule
+\end{figure}
 
+$isElement$ is the function which checks whether an element $x$ belongs to a vector $\Gamma$, and if so, returns $Just$ and a dependent pair containing the index of $x$ in this vector, and a proof that $index\ i\ \Gamma\ =\ x$.
 
+ \begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting} [mathescape]
+isElement : {n:Nat} -> (x : a) -> ($\Gamma$ : Vect n a) 
+            -> Maybe (i:Fin n ** (index i $\Gamma$ = x))
+\end{lstlisting}
+\end{center}
+\caption{Returns the index and the proof that this index is the right one}
+\figrule
+\end{figure}
+
+The metavariable $MreflectNat\_2$ will require us to prove that the provided term of type $Expr\ (\Gamma ++\ [\ ])\ (index\ (convertFin\ n\ i\ Z)\ (\Gamma ++\ [\ ]))$ is transformable into a term of the expected type $Expr\ (\Gamma ++\ [\ ])\ t$. This is doable by using the proof $p$ --returned by $isElement$-- which says that $index\ i\ \Gamma\ =\ t$, together with the fact that $convertFin$ does not change the index, but only converts its type.
+
+As for the case where $t$ wasn't in the original context (the $Nothing$ case), we will need to prove that we can convert $(index\ (lastElement'\ n)\ (\Gamma ++\ [t]))$ into $t$. This is doable because we can prove the lemma $elemInBigerVect\ :\ \{T:Type\}\ \rightarrow \{v:Vect\ n\ T\} \rightarrow (i:Fin\ n) \rightarrow (elem:T) \rightarrow (proofInside : index\ i\ v\ =\ elem) \rightarrow (head:T) \rightarrow (index\ (FS\ i)\ (head::v)\ =\ elem)$.
+            
+That finishes the automatic reflection for this very specific prover.
+            
+
+            

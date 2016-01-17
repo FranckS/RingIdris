@@ -184,7 +184,9 @@ reflectNat G (x + y) =
 reflectNat {n=n} G t with (isElement t G)
             | Just (i ** p) = let result = Var {G=G++[]} (convertFin n i Z) in
                                   (Z ** ([] ** ?MreflectNat_2)) -- We don't add anything
-            --| Nothing = (((S Z) ** ([t] ** Var (FZ {k=Z}))))  -- We add the variable 't' to the context
+            | Nothing ?= (((S Z) ** ((t :: Vect.Nil) ** Var {G=G++[t]} (lastElement' n))))  -- We add the variable 't' to the context, and we can now reference it with (lastElement' n)
+            -- The proof will use the fact that (index (lastElement' n) (G ++ [t])) = t
+            -- By using the lemma elemInBigerVect that we've proved in NewAutoAssoc_tools.idr
 {- 
 -- We don't care of Succ here in fact
 reflectNat {n=n} G (S x) with (reflectNat G x)
