@@ -279,6 +279,49 @@ goal_aux l c bit0 bit1 x x1 v v1 known =
     Nothing => Nothing
    
     
+-- ----------------------------------------
+-- Part added for performances tests
+-- ----------------------------------------
+
+thisIsAJust : {T:Type} -> (Lazy(Maybe T)) -> Bool
+thisIsAJust (Just something) = True
+thisIsAJust Nothing = False
+
+
+resultOfProof : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat)
+               -> (known : (plus (plus c bit0) bit1 = plus x1 (plus x (plus x Z)))) 
+               -> Bool
+resultOfProof = \l, c, bit0, bit1, x, x1, v, v1, known => thisIsAJust (goal_aux l c bit0 bit1 x x1 v v1 known)
+
+
+
+eqb : Bool -> Bool -> Bool
+eqb True True = True
+eqb False False = True
+eqb _ _ = False
+
+
+
+
+goalProven : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat)
+               -> (known : (plus (plus c bit0) bit1 = plus x1 (plus x (plus x Z)))) 
+               -> Bool
+goalProven l c bit0 bit1 x x1 v v1 known = eqb
+                                           (resultOfProof l c bit0 bit1 x x1 v v1 known)
+                                            True
+
+
+-- I want to do the test of perf by evaluating the execution time of (\l, c, bit0, bit1, x, x1, v, v1, known => goalProven l c bit0 bit1 x x1 v v1 known)
+-- But I don't get a simple boolean as anwser. Why ?
+
+-- ----------------------------------------
+-- End of part added for performances tests
+-- ----------------------------------------
+
+
+
 
 -- This is NOT total   
 getJust : {a:Type} -> (Maybe a) -> a

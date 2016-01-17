@@ -1,0 +1,26 @@
+How to do perfs tests :
+
+In a terminal
+---------------
+
+idris ./Provers/myBinary_new.idr -p contrib +RTS -k16M -RTS
+
+
+
+In a second one
+----------------
+
+idris --client ':l ./Provers/myBinary_new.idr -p contrib'
+
+In order to load the same file
+
+Then :
+
+time (idris --client '(\l, c, bit0, bit1, x, x1, v, v1, known => goal_final l c bit0 bit1 x x1 v v1 known)')
+
+
+
+
+OR :
+
+(\l, c, bit0, bit1, x, x1, v, v1, known => goalProven l c bit0 bit1 x x1 v v1 known)

@@ -241,7 +241,7 @@ MplusLExpr = proof {
 \figrule
 \end{figure}
 
-It is really important to understand that the root of the automatic building of the desired proof of $x=y$ happens precisely in these nested use of $plusZeroRightNeutral$ and $plusAssociative$ that we've seen in the definition of $expr\_l$ and of its meta-variable $MplusLExpr$. These proofs replace the arithmetical proofs that we were doing previously by hand, like in section 1 with the lemma $adc\_lemma\_2$. \\
+It is really important to understand that the root of the automatic building of the desired proof of $x=y$ happens precisely in these nested use of $plusZeroRightNeutral$ and $plusAssociative$ that we've seen in the definition of $expr\_l$ and of its meta-variable $MplusLExpr$. These proofs replace the arithmetical proofs that we were doing previously by hand, as it was the case in section 1 with the lemma $adc\_lemma\_2$. \\
 \\
 Using this new datatype $LExpr$ has changed the representation of our encoded lists, so we need to convert back an $LExpr\ \Gamma\ x$ to an $Expr\ \Gamma\ x$. The function $l\_expr$ does this easy task.
 \begin{figure}[H]
