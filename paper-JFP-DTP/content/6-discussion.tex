@@ -14,13 +14,13 @@ We could now build the kernel of the tactic, which is the following decision pro
 \begin{figure}[H]
 \figrule
 \begin{center}
-\begin{verbatim}
-decideEq : c -> c -> bool 
+\begin{lstlisting}
+decideEq : c $\rightarrow$ c $\rightarrow$ bool 
 decideEq x y =
       let ex = reflect x in 
       let ey = reflect y in
-      beq_Expr (normalise ex) (normalise ey)
-\end{verbatim}
+      $beq_{Expr}$ (normalise ex) (normalise ey)
+\end{lstlisting}
 \end{center}
 \caption{Decision procedure of the tactic with a "traditional" approach}
 \figrule

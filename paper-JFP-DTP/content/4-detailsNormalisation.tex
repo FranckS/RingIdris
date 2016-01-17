@@ -5,9 +5,9 @@ We now describe briefly how the normalisation functions work for some of the dif
 \figrule
 \begin{center}
 \begin{lstlisting}
-littleRewriting : (p:algebraic structure on c) -> (gam:Vect n c) -> {c1:c} 
-        -> (Expr p gam c1) -> (c2 ** (Expr p gam c2, c1 $\simeq$ c2))
-simpleTreatment p gam e = (new expression, justification)
+littleRewriting : (p:algebraic structure on c) $\rightarrow$ ($\Gamma$:Vect n c) 
+       $\rightarrow$ {c1:c} $\rightarrow$ (Expr p $\Gamma$ c1) $\rightarrow$ (c2 ** (Expr p $\Gamma$ c2, c1 $\simeq$ c2))
+littleRewriting p $\Gamma$ e = (new expression, justification)
 \end{lstlisting}
 \end{center}
 \caption{General pattern of a function doing a part of the normalisation}
@@ -23,8 +23,8 @@ We show the code for the first pattern.
 \figrule
 \begin{center}
 \begin{lstlisting}
-assoc : (p:SemiGroup c) -> (gam:Vect n c) -> {c1:c} 
-        -> (ExprSG p gam c1) -> (c2 ** (ExprSG p gam c2, c1 $\simeq$ c2))
+assoc : (p:SemiGroup c) $\rightarrow$ (gam:Vect n c) $\rightarrow$ {c1:c} 
+        $\rightarrow$ (ExprSG p gam c1) $\rightarrow$ (c2 ** (ExprSG p gam c2, c1 $\simeq$ c2))
 assoc p gam (PlusSG 
              (PlusSG ex (ConstSG _ _ const1)) 
              (PlusSG (ConstSG _ _ const2) ey)) =
@@ -34,7 +34,6 @@ assoc p gam (PlusSG
                              (PlusSG (ConstSG _ _ const1) (ConstSG _ _ const2))) in
     let e_3' = magma_to_semiGroup p e_3 in
         (_ ** ((PlusSG (PlusSG e_ihx e_3') e_ihy), ?Massoc1))
-[...]
 \end{lstlisting}
 \end{center}
 \caption{Computing with associativity in a Semi-Group, first pattern}

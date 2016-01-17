@@ -15,13 +15,13 @@ All of our tactics will require to have a way of testing this equivalence betwee
 \begin{center}
 \begin{lstlisting}
 class Set c where
-    ($\simeq$) : c -> c -> Type
+    ($\simeq$) : c $\rightarrow$ c $\rightarrow$ Type
 
-    refl : (x:c) -> x $\simeq$ x
-    sym : {x:c} -> {y:c} -> (x $\simeq$ y) -> (y $\simeq$ x)
-    trans : {x:c} -> {y:c} -> {z:c} -> (x $\simeq$ y) -> (y $\simeq$ z) -> (x $\simeq$ z)    
+    refl : (x:c) $\rightarrow$ x $\simeq$ x
+    sym : {x:c} $\rightarrow$ {y:c} $\rightarrow$ (x $\simeq$ y) $\rightarrow$ (y $\simeq$ x)
+    trans : {x:c} $\rightarrow$ {y:c} $\rightarrow$ {z:c} $\rightarrow$ (x $\simeq$ y) $\rightarrow$ (y $\simeq$ z) $\rightarrow$ (x $\simeq$ z)    
     
-    set_eq : (x:c) -> (y:c) -> Maybe (x $\simeq$ y)
+    set_eq : (x:c) $\rightarrow$ (y:c) $\rightarrow$ Maybe (x $\simeq$ y)
 \end{lstlisting}
 \end{center}
 \caption{Set}
@@ -38,7 +38,7 @@ The first real structure, almost trivial, is the magma. A magma has just a $Plus
 \begin{center}
 \begin{lstlisting}
 class Set c => Magma c where
-    Plus : c -> c -> c
+    Plus : c $\rightarrow$ c $\rightarrow$ c
 \end{lstlisting}
 \end{center}
 \caption{Magma}
@@ -55,7 +55,7 @@ A bit more interesting is the Semi-Group type class. A semi-Group is a Magma (ie
 \begin{center}
 \begin{lstlisting}
 class Magma c => SemiGroup c where
-    Plus_assoc : (c1:c) -> (c2:c) -> (c3:c) 
+    Plus_assoc : (c1:c) $\rightarrow$ (c2:c) $\rightarrow$ (c3:c) 
                -> (Plus (Plus c1 c2) c3 $\simeq$ Plus c1 (Plus c2 c3))
 \end{lstlisting}
 \end{center}
@@ -71,8 +71,8 @@ And the Monoid structure is a Semi-Group with the property of neutral element.
 \begin{lstlisting}
 class SemiGroup c => Monoid c where
     Zero : c    
-    Plus_neutral_1 : (c1:c) -> (Plus Zero c1 $\simeq$ c1)    
-    Plus_neutral_2 : (c1:c) -> (Plus c1 Zero $\simeq$ c1)
+    Plus_neutral_1 : (c1:c) $\rightarrow$ (Plus Zero c1 $\simeq$ c1)    
+    Plus_neutral_2 : (c1:c) $\rightarrow$ (Plus c1 Zero $\simeq$ c1)
 \end{lstlisting}
 \end{center}
 \caption{Monoid}
@@ -86,15 +86,15 @@ The second axiom, which is the most important one for a Group, is the fact that 
 \figrule
 \begin{center}
 \begin{lstlisting}
--- This is just a conjunctive predicate
-hasSymmetric : (c:Type) -> (p:Monoid c) -> c -> c -> Type
+-- This is a conjunctive predicate
+hasSymmetric : (c:Type) $\rightarrow$ (p:Monoid c) $\rightarrow$ c $\rightarrow$ c $\rightarrow$ Type
 hasSymmetric c p a b $\simeq$ (Plus a b $\simeq$ Zero, Plus b a $\simeq$ Zero)    
   
 class Monoid c => Group c where
-    Minus : c -> c -> c
-    Neg : c -> c
-    Minus_simpl : (c1:c) -> (c2:c) -> Minus c1 c2 $\simeq$ Plus c1 (Neg c2) 
-    Plus_inverse : (c1:c) -> hasSymmetric c _ c1 (Neg c1)
+    Minus : c $\rightarrow$ c $\rightarrow$ c
+    Neg : c $\rightarrow$ c
+    Minus_simpl : (c1:c) $\rightarrow$ (c2:c) $\rightarrow$ Minus c1 c2 $\simeq$ Plus c1 (Neg c2) 
+    Plus_inverse : (c1:c) $\rightarrow$ hasSymmetric c _ c1 (Neg c1)
 \end{lstlisting}
 \end{center}
 \caption{Group}
@@ -123,13 +123,13 @@ A magma is only equipped with one operation $Plus$. Thus, we only have three con
 \figrule
 \begin{center}
 \begin{lstlisting}
-data ExprMa : Magma c -> (Vect n c) -> c -> Type where
-    ConstMa : (p : Magma c) -> ($\Gamma$:Vect n c) -> (c1:c)  -> ExprMa p $\Gamma$ c1 
-    PlusMa : {p : Magma c} -> {$\Gamma$:Vect n c} -> {c1:c} -> {c2:c} 
-         -> ExprMa p $\Gamma$ c1 -> ExprMa p $\Gamma$ c2 
-         -> ExprMa p $\Gamma$ (Plus c1 c2) 
-    VarMa : (p:Magma c) -> {$\Gamma$:Vect n c}
-         -> (i:Fin n) -> ExprMa p $\Gamma$ (index i $\Gamma$)
+data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
+    ConstMa : (p : Magma c) $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ (c1:c)  $\rightarrow$ ExprMa p $\Gamma$ c1 
+    PlusMa : {p : Magma c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} $\rightarrow$ {c2:c} 
+         $\rightarrow$ ExprMa p $\Gamma$ c1 $\rightarrow$ ExprMa p $\Gamma$ c2 
+         $\rightarrow$ ExprMa p $\Gamma$ (Plus c1 c2) 
+    VarMa : (p:Magma c) $\rightarrow$ {$\Gamma$:Vect n c}
+         $\rightarrow$ (i:Fin n) $\rightarrow$ ExprMa p $\Gamma$ (index i $\Gamma$)
 \end{lstlisting}
 \end{center}
 \caption{Reflected terms for a Magma}
@@ -162,19 +162,19 @@ However, the one for $Group$ will introduce two new constructors for the $Neg$ a
 \figrule
 \begin{center}
 \begin{lstlisting}
-data ExprG :  Group c -> (Vect n c) -> c -> Type where
-    ConstG : (p : dataTypes.Group c) -> ($\Gamma$:Vect n c) 
-         -> (c1:c) -> ExprG p $\Gamma$ c1
-    PlusG : {p : Group c} -> {$\Gamma$:Vect n c} -> {c1:c} -> {c2:c} 
-         -> ExprG p $\Gamma$ c1 -> ExprG p $\Gamma$ c2 
-         -> ExprG p $\Gamma$ (Plus c1 c2)
-    MinusG : {p : Group c} -> {$\Gamma$:Vect n c} -> {c1:c} -> {c2:c} 
-         -> ExprG p $\Gamma$ c1 -> ExprG p $\Gamma$ c2 
-         -> ExprG p $\Gamma$ (Minus c1 c2)
-    NegG : {p : Group c} -> {$\Gamma$:Vect n c} -> {c1:c} 
-         -> ExprG p $\Gamma$ c1 -> ExprG p $\Gamma$ (Neg c1)
-    VarG : (p : Group c) -> {$\Gamma$:Vect n c} 
-         -> (i:Fin n) -> ExprG p $\Gamma$ c1
+data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
+    ConstG : (p : dataTypes.Group c) $\rightarrow$ ($\Gamma$:Vect n c) 
+         -> (c1:c) $\rightarrow$ ExprG p $\Gamma$ c1
+    PlusG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} $\rightarrow$ {c2:c} 
+         $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ c2 
+         $\rightarrow$ ExprG p $\Gamma$ (Plus c1 c2)
+    MinusG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} $\rightarrow$ {c2:c} 
+         $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ c2 
+         $\rightarrow$ ExprG p $\Gamma$ (Minus c1 c2)
+    NegG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} 
+         $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ (Neg c1)
+    VarG : (p : Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
+         $\rightarrow$ (i:Fin n) $\rightarrow$ ExprG p $\Gamma$ c1
 \end{lstlisting}
 \end{center}
 \caption{Reflected terms in a Group}
@@ -198,8 +198,8 @@ These functions will compute this canonical represent, by rewriting the given te
 \figrule
 \begin{center}
 \begin{lstlisting}
-groupReduce : {c:Type} -> {n:Nat} -> (p:Group c) -> {$\Gamma$:Vect n c} 
-	   -> {x:c} -> (ExprG p $\Gamma$ x) -> (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
+groupReduce : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
+	   $\rightarrow$ {x:c} $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
 \end{lstlisting}
 \end{center}
 \caption{Type of the reduction function for terms reflecting elements in a Group}
@@ -215,9 +215,9 @@ We want to write the following function :
 \figrule
 \begin{center}
 \begin{lstlisting}
-groupDecideEq : (p:Group c) -> {$\Gamma$:Vect n c} -> {x : c} -> {y : c} 
-	     -> (ExprG p $\Gamma$ x) -> (ExprG p $\Gamma$ y) 
-	     -> Maybe (x $\simeq$ y)
+groupDecideEq : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
+	     $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (ExprG p $\Gamma$ y) 
+	     $\rightarrow$ Maybe (x $\simeq$ y)
 \end{lstlisting}
 \end{center}
 \caption{Type of the function for deciding equality between elements in a Group}
@@ -247,11 +247,11 @@ The syntactical test of equality between $ex'$ and $ey'$ and the composition of 
 \figrule
 \begin{center}
 \begin{lstlisting}
-buildProofGroup : (p:Group c) -> {$\Gamma$:Vect n c} 
-  -> {x : c} -> {y : c} -> {x':c} -> {y':c} 
-  -> (ExprG p $\Gamma$ x') -> (ExprG p $\Gamma$ y') 
-  -> (x $\simeq$ x') -> (y $\simeq$ y') 
-  -> (Maybe (x $\simeq$ y))
+buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
+  $\rightarrow$ {x : c} $\rightarrow$ {y : c} $\rightarrow$ {x':c} $\rightarrow$ {y':c} 
+  $\rightarrow$ (ExprG p $\Gamma$ x') $\rightarrow$ (ExprG p $\Gamma$ y') 
+  $\rightarrow$ (x $\simeq$ x') $\rightarrow$ (y $\simeq$ y') 
+  $\rightarrow$ (Maybe (x $\simeq$ y))
 buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
     buildProofGroup p ex' ex' px py | Just refl = ?MbuildProofGroup
     buildProofGroup p ex' ey' px py | Nothing = Nothing
