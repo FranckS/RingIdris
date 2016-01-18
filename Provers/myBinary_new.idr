@@ -45,6 +45,17 @@ addBit b1 b0 b1 = bitpair b1 b0
 addBit b1 b1 b0 = bitpair b1 b0
 addBit b1 b1 b1 = bitpair b1 b1
 
+
+-- Used for the paper for telling the reader the expected and given indices
+{-
+-- adc rejected because the indices don't match
+adcRej : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
+adcRej zero zero carry ?= zero # carry
+adcRej (numx # bX) (numy # bY) carry
+   = let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
+          adcRej numx numy carry0 # lsb
+-}
+
 adc : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
 adc zero zero carry ?= zero # carry
 adc (numx # bX) (numy # bY) carry
