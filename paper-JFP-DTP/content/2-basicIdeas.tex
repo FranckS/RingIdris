@@ -426,7 +426,7 @@ weaken {n=n} {m=m} {$\Gamma$=$\Gamma$} $\Gamma'$ (Var i) = Var (convertFin _ i m
 \end{figure}
 
 
-The position $i$ hasn't changed but however, the original $i$ had type $Fin\ n$, but the new $i$ must have type $Fin\ (n+m)$. This is why we has to use $convertFin$, which returns the same element, but seen in a bigger $Fin$.
+The position $i$ hasn't changed but however, the original $i$ had type $Fin\ n$, but the new $i$ must have type $Fin\ (n+m)$. This is why we've used $convertFin$, which returns the same element, but seen in a bigger $Fin$.
 
  \begin{figure}[H]
 \figrule
@@ -462,8 +462,8 @@ $isElement$ is the function which checks whether an element $x$ belongs to a vec
 \figrule
 \begin{center}
 \begin{lstlisting} [mathescape]
-isElement : {n:Nat} -> (x : a) -> ($\Gamma$ : Vect n a) 
-            -> Maybe (i:Fin n ** (index i $\Gamma$ = x))
+isElement : {n:Nat} $\rightarrow$ (x : a) $\rightarrow$ ($\Gamma$ : Vect n a) 
+            $\rightarrow$ Maybe (i:Fin n ** (index i $\Gamma$ = x))
 \end{lstlisting}
 \end{center}
 \caption{Returns the index and the proof that this index is the right one}

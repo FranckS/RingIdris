@@ -1,9 +1,6 @@
 TO DO ON THE PAPER :
 
 
-- In section 3 - General Problem
-    . In section 3.5, Automatic reflection of terms to show for the real problem, for Ring (still 20-30 lines to write)
-
 - In section 4, I have to finish the some explanations about the various reduce functions :
     . In section 4.3 : for Monoid, how I encode negations (less than half a page)
     . Writing section 4.4 about Commutative groups (a third of a page)

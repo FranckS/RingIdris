@@ -15,21 +15,21 @@ littleRewriting p $\Gamma$ e = (new expression, justification)
 \end{figure}
 
 	\subsection {Normalization of terms in a Semi-Group}
-In a semigroup, we only have to deal with the property of associativity. As it was the case with the toy example in the previous section, we will have to rearrange the parenthesis on a systematic way, either left associative, or right associative. But this is not the only thing that we have to do. If $x$, $y$ and $z$ denote variables, we don't only want to transform $x+((y+4)+(5+z))$ into $(((x+y)+4)+5)+z$ --we assume we've chosen the complete left associative form--. We also want the constants $4$ and $5$ to be simplified together, because they are close to each other (and we have the right to do so because we can rearrange the parenthesis thanks to the associativity), and the result should be $((x+y)+9)+z$ on this example. Three possible patterns need this treatment : $(x+const1)+(const2+y)$, $(x + const1) + const2$  and $const1 + (const2 + x)$ where $const1$ and $const2$ denote constants. The simplification between the constants $const1$ and $const2$ is denoted here as $[const1+const2]$, and this computation can be done at the underneath $Magma$ level, with its normalisation function called $magmaReduce$.
-The first pattern is rewritten into $(x + [const1+const2]) + y$, the second into $x + [const1+const2]$ and the third one into $[const1 + const2] + x$.
+In a semigroup, we only have to deal with the property of associativity. As it was the case with the toy example in section 2, we will have to rearrange the parenthesis on a systematic way, either left associative, or right associative. But this is not the only thing that we have to do. If $x$, $y$ and $z$ denote variables, we don't only want to transform $x+((y+4)+(5+z))$ into $(((x+y)+4)+5)+z$ --we assume we've chosen the complete left associative form--. We also want the constants $4$ and $5$ to be simplified together, because they are close to each other (and we have the right to do so because we can rearrange the parenthesis thanks to the associativity), and the result should be $((x+y)+9)+z$ on this example. Three possible patterns need this treatment : $(x+const1)+(const2+y)$, $(x + const1) + const2$  and $const1 + (const2 + x)$ where $const1$ and $const2$ denote constants. The simplification between the constants $const1$ and $const2$ is denoted here as $[const1+const2]$, and this computation can be done at the underneath $Magma$ level, with its normalisation function called $magmaReduce$.
+The first pattern is rewritten into $(x + [const1+const2]) + y$, the second into $(x + [const1+const2])$ and the third one into $([const1 + const2] + x)$.
 We show the code for the first pattern.
 
 \begin{figure}[H]
 \figrule
 \begin{center}
 \begin{lstlisting}
-assoc : (p:SemiGroup c) $\rightarrow$ (gam:Vect n c) $\rightarrow$ {c1:c} 
-        $\rightarrow$ (ExprSG p gam c1) $\rightarrow$ (c2 ** (ExprSG p gam c2, c1 $\simeq$ c2))
-assoc p gam (PlusSG 
+assoc : (p:SemiGroup c) $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ {c1:c} 
+        $\rightarrow$ (ExprSG p $\Gamma$ c1) $\rightarrow$ (c2 ** (ExprSG p $\Gamma$ c2, c1 $\simeq$ c2))
+assoc p $\Gamma$ (PlusSG 
              (PlusSG ex (ConstSG _ _ const1)) 
              (PlusSG (ConstSG _ _ const2) ey)) =
-    let (r_ihx ** (e_ihx, p_ihx)) = (assoc p gam ex) in
-    let (r_ihy ** (e_ihy, p_ihy)) = (assoc p gam ey) in
+    let (r_ihx ** (e_ihx, p_ihx)) = (assoc p $\Gamma$ ex) in
+    let (r_ihy ** (e_ihy, p_ihy)) = (assoc p $\Gamma$ ey) in
     let (r_3 ** (e_3, p_3)) = magmaReduce (semiGroup_to_magma 
                              (PlusSG (ConstSG _ _ const1) (ConstSG _ _ const2))) in
     let e_3' = magma_to_semiGroup p e_3 in
@@ -49,7 +49,7 @@ After this simplification of constants computable thanks to associativity, the n
 
 \subsection {Normalization of terms in a Monoid}
 
-In a monoid, we simply have to eliminate zeros, thanks to the two properties of left and right neutrality. Because the simplification of additions between a zero and a constant has be done at the underneath level of semigroup (by computing the addition of these two constants), we only have to simplify the addition between the constant zero and a variable. There is in fact two cases, since the variable can come first, or the $Zero$ can come first. We can write a function $elimZero$ which rewrites these two patterns $x+Z$ and $Z+x$ as $x$.
+In a monoid, we simply have to eliminate zeros, thanks to the two properties of left and right neutrality. Because the simplification of additions between a zero and another constant has already be done at the level of semigroup (by computing the addition of these two constants), we only have to simplify the addition between the constant zero and a variable. There is in fact two cases, since the variable can come first, or the $Zero$ can come first. We can write a function $elimZero$ which rewrites these two patterns $x+Z$ and $Z+x$ into $x$.
 
 %\begin{figure}[H]
 %\figrule
@@ -81,18 +81,18 @@ In a monoid, we simply have to eliminate zeros, thanks to the two properties of 
 %\figrule
 %\end{figure}
 
-The normalization of reflected expressions in a monoid is simply made of a call to the function reducing terms on a semigroup, followed by a call to elimZero which will eliminates the remaining additions with zeros. 
+The normalization of reflected expressions in a monoid is simply made of a call to the function reducing terms on a semigroup, followed by a call to elimZero that will eliminates the remaining additions with zeros. 
 
 
 \subsection {Reusing the monoid prover for building the group prover}
 
-The first thing that the reduction function of the group prover will have to do is simply to transform every subtraction $a-b$ into $a + -b$, and we are entitled to do so precisely because we have available the property $Minus\_simpl$ contained in the instance of the type class.
+The first thing that the reduction function of the group prover will have to do is simply to transform every subtraction $(a-b)$ into $(a + (-b))$, and we are entitled to do so precisely because we have available the property $Minus\_simpl$ contained in the instance of the type class.
 After that, the reduction continues with the propagation of the $Neg$ operation inside the parenthesis and $-(a+b)$ is transformed into $(-b) + (-a)$. Note that we have to be careful and not simplify it to $(-a) + (-b)$ as it would assume that we're having a commutative monoid.
 Then, because we've pushed some negations inside the parenthesis, we might have sequences of two or more consecutive negations. We simplify them by removing two consecutive negations every time that we find such a sequence. Once this is done, there is a last major step specific of groups to accomplish, which is the simplification of sums of symmetric elements. 
 
 This might be a direct sum of symmetric elements, like $-e1 + e2$ or $e1 + -e2$ and in these two cases, we need to simplify them when $e1$ can be reduced\footnote{It is not enough to simply check their syntactical equality, as they might not be immediately equal but could perhaps be normalised to the same term. Thus, this step --which is part of the reduction function-- uses the entire reduction function, but it calls it on a smaller term} to $e2$ , and if so the result should be $Zero$. We are entitled to do this treatment because of the property $Plus\_inverse$.
 
-The sum to simplify might be more complex, with two or three levels of of $Plus$. In these cases, there might be some simplifications to do thanks to the associativity property. With two levels of sums, we will transform $(e1 + (-e2 + e3))$ and $(-e1 + (e2+e3))$ into $e3$ when $e1$ can be normalised to $e2$. Also, $((e1+e2) + -e3))$ and $((e1+(-e2)) + e3)$ are simplified into $e1$ when $e2$ can be reduced to $e3$. Finally, in presence of three level of sums, we will transform $(a+b) + ((-c)+d)$ and $(a+(-b)) + (c+d)$ into $a+d$ when $b$ can be reduced to $c$.
+The sum to simplify might be more complex, with two or three levels of of $Plus$. In these cases, there might be some simplifications to do thanks to the associativity property. With two levels of sums, we will transform $(e1 + (-e2 + e3))$ and $(-e1 + (e2+e3))$ into $e3$ when $e1$ can be reduced to $e2$. Also, $((e1+e2) + -e3))$ and $((e1+(-e2)) + e3)$ are simplified into $e1$ when $e2$ can be reduced to $e3$. Finally, in presence of three level of sums, we will transform $(a+b) + ((-c)+d)$ and $(a+(-b)) + (c+d)$ into $a+d$ when $b$ can be reduced to $c$.
 
 
 The idea : negations $-x$ are encoded as variables.
