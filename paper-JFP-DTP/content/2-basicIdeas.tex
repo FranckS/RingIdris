@@ -474,7 +474,7 @@ The metavariable $MreflectNat\_2$ will require us to prove that the provided ter
 
 As for the case where $t$ wasn't in the original context (the $Nothing$ case), we will need to prove that we can convert $(index\ (lastElement'\ n)\ (\Gamma ++\ [t]))$ into $t$. This is doable because we can prove the lemma $elemInBigerVect\ :\ \{T:Type\}\ \rightarrow \{v:Vect\ n\ T\} \rightarrow (i:Fin\ n) \rightarrow (elem:T) \rightarrow (proofInside : index\ i\ v\ =\ elem) \rightarrow (head:T) \rightarrow (index\ (FS\ i)\ (head::v)\ =\ elem)$.
             
-That finishes the automatic reflection for this very specific prover.
+That finishes the automatic reflection for this specific prover. The encoding of $((x+y) + (x+z))$ can now be produced automatically with $reflectNat\ [\ ]\ ((x+y)\ +\ (x+z))$.
             
 
             

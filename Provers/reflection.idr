@@ -167,6 +167,9 @@ reflectTermZForRing {n=n} g reflectCst t =
 					Nothing => let this3 = VarR {n=n+S Z} {g=g++[t]} (%instance) (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
 											?MreflectTermZForRing_3 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))
 
+
+reflectRingTerm : {c:Type} -> {p:Ring c} -> {n:Nat} -> (g : Vect n c) -> (reflectCst:TypeReflectConstants {c=c} p) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR {c=c} {n=n+n'} p (g ++ g') x)))
+
      
 
 -- ------------------------------------------------------------------------------------------------- 

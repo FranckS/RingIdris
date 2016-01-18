@@ -107,7 +107,7 @@ adc (numx # bX) (numy # bY) carry
 \figrule
 \end{figure}
 
-Unfortunately, the types are mismatching for the two cases expressed by this pattern matching. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we're providing a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\] [I AM SURPRISED HERE BY THE TYPE OF THE PROVIDED TERM].
+Unfortunately, the types are mismatching for the two cases expressed by this pattern matching. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we're providing a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\]
 The problem is even worse for the second line where the result is expected to have type \[plus\ (plus\ c\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0)))\] while we're trying to provide a term of type \[plus\ v2\ (plus\ (plus\ (plus\ v1\ v)\ v)\ (plus\ (plus (plus\ v1\ v)\ v)\ 0))\]
 For this kind of situation, Idris provides the possibility to write a provisional definition with the syntax "?=". Using a provisional definitions here will make the definition being accepted, but it also generates two proof obligations, one for each pattern, and both of them are saying that the provided term can be converted into a term which has the expected type.
 For both of these two patterns, it is in fact possible to prove the equality between the expected and the provided types, precisely because this function is correct. These proofs are made of a series of rewriting, and each rewriting uses a property about the operation $+$ on natural numbers.

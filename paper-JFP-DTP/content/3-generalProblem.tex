@@ -265,23 +265,85 @@ We've used here the function $exprG\_eq$ to decide the syntactical equality betw
 
 \subsection {Automatic reflection}
 
+As we did for the very specific problem in section 2, we want to program an automatic reflection mechanism, in order to let the machine build automatically the encodings for us. This time, we want to write a function able to compute the ring encoding for any type that behaves as a ring. Said differently, we've got a carrier type $(c:Type)$, an instance $(p:Ring\ c)$ that says that $c$ behaves as a ring, a context $\Gamma$ of already abstracted variables, and an element $(x:c)$ to encode, and we want to return an $ExprR\ p\ \Gamma\ x$.
+We are doing this reflection for any type $c$, so we don't know which constants are inhabiting this type. For this reason, we will need to expect an extra argument --$funReflectCsf$-- of type $(ConstantsRingReflector\ c\ p)$ which is a function able to do the reflection for constants only. We will be able to provide this function for various datatypes, like $Nat$, $Z$ and $List$. But if the user wants to use the reflection mechanism for a new datatype of this own, then he will only have to provide this function of encoding for the constants of his type. He won't have to rebuild the entire reflection function.
+A $ConstantsRingReflector$ for a given type $c$ and a given instance $p$ is a function that takes any context $\Gamma$, any element of $c$, and which tries to produce an $(ExprR\ p\ \Gamma\ x)$.
+
 \begin{figure}[H]
 \figrule
 \begin{center}
 \begin{lstlisting}
-reflect : 
+ConstantsRingReflector : {c:Type} $\rightarrow$ (p:Ring c) $\rightarrow$ Type
+ConstantsRingReflector {c=c} p = 
+     ({n:Nat} $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ (x:c) $\rightarrow$ Maybe (ExprR p $\Gamma$ x))
 \end{lstlisting}
 \end{center}
-\caption{Type of the reflecting function for ...}
+\caption{Type of the function doing the reflection for constants}
 \figrule
 \end{figure}
 
-The reflected term is guaranteed to be a faithful representation of the input $c1$. We can write this function because Idris has a $\%syntax$ command which let us do pattern maching on syntax (ie, it let us access the AST of a term), and this $\%syntax$ produces functions which are typed ! (unlike Coq's $Ltac$). 
+If $x$ is indeed a constant, then it is supposed to return $Just$ and a term reflecting this constant. If $x$ was something else (a variable, a sum $a+b$, a product $a*b$, ...) then it simply returns $Nothing$. \\
+\\
+We can now present the type of the reflection function for ring.
 
-TO DO : Body and description of this function
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting}
+reflectRingTerm : {c:Type} $\rightarrow$ {p:Ring c} $\rightarrow$ {n:Nat} $\rightarrow$ ($\Gamma$ : Vect n c) 
+     $\rightarrow$ (funReflectCsf:ConstantsRingReflector {c=c} p) $\rightarrow$ (x:c) 
+     $\rightarrow$ (n' ** ($\Gamma'$:Vect n' c ** (ExprR {c=c} {n=n+n'} p ($\Gamma$ ++ $\Gamma'$) x)))
+\end{lstlisting}
+\end{center}
+\caption{Automatic reflection to ring}
+\figrule
+\end{figure}
 
+This function will work very similarly to the reflection function for $Nat$ that we've writen in section 2.5. Here, there are just more constructions to deal with, because $c$ is equipped with negations, subtractions and multiplications. We just show the pattern for the multiplication.
 
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting}
+reflectRingTerm {p} {n=n} $\Gamma$ funReflectCsf (a*b) = 
+   let (n' ** ($\Gamma'$ ** a')) = reflectRingTerm $\Gamma$ funReflectCsf a in
+   let (n'' ** ($\Gamma''$ ** b')) = reflectRingTerm ($\Gamma$ ++ $\Gamma'$) funReflectCsf b in
+   let this = MultR (weakenR $\Gamma''$ a') b' in
+	((n' + n'') ** (($\Gamma'$++$\Gamma''$) 
+	  ** (convertVectInExprR (plusAssociative n n' n'')
+	                   (vectAppendAssociative $\Gamma$ $\Gamma'$ $\Gamma''$) this)))
+\end{lstlisting}
+\end{center}
+\caption{Automatic reflection - case of a multiplication}
+\figrule
+\end{figure}
 
+After having done the same thing with additions, negations and subtractions, we will just have the case of constants and variable missing. But since we've got $funReflectCsf$ --the function that tries to do the reflection for constants only--, we can easily finish the definition of $reflectRingTerm$. If the dedicated reflector $funReflectCsf$ has returned something, then we know the input is a variable, and we have its encoding. Otherwise, we just have to treat it as a variable.
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting}
+reflectRingTerm {p} {n=n} $\Gamma$ funReflectCsf t =
+    case funReflectCsf $\Gamma$ t of
+      -- If 'funReflectCsf' has decided that 't' is a constant, then we trust it
+      Just this => Z ** ([] ** this)
+      -- If not, then it should be considered as a variable
+      Nothing => case (isElement t $\Gamma$) of
+          Just (i ** pr) => let res = VarR p (RealVariable i) in
+			        (Z ** ([ ] ** res))
+          Nothing => let res = VarR p (RealVariable (lastElement' n)) in
+			 (S Z ** ([t] ** res))
+
+\end{lstlisting}
+\end{center}
+\caption{Automatic reflection - case of constants and variables}
+\figrule
+\end{figure}
+
+We've omitted to show a few conversions of type in order to keep this part of the definition more readable. \\
+\\
+It is remarkable that the reflected term is guaranteed to be a faithful representation of the input. We've been able to define this function with a very strong and precise type because Idris has a $\%syntax$ command which let us do arbitrary pattern matching on syntax, and this $\%syntax$ produces functions which are typed, unlike Ltac terms in Coq.
 
 
 
