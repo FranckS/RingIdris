@@ -7,9 +7,6 @@ TO DO ON THE PAPER :
     . In section 4.5 for Ring, how I do the normalization AND how I encode products (a page)
     . For all of the presented structures, I should certainly give a mathematical expression that shows how the normal form looks like for this algebraic structure (a few lines to add)
 
-- Section 5 - Results,
-    . going back to the original problem and showing how it's solved now (roughly a page)
-
 - In section 6 - Discussion
     . In section 5.2.2 : Mentioning performances when I compare our implementation to Coq (a few lines)
     . In section 5.3.2 : Finishing the part about completeness (Just roughly 5 lines missing)
