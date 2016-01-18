@@ -157,14 +157,14 @@ the result.
 \begin{lstlisting}
 addBit : Bit x $\rightarrow$ Bit y $\rightarrow$ Bit c $\rightarrow$ (bX ** (bY ** 
               (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
-addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, _)))
-addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, _)))
-addBit b0 b1 b0 = (_ ** (_ ** (b0, b1, _)))
-addBit b0 b1 b1 = (_ ** (_ ** (b1, b0, _)))
-addBit b1 b0 b0 = (_ ** (_ ** (b0, b1, _)))
-addBit b1 b0 b1 = (_ ** (_ ** (b1, b0, _)))
-addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, _)))
-addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, _)))
+addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, Refl)))
+addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, Refl)))
+addBit b0 b1 b0 = (_ ** (_ ** (b0, b1, Refl)))
+addBit b0 b1 b1 = (_ ** (_ ** (b1, b0, Refl)))
+addBit b1 b0 b0 = (_ ** (_ ** (b0, b1, Refl)))
+addBit b1 b0 b1 = (_ ** (_ ** (b1, b0, Refl)))
+addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, Refl)))
+addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, Refl)))
 \end{lstlisting}
 \end{center}
 \caption{Addition of three bits}
@@ -182,10 +182,7 @@ For example, with the line corresponding to the computation
 $1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$)
 and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
 
-It should be pointed that the proof component of this function is established
-without any effort, as we always give the ``\_'' symbol for the proof which means
-``infer it!''. For each of the eight patterns, a simple computation provides the
-desired proof, and thus the typechecker can deal with them.  We also note that
+It should be pointed that the proof component of this function is established without any effort, as we always give the "Refl" for the proof. Indeed, for each of the eight patterns, a simple computation reduces the given and expected values to the same value, and "Refl" can therefore be used. We also note that
 there is no need to produce any lemma of correctness about $addBit$ afterwards.
 The correct by construction style in which it is written already gives the
 property that we want: the two bits produced effectively represent the
@@ -203,18 +200,17 @@ be able to write:
 adc : Binary w x $\rightarrow$ Binary w y $\rightarrow$ Bit c $\rightarrow$ Binary (S w) (c + x + y)
 adc zero zero carry = zero # carry
 adc (numx # bX) (numy # bY) carry
-   = let (v1 ** (v2 ** (carry0, lsb, _))) = addBit bX bY carry in
+   = let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
           adc numx numy carry0 # lsb
 \end{lstlisting}
 
 Unfortunately, the types do not match for either of the two cases. 
 The result of the first line $adc\ zero\ zero\ carry$ is
 expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we
-provide a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\]. The
-problem is even worse for the second line where the result is expected to have
-type \[plus\ (plus\ c\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\ (plus\ bit\
-(plus\ v\ (plus\ v\ 0)))\] while we provide a term of type \[plus\
-v2\ (plus\ (plus\ (plus\ v1\ v)\ v)\ (plus\ (plus (plus\ v1\ v)\ v)\ 0))\].
+provide a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0))).\]
+The problem is even worse for the second case where the expected index is 
+\[(plus\ (plus\ c\ (plus\ bit2\ (plus\ v1\ (plus\ v1\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\] while we're trying to provide a term indexed over 
+\[plus\ vLsb\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ 0))\]
 
 For
 this situation, Idris provides \emph{provisional definitions} with the 
