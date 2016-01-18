@@ -1,25 +1,9 @@
 \section{Introduction}
 
-Proving that one term is equal to another within some theories is quite common
-in formal certification. The two terms are usually not syntactically 
-equal---this case would be trivial---but they are equal relative to some
-equivalence properties. These properties are either obtained by lemmas
-(the implementation of $+$ for natural numbers satisfies the property of
-associativity for example), or by axioms.
+Proving that one term is equal to another one within some theories is something quite common in formal certification. The two terms are usually not syntactically equal --this case would be trivial--, but they are equal according to some properties. These properties are either obtained by implementation (the implementation of $+$ for natural numbers satisfies the property of associativity for example), or by axioms if we are working within an axiomatised structure. 
 
-For example, when working with natural numbers, one might need to prove the
-lemma $\forall\ x, y:Nat,\ x*x\ +\ 3*x\ +\ x*y\ =\ x*(3+y+x)$. Or,
-when working
-with lists and concatenation of lists, one might need to prove the lemma
-$\forall\ l1,\ l2,\ l3:List A,\ ((l1\ ++\ (l2 ++ l3))\ ++\ l4\ =\ (l1++l2)\ ++\
-(l3++l4)$. Proving this kind of auxiliary lemmas is time consuming,
-typically not reusable due to being very specific, and is rarely
-the interesting part of formal
-certification. Therefore, we would like to be able to automatize as far as
-possible the constructions of this kind of proofs. We have implemented
-the machinery to do so in Idris, a
-dependently typed language~\cite{brady2013idris}.
-
+For example, when working with natural numbers, one might need to prove the lemma $\forall\ xy:Nat,\ x*x\ +\ 3*x\ +\ x*y\ =\ x*(3+y+x)$, and when working with lists and concatenation of lists, one might need to prove something like $\forall\ l1\ l2\ l3:List A,\ ((l1\ ++\ (l2 ++ l3))\ ++\ l4\ =\ (l1++l2)\ ++\ (l3++l4)$. Proving this kind of auxiliary lemmas is time consuming, is much too specific for being reusable, and isn't the interesting part of formal certification. Therefore, we would like to be able to automatize a far as possible the constructions of this kind of proofs for the Idris language, a dependently typed language which doesn't contain many proof automations at the moment. \\
+\\
 When doing formal certification, many functions have a lemma of correctness that talks about equality of terms. More precisely, the following situation is very familiar. The function that we wants to certify is $f\ :\ A \rightarrow B$. We have two functions $sem_A\ :\ A \rightarrow SEM$ and $sem_B\ : \ B \rightarrow SEM$ of interpretation which associate a semantic to each type A and B. If this semantic says everything that matters for the behaviour of $f$, then the lemma of correctness of f can be expressed as $forall\ a:A,\ semA\ a = semB (f\ a)$. The interesting thing is that, very often, the type $SEM$ has the structure of some nice algebraic structure, and it becomes thus possible to decide equalities in it automatically.
 All the equality symbols we have encountered so far refer to the propositional equality. We remind the readers in the next subsection how this equality is defined in Idris, and more generally in Intentional Type Theories, and how it differs from the --more primitive-- judgemental equality.
 
@@ -87,14 +71,14 @@ We start with an auxiliary function which adds three bits (the third one will la
 \begin{lstlisting}
 addBit : Bit x $\rightarrow$ Bit y $\rightarrow$ Bit c $\rightarrow$ (bX ** (bY ** 
               (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
-addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, _)))
-addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, _)))
-addBit b0 b1 b0 = (_ ** (_ ** (b0, b1, _)))
-addBit b0 b1 b1 = (_ ** (_ ** (b1, b0, _)))
-addBit b1 b0 b0 = (_ ** (_ ** (b0, b1, _)))
-addBit b1 b0 b1 = (_ ** (_ ** (b1, b0, _)))
-addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, _)))
-addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, _)))
+addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, Refl)))
+addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, Refl)))
+addBit b0 b1 b0 = (_ ** (_ ** (b0, b1, Refl)))
+addBit b0 b1 b1 = (_ ** (_ ** (b1, b0, Refl)))
+addBit b1 b0 b0 = (_ ** (_ ** (b0, b1, Refl)))
+addBit b1 b0 b1 = (_ ** (_ ** (b1, b0, Refl)))
+addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, Refl)))
+addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, Refl)))
 \end{lstlisting}
 \end{center}
 \caption{Addition of three bits}
@@ -104,7 +88,7 @@ addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, _)))
 This function produces a dependent pair. The first component is the value $bX$ (expressed as a natural number) represented by the first bit produced (of type $Bit\ bX$), and the second component is itself another dependent pair. This second dependent pair is composed of the value $bY$ represented by the second bit produced, and of a triple containing finally the two bits produced and a proof that these two bits are effectively encoding the result of the addition we had to perform.
 For example, with the line corresponding to the computation $1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$) and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
 
-It should be pointed that the proof component of this function is established without any effort, as we always give the "\_" symbol for the proof which means "infer it!". For each of the eight patterns, a simple computation provides the desired proof, and thus the typechecker can deal with them.
+It should be pointed that the proof component of this function is established without any effort, as we always give the "Refl" for the proof. Indeed, for each of the eight patterns, a simple computation reduces the given and expected values to the same value, and "Refl" can therefore be used.
 We also note that there is no need to produce any lemma of correctness about $addBit$ afterwards : the correct by construction style in which it is written already gives the property that we want : the two bits produced effectively represent the addition of the three bits given in input.
 
 We finally define the function adding two binary numbers and a bit (used as a carry). We decide that this addition will only work for two binary numbers expressed with the same number of bits, and it produces a result with one more bit. This result should of course represent the value $c + x + y$ if $c$ is representing the value of the input bit, and if $x$ and $y$ are representing the values of the two binary numbers given in input. Thus, we're tempted to write :
@@ -115,7 +99,7 @@ We finally define the function adding two binary numbers and a bit (used as a ca
 adc : Binary w x $\rightarrow$ Binary w y $\rightarrow$ Bit c $\rightarrow$ Binary (S w) (c + x + y)
 adc zero zero carry = zero # carry
 adc (numx # bX) (numy # bY) carry
-   = let (v1 ** (v2 ** (carry0, lsb, _))) = addBit bX bY carry in
+   = let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
           adc numx numy carry0 # lsb
 \end{lstlisting}
 \end{center}
@@ -124,7 +108,9 @@ adc (numx # bX) (numy # bY) carry
 \end{figure}
 
 Unfortunately, the types are mismatching for the two cases expressed by this pattern matching. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we're providing a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))\]
-The problem is even worse for the second line where the result is expected to have type \[plus\ (plus\ c\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0)))\] while we're trying to provide a term of type \[plus\ v2\ (plus\ (plus\ (plus\ v1\ v)\ v)\ (plus\ (plus (plus\ v1\ v)\ v)\ 0))\]
+The problem is even worse for the second case where the expected index is 
+\[(plus\ (plus\ c\ (plus\ bit2\ (plus\ v1\ (plus\ v1\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\] while we're trying to provide a term index over 
+\[plus\ vLsb\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ 0))\]
 For this kind of situation, Idris provides the possibility to write a provisional definition with the syntax "?=". Using a provisional definitions here will make the definition being accepted, but it also generates two proof obligations, one for each pattern, and both of them are saying that the provided term can be converted into a term which has the expected type.
 For both of these two patterns, it is in fact possible to prove the equality between the expected and the provided types, precisely because this function is correct. These proofs are made of a series of rewriting, and each rewriting uses a property about the operation $+$ on natural numbers.
 For example, the proof for the second pattern looks like this :
@@ -149,9 +135,9 @@ adc_lemma_2 = proof {
 \end{figure}
 
 
-Thus, this kind of proofs consists of a potentially long sequence of rewriting, where each rewriting step uses one of the available properties. Without some specific automation, this sequence of rewriting is done by the user of the proof assistant. This is time consuming, and just a little change in the left or the right hand side of the equality will most of the time invalidate completely the proof done by hand. This mean that just a little change in our datatypes, or in the definitions of $addBit$ and $adc$ will require us to replace this proof by another one doing the same job, which is assuring the correspondence between the expected index and the given index. The re-usability of this kind of proofs is therefore null, because they are performing rewritings for very specific terms.
+Thus, this kind of proofs consists of a potentially long sequence of rewriting, where each rewriting step uses one of the available properties. Without some specific automation, this sequence of rewriting is done by the user of the proof assistant. This is time consuming, and just a little change in the left or the right hand side of the equality will most of the time invalidate completely the proof done by hand. This mean that just a little change in our datatypes $Bit$ and $Binary$, or in the definitions of $addBit$ and $adc$ will require us to replace this proof by another one doing the same job, which is assuring the correspondence between the expected index and the given index. The re-usability of this kind of proofs is therefore null, because they are performing rewritings for very specific terms.
 
-If we look at the proof we've written by hand, we realize that we're only using the existence of neutral elements (this is the lemma $plusZeroRightNeutral$), the associativity and commutativity of $+$. Thus, we're rewriting a term by using the properties of a commutative monoid.
+If we look at the proof we've written by hand, we realize that we're only using the existence of neutral elements (this is the lemma $plusZeroRightNeutral$), and the associativity and commutativity of $+$. Thus, we're rewriting a term by using the properties of a commutative monoid.
 
 We would like to let a prover for commutative monoid find a proof on its own. This is something doable because algebraic structures like monoids, groups and rings (all commutative or not) have all a very nice property, which is that every element in them can be normalised to a canonical representation. Thus these kind of proofs can be automatically produced by simply computing the normal forms for each side of the equality, and then comparing them with the syntactical equality --Leibniz equality--, because when they will be in normal form, being equal will just be a matter of being syntactically the same entity.
 
