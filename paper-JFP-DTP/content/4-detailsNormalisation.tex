@@ -49,44 +49,15 @@ This lemma says that the treatment done by this function $assoc$ on this pattern
 \\
 After this simplification of constants computable thanks to associativity, the normalization for SemiGroup also has to rearrange the brackets on a systematic way. The fully right or fully left associative forms can both be chosen for this purpose, and the implementation is very similar to the function $expr_l$ previously described for the smaller example on section 2.3.
 
-\subsection {Normalization of terms in a Monoid}
+\subsection {Reusing the semigroup prover for building the monoid prover}
 
 In a monoid, we simply have to eliminate zeros, thanks to the two properties of left and right neutrality. Because the simplification of additions between a zero and another constant has already be done at the level of semigroup (by computing the addition of these two constants), we only have to simplify the addition between the constant zero and a variable. There is in fact two cases, since the variable can come first, or the $Zero$ can come first. We can write a function $elimZero$ which rewrites these two patterns $x+Z$ and $Z+x$ into $x$.
 
-%\begin{figure}[H]
-%\figrule
-%\begin{center}
-%\begin{lstlisting}
-%elimZero : (p:Monoid c)->(gam:Vect n c)->{c1:c} 
-%            -> (ExprMo p gam c1) 
-%            -> (c2 ** (ExprMo p gam c2, c1 $\simeq$ c2))
-%elimZero c p gam (PlusMo (ConstMo _ _ const1) (VarMo _ v)) 
-%        with (eq_on_set p Zero const1)
-%   elimZero c p gam (PlusMo (ConstMo _ _ Zero) (VarMo _ v)) 
-%        | (Just refl) = (_ ** (VarMo _ v, ?MelimZero1))
-%   elimZero c p gam (PlusMo (ConstMo _ _ const1) (VarMo _ v)) 
-%        | _ = (_ ** (PlusMo (ConstMo _ _ const1) (VarMo _ v), refl)) 
-%elimZero c p gam 
-% (PlusMo (VarMo _ v) (ConstMo _ _ const2)) 
-%      with (eq_as_elem_of_set p Zero const2) 
-%   elimZero c p gam (PlusMo (VarMo _ v) 
-%            (ConstMo _ _ Zero)) | (Just refl) 
-%          = (_ ** (VarMo _ _ v, ?MelimZero2))
-%   elimZero c p gam (PlusMo (VarMo _ v) 
-%            (ConstMo _ _ const2)) | _ 
-%          = (_ ** (PlusMo (VarMo _ v) 
-%                 (ConstMo _ _ const2), refl))
-%[...]
-%\end{lstlisting}
-%\end{center}
-%\caption{Eliminating zeros in a Monoid, first pattern}
-%\figrule
-%\end{figure}
 
 The normalization of reflected expressions in a monoid is simply made of a call to the function reducing terms on a semigroup, followed by a call to elimZero that will eliminates the remaining additions with zeros. 
 
 
-\subsection {Reusing the monoid prover for building the group prover}
+
 
 The first thing that the reduction function of the group prover will have to do is simply to transform every subtraction $(a-b)$ into $(a + (-b))$, and we are entitled to do so precisely because we have available the property $Minus\_simpl$ contained in the instance of the type class.
 After that, the reduction continues with the propagation of the $Neg$ operation inside the parenthesis and $-(a+b)$ is transformed into $(-b) + (-a)$. Note that we have to be careful and not simplify it to $(-a) + (-b)$ as it would assume that we're having a commutative monoid.
@@ -96,9 +67,51 @@ This might be a direct sum of symmetric elements, like $-e1 + e2$ or $e1 + -e2$ 
 
 The sum to simplify might be more complex, with two or three levels of of $Plus$. In these cases, there might be some simplifications to do thanks to the associativity property. With two levels of sums, we will transform $(e1 + (-e2 + e3))$ and $(-e1 + (e2+e3))$ into $e3$ when $e1$ can be reduced to $e2$. Also, $((e1+e2) + -e3))$ and $((e1+(-e2)) + e3)$ are simplified into $e1$ when $e2$ can be reduced to $e3$. Finally, in presence of three level of sums, we will transform $(a+b) + ((-c)+d)$ and $(a+(-b)) + (c+d)$ into $a+d$ when $b$ can be reduced to $c$.
 
+The last remaining step is to call the monoid prover. Unfortunately, we can't directly write a function of conversion from group to monoid, because in a group we have the possibility to express negations and subtractions, that we do not have in a monoid. The idea is that we will encode negations as variables, and we will let the monoid prover deal with them as ordinary variables. In order to achieve this goal, we need the following datatype :
 
-The idea : negations $-x$ are encoded as variables.
+
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting}
+data Variable : {c:Type} -> {n:Nat} -> (Vect n c) -> c -> Type where
+    RealVariable : ($\Gamma$:Vect n c) -> (i:Fin n) -> Variable $\Gamma$ (index i $\Gamma$)
+    EncodingNegOfVar : ($\Gamma$:Vect n c) -> (i:Fin n) -> Variable $\Gamma$ (Neg (index i $\Gamma$))
+\end{lstlisting}
+\end{center}
+\caption{Real variables and encodings}
+\figrule
+\end{figure}
+
+We only need to encode negations of variables, as negations of constants can be simplified into a constant. Also, there can't be a negation of something more complicated than an atom (a variable or a constant), because of the treatments we've done beforehand, especially because we've propagated all the negations symbols inward the parenthesis.
+
+The constructor for variable now takes a Variable, instead of taking directly a $(Fin\ n)$.
+\begin{figure}[H]
+\figrule
+\begin{center}
+\begin{lstlisting}
+    VarG : (p:Group c) -> {$\Gamma$:Vect n c} -> {val:c} 
+          -> (Variable $\Gamma$ val) -> ExprG p $\Gamma$ val
+\end{lstlisting}
+\end{center}
+\caption{new Var constructor}
+\figrule
+\end{figure}
+
+Thanks to this encoding, we can now transform an $ExprG$ to an $ExprMo$. A constant $(ConstG\ p\ \Gamma\ c1)$ will be transformed into the corresponding constant $(ConstMo\ p\ \Gamma\ c1)$, a $PlusG$ into the corresponding $PlusMo$, a variable $(VarG\ p\ var)$ into the corresponding variable $(VarMo\ p\ var)$, the negation of a constant into the resulting constant, and finally the negation of a variable $i$ into a $(Var\ p\ \Gamma\ (EncodingNegOfVar\ \Gamma\ i))$.
+Once this encoding is computed, the antepenultimate step is to call the monoid prover and to let it finish the normalisation. Finally, we need to convert back the result into an $ExprG$ by interpreting the $EncodingNegOfVar$ into a $Neg$ of the corresponding variable.
+
+
+\subsection {Reusing the group prover for building the commutative group prover}
+
+The normalisation of the commutative group prover starts by calling the group prover. Here, the two algebraic structures have the same power of expressivity, and thus there's no specific encoding to design. Then, we simply need to decide an ordering for variables and constants. We arbitrary decide that $Var\ FZ\ <\ Var\ (FS\ FZ)\ <\ Var\ (FS\ (FS\ FZ))\ <\ ...\ <\ Constant$. The normalisation function will therefore simply sort the expression with this ordering and will do basic simplifications.
+
+
 
 \subsection {Reusing the commutative group prover for building the ring prover}
 
-The idea : monomials (containing products), like $3*(x*y)$ are encoded as variables when passed to the commutative group prover. 
+The most important specific task of the ring reduction is to develop entirely the expression with the use of distributivity. After that, it needs to call the commutative group prover, but again, we're losing some expressivity as it won't be possible to express a product at the commutative group level. We follow the same idea that we've implemented for the conversion going from group to monoid, and we will use some specific encoding. More precisely, all monomials (containing products), like $3*(x*y)$ are encoded as variables when passed to the commutative group prover. This is possible because we've fully developed the expression, which had for effect to ensure that a product can't contain a sum.
+We will add a coonstructor to the type $Variable$ in order to encode these monomials.
+
+
+

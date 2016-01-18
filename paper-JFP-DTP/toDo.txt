@@ -1,12 +1,6 @@
 TO DO ON THE PAPER :
 
 
-- In section 4, I have to finish the some explanations about the various reduce functions :
-    . In section 4.3 : for Monoid, how I encode negations (less than half a page)
-    . Writing section 4.4 about Commutative groups (a third of a page)
-    . In section 4.5 for Ring, how I do the normalization AND how I encode products (a page)
-    . For all of the presented structures, I should certainly give a mathematical expression that shows how the normal form looks like for this algebraic structure (a few lines to add)
-
 - In section 6 - Discussion
     . In section 5.2.2 : Mentioning performances when I compare our implementation to Coq (a few lines)
     . In section 5.3.2 : Finishing the part about completeness (Just roughly 5 lines missing)
