@@ -10,7 +10,7 @@ We will construct a hierarchy of type classes and will write one tactic for each
 
 In fact, we don't only want to be able to prove equalities, but more generally equivalence. We want to give the user the possibility to define his own equivalence notion, assuming he's able to provide the properties of the structure he wants to use. This equivalence relation on $c$ has the following profile $(\simeq) : c \rightarrow y \rightarrow Type$\footnote{This 'Type' would be a 'Prop' in systems --like Coq-- that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
 
-All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of "set", which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this type class :
+All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of ``set\footnote{This notion of ``Set" isn't a formalisation of sets and their elements, but is only the Setoid that we need} ", which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this type class :
 
 \begin{figure}[H]
 \figrule
@@ -27,6 +27,7 @@ class Set c where
 \end{lstlisting}
 \end{center}
 \caption{Set}
+\label{Set}
 \figrule
 \end{figure}
 If the user wants to prove propositional equalities, then he will simply instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the instance of $Set$.
@@ -44,13 +45,14 @@ class Set c => Magma c where
 \end{lstlisting}
 \end{center}
 \caption{Magma}
+\label{Magma}
 \figrule
 \end{figure}
 
 This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equiped with the equivalence relation $\simeq$ and the test $set\_eq$), and if it has a $Plus$ operation.
-In fact, all operations, like the Plus here, need to be "compatible" with the equality : $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow (Plus\ c1\ c2) \simeq (Plus\ c1'\ c2')$. This need only comes from the fact that we're dealing with any equivalence relation
+In fact, all operations, like the Plus here, need to be "compatible" with the equality : $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow (Plus\ c1\ c2) \simeq (Plus\ c1'\ c2')$. This need only comes from the fact that we're dealing with any equivalence relation.
 
-A bit more interesting is the Semi-Group type class. A semi-Group is a Magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation.
+A bit more interesting is the Semi-Group typeclass. A Semi-Group is a Magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation.
 
 \begin{figure}[H]
 \figrule
@@ -62,6 +64,7 @@ class Magma c => SemiGroup c where
 \end{lstlisting}
 \end{center}
 \caption{Semi-Group}
+\label{SemiGroup}
 \figrule
 \end{figure}
 
@@ -78,10 +81,11 @@ class SemiGroup c => Monoid c where
 \end{lstlisting}
 \end{center}
 \caption{Monoid}
+\label{Monoid}
 \figrule
 \end{figure}
 We can continue the hierarchy with groups, which are a more interesting.
-A group is a monoid, with two new operations. The binary operation $Minus$, and the unary operation $Neg$. We must have the property that $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group, since we can always rewrite $(a-b)$ into $(a\ +\ -b)$. We let the possibility to express a $Minus$ just for convenience for the user, as he won't have to rewrite by hand his $Minus$ operations with sums of negations.
+A group is a monoid, with two new operations. The binary operation $Minus$, and the unary operation $Neg$. We must have the property that $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group, since we can always rewrite $(a-b)$ into $(a\ +\ (-b))$. We let the possibility to express a $Minus$ just for convenience for the user, as he won't have to rewrite by hand his $Minus$ operations with sums of negations.
 The second axiom, which is the most important one for a Group, is the fact that any value $c1$ admits $Neg\ c1$ for inverse, where being an inverse is the following property :
 
 \begin{figure}[H]
@@ -100,6 +104,7 @@ class Monoid c => Group c where
 \end{lstlisting}
 \end{center}
 \caption{Group}
+\label{Group}
 \figrule
 \end{figure}
 
@@ -108,7 +113,7 @@ This hierarchy can be extended without difficulty with Abelian groups (with the 
 
 These type classes will somehow be used as predicates on types. In order to call a prover on a type $c$, the user of the system will have to satisfy the corresponding type class by providing an instance of it for his type $c$, ie, he will have to prove that the corresponding properties effectively hold for $c$.
 
-Note that the properties will either be obtained "by implementation" if the operations are real --computable-- functions, or by axioms if the user is working in an axiomatised theory where the operations ($Plus$, $Neg$, ...) are defined as axioms.
+Note that the properties will either be obtained by implementation if the operations are real --computable-- functions, or by axioms if the user is working in an axiomatised theory where the operations ($Plus$, $Neg$, ...) are defined as axioms.
 
 As discussed in the section 2.1 on the smaller problem, the algorithm of normalization will not directly use the concrete value of type $c$, but a reflected term, indexed over the concrete value. That still holds here.
 
@@ -135,6 +140,7 @@ data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
 \end{lstlisting}
 \end{center}
 \caption{Reflected terms for a Magma}
+\label{ExprMa}
 \figrule
 \end{figure}
 
@@ -142,20 +148,6 @@ When we encode a constant $c1$ in a context $\Gamma$, we use the constructor $Co
 If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (ie, a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation defined in the current instance $p$.
 
 
-%For the moment, the definition of $Variable$ is just the following:
-%
-%\begin{code}[caption=Reflected variables, captionpos=b, label=lst1:haskell2]  
-%data Variable : {c:Type} -> {n:Nat}
-%  -> (c_equal : (c1:c)->(c2:c)->Maybe(c1=c2)) 
-%  -> (Vect n c) -> c -> Type where
-%    RealVariable : (c_equal:(c1:c)->(c2:c)
-%                    ->Maybe(c1=c2))
-%          -> ($\Gamma$:Vect n c) -> (i:Fin n) 
-%          -> Variable c_equal $\Gamma$ (index i $\Gamma$) 
-%\end{code}	
-%
-%This type will be extended with some other constructors later on. For the moment, we can only %express a "real variable", referred by its index $i$. \\
-%\\
 Because there is no additional operations in a SemiGroup or in a Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
 However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
 
@@ -165,7 +157,7 @@ However, the one for $Group$ will introduce two new constructors for the $Neg$ a
 \begin{center}
 \begin{lstlisting}
 data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
-    ConstG : (p : dataTypes.Group c) $\rightarrow$ ($\Gamma$:Vect n c) 
+    ConstG : (p : Group c) $\rightarrow$ ($\Gamma$:Vect n c) 
          -> (c1:c) $\rightarrow$ ExprG p $\Gamma$ c1
     PlusG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} $\rightarrow$ {c2:c} 
          $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ c2 
@@ -180,6 +172,7 @@ data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
 \end{lstlisting}
 \end{center}
 \caption{Reflected terms in a Group}
+\label{ExprG}
 \figrule
 \end{figure}
 
@@ -205,6 +198,7 @@ groupReduce : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\rightar
 \end{lstlisting}
 \end{center}
 \caption{Type of the reduction function for terms reflecting elements in a Group}
+\label{groupReduce}
 \figrule
 \end{figure}
 
@@ -223,6 +217,7 @@ groupDecideEq : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x :
 \end{lstlisting}
 \end{center}
 \caption{Type of the function for deciding equality between elements in a Group}
+\label{groupDecideEqType}
 \figrule
 \end{figure}
 
@@ -240,6 +235,7 @@ groupDecideEq p ex ey =
 \end{lstlisting}
 \end{center}
 \caption{Decides if two elements of a group are equal}
+\label{groupDecideEq}
 \figrule
 \end{figure}
 
@@ -260,6 +256,7 @@ buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
 \end{lstlisting}
 \end{center}
 \caption{Composes the two proofs if the normal forms are the same}
+\label{buildProofGroup}
 \figrule
 \end{figure}
 We've used here the function $exprG\_eq$ to decide the syntactical equality between the normalised reflected terms $ex'$ and $ey'$. This function plays the same role as $eqExpr$, presented on section 2.3 for the smaller example. Also, the proof for the metavariable $MbuildProofGroup$ corresponds exactly to what was done for the metariable $MbuildProof$ in the smaller example.
@@ -281,6 +278,7 @@ ConstantsRingReflector {c=c} p =
 \end{lstlisting}
 \end{center}
 \caption{Type of the function doing the reflection for constants}
+\label{ConstantsRingReflector}
 \figrule
 \end{figure}
 
@@ -298,10 +296,11 @@ reflectRingTerm : {c:Type} $\rightarrow$ {p:Ring c} $\rightarrow$ {n:Nat} $\righ
 \end{lstlisting}
 \end{center}
 \caption{Automatic reflection to ring}
+\label{reflectRingTermType}
 \figrule
 \end{figure}
 
-This function will work very similarly to the reflection function for $Nat$ that we've writen in section 2.5. Here, there are just more constructions to deal with, because $c$ is equipped with negations, subtractions and multiplications. We just show the pattern for the multiplication.
+This function will work very similarly to the reflection function for $Nat$ that we've writen in section~\ref{sect:ReflectNat}. Here, there are just more constructions to deal with, because $c$ is equipped with negations, subtractions and multiplications. We just show the pattern for the multiplication.
 
 \begin{figure}[H]
 \figrule
@@ -317,6 +316,7 @@ reflectRingTerm {p} {n=n} $\Gamma$ funReflectCsf (a*b) =
 \end{lstlisting}
 \end{center}
 \caption{Automatic reflection - case of a multiplication}
+\label{reflectRingTerm_pattern1}
 \figrule
 \end{figure}
 
@@ -340,12 +340,13 @@ reflectRingTerm {p} {n=n} $\Gamma$ funReflectCsf t =
 \end{lstlisting}
 \end{center}
 \caption{Automatic reflection - case of constants and variables}
+\label{reflectRingTerm_pattern2}
 \figrule
 \end{figure}
 
 We've omitted to show a few conversions of type in order to keep this part of the definition more readable. \\
 \\
-It is remarkable that the reflected term is guaranteed to be a faithful representation of the input. We've been able to define this function with a very strong and precise type because Idris has a $\%syntax$ command which let us do arbitrary pattern matching on syntax, and this $\%syntax$ produces functions which are typed, unlike Ltac terms in Coq.
+It is remarkable that the reflected term is guaranteed to be a faithful representation of the input. We've been able to define this function with a very strong and precise type because Idris has a ``$\%syntax$" command which let us do arbitrary pattern matching on syntax, and the functions defined with ``$\%syntax$" are typed, unlike Ltac terms in Coq.
 
 
 

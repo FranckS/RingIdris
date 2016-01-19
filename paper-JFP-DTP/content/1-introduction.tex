@@ -41,7 +41,7 @@ In Mathematics, equality is a proposition, which can hold or otherwise, or be di
 Since in type theory, propositions are seen as types~\cite{How80}, the
 proposition that two elements $x$ and $y$ are equal corresponds to a type.
 Thus, if $x$ and $y$ are of type $a$, then the type
-$Id_a(x, y)$ represents the proposition "$x$ is equal to $y$". If this type is
+$Id_a(x, y)$ represents the proposition ``$x$ is equal to $y$". If this type is
 inhabited, then $x$ is said to be provably equal to $y$.  Thus, $Id$ is a type
 family (parametrised by the type $a$) indexed over two elements of $a$, giving
 $Id (a:Type)\ :\ a \rightarrow a \rightarrow Type$. For
@@ -62,7 +62,7 @@ performed. We denote definitional equality by $\equiv$.
 
 The judgemental equality has to be included in the propositional equal, because
 what is equal by definition should be provably equal.  This is accomplished by
-giving constructors to the type $Id(a,a)$ and nothing when "$a$ is not $b$".
+giving constructors to the type $Id(a,a)$ and nothing when ``$a$ is not $b$".
 One way to implement $Id$ in Idris is:
 
 \begin{lstlisting}
@@ -87,7 +87,7 @@ of this type.
 
 Induction principles work for any proposition, so it also works with the
 propositional equality. That means that the axiom of induction principle has
-made the type $Id(a,b)$ bigger than it looks like (in the definition 1), and
+made the type $Id(a,b)$ bigger than it looks like in the above definition, and
 there are therefore things which are provably equal which unfortunately aren't
 equal syntactically after an expanding of all the definitions. The activity of
 proving equalities is therefore in these theories something which isn't
@@ -182,7 +182,7 @@ For example, with the line corresponding to the computation
 $1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$)
 and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
 
-It should be pointed that the proof component of this function is established without any effort, as we always give the "Refl" for the proof. Indeed, for each of the eight patterns, a simple computation reduces the given and expected values to the same value, and "Refl" can therefore be used. We also note that
+It should be pointed that the proof component of this function is established without any effort, as we always give the ``Refl" for the proof. Indeed, for each of the eight patterns, a simple computation reduces the given and expected values to the same value, and ``Refl" can therefore be used. We also note that
 there is no need to produce any lemma of correctness about $addBit$ afterwards.
 The correct by construction style in which it is written already gives the
 property that we want: the two bits produced effectively represent the
@@ -242,6 +242,7 @@ adc_lemma_2 = proof {
 \end{lstlisting}
 \end{center}
 \caption{Proof by hand of the correspondence between expected and provided types for the second pattern of the definition of adc}
+\label{adc_lemma_2}
 \figrule
 \end{figure}
 

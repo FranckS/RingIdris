@@ -13,6 +13,7 @@ littleRewriting p $\Gamma$ e = (new expression, justification)
 \end{lstlisting}
 \end{center}
 \caption{General pattern of a function doing a part of the normalisation}
+\label{littleRewriting}
 \figrule
 \end{figure}
 
@@ -39,6 +40,7 @@ assoc p $\Gamma$ (PlusSG
 \end{lstlisting}
 \end{center}
 \caption{Computing with associativity in a Semi-Group, first pattern}
+\label{assoc}
 \figrule
 \end{figure}
 The treatment is applied recursively on the sub-expressions $ex$ and $ey$, which produces the new expressions $e\_ihx$ and $e\_ihy$ together with the new concrete values they represent ($r\_ihx$ and $r\_ihy$) and the proofs ($p\_ihx$ and $p\_ihy$) justifying these transformation on the concrete values. Note that the simplification $[const1+const2]$ is done by calling the magma prover, which gives a new expression $e3$, even thought it could perfectly be done directly here, but we wanted to show how a prover can be reused for building another prover on an easy example. The functions of conversion between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$ are helping for this task.
@@ -55,8 +57,6 @@ In a monoid, we simply have to eliminate zeros, thanks to the two properties of 
 
 
 The normalization of reflected expressions in a monoid is simply made of a call to the function reducing terms on a semigroup, followed by a call to elimZero that will eliminates the remaining additions with zeros. 
-
-
 
 
 The first thing that the reduction function of the group prover will have to do is simply to transform every subtraction $(a-b)$ into $(a + (-b))$, and we are entitled to do so precisely because we have available the property $Minus\_simpl$ contained in the instance of the type class.
@@ -80,6 +80,7 @@ data Variable : {c:Type} -> {n:Nat} -> (Vect n c) -> c -> Type where
 \end{lstlisting}
 \end{center}
 \caption{Real variables and encodings}
+\label{Variable}
 \figrule
 \end{figure}
 
@@ -95,6 +96,7 @@ The constructor for variable now takes a Variable, instead of taking directly a 
 \end{lstlisting}
 \end{center}
 \caption{new Var constructor}
+\label{VarG}
 \figrule
 \end{figure}
 

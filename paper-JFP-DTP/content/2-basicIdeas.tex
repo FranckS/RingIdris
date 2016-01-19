@@ -5,7 +5,7 @@
 We will first present the basic ideas of our technique on a simplified problem, in which we aim to deal with universally quantified natural numbers and additions.
 For example, we would like to be able to automatically generate proofs of goals like $\forall x1\ x2\ x3:Nat,\ (x1 + l2) + (x3 + x4) = (x1 + (x2 + x3)) + x4$ [Example 1]. \\
 For this smaller problem, we have decided to only work with the associativity of $+$ : $plusAssociative : \forall x1\ x2\ x3,\ (x1 + x2) + x3 = x1 + (x2 + x3)$ and with the fact that Z is a right neutral element for the $+$ operation : $plusZeroRightNeutral : \forall x, x + Z = x$. Note that $Z$ is also a left neutral element, but this property is not needed because we have this behaviour by reduction, as $+$ is defined recursively on its first argument. Of course, some datatypes can have more or less properties than these two, and this work will be extended in sections 3 and 4 where we will present a very general hierarchy of provers for multiple algebraic structures. \\
-Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of universally quantified natural numbers and additions of these numbers are equal, and to produce a proof of this equality if appropriate, where "equal" has the meaning "syntactically equal or equal thanks to the associativity and right neutral properties".
+Thus, in definitive, in this section, we want to write a decision procedure, able to tell if two expressions composed of universally quantified natural numbers and additions of these numbers are equal, and to produce a proof of this equality if appropriate, where ``equal" has the meaning syntactically equal or equal thanks to the associativity and right neutral properties.
 
 
 \subsection{Working by reflection}
@@ -14,9 +14,9 @@ When trying to prove this kind of equalities, the variables are abstracted, and 
 The general idea --that will also apply for the more general problem detailed in the next sections-- will be to normalize both sides of the "potential equality" $x=y$, and afterwards to compare them using Leibniz syntactical equality.
 The goal of the normalization is to compute a canonical representation for a number $x$, such that any other number provably equal to $x$ (by using the two available properties) will have the same canonical representation. For example, the normalisation might transform $x+((y+Z)+z)$ into $(x+y)+z$ if we decide that the normal form will be completely left associative, and that every addition between an element $a$ and zero should be simplified to $a$. It will then be possible to decide the equality by simply comparing the normalised left and right hand sides with a simple and strict syntactical equality. This is in fact what we do all the time when we have to decide if two things, written differently, are equal or not. When a human is given two mathematical polynomials and has to decide the equality of these functions, a technique that always works is to decide once and for all a canonical representation of polynomials, and to put both polynomials in this form. If the normalised forms are the same, then the two original polynomials are equal, otherwise they do not represent the same computation.\\
 \\
-In fact, such a normalisation function can't be written directly, because in the LHS and RHS of $x=y$, we potentially have variables which have been universally quantified. And the normalization function needs to do different treatments for a "variable natural number" (a number which has been universally quantified) and for the constant $Z$. This is not possible yet, because once the variables are abstracted, they are just ordinary values of type $Nat$, and there is no way to distinguish them. Indeed, this information only exists at the level of the ASTs representing the two terms, and we do not have a direct access to these syntax trees.
-For this reason, we will work by reflection. In this little example, it means that we will define a datatype that will be used as an encoding of natural numbers, or more precisely, an encoding of natural numbers composed of "variable numbers", $Z$, and additions of these things. This datatype will let us inspect the internal structure of a number by pattern matching.
-Previously, we were only able to pattern match a natural number against the constructors $Z$ and $S$, which wasn't what we needed.  With the first approximation of the data type $Expr$ presented in the Fig 6, we will be allowed to pattern match an encoding of number against the constructors $Plus$, $Var$ and $Zero$.
+In fact, such a normalisation function can't be written directly, because in the LHS and RHS of $x=y$, we potentially have variables which have been universally quantified. And the normalization function needs to do different treatments for a ``variable natural number" (a number which has been universally quantified) and for the constant $Z$. This is not possible yet, because once the variables are abstracted, they are just ordinary values of type $Nat$, and there is no way to distinguish them. Indeed, this information only exists at the level of the ASTs representing the two terms, and we do not have a direct access to these syntax trees.
+For this reason, we will work by reflection. In this little example, it means that we will define a datatype that will be used as an encoding of natural numbers, or more precisely, an encoding of natural numbers composed of ``variable numbers", $Z$, and additions of these things. This datatype will let us inspect the internal structure of a number by pattern matching.
+Previously, we were only able to pattern match a natural number against the constructors $Z$ and $S$, which wasn't what we needed.  With the first approximation of the data type $Expr$ presented in the figure~\ref{reflectedNaturalNumbers0}, we will be allowed to pattern match an encoding of number against the constructors $Plus$, $Var$ and $Zero$.
 
 
 \begin{figure}[H]
@@ -33,6 +33,7 @@ data Expr : ($\Gamma$ : Vect n Nat) $\rightarrow$ Type where
 \end{lstlisting}
 \end{center}
 \caption{First version of reflected natural numbers}
+\label{reflectedNaturalNumbers0}
 \figrule
 \end{figure}
 
@@ -52,7 +53,7 @@ e1 x y z = Plus (Plus (Var FZ) (Var (FS FZ)))
                 (Plus (Var FZ) (Var (FS (FS FZ))))
 \end{lstlisting}
 \end{center}
-\caption{Reflected LHS of example 1 (with the first version of reflected natural numbers)}
+\caption{Reflected LHS with the first version of reflected numbers showed in \ref{reflectedNaturalNumbers0}}
 \figrule
 \end{figure}
 
@@ -79,10 +80,11 @@ using (x : Nat, y : Nat, $\Gamma$ : Vect n Nat)
 \end{lstlisting}
 \end{center}
 \caption{Second version of reflected number with embedded denotation}
+\label{reflectedNaturalNumbers}
 \figrule
 \end{figure}
 
-For an expression $ex\ :\ Expr\ \Gamma\ x$, we will say that "$ex$ denotes (or encodes) the number $x$ in the context $\Gamma$".
+For an expression $ex\ :\ Expr\ \Gamma\ x$, we will say that ``$ex$ denotes (or encodes) the number $x$ in the context $\Gamma$".
 When an expression is a variable, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ \Gamma)$.
 Also, the $Zero$ expression denotes the natural number $Z$.
 Finally, if $ex$ is an expression encoding the number $x$, and $ey$ is an expression encoding the number $y$, then the expression $Plus\ ex\ ey$ denotes the concrete number $(x + y)$.
@@ -90,7 +92,7 @@ Finally, if $ex$ is an expression encoding the number $x$, and $ey$ is an expres
 
 \subsection{A correct by construction approach}
 
-We want to write the reduction function on a "correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr freshly produced has the same interpretation as the original Expr, and this will be made easier by the fact that the data type Expr is now indexed over the real --concrete-- number : a term of type $Expr\ \Gamma\ x$ is the encoding of the number $x$.
+We want to write the reduction function on a ``correct by construction" way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr freshly produced has the same interpretation as the original Expr, and this will be made easier by the fact that the data type Expr is now indexed over the real --concrete-- number : a term of type $Expr\ \Gamma\ x$ is the encoding of the number $x$.
 Thus, we can write the type of $reduce$ like this : \\
 $reduce\ :\ Expr\ \Gamma\ x\ \rightarrow\ (x'\ **\ (Expr\ \Gamma\ x',\ x\ =\ x'))$ \\
 The function $reduce$ produces a dependent pair : the new concrete number $x'$, and a pair made of an $Expr\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new --concrete-- numbers are equal.
@@ -118,6 +120,7 @@ eqExpr _ _ = Nothing
 \end{lstlisting}
 \end{center}
 \caption{Syntactical equality between reflected terms}
+\label{syntacticalEq}
 \figrule
 \end{figure}
 
@@ -137,6 +140,7 @@ buildProof ex' ey' lp rp with (eqExpr ex' ey')
 \end{lstlisting}
 \end{center}
 \caption{Building the desired proof with the two proofs of equality}
+\label{buildProof}
 \figrule
 \end{figure}
 
@@ -154,6 +158,7 @@ As mentioned, the proof for the metavariable $MbuildProof$ is just a rewriting o
 \end{lstlisting}
 \end{center}
 \caption{buildProof metavariable}
+\label{MbuildProof}
 \figrule
 \end{figure}
 
@@ -171,6 +176,7 @@ Finally, the main function which tries to prove the equality $x=y$ simply has to
 \end{lstlisting}
 \end{center}
 \caption{testEq}
+\label{testEq}
 \figrule
 \end{figure}
 
@@ -187,6 +193,7 @@ data LExpr : ($\Gamma$ : Vect n Nat) $\rightarrow$ Nat $\rightarrow$ Type where
 \end{lstlisting}
 \end{center}
 \caption{Reflected left associative numbers}
+\label{LExpr}
 \figrule
 \end{figure}
 
@@ -220,6 +227,7 @@ expr_l (Plus ex ey) =
 \end{lstlisting}
 \end{center}
 \caption{Production of the left associative form}
+\label{expr_l}
 \figrule
 \end{figure}
 In the case of an addition $Plus\ ex\ ey$, the function $expr\_l$ does the job of normalisation recursively on $ex$ and on $ey$, and then it uses the sub-function $plusLExpr$ to normalise the addition of these two --already normalised-- terms. This sub-function $plusLExpr$ has two kind of simplifications to do. When the second argument is an $LZero$, it simply returns its first arguments along with the justification for this rewriting, which obviously uses $plusZeroRightNeutral$. However, when the second argument is an $LPlus\ e\ i$, it continues recursively by computing $plusLExpr\ ex\ e$, and it finally adds $i$ to it. That had for effect to move the parenthesis on the left, and this treatment is going to be justified during the proof of the meta variable $MplusLExpr$ by the use of $plusAssociative$.
@@ -239,6 +247,7 @@ MplusLExpr = proof {
 \end{lstlisting}
 \end{center}
 \caption{Proof of the metavariable MplusLExpr}
+\label{MplusExpr}
 \figrule
 \end{figure}
 
@@ -255,6 +264,7 @@ l_expr (LPlus x i) = Plus (l_expr x) (Var i)
 \end{lstlisting}
 \end{center}
 \caption{Going back from LExpr to Expr}
+\label{l_expr}
 \figrule
 \end{figure}
 
@@ -275,15 +285,16 @@ We can now define the reduction, which is just the composition of the two previo
 \end{lstlisting}
 \end{center}
 \caption{Reduction function}
+\label{reduce}
 \figrule
 \end{figure}
 
 
 At the moment, what we've got is not exactly a real tactic, in the sense that we only have a function which produces a value of type $Maybe (x = y)$. A real tactic would be a wrapper of this function that could properly fail with an error message when the two terms are not equal. However, here, when $x\ne y$, the function $testEq$ will simply produce the value $Nothing$. \\
 
-\subsection{Usage of the "tactic"}
+\subsection{Usage of the ``tactic"}
 
-It's now time to see how to use this minimalist "tactic".
+It's now time to see how to use this minimalist ``tactic".
 Let's define two expressions $e1$ and $e2$, respectively representing the numbers $((x + y) + (x + z))$ and $(x + ((y + x) + z))$ in the context $[x, y, z]$ of three abstracted variables.
 
 
@@ -307,6 +318,7 @@ e2 x y z = Plus (Var FZ)
 \end{lstlisting}
 \end{center}
 \caption{Two test expressions}
+\label{e1_e2}
 \figrule
 \end{figure}
 
@@ -322,6 +334,7 @@ e1_e2_testEq x y z = testEq (e1 x y z) (e2 x y z)
 \end{lstlisting}
 \end{center}
 \caption{Generating automatically the desired proof}
+\label{e1_e2_testEq}
 \figrule
 \end{figure}
 
@@ -346,6 +359,7 @@ And if we ask for the evaluation of this term, we should obtain $Just$ and a pro
 \end{lstlisting}
 \end{center}
 \caption{Obtained proof}
+\label{obtainedProof}
 \figrule
 \end{figure}
 
@@ -353,12 +367,13 @@ And we effectively get the proof of equality we wanted. As expected, this proof 
 
 
 \subsection{Construction of the reflected terms}
+\label{sect:ReflectNat}
 
 For the moment, even if what we have is perfectly usable and works, we had to create these encodings $e1$ and $e2$ by hand, which is easy but time consuming. We have replaced the (potentially hard) problem of proving something by the simplest problem of simply creating some encodings. This is already a huge simplification, because as it can be seen in the definitions of $e1$ and $e2$, the reflected terms completely follow the structure of the expression to encode : there's absolutely no creativity needed for this task, unlike the proving activity. The way to create the encodings is in fact so systematic that, of course, we would like to automatize it in order to get a real and completely automatic tactic.
 
 However, we can also note that even when done by hand, there is no room for making mistakes in this simple task of encoding : we simply can't generate a wrong encoding : if $e1$ and $e2$ are not respectively reflecting $((x+y) + (x+z))$ and $(x + ((y + x) + z))$ then these definitions won't typecheck because the expected and real index won't match.
 
-We still want an automatic way of constructing these reflected terms because what we have so far is enough to demonstrate that our "prover" works, but that's not enough for being used intensively. We want to program an automatic way of going from the concrete values (of type $Nat$), to the reflected terms (of type $Expr$). The only way to do that is to inspect the abstract syntax tree of the concrete value.
+We still want an automatic way of constructing these reflected terms because what we have so far is enough to demonstrate that our prover works, but that's not yet enough for being used intensively. We want to program an automatic way of going from the concrete values (of type $Nat$), to the reflected terms (of type $Expr$). The only way to do that is to inspect the abstract syntax tree of the concrete value.
 By using Idris's reflection mechanism, we can tag a function with the keyword "\%reflection", which means that this function runs on syntax instead of values. 
 
 \begin{figure}[H]
@@ -372,6 +387,7 @@ reflectNat : {n:Nat} $\rightarrow$ ($\Gamma$ : Vect n Nat) $\rightarrow$ (x:Nat)
 \end{lstlisting}
 \end{center}
 \caption{Type of the function for reflecting natural numbers}
+\label{reflectNatType}
 \figrule
 \end{figure}
 
@@ -387,6 +403,7 @@ reflectNat {n=n} G Z = (Z ** ([] ** (Zero {n=n+0} {G=G++[]})))
 \end{lstlisting}
 \end{center}
 \caption{Reflecting natural numbers - pattern for zero}
+\label{reflectNat_pattern1}
 \figrule
 \end{figure}
 
@@ -404,6 +421,7 @@ reflectNat $\Gamma$ (x + y) =
 \end{lstlisting}
 \end{center}
 \caption{Reflecting natural numbers - pattern for a plus}
+\label{reflectNat_pattern2}
 \figrule
 \end{figure}
 
@@ -423,6 +441,7 @@ weaken {n=n} {m=m} {$\Gamma$=$\Gamma$} $\Gamma'$ (Var i) = Var (convertFin _ i m
 \end{lstlisting}
 \end{center}
 \caption{Weakening function}
+\label{weaken}
 \figrule
 \end{figure}
 
@@ -436,7 +455,8 @@ The position $i$ hasn't changed but however, the original $i$ had type $Fin\ n$,
 convertFin : (n:Nat) $\rightarrow$ (i:Fin n) $\rightarrow$ (x:Nat) $\rightarrow$ Fin (n+x)
 \end{lstlisting}
 \end{center}
-\caption{Conversion of Fin}
+\caption{Conversion of a Fin}
+\label{convertFin}
 \figrule
 \end{figure}
 
@@ -454,6 +474,7 @@ reflectNat {n=n} $\Gamma$ t with (isElement t $\Gamma$)
 \end{lstlisting}
 \end{center}
 \caption{Reflecting natural numbers - pattern for a variable}
+\label{reflectNat_pattern3}
 \figrule
 \end{figure}
 
@@ -468,6 +489,7 @@ isElement : {n:Nat} $\rightarrow$ (x : a) $\rightarrow$ ($\Gamma$ : Vect n a)
 \end{lstlisting}
 \end{center}
 \caption{Returns the index and the proof that this index is the right one}
+\label{isElement}
 \figrule
 \end{figure}
 
