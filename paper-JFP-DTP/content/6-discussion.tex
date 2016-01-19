@@ -53,13 +53,30 @@ Coq's ring prover follows the traditional\footnote{By ``traditional" we have in 
 
 Another difference with our implementation is that we've implemented a hierachy of tactics for many algebraic structures, but Coq's implementation only deals with ring and semi ring. If someone wants to prove equalities in a commutative group that isn't a ring, he simply can't use their prover. A dedicated prover for commutative groups would be needed, and Coq currently doesn't has one. The worst is that such a prover for commutative group would do very similar treatments, which means a lot of code could have been factorised. This is what we've obtained by taking this in account from the start. Our monoid prover used the underneath semi-group prover, our group prover uses the underneath monoid prover, and so on. \\
 
-[Mentioning performances, that might be in favour of Coq]
+In terms of performances, our implementation is fast enough for providing answers in a decent amont of time --usually a few seconds--. The automatic proof of the lemma $adc\_lemma\_2$ (presented in section~\ref{sect:motivatingExample} and proven automatically in section ~\ref{sect:results}) is constantly generated and printed in less than 8 seconds on a dual core i5 processor @ 2.4ghz and is therefore perfectly usable, even for this kind of moderate size goals that come from a real application. Knowing that the display of the proof takes most of the time, it would be interesting to evaluate precisely the time needed for its generation only, without outputting the result. However, we suspect that our implementation will be slower than Coq, because they've used a more efficient representation of normalised polynomials. It might be possible that we've traded some efficiency against some simplicity and compositionality.
+
+	\subsection{Other related work}
+	
+As mentioned, Coq's implementation of a ring prover was also using proof-by-reflection techniques, but without the guarantees obtained with our type-safe reflection mechanism. Their automatic reflection is programmed in Ltac~\cite{DelahayeLTac} : a proof dedicated and untyped meta-language for the writing of automations. Because $Ltac$ is untyped, it would not permit to define --as we did-- a dependently typed function $reflect$ that is guaranteed to return a faithful encoding of the given input value. $Mtac$~\cite{Ziliani13} is an extension to Coq that supports dependently-typed tactic programming, which uses monad to avoid the need to touch the trusted kernel typechecker of Coq.
+\\
+
+Doing proofs by reflection has been intensively investigated by many authors, including Adam Chlipala, in particular in his book~\cite{ChlipalaBook} and in~\cite{Malecha14}. However, we haven't found anything similar to the type-safe reflection technique that we've presented in this paper. 
+\\
+
+At the connexion bewteen proof automation and proof by reflection, we can cite SSreflect~\cite{GonthierTuto}, which is an extension of Coq which aims to provide additional formalisation and tactics suitable for long mathematical proofs.
+\\
+
+Proof automation has been investigated for various proof assistants and programming languages. In Coq, appart from the $ring$ prover~\cite{Coq2005}, there's also the $omega$ solver~\cite{Cregut04}, which solves a goal in Presburger arithmetic (i.e. a universally quantified formula made of equations and inequations), and a Field~\cite{DelahayeField} decision procedure for real numbers, which plugs to Coq's ring prover after simplification of the multiplicative inverses. Various automations have also been done in Agda~\cite{Lindblad04}.
+\\
+
+Finally, when we leave the ground of nice mathematical structures (like groups, rings and fields), one can decide to work with various rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there's usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} starts.
+
 
 	\subsection {Correctness and completeness}
 
 		\subsubsection{Correctness}
 		
-The correctness of the tactic is in fact obtained by construction. Actually, what we really needed to produce was the proof of the equality $a \simeq b$, and not the normalised terms. The normalised term --and more precisely their construction-- was just a support for building the desired proof of $a \simeq b$, which is precisely the proof of correctness. Thus, there isn't any possibility that we've generated a wrong proof as long as we ensure that :
+The correctness of all of our tactics is in fact obtained by construction. Actually, what we really needed to produce was the proof of the equality $a \simeq b$, and not the normalised terms. The normalised term --and more precisely their construction-- was just a support for building the desired proof of $a \simeq b$, which is precisely the proof of correctness. Thus, there isn't any possibility that we've generated a wrong proof as long as we ensure that :
 \begin{itemize}
 \item We haven't introduced any axioms
 \item We haven't introduced any non total\footnote{Contrary to Coq, Idris allows the definition of non-total functions for helping the development of non-finished real-world projects} function or proof used for the building of the main proof $a \simeq b$. Note that the normalization itself could contain some non total functions without breaking the correctness. That would just mean that when using this tactic, the tactic could potentially loop infinitely and the user would never get his answer. That would of course be bad, but that would not produce any inconsistency --as long as none uses these definitions maliciously to prove something false--, because this non total function would be only used in the world of computations and not in the world of logic.
@@ -81,8 +98,12 @@ $\ \forall\ a\ b,\ decideEq\ (reflect\ a)\ (reflect\ b) = Nothing \rightarrow a 
 This equivalence between $isNormalForm$ and $completeness$ can only be done in the meta theory because it is a proof by contradiction, which is equivalent to the law of excluded middle, that we do not have in constructive logics, on which Idris is based.
 \\
 
-So far, we haven't encountered any goal that should be provable but which failed to be proven automatically. However, if this situation would appear one day, it would certainly come from a small kind of simplification that would have been forgotten somewhere in the hierarchy, and it would be easy to fix it by adding a sub-function that deals with this specific simplification at the appropriated level. And all the more specialised provers that reuse this prover will also be fixed at the same time thanks to the compositionality of our provers. 
+So far, we haven't encountered any goal that should be provable but which failed to be proven automatically. However, if this situation would appear one day, it would certainly come from a small kind of simplification that would have been forgotten somewhere in the hierarchy, and it would be easy to fix it by adding a sub-function that deals with this specific simplification at the appropriated level. All the more specialised provers that reuse this prover would also be fixed at the same time thanks to the compositionality of our provers. 
 \\
 
-Another little advantage of our approach, compared to Coq's approach, is that we have the guarantee that we can't lose any totality because of the $reflect$ function. The reason is that the produced reflected term is indexed over the original --concrete-- value. By this fact, we don't need a $reify$ function. If we want to go from the reflected term to the original --concrete-- value, we can simply return the index. Thus, unlike Coq, we have the formal guarantee that $(reflect\ a)$ is always a faithful representation of $a$ with our approach, which means that we can't lose any totality because of the $reflect$ function.
+Another little advantage of our approach is that we have the guarantee that we can't lose any totality because of the $reflect$ function. The reason is that the produced reflected term is indexed over the original --concrete-- value. By this fact, we don't need a $reify$ function. If we want to go from the reflected term to the original --concrete-- value, we can simply return the index. Thus, unlike Coq, we have the formal guarantee that $(reflect\ a)$ is always a faithful representation of $a$ with our approach, which means that we can't lose any totality because of the $reflect$ function.
 
+
+	\subsection {Conclusion and related work}
+	
+XXX

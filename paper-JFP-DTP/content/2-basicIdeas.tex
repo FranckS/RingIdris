@@ -427,7 +427,7 @@ reflectNat $\Gamma$ (x + y) =
 
 The total extension that has been computed is $\Gamma' ++\ \Gamma''$, and the metavariable $MreflectNat\_1$ simply uses the associativity of the append operation to prove that the provided context $((\Gamma ++\ \Gamma')\ ++\ \Gamma'')$ is equal to the expected one $(\Gamma ++\ (\Gamma'\ ++\ \Gamma''))$. \\
 \\
-The function $weaken$ is easy to write because we're adding the extension $\Gamma'$ on the right of $\Gamma$. For example, extending the context $[v,\ w,\ x]$ with $[y,\ z]$ produces the context $[v,\ w,\ x,\ y,\ z]$. The variables $v$, $w$ and $x$, which were refereed to as the first, second and third variables in $\Gamma$, are still the first, second and third variables in the complete context. That means that a variable $Var\ i$ will still be a $Var\ i$, the position $i$ hasn't changed by augmenting the context.
+The function $weaken$ is easy to write because we're adding the extension $\Gamma'$ on the right of $\Gamma$. For example, extending the context $[v,\ w,\ x]$ with $[y,\ z]$ produces the context $[v,\ w,\ x,\ y,\ z]$. The variables $v$, $w$ and $x$, which were respectively refereed to as the first, second and third variables in $\Gamma$, are still the first, second and third variables in the complete context. That means that a variable $Var\ i$ will still be a $Var\ i$ after the weakening, the position $i$ hasn't changed by augmenting the context.
 
  \begin{figure}[H]
 \figrule
@@ -495,7 +495,8 @@ isElement : {n:Nat} $\rightarrow$ (x : a) $\rightarrow$ ($\Gamma$ : Vect n a)
 
 The metavariable $MreflectNat\_2$ will require us to prove that the provided term of type $Expr\ (\Gamma ++\ [\ ])\ (index\ (convertFin\ n\ i\ Z)\ (\Gamma ++\ [\ ]))$ is transformable into a term of the expected type $Expr\ (\Gamma ++\ [\ ])\ t$. This is doable by using the proof $p$ --returned by $isElement$-- which says that $index\ i\ \Gamma\ =\ t$, together with the fact that $convertFin$ does not change the index, but only converts its type.
 
-As for the case where $t$ wasn't in the original context (the $Nothing$ case), we will need to prove that we can convert $(index\ (lastElement'\ n)\ (\Gamma ++\ [t]))$ into $t$. This is doable because we can prove the lemma $elemInBigerVect\ :\ \{T:Type\}\ \rightarrow \{v:Vect\ n\ T\} \rightarrow (i:Fin\ n) \rightarrow (elem:T) \rightarrow (proofInside : index\ i\ v\ =\ elem) \rightarrow (head:T) \rightarrow (index\ (FS\ i)\ (head::v)\ =\ elem)$.
+As for the case where $t$ wasn't in the original context (the $Nothing$ case), we will need to prove that we can convert $(index\ (lastElement'\ n)\ (\Gamma ++\ [t]))$ into $t$. This is doable because we can prove the lemma $indexOfLastElem\ :\ \{T:Type\}\ \rightarrow\ \{n:Nat\}\ \rightarrow\ (v:Vect\ n\ T)\ \rightarrow\ (x:T)\ \rightarrow\ index\ (lastElement'\ n)\ (v++[x])\ =\ x$ 	
+
             
 That finishes the automatic reflection for this specific prover. The encoding of $((x+y) + (x+z))$ can now be produced automatically with $reflectNat\ [\ ]\ ((x+y)\ +\ (x+z))$.
             

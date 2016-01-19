@@ -1,4 +1,5 @@
 \section {Results}
+\label{sect:results}
 
 We've implemented a hierarchy of tactics for proving equalities in various algebraic structures. The implementation uses a type-safe reflection mechanism where reflected expressions are indexed over idris expressions, which enables to pull out the proof easily from the index and to write the reduction procedures on a correct-by-construction way. This approach removes much of the difficulty of the construction of the proof. All the proofs we had to do during our implementation were straightforward.
 
@@ -59,4 +60,4 @@ The goal can't be solved directly by calling the commutative monoid prover, as i
     (m-3-1) edge [double] node [right] {$=$} (m-2-2);    
 \end{tikzpicture}
 
-This example was a bit unconventional in the sense that 4 calls to the normalisation function were needed. Usually, only two calls to the normalisation are enough, one for the left hand side and one for the right hand side, and they are done automatically in the decision procedure $commutativeMonoidDecideEq$. These two extra calls were needed because of the known equality that we had from the induction hypothesis. This example\footnote{Which can be found in $RingIdris/Examples/binary.idr$}, which was therefore at the boundary to deduction modulo~\cite{Dowek03}, shows that our implementation can deal with concrete goals obtained during the development of real programs.
+This example was a bit unconventional in the sense that 4 calls to the normalisation function were needed. Usually, only two calls to the normalisation are enough, one for the left hand side and one for the right hand side, and they are done automatically in the decision procedure $commutativeMonoidDecideEq$. These two extra calls were needed because of the known equality that we had from the induction hypothesis. This example\footnote{Which can be found in $RingIdris/Provers/binary.idr$}, which was therefore at the boundary to deduction modulo~\cite{Dowek03}, shows that our implementation can deal with concrete goals obtained during the development of real programs.

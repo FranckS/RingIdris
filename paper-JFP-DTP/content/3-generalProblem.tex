@@ -8,9 +8,9 @@ We will construct a hierarchy of type classes and will write one tactic for each
 
 \subsection {Hierarchy of type classes}
 
-In fact, we don't only want to be able to prove equalities, but more generally equivalence. We want to give the user the possibility to define his own equivalence notion, assuming he's able to provide the properties of the structure he wants to use. This equivalence relation on $c$ has the following profile $(\simeq) : c \rightarrow y \rightarrow Type$\footnote{This 'Type' would be a 'Prop' in systems --like Coq-- that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
+In fact, we don't only want to be able to prove equalities, but more generally equivalence. We want to give the user the possibility to define his own equivalence notion, assuming he's able to provide the properties of the structure he wants to use. This equivalence relation on $c$ has the following profile $(\simeq) : c \rightarrow c \rightarrow Type$\footnote{This 'Type' would be a 'Prop' in systems --like Coq-- that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
 
-All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of ``set\footnote{This notion of ``Set" isn't a formalisation of sets and their elements, but is only the Setoid that we need} ", which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this type class :
+All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of ``set\footnote{This notion of ``Set" isn't a formalisation of sets and their elements, but is only the Setoid that we need} ", which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this typeclass :
 
 \begin{figure}[H]
 \figrule
@@ -50,7 +50,7 @@ class Set c => Magma c where
 \end{figure}
 
 This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equiped with the equivalence relation $\simeq$ and the test $set\_eq$), and if it has a $Plus$ operation.
-In fact, all operations, like the Plus here, need to be "compatible" with the equality : $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow (Plus\ c1\ c2) \simeq (Plus\ c1'\ c2')$. This need only comes from the fact that we're dealing with any equivalence relation.
+In fact, there is an additional requirement which is that all operations, like the Plus here, need to be "compatible" with the equality : $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow ((Plus\ c1\ c2) \simeq (Plus\ c1'\ c2'))$. This requirement comes from the fact that we're dealing with any equivalence relation. The user is free to use his own equivalence relation, but it should be compatible with the operations that he is using.
 
 A bit more interesting is the Semi-Group typeclass. A Semi-Group is a Magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation.
 
@@ -84,9 +84,9 @@ class SemiGroup c => Monoid c where
 \label{Monoid}
 \figrule
 \end{figure}
-We can continue the hierarchy with groups, which are a more interesting.
-A group is a monoid, with two new operations. The binary operation $Minus$, and the unary operation $Neg$. We must have the property that $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group, since we can always rewrite $(a-b)$ into $(a\ +\ (-b))$. We let the possibility to express a $Minus$ just for convenience for the user, as he won't have to rewrite by hand his $Minus$ operations with sums of negations.
-The second axiom, which is the most important one for a Group, is the fact that any value $c1$ admits $Neg\ c1$ for inverse, where being an inverse is the following property :
+We can continue the hierarchy with the more interesting structure of Group.
+A group is a monoid, with two new operations. The binary operation $Minus$, and the unary operation $Neg$. We must have the property that $Minus$ can always be simplified with the $Neg$ and the $Plus$. That means that $Minus$ is not a "primitive" operation of a Group, since we can always rewrite $(a-b)$ into $(a\ +\ (-b))$. We let the possibility to express a $Minus$ just for convenience for the user, so that he won't have to rewrite by hand his $Minus$ operations with sums of negations.
+The second axiom, which is the most important one for a Group, is the fact that any value $c1$ admits $Neg\ c1$ for inverse, where being an additive inverse is the following property :
 
 \begin{figure}[H]
 \figrule
@@ -111,7 +111,7 @@ class Monoid c => Group c where
 
 This hierarchy can be extended without difficulty with Abelian groups (with the axiom of commutativity), Ring, Commutative Rings...
 
-These type classes will somehow be used as predicates on types. In order to call a prover on a type $c$, the user of the system will have to satisfy the corresponding type class by providing an instance of it for his type $c$, ie, he will have to prove that the corresponding properties effectively hold for $c$.
+These typeclasses will somehow be used as predicates which classify types. In order to call a prover on a type $c$, the user of the system will have to satisfy the corresponding typeclass by providing an instance of it for his type $c$, ie, he will have to prove that the corresponding properties effectively hold for $c$.
 
 Note that the properties will either be obtained by implementation if the operations are real --computable-- functions, or by axioms if the user is working in an axiomatised theory where the operations ($Plus$, $Neg$, ...) are defined as axioms.
 
@@ -121,7 +121,7 @@ As discussed in the section 2.1 on the smaller problem, the algorithm of normali
 	\subsection {Reflected terms}
 
 We need to define a datatype for reflecting terms in each algebraic structure.
-Each of these datatype is parametrised over a type $c$, which is the real type on which we want to prove equalities (the $carrier$ type). It is also indexed over an instance of the corresponding type class for $c$ (we usually call it $p$, because it behaves as a $proof$ telling that the structure $c$ has the desired properties), and indexed over a context (a vector $\Gamma$ of $n$ elements of type $c$), and also indexed over a value of type $c$, which is precisely the concrete value being encoded.
+Each of these datatype is parametrised over a type $c$, which is the real type on which we want to prove equalities (the $carrier$ type). It is also indexed over an instance of the corresponding typeclass for $c$ (we usually call it $p$, because it behaves as a $proof$ telling that the structure $c$ has the desired properties), and indexed over a context (a vector $\Gamma$ of $n$ elements of type $c$), and also indexed over a value of type $c$, which is precisely the concrete value being encoded.
 A magma is only equipped with one operation $Plus$. Thus, we only have three concepts to express in order to reflect terms in a Magma : constants, variables, and additions.
 
 
@@ -145,7 +145,7 @@ data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
 \end{figure}
 
 When we encode a constant $c1$ in a context $\Gamma$, we use the constructor $ConstMa$ to produce a term of type $ExprMa\ p\ \Gamma\ c1$ : the index representing the concrete value is precisely this constant $c1$.
-If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (ie, a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation defined in the current instance $p$.
+If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (ie, a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation available in the current instance $p$.
 
 
 Because there is no additional operations in a SemiGroup or in a Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
@@ -187,7 +187,7 @@ Running the normalisation procedure on $ex$ will produce the normal form $ex'$ o
 	\subsection {Deciding equivalence}
 	
 Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equality without brute-forcing a serie of rewriting, that might even not terminate.
-These functions will compute this canonical represent, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the real value indexing the original term and the real value indexing the produced term.
+These normalisation functions will compute this canonical represent, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the real value indexing the original term and the real value indexing the produced term.
 
 \begin{figure}[H]
 \figrule
