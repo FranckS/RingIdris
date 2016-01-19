@@ -37,7 +37,8 @@ we will see how this is defined in Idris, and how it differs from the more
 primitive judgemental equality.
 
 \subsection{Propositional and Judgemental Equalities in Intentional Type Theories}
-In Mathematics, equality is a proposition, which can hold or otherwise, or be disproved.
+In Mathematics, equality is a proposition, e.g. we can disprove an equality or 
+assume an equality as a hypothesis.
 Since in type theory, propositions are seen as types~\cite{How80}, the
 proposition that two elements $x$ and $y$ are equal corresponds to a type.
 Thus, if $x$ and $y$ are of type $a$, then the type
@@ -45,11 +46,11 @@ $Id_a(x, y)$ represents the proposition ``$x$ is equal to $y$". If this type is
 inhabited, then $x$ is said to be provably equal to $y$.  Thus, $Id$ is a type
 family (parametrised by the type $a$) indexed over two elements of $a$, giving
 $Id (a:Type)\ :\ a \rightarrow a \rightarrow Type$. For
-convenience, we write $Id_a\ x\ y$ as $x\ =_a\ y$.  This equality is the
+convenience, we write $(Id_a\ x\ y)$ as $(x\ =_a\ y)$. This equality is the
 equality which can be manipulated in the language. 
 
-There is another more
-primitive notion of equality in Intentional Type Theories, called judgemental
+There is another, more
+primitive, notion of equality in Intentional Type Theories, called judgemental
 equality, or definitional equality. This second equality means ``equal by
 definition'' The judgemental equality cannot be negated or
 assumed; we cannot talk about this primitive equality inside the theory.
@@ -58,7 +59,7 @@ evaluating the definitions. For example, if $f\ :\ \mathbb{N}\ \rightarrow\
 \mathbb{N}$ is defined by $f\ x\ \equiv\ x\ +\ 2$, then $f\ 5$ is
 definitionally equal to $7$. Definitional equality entails unfolding
 of functions and reductions, until no more reduction can be
-performed. We denote definitional equality by $\equiv$.
+performed. We denote the definitional equality by $\equiv$.
 
 The judgemental equality has to be included in the propositional equal, because
 what is equal by definition should be provably equal.  This is accomplished by
@@ -72,7 +73,7 @@ data Id : a -> a -> Type where
 
 The only way for $(Id_a\ x\ y)$ to be inhabited is therefore that $x$ should be
 (by definition!) $y$. In this case, the constructor $Refl$ helps to create a
-proof of this equality : $Refl\ x$ is precisely the proof which says that
+proof of this equality : $(Refl\ x)$ is precisely the proof which says that
 $x=_ax$. 
 
 When reading these definitions, one could think that the
@@ -182,7 +183,7 @@ For example, with the line corresponding to the computation
 $1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$)
 and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
 
-It should be pointed that the proof component of this function is established without any effort, as we always give the ``Refl" for the proof. Indeed, for each of the eight patterns, a simple computation reduces the given and expected values to the same value, and ``Refl" can therefore be used. We also note that
+It should be pointed that the proof component of this function is established without any effort, as we always give ``Refl" for the proof. Indeed, for each of the eight patterns, a simple computation reduces the given and expected values to the same value, and ``Refl" can therefore be used. We also note that
 there is no need to produce any lemma of correctness about $addBit$ afterwards.
 The correct by construction style in which it is written already gives the
 property that we want: the two bits produced effectively represent the
@@ -192,7 +193,7 @@ We finally define the function adding two binary numbers and a carry flag.
 This addition works for two binary numbers
 expressed with the same number of bits, and it produces a result with one more
 bit. This result represents the value $c + x + y$, where $c$ 
-representis the value of the input carry bit, and $x$ and $y$ represent
+represents the value of the input carry bit, and $x$ and $y$ represent
 the values of the two binary numbers given in input. Thus, we'd like to
 be able to write:
 
@@ -287,7 +288,7 @@ for the Idris language.
 
 The principal novelty is in the approach that we follow, using a
 new kind of \emph{type-safe reflection}.  Working by reflection for implementing
-tactics has been done several times, for the implementation of a
+tactics has been done several times, including for the implementation of a
 ring solver for the Coq proof assistant, but without
 providing any guarantees, contrary to our type-safe reflection. We will
 compare our approach with other implementations in Section~\ref{sect:discuss}.
@@ -316,7 +317,7 @@ We make the following contributions:
         for the complete hierarchy of algebraic structures.
 
         \item We develop a hierarchy of tactics where each tactic reuses the
-        rewriting machinery from the structure immediately above in the hierarchy.
+        rewriting machinery from the structure immediately below in the hierarchy.
         For example,
         simplifying neutral elements is only implemented at the monoid level,
         and each level above monoid reuses it. Re-usability can be quite tricky
