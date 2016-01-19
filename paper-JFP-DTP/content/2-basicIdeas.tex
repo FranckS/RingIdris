@@ -43,19 +43,13 @@ Variables are represent using a De Brujin-like index : (Var FZ) denotes a variab
 The type Expr is indexed over a vector of numbers $\Gamma$, which is the context of all universally quantified variables. In the example 1, we will encode $(x1 + x2) + (x3 + x4)$ and $(x1 + (x2 + x3)) + x4$ in a context where four elements are present. The first element of this context denotes the variable $x1$, the second denotes $x2$, and so on.
 Thus, the left hand side will be encoded by :
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 e1 : (x, y, z : Nat) $\rightarrow$ 
            Expr [x, y, z]
 e1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
                 (Plus (Var FZ) (Var (FS (FS FZ))))
 \end{lstlisting}
-\end{center}
-\caption{Reflected LHS with the first version of reflected numbers showed in \ref{reflectedNaturalNumbers0}}
-\figrule
-\end{figure}
+
 
 \subsection{Type safe reflection}
 
@@ -201,9 +195,7 @@ This datatype has only two constructors. In fact, it combines the previous $Var$
  
 As part of the normalization, we write a function $expr\_l$ which converts an $Expr\ \Gamma\ x$ to a $LExpr\ \Gamma\ x'$ and which produces a proof of $x=x'$. This function will therefore use the two available properties multiple times, while rewriting the term until the fully left associative desired form is obtained.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 expr_l : Expr $\Gamma$ x 
          $\rightarrow$ (x' ** (LExpr $\Gamma$ x', x = x'))
@@ -225,11 +217,7 @@ expr_l (Plus ex ey) =
             (_ ** (LPlus rec i, ?MplusLExpr))
 
 \end{lstlisting}
-\end{center}
-\caption{Production of the left associative form}
-\label{expr_l}
-\figrule
-\end{figure}
+
 In the case of an addition $Plus\ ex\ ey$, the function $expr\_l$ does the job of normalisation recursively on $ex$ and on $ey$, and then it uses the sub-function $plusLExpr$ to normalise the addition of these two --already normalised-- terms. This sub-function $plusLExpr$ has two kind of simplifications to do. When the second argument is an $LZero$, it simply returns its first arguments along with the justification for this rewriting, which obviously uses $plusZeroRightNeutral$. However, when the second argument is an $LPlus\ e\ i$, it continues recursively by computing $plusLExpr\ ex\ e$, and it finally adds $i$ to it. That had for effect to move the parenthesis on the left, and this treatment is going to be justified during the proof of the meta variable $MplusLExpr$ by the use of $plusAssociative$.
 
 This metavariable $MplusLExpr$ requires us to prove the goal : $x1 + (x2 + index\ i\ \Gamma) = xrec + index\ i\ \Gamma$ in a context where we've got, amongst other things, $prfRec : x1 + x2 = xrec$.

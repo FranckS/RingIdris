@@ -5,20 +5,19 @@ We've implemented a hierarchy of tactics for proving equalities in various algeb
 
 In section 1, we've presented a small example with binary numbers and their addition, for which the user had to prove the lemma $adc\_lemma\_2$ by hand. We're now almost ready to use our commutative monoid prover for building automatically a proof of the desired equality.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 plus (plus c (plus bit (plus v (plus v 0)))) (plus bit (plus v (plus v 0))) 
    = plus v2 (plus (plus (plus v1 v) v) (plus (plus (plus v1 v) v) 0))
 \end{lstlisting}
-\end{center}
-\label{goal}
-\figrule
-\end{figure} 
 
-In a context we're we've got the following induction hypothesis \[ihn:(plus\ (plus\ c\ bit)\ bit1\ =\ plus\ vLsb\ (plus\ vCarry0\ (plus\ vCarry0\ 0)))\]
-The goal can't be solved directly by calling the commutative monoid prover, as it uses different variables in its left and right hand side. However, the induction hypothesis $ihn$ --obtained with the recursive call-- creates a link between these variables. Therefore, the solution is simply to use our reduction procedure for commutative monoid four times : two for reducing the LHS and RHS of $ihn$ --that gives a new proof of equality $ihn'$--, and two for reducing the LHS and RHS of the goal. After these four normalisations, it becomes possible to simply rewrite the new induction impothesis $ihn'$ on the current goal.
+In a context we're we've got the following induction hypothesis 
+
+\begin{lstlisting}
+ihn:(plus (plus c bit) bit1 = plus vLsb (plus vCarry0 (plus vCarry0 0)))
+\end{lstlisting}
+
+This goal can't be solved directly by calling the commutative monoid prover, as it uses different variables in its left and right hand side. However, the induction hypothesis $ihn$ --obtained with the recursive call-- creates a link between these variables. Therefore, the solution is simply to use our reduction procedure for commutative monoid four times : two for reducing the LHS and RHS of $ihn$ --that gives a new proof of equality $ihn'$--, and two for reducing the LHS and RHS of the goal. After these four normalisations, it becomes possible to simply rewrite the new induction impothesis $ihn'$ on the current goal.
 
 \begin{tikzpicture}
   \matrix (m) [matrix of math nodes,row sep=3em,column sep=4em,minimum width=2em]

@@ -63,13 +63,13 @@ As mentioned, Coq's implementation of a ring prover was also using proof-by-refl
 Doing proofs by reflection has been intensively investigated by many authors, including Adam Chlipala, in particular in his book~\cite{ChlipalaBook} and in~\cite{Malecha14}. However, we haven't found anything similar to the type-safe reflection technique that we've presented in this paper. 
 \\
 
-At the connexion bewteen proof automation and proof by reflection, we can cite SSreflect~\cite{GonthierTuto}, which is an extension of Coq which aims to provide additional formalisation and tactics suitable for long mathematical proofs.
+At the connexion bewteen proof automation and proof by reflection, we can cite SSreflect~\cite{GonthierTuto}, which is an extension of Coq which aims to provide additional formalisations and tactics suitable for long mathematical proofs.
 \\
 
 Proof automation has been investigated for various proof assistants and programming languages. In Coq, appart from the $ring$ prover~\cite{Coq2005}, there's also the $omega$ solver~\cite{Cregut04}, which solves a goal in Presburger arithmetic (i.e. a universally quantified formula made of equations and inequations), and a Field~\cite{DelahayeField} decision procedure for real numbers, which plugs to Coq's ring prover after simplification of the multiplicative inverses. Various automations have also been done in Agda~\cite{Lindblad04}.
 \\
 
-Finally, when we leave the ground of nice mathematical structures (like groups, rings and fields), one can decide to work with various rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there's usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} starts.
+Finally, when we leave the ground of nice mathematical structures (like groups, rings and fields), one can decide to work with arbitrary rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there's usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} starts.
 
 
 	\subsection {Correctness and completeness}
@@ -106,9 +106,9 @@ Another little advantage of our approach is that we have the guarantee that we c
 
 	\subsection {Conclusion and futur work}
 	
-This paper has shown that type-safe reflection techniques can enable to manipulate proofs terms easily. We've been able to build an entire hierarchy of tactics for algebraic structures precisely because the construction of the proof terms has been greatly facilitated by the use this technique. We end up with a hierarchy of reflexive tactics for proving equivalence in semigroups, monoids, commutative monoids, groups, commutative groups, pre semi-ring, semi-ring, rings and commutative rings, without having had to repeat our efforts.
+This paper has shown that type-safe reflection techniques can enable to manipulate proofs terms easily. We've been able to build an entire hierarchy of tactics for algebraic structures precisely because the construction of the proof terms has been greatly facilitated by the use of this technique. We end up with a hierarchy of reflexive tactics for proving equivalence in semigroups, monoids, commutative monoids, groups, commutative groups, pre semi-ring, semi-ring, rings and commutative rings, without having had to repeat our efforts.
 
-It is even possible to extend a prover in order to build a dedicated one for a specific structure that isn't exactly a well known algebraic structure. We are at the moment investigating the extention of the pre semi-ring prover in order to build a prover for regular expressions. Regular expressions have a union of language playing the role of $+$ (which is associative, commutative, and which has a neutral element $\emptyset$) and a product of language playing the role of $*$, which is associative, distributive over the union, and which admits the empty word $\epsilon$ for neutral element. However, it has also a Kleene $star$ construction and a few properties about it. We currently aim to extend the pre semi-ring prover in order to build a prover for regular expression. Such a prover would be useful for doing formally verified transformations of regular grammars and final states machines for free, which could go up to a formally verified (for free!) parser generator for regular languages.
+It is even possible to extend a prover in order to build a dedicated one for a specific structure that isn't exactly a well known algebraic structure. We are at the moment investigating the extention of the pre semi-ring prover in order to build a prover for regular expressions. Regular expressions have a union of language playing the role of $+$ (which is associative, commutative, and which has a neutral element $\emptyset$) and a product of language playing the role of $*$, which is associative, distributive over the union, and which admits the empty word $\epsilon$ for neutral element. However, it has also a Kleene $star$ construction and a few properties about it. We currently aim to extend the pre semi-ring prover in order to build a prover for regular expression. Such a prover would be useful for doing formally-verified-for-free transformations of regular grammars and final states machines, which could go up to a formally verified (for free!) parser generator for regular languages.
 
 
 
