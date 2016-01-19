@@ -370,7 +370,8 @@ goal_final : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
 		    )
 goal_final l c bit0 bit1 x x1 v v1 known = getJust (goal_aux l c bit0 bit1 x x1 v v1 known)
 
--- Use (\l, c, bit0, bit1, x, x1, v, v1, known => goal_final l c bit0 bit1 x x1 v v1 known) to print the generated proof
+--  To print the generated proof do :
+-- (\l, c, bit0, bit1, x, x1, v, v1, known => goal_final l c bit0 bit1 x x1 v v1 known)
 
 
 

@@ -3,28 +3,19 @@
 \label{sect:reuse}
 
 We now describe briefly how the normalisation functions work for some of the different algebraic structures, and we also explain how we've been able to reuse each prover for the more specialised structures. The construction of the desired proof is always done bit by bit, because every rewriting of the reflected term is immediately justified by a little accompanying proof which shows the equivalence of the previous and new index.
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 littleRewriting : (p:algebraic structure on c) $\rightarrow$ ($\Gamma$:Vect n c) 
        $\rightarrow$ {c1:c} $\rightarrow$ (Expr p $\Gamma$ c1) $\rightarrow$ (c2 ** (Expr p $\Gamma$ c2, c1 $\simeq$ c2))
 littleRewriting p $\Gamma$ e = (new expression, justification)
 \end{lstlisting}
-\end{center}
-\caption{General pattern of a function doing a part of the normalisation}
-\label{littleRewriting}
-\figrule
-\end{figure}
+
 
 	\subsection {Normalization of terms in a Semi-Group}
 In a semigroup, we only have to deal with the property of associativity. As it was the case with the toy example in section 2, we will have to rearrange the parenthesis on a systematic way, either left associative, or right associative. But this is not the only thing that we have to do. If $x$, $y$ and $z$ denote variables, we don't only want to transform $x+((y+4)+(5+z))$ into $(((x+y)+4)+5)+z$ --we assume we've chosen the complete left associative form--. We also want the constants $4$ and $5$ to be simplified together, because they are close to each other (and we have the right to do so because we can rearrange the parenthesis thanks to the associativity), and the result should be $((x+y)+9)+z$ on this example. Three possible patterns need this treatment : $(x+const1)+(const2+y)$, $(x + const1) + const2$  and $const1 + (const2 + x)$ where $const1$ and $const2$ denote constants. The simplification between the constants $const1$ and $const2$ is denoted here as $[const1+const2]$, and this computation can be done at the underneath $Magma$ level, with its normalisation function called $magmaReduce$.
 The first pattern is rewritten into $(x + [const1+const2]) + y$, the second into $(x + [const1+const2])$ and the third one into $([const1 + const2] + x)$.
 We show the code for the first pattern.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 assoc : (p:SemiGroup c) $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ {c1:c} 
         $\rightarrow$ (ExprSG p $\Gamma$ c1) $\rightarrow$ (c2 ** (ExprSG p $\Gamma$ c2, c1 $\simeq$ c2))
@@ -38,11 +29,7 @@ assoc p $\Gamma$ (PlusSG
     let e_3' = magma_to_semiGroup p e_3 in
         (_ ** ((PlusSG (PlusSG e_ihx e_3') e_ihy), ?Massoc1))
 \end{lstlisting}
-\end{center}
-\caption{Computing with associativity in a Semi-Group, first pattern}
-\label{assoc}
-\figrule
-\end{figure}
+
 The treatment is applied recursively on the sub-expressions $ex$ and $ey$, which produces the new expressions $e\_ihx$ and $e\_ihy$ together with the new concrete values they represent ($r\_ihx$ and $r\_ihy$) and the proofs ($p\_ihx$ and $p\_ihy$) justifying these transformation on the concrete values. Note that the simplification $[const1+const2]$ is done by calling the magma prover, which gives a new expression $e3$, even thought it could perfectly be done directly here, but we wanted to show how a prover can be reused for building another prover on an easy example. The functions of conversion between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$ are helping for this task.
 \\
 A meta-variable Massoc1 has been introduced. This metavariable corresponds to a proof obligation for the following property :
@@ -58,8 +45,9 @@ In a monoid, we simply have to eliminate zeros, thanks to the two properties of 
 
 The normalization of reflected expressions in a monoid is simply made of a call to the function reducing terms on a semigroup, followed by a call to elimZero that will eliminates the remaining additions with zeros. 
 
+\subsection {Reusing the monoid prover for building the group prover}
 
-The first thing that the reduction function of the group prover will have to do is simply to transform every subtraction $(a-b)$ into $(a + (-b))$, and we are entitled to do so precisely because we have available the property $Minus\_simpl$ contained in the instance of the type class.
+The first thing that the reduction function of the group prover has to do is to transform every subtraction $(a-b)$ into $(a + (-b))$, and we are entitled to do so precisely because we have available the property $Minus\_simpl$ contained in the instance of the typeclass.
 After that, the reduction continues with the propagation of the $Neg$ operation inside the parenthesis and $-(a+b)$ is transformed into $(-b) + (-a)$. Note that we have to be careful and not simplify it to $(-a) + (-b)$ as it would assume that we're having a commutative monoid.
 Then, because we've pushed some negations inside the parenthesis, we might have sequences of two or more consecutive negations. We simplify them by removing two consecutive negations every time that we find such a sequence. Once this is done, there is a last major step specific of groups to accomplish, which is the simplification of sums of symmetric elements. 
 
@@ -113,7 +101,7 @@ The normalisation of the commutative group prover starts by calling the group pr
 \subsection {Reusing the commutative group prover for building the ring prover}
 
 The most important specific task of the ring reduction is to develop entirely the expression with the use of distributivity. After that, it needs to call the commutative group prover, but again, we're losing some expressivity as it won't be possible to express a product at the commutative group level. We follow the same idea that we've implemented for the conversion going from group to monoid, and we will use some specific encoding. More precisely, all monomials (containing products), like $3*(x*y)$ are encoded as variables when passed to the commutative group prover. This is possible because we've fully developed the expression, which had for effect to ensure that a product can't contain a sum.
-We will add a coonstructor to the type $Variable$ in order to encode these monomials.
+We add a coonstructor to the type $Variable$ in order to encode these monomials.
 
 
 

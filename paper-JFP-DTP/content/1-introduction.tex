@@ -282,7 +282,7 @@ form, being equal is a matter of being syntactically the same entity.
 Ring solvers are already implemented for various proof
 assistants, including Coq~\cite{Coq2005} and Agda\footnote{\url{http://wiki.portal.chalmers.se/agda/\%22?n=Libraries.UsingTheRingSolver}}. 
 In this paper, we describe a certified
-implementation of an automatic prover for equalities in a
+implementation\footnote{The implementation of our hierarchy of tactics can be found online at \url{https://github.com/FranckS/RingIdris}} of an automatic prover for equalities in a
 \emph{hierarchy} of algebraic
 structures, including Monoid, Groups and Rings (all potentially commutative),
 for the Idris language. 
@@ -321,7 +321,7 @@ We make the following contributions:
         rewriting machinery from the structure immediately below in the hierarchy.
         For example,
         simplifying neutral elements is only implemented at the monoid level,
-        and each level above monoid reuses it. Re-usability can be quite tricky
+        and each level inheriting from it will reuse it. Re-usability can be quite tricky
         to obtain when we want to reuse a prover from a structure which is less
         expressive. For example, reusing the monoid prover for building the
         group prover is not trivial, since we lose the possibility to express

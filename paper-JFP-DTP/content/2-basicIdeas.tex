@@ -44,8 +44,7 @@ The type Expr is indexed over a vector of numbers $\Gamma$, which is the context
 Thus, the left hand side will be encoded by :
 
 \begin{lstlisting}
-e1 : (x, y, z : Nat) $\rightarrow$ 
-           Expr [x, y, z]
+e1 : (x, y, z : Nat) $\rightarrow$ Expr [x, y, z]
 e1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
                 (Plus (Var FZ) (Var (FS (FS FZ))))
 \end{lstlisting}
@@ -158,9 +157,7 @@ As mentioned, the proof for the metavariable $MbuildProof$ is just a rewriting o
 
 Finally, the main function which tries to prove the equality $x=y$ simply has to reduce the two reflected terms encoding the left and the right hand side, and to use the function $buildProof$ in order to compose the two proofs that we just obtained :
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
   testEq : Expr $\Gamma$ x $\rightarrow$ Expr $\Gamma$ y $\rightarrow$ Maybe (x = y)
   testEq ex ey = 
@@ -168,11 +165,7 @@ Finally, the main function which tries to prove the equality $x=y$ simply has to
      let (y' ** (ey', py)) = reduce ey in
         buildProof ex' ey' px py 
 \end{lstlisting}
-\end{center}
-\caption{testEq}
-\label{testEq}
-\figrule
-\end{figure}
+
 
 We now need to define the function reduce. To do that, we have to decide a canonical representation of associative natural numbers. We decide that the left associative form will be the canonical representation. Thus, the $reduce$ function has to rewrite the reflected terms by rearranging the parentheses in order to transform the underlying concrete number in the form $(...((x1 + x2) + x3) ... + xn)$. To do so, one possibility is to define a new datatype which captures this property, and to write a function going from $Expr$ to this new type. Thus it will be easier to be certain that we are effectively computing the normal form : forcing properties to hold by the shape of a datatype is a good usage of dependent types when, like here, it doesn't introduce more complications.
 
@@ -286,9 +279,6 @@ It's now time to see how to use this minimalist ``tactic".
 Let's define two expressions $e1$ and $e2$, respectively representing the numbers $((x + y) + (x + z))$ and $(x + ((y + x) + z))$ in the context $[x, y, z]$ of three abstracted variables.
 
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 e1 : (x, y, z : Nat) 
     $\rightarrow$ Expr [x, y, z] ((x+y) + (x+z))
@@ -304,11 +294,7 @@ e2 x y z = Plus (Var FZ)
                             (Var FZ)) 
                       (Var (FS (FS FZ))))
 \end{lstlisting}
-\end{center}
-\caption{Two test expressions}
-\label{e1_e2}
-\figrule
-\end{figure}
+
 
 The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can generate a proof of this fact by using $testEq$.
 
