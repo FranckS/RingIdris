@@ -309,7 +309,7 @@ We make the following contributions:
         \item The normalisation procedures are implemented by following a
         correct by construction approach, instead of implementing a
         normalization procedure, and proving afterwards that this function
-        effectively computes a normal form. This approach is much more suitable
+        is correct. This approach is much more suitable
         for programming languages like Idris. Again, this approach will be
         presented in Section~\ref{sect:ideas} on the smaller problem, 
         and in Sections~\ref{sect:general} and~\ref{sect:reuse}
@@ -323,7 +323,7 @@ We make the following contributions:
         to obtain when we want to reuse a prover from a structure which is less
         expressive. For example, reusing the monoid prover for building the
         group prover is not trivial, since we lose the possibility to express
-        negations ($-x$) and minus operations ($x-y$). Some specific encodings
+        negations ($-x$) and subtractions ($x-y$). Some specific encodings
         will be presented in Section~\ref{sect:reuse} for solving this problem.
 
 \end{itemize}
