@@ -16,6 +16,9 @@ In a semigroup, we only have to deal with the property of associativity. As it w
 The first pattern is rewritten into $(x + [const1+const2]) + y$, the second into $(x + [const1+const2])$ and the third one into $([const1 + const2] + x)$.
 We show the code for the first pattern.
 
+\begin{figure}[H]
+\figrule
+\begin{center}
 \begin{lstlisting}
 assoc : (p:SemiGroup c) $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ {c1:c} 
         $\rightarrow$ (ExprSG p $\Gamma$ c1) $\rightarrow$ (c2 ** (ExprSG p $\Gamma$ c2, c1 $\simeq$ c2))
@@ -29,6 +32,11 @@ assoc p $\Gamma$ (PlusSG
     let e_3' = magma_to_semiGroup p e_3 in
         (_ ** ((PlusSG (PlusSG e_ihx e_3') e_ihy), ?Massoc1))
 \end{lstlisting}
+\end{center}
+\caption{Computing with associativity in a Semi-Group, first pattern}
+\label{assoc}
+\figrule
+\end{figure}
 
 The treatment is applied recursively on the sub-expressions $ex$ and $ey$, which produces the new expressions $e\_ihx$ and $e\_ihy$ together with the new concrete values they represent ($r\_ihx$ and $r\_ihy$) and the proofs ($p\_ihx$ and $p\_ihy$) justifying these transformation on the concrete values. Note that the simplification $[const1+const2]$ is done by calling the magma prover, which gives a new expression $e3$, even thought it could perfectly be done directly here, but we wanted to show how a prover can be reused for building another prover on an easy example. The functions of conversion between the different levels : $semiGroup\_to\_magma$ and $magma\_to\_semiGroup$ are helping for this task.
 \\
@@ -58,38 +66,25 @@ The sum to simplify might be more complex, with two or three levels of of $Plus$
 The last remaining step is to call the monoid prover. Unfortunately, we can't directly write a function of conversion from group to monoid, because in a group we have the possibility to express negations and subtractions, that we do not have in a monoid. The idea is that we will encode negations as variables, and we will let the monoid prover deal with them as ordinary variables. In order to achieve this goal, we need the following datatype :
 
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 data Variable : {c:Type} -> {n:Nat} -> (Vect n c) -> c -> Type where
     RealVariable : ($\Gamma$:Vect n c) -> (i:Fin n) -> Variable $\Gamma$ (index i $\Gamma$)
     EncodingNegOfVar : ($\Gamma$:Vect n c) -> (i:Fin n) -> Variable $\Gamma$ (Neg (index i $\Gamma$))
 \end{lstlisting}
-\end{center}
-\caption{Real variables and encodings}
-\label{Variable}
-\figrule
-\end{figure}
+
 
 We only need to encode negations of variables, as negations of constants can be simplified into a constant. Also, there can't be a negation of something more complicated than an atom (a variable or a constant), because of the treatments we've done beforehand, especially because we've propagated all the negations symbols inward the parenthesis.
 
 The constructor for variable now takes a Variable, instead of taking directly a $(Fin\ n)$.
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
     VarG : (p:Group c) -> {$\Gamma$:Vect n c} -> {val:c} 
           -> (Variable $\Gamma$ val) -> ExprG p $\Gamma$ val
 \end{lstlisting}
-\end{center}
-\caption{new Var constructor}
-\label{VarG}
-\figrule
-\end{figure}
+
 
 Thanks to this encoding, we can now transform an $ExprG$ to an $ExprMo$. A constant $(ConstG\ p\ \Gamma\ c1)$ will be transformed into the corresponding constant $(ConstMo\ p\ \Gamma\ c1)$, a $PlusG$ into the corresponding $PlusMo$, a variable $(VarG\ p\ var)$ into the corresponding variable $(VarMo\ p\ var)$, the negation of a constant into the resulting constant, and finally the negation of a variable $i$ into a $(Var\ p\ \Gamma\ (EncodingNegOfVar\ \Gamma\ i))$.
-Once this encoding is computed, the antepenultimate step is to call the monoid prover and to let it finish the normalisation. Finally, we need to convert back the result into an $ExprG$ by interpreting the $EncodingNegOfVar$ into a $Neg$ of the corresponding variable.
+Once this encoding is computed, the antepenultimate step is to call the monoid prover and to let it finish the normalisation. Finally, we need to convert back the result into an $ExprG$ by interpreting the potential $EncodingNegOfVar$ into $Neg$ of the corresponding variable.
 
 
 \subsection {Reusing the group prover for building the commutative group prover}

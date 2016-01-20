@@ -101,9 +101,7 @@ The tactic will work as follow.
 We have an expression $ex$ encoding $x$, and an expression $ey$ encoding $y$. We will normalize $ex$, and this will give a new concrete number $x'$, a new expression $ex':Expr\ \Gamma\ x'$, and a proof of $x=x'$. We will do the same with $ey$, and we will get a new concrete number $y'$, an expression $ey':Expr\ \Gamma\ y'$, and a proof of $y=y'$. \\
 It is now enough to simply compare $ex'$ and $ey'$ using a standard syntactical equality because these two expressions are now supposed to be in normal form :
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 eqExpr : (e : Expr $\Gamma$ x) $\rightarrow$ (e' : Expr $\Gamma$ y) $\rightarrow$ Maybe (e = e')
 eqExpr (Plus x y) (Plus x' y') with (eqExpr x x', eqExpr y y')
@@ -115,19 +113,12 @@ eqExpr (Var i) (Var j) with (decEq i j)
 eqExpr Zero Zero = Just Refl
 eqExpr _ _ = Nothing
 \end{lstlisting}
-\end{center}
-\caption{Syntactical equality between reflected terms}
-\label{syntacticalEq}
-\figrule
-\end{figure}
+
 
 
 Now, if the two normalised expressions $ex'$ and $ey'$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$.
 By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the normalisations) in the new equality $x'=y'$, we can get a proof of $x=y$. This is what the function $buildProof$ is doing.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 buildProof : {x : Nat} $\rightarrow$ {y : Nat} $\rightarrow$ Expr $\Gamma$ x' $\rightarrow$ Expr $\Gamma$ y' 
            $\rightarrow$ (x = x') $\rightarrow$ (y = y') $\rightarrow$ Maybe (x = y)
@@ -135,29 +126,19 @@ buildProof ex' ey' lp rp with (eqExpr ex' ey')
   buildProof ex' ex' lp rp | Just Refl = ?MbuildProof
   buildProof ex' ey' lp rp | Nothing = Nothing
 \end{lstlisting}
-\end{center}
-\caption{Building the desired proof with the two proofs of equality}
-\label{buildProof}
-\figrule
-\end{figure}
+
 
 The argument of type $Expr\ \Gamma\ x'$ is the normalised reflected left hand size of the equality, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The $Expr\ \Gamma\ y'$ is the normalised reflected right hand size, which now represents the value $y'$, but which was encoding $y$ before the normalisation. The function also expects the proofs that $x=x'$ and $y=y'$, and we should be able to pass them because the normalisation function has also produced the proof of equality between the original and the new concrete values.
 
 As mentioned, the proof for the metavariable $MbuildProof$ is just a rewriting of the two equalities :
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
   MbuildProof = proof {
   intros; refine Just; rewrite sym p1; rewrite sym p2; exact Refl;
 }  
 \end{lstlisting}
-\end{center}
-\caption{buildProof metavariable}
-\label{MbuildProof}
-\figrule
-\end{figure}
+
 
 Finally, the main function which tries to prove the equality $x=y$ simply has to reduce the two reflected terms encoding the left and the right hand side, and to use the function $buildProof$ in order to compose the two proofs that we just obtained :
 
@@ -220,9 +201,7 @@ In the case of an addition $Plus\ ex\ ey$, the function $expr\_l$ does the job o
 This metavariable $MplusLExpr$ requires us to prove the goal : $x1 + (x2 + index\ i\ \Gamma) = xrec + index\ i\ \Gamma$ in a context where we've got, amongst other things, $prfRec : x1 + x2 = xrec$.
 By using the property of associativity on the goal, we now need to prove $(x1 + x2) + index\ i\ \Gamma$, which can be done by rewriting the proof $prfRec$ obtained recursively.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 MplusLExpr = proof {
   intros
@@ -230,49 +209,33 @@ MplusLExpr = proof {
   exact Refl;
 }
 \end{lstlisting}
-\end{center}
-\caption{Proof of the metavariable MplusLExpr}
-\label{MplusExpr}
-\figrule
-\end{figure}
+
 
 It is really important to understand that the root of the automatic building of the desired proof of $x=y$ happens precisely in these nested use of $plusZeroRightNeutral$ and $plusAssociative$ that we've seen in the definition of $expr\_l$ and of its meta-variable $MplusLExpr$. These proofs replace the arithmetical proofs that we were doing previously by hand, as it was the case in section 1 with the lemma $adc\_lemma\_2$. \\
 \\
 Using this new datatype $LExpr$ has changed the representation of our encoded lists, so we need to convert back an $LExpr\ \Gamma\ x$ to an $Expr\ \Gamma\ x$. The function $l\_expr$ does this easy task.
-\begin{figure}[H]
-\figrule
-\begin{center}
+
+
 \begin{lstlisting}
 l_expr : LExpr $\Gamma$ x $\rightarrow$ Expr $\Gamma$ x
 l_expr LZero = Zero
 l_expr (LPlus x i) = Plus (l_expr x) (Var i)
 \end{lstlisting}
-\end{center}
-\caption{Going back from LExpr to Expr}
-\label{l_expr}
-\figrule
-\end{figure}
+
 
 
 We notice that in order to transform the expression into its left associative equivalent representation, we've effectively needed to know where the variables and the $Z$ constants are : the functions $expr\_l$ and $l\_expr$ are doing different treatments for these two possibilities. \\
-\\
 
 We can now define the reduction, which is just the composition of the two previous functions $expr\_l$ and $l\_expr$:
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
   reduce : Expr $\Gamma$ x $\rightarrow$ (x' ** (Expr $\Gamma$ x', x = x'))
   reduce e = 
      let (x' ** (e', prf)) = expr_l e in
          (x' ** (l_expr e', prf))
 \end{lstlisting}
-\end{center}
-\caption{Reduction function}
-\label{reduce}
-\figrule
-\end{figure}
+
 
 
 At the moment, what we've got is not exactly a real tactic, in the sense that we only have a function which produces a value of type $Maybe (x = y)$. A real tactic would be a wrapper of this function that could properly fail with an error message when the two terms are not equal. However, here, when $x\ne y$, the function $testEq$ will simply produce the value $Nothing$. \\
@@ -283,6 +246,9 @@ It's now time to see how to use this minimalist ``tactic".
 Let's define two expressions $e1$ and $e2$, respectively representing the numbers $((x + y) + (x + z))$ and $(x + ((y + x) + z))$ in the context $[x, y, z]$ of three abstracted variables.
 
 
+\begin{figure}[H]
+\figrule
+\begin{center}
 \begin{lstlisting}
 e1 : (x, y, z : Nat) 
     $\rightarrow$ Expr [x, y, z] ((x+y) + (x+z))
@@ -298,23 +264,22 @@ e2 x y z = Plus (Var FZ)
                             (Var FZ)) 
                       (Var (FS (FS FZ))))
 \end{lstlisting}
+\end{center}
+\caption{Two test expressions}
+\label{e1_e2}
+\figrule
+\end{figure}
 
 
 The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can generate a proof of this fact by using $testEq$.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 e1_e2_testEq : (x, y, z : Nat) 
              $\rightarrow$ Maybe (((x + y) + (x + z)) = (x + ((y + x) + z)))
 e1_e2_testEq x y z = testEq (e1 x y z) (e2 x y z)
 \end{lstlisting}
-\end{center}
-\caption{Generating automatically the desired proof}
-\label{e1_e2_testEq}
-\figrule
-\end{figure}
+
 
 
 And if we ask for the evaluation of this term, we should obtain $Just$ and a proof of equality between the two underlying numbers.
@@ -336,7 +301,7 @@ And if we ask for the evaluation of this term, we should obtain $Just$ and a pro
             = x + (y + x) + z)
 \end{lstlisting}
 \end{center}
-\caption{Obtained proof}
+\caption{Automatically generated proof}
 \label{obtainedProof}
 \figrule
 \end{figure}
@@ -354,20 +319,14 @@ However, we can also note that even when done by hand, there is no room for maki
 We still want an automatic way of constructing these reflected terms because what we have so far is enough to demonstrate that our prover works, but that's not yet enough for being used intensively. We want to program an automatic way of going from the concrete values (of type $Nat$), to the reflected terms (of type $Expr$). The only way to do that is to inspect the abstract syntax tree of the concrete value.
 By using Idris's reflection mechanism, we can tag a function with the keyword "\%reflection", which means that this function runs on syntax instead of values. 
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting} [mathescape]
 %reflection
 total
 reflectNat : {n:Nat} $\rightarrow$ ($\Gamma$ : Vect n Nat) $\rightarrow$ (x:Nat) 
              $\rightarrow$ (m ** ($\Gamma'$ : Vect m Nat ** (Expr ($\Gamma$ ++ $\Gamma'$) x)))
 \end{lstlisting}
-\end{center}
-\caption{Type of the function for reflecting natural numbers}
-\label{reflectNatType}
-\figrule
-\end{figure}
+
 
 This function will reflect the natural number $x$ in the context of $\Gamma$, which contains $n$ already abstracted variables. This function will compute an extension --of arbitrary size $m$-- to the context, called $\Gamma'$. This extension will contain the variables used in $x$ that weren't already present in $\Gamma$. It will also produce the reflected term, which is expressed in the complete context $\Gamma ++\ \Gamma'$, and which is, of course, indexed over the concrete value $x$.
 
@@ -405,7 +364,7 @@ reflectNat $\Gamma$ (x + y) =
 
 The total extension that has been computed is $\Gamma' ++\ \Gamma''$, and the metavariable $MreflectNat\_1$ simply uses the associativity of the append operation to prove that the provided context $((\Gamma ++\ \Gamma')\ ++\ \Gamma'')$ is equal to the expected one $(\Gamma ++\ (\Gamma'\ ++\ \Gamma''))$. \\
 \\
-The function $weaken$ is easy to write because we're adding the extension $\Gamma'$ on the right of $\Gamma$. For example, extending the context $[v,\ w,\ x]$ with $[y,\ z]$ produces the context $[v,\ w,\ x,\ y,\ z]$. The variables $v$, $w$ and $x$, which were respectively refereed to as the first, second and third variables in $\Gamma$, are still the first, second and third variables in the complete context. That means that a variable $Var\ i$ will still be a $Var\ i$ after the weakening, the position $i$ hasn't changed by augmenting the context.
+The function $weaken$ (Figure ~\ref{weaken}) is easy to write because we're adding the extension $\Gamma'$ on the right of $\Gamma$. For example, extending the context $[v,\ w,\ x]$ with $[y,\ z]$ produces the context $[v,\ w,\ x,\ y,\ z]$. The variables $v$, $w$ and $x$, which were respectively refereed to as the first, second and third variables in $\Gamma$, are still the first, second and third variables in the complete context. That means that a variable $Var\ i$ will still be a $Var\ i$ after the weakening, the position $i$ hasn't changed by augmenting the context.
 
  \begin{figure}[H]
 \figrule
@@ -426,17 +385,11 @@ weaken {n=n} {m=m} {$\Gamma$=$\Gamma$} $\Gamma'$ (Var i) = Var (convertFin _ i m
 
 The position $i$ hasn't changed but however, the original $i$ had type $Fin\ n$, but the new $i$ must have type $Fin\ (n+m)$. This is why we've used $convertFin$, which returns the same element, but seen in a bigger $Fin$.
 
- \begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting} [mathescape]
 convertFin : (n:Nat) $\rightarrow$ (i:Fin n) $\rightarrow$ (x:Nat) $\rightarrow$ Fin (n+x)
 \end{lstlisting}
-\end{center}
-\caption{Conversion of a Fin}
-\label{convertFin}
-\figrule
-\end{figure}
+
 
 We've treated the case of the constant $Z$ and the case of the addition. We now have to deal with the last possibility of a variable. For encoding a variable, we must see if this variable is already present in the context $\Gamma$ of already abstracted variables. If it is already present there, then there is no extension to build, and the reflected term is simple $Var\ (convertFin\ n\ i\ Z)$, where $i$ is the position of the variable in this context $\Gamma$. The conversion was needed because the original context was $\Gamma$, and the new one is $(\Gamma ++\ [\ ])$, which aren't automatically unifiable. However, if if this variable is missing, then we should add it, which means that we will return an extension containing this single variable. The original context $\Gamma$ had a size of $n$, and we've built an extension of size one, so the complete context has therefore size $(n+1)$. The variable that we've added is currently the last one of these  $(n+1)$ variables. If we use a function\footnote{This function doesn't have the type $(n:Nat)\ \rightarrow Fin\ n$ because there is no last element of a $Fin$ of size zero as there's no element at all}  $lastElement'\ :\ (pn:Nat)\ \rightarrow\ Fin\ (pn+1)$ to construct the last element of a $Fin$ of size $pn+1$, then the reflected term that we need to produce is simply $Var\ (lastElement'\ n)$. 
 
@@ -458,18 +411,12 @@ reflectNat {n=n} $\Gamma$ t with (isElement t $\Gamma$)
 
 $isElement$ is the function which checks whether an element $x$ belongs to a vector $\Gamma$, and if so, returns $Just$ and a dependent pair containing the index of $x$ in this vector, and a proof that $index\ i\ \Gamma\ =\ x$.
 
- \begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting} [mathescape]
 isElement : {n:Nat} $\rightarrow$ (x : a) $\rightarrow$ ($\Gamma$ : Vect n a) 
             $\rightarrow$ Maybe (i:Fin n ** (index i $\Gamma$ = x))
 \end{lstlisting}
-\end{center}
-\caption{Returns the index and the proof that this index is the right one}
-\label{isElement}
-\figrule
-\end{figure}
+
 
 The metavariable $MreflectNat\_2$ will require us to prove that the provided term of type $Expr\ (\Gamma ++\ [\ ])\ (index\ (convertFin\ n\ i\ Z)\ (\Gamma ++\ [\ ]))$ is transformable into a term of the expected type $Expr\ (\Gamma ++\ [\ ])\ t$. This is doable by using the proof $p$ --returned by $isElement$-- which says that $index\ i\ \Gamma\ =\ t$, together with the fact that $convertFin$ does not change the index, but only converts its type.
 

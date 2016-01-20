@@ -12,9 +12,8 @@ Now, similarly to what we've done, we would need a syntactical equality test, ch
 $beq_{Expr}\ :\ Expr\ \rightarrow\ Expr\ \rightarrow\ bool$. Because this boolean on its own is pretty uninformative, we now need a proof of correctness for this function as well, which says that if this function decides that two given terms are syntactically equal, then their interpretation should also be (syntactically) equal. $beq_{Expr}\_correct\ :\ \forall (e1\ e2:Expr), beq_{Expr}\ e1\ e2\ =\ true\ \rightarrow\ reify\ e1\  \simeq\ reify\ e2$. We did not have to do this proof either with our approach.
 
 We could now build the kernel of the tactic, which is the following decision procedure. 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
+
 \begin{lstlisting}
 decideEq : c $\rightarrow$ c $\rightarrow$ bool 
 decideEq x y =
@@ -22,11 +21,8 @@ decideEq x y =
       let ey = reflect y in
       $beq_{Expr}$ (normalise ex) (normalise ey)
 \end{lstlisting}
-\end{center}
-\caption{Decision procedure of the tactic with a "traditional" approach}
-\label{decideEqTrad}
-\figrule
-\end{figure}
+
+
 This function on its own would not  be enough. We would need to add a correctness theorem, and this is precisely this main theorem that would help us to build the tactic we want.	
 $decideEq\_correct\ :\ \forall\  x\ y:c,\ decideEq\ x\ y\ =\ true\ \rightarrow\ x\  \simeq\ y$. This proof can can made by combining, in this order, the three lemmas $beq_{Expr}\_correct$, $normalize\_correct$ (two times, one on each side of the assumed equality), and finally $reflect\_and\_reify\_correct$ (again two times).
 
@@ -57,7 +53,7 @@ In terms of performances, our implementation is fast enough for providing answer
 
 	\subsection{Other related work}
 	
-As mentioned, Coq's implementation of a ring prover was also using proof-by-reflection techniques, but without the guarantees obtained with our type-safe reflection mechanism. Their automatic reflection is programmed in Ltac~\cite{DelahayeLTac} : a proof dedicated and untyped meta-language for the writing of automations. Because $Ltac$ is untyped, it would not permit to define --as we did-- a dependently typed function $reflect$ that is guaranteed to return a faithful encoding of the given input value. $Mtac$~\cite{Ziliani13} is an extension to Coq that supports dependently-typed tactic programming, which uses monad to avoid the need to touch the trusted kernel typechecker of Coq.
+As mentioned, Coq's implementation of a ring prover was also using proof-by-reflection techniques, but without the guarantees obtained with our type-safe reflection mechanism. Their automatic reflection is programmed in Ltac~\cite{DelahayeLTac} : a proof dedicated and untyped meta-language for the writing of automations. Because $Ltac$ is untyped, it would not permit to define --as we did-- a dependently typed function $reflect$ that is guaranteed to return a faithful encoding of the given input value. $Mtac$~\cite{Ziliani13} is an extension to Coq that supports dependently-typed tactic programming that uses monad to avoid the need to touch the trusted kernel typechecker of Coq.
 \\
 
 Doing proofs by reflection has been intensively investigated by many authors, including Adam Chlipala, in particular in his book~\cite{ChlipalaBook} and in~\cite{Malecha14}. However, we haven't found anything similar to the type-safe reflection technique that we've presented in this paper. 
@@ -69,7 +65,7 @@ At the connexion bewteen proof automation and proof by reflection, we can cite S
 Proof automation has been investigated for various proof assistants and programming languages. In Coq, appart from the $ring$ prover~\cite{Coq2005}, there's also the $omega$ solver~\cite{Cregut04}, which solves a goal in Presburger arithmetic (i.e. a universally quantified formula made of equations and inequations), and a Field~\cite{DelahayeField} decision procedure for real numbers, which plugs to Coq's ring prover after simplification of the multiplicative inverses. Various automations have also been done in Agda~\cite{Lindblad04}.
 \\
 
-Finally, when we leave the ground of nice mathematical structures (like groups, rings and fields), one can decide to work with arbitrary rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there's usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} starts.
+Finally, when we leave the ground of nice mathematical structures like groups, rings and fields, one can decide to work with arbitrary rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there's usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} starts.
 
 
 	\subsection {Correctness and completeness}

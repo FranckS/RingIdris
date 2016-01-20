@@ -148,7 +148,7 @@ When we encode a constant $c1$ in a context $\Gamma$, we use the constructor $Co
 If e1 is an expression of type $ExprMa\ p\ \Gamma\ c1$ (ie, a term encoding the value $c1$), and $e2$ is an expression of type $ExprMa\ p\ \Gamma\ c2$ (ie, a term encoding the value $c2$), then the term $PlusMa\ e1\ e2$ will have the type $ExprMa\ p\ \Gamma\ (Plus\ c1\ c2)$, ie, this term will encode the value $(Plus\ c1\ c2)$, where $Plus$ is the operation available in the current instance $p$.
 
 
-Because there is no additional operations in a SemiGroup or in a Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
+Because there is no additional operations in SemiGroup and Monoid, the datatypes for reflected terms in these two structures will have exactly the same shape as the one for Magma that we've given above.
 However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
 
 
@@ -187,63 +187,42 @@ Running the normalisation procedure on $ex$ will produce the normal form $ex'$ o
 	\subsection {Deciding equivalence}
 	
 Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equality without brute-forcing a serie of rewriting, that might even not terminate.
-These normalisation functions will compute this canonical represent, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the real value indexing the original term and the real value indexing the produced term.
+These normalisation functions will compute the canonical representation of the reflected input term, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the original real value (indexing the input term) and the produced real value (indexing the produced term). Thus, the type of the reduction function for group is :
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 groupReduce : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
 	   $\rightarrow$ {x:c} $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
 \end{lstlisting}
-\end{center}
-\caption{Type of the reduction function for terms reflecting elements in a Group}
-\label{groupReduce}
-\figrule
-\end{figure}
+
 
 This function has more work to do in structures with multiple axioms (like Group), than for the easier structure underneath.
 The details of these functions will be given in the next section. For the moment, we just assume that we've got such a function for each structure. We continue to give here the details for the Group structure, but the principle is exactly the same with the other structures, and the exact equivalent of what we did in the previous section with natural numbers and additions.
 
 We want to write the following function :
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 groupDecideEq : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
 	     $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (ExprG p $\Gamma$ y) 
 	     $\rightarrow$ Maybe (x $\simeq$ y)
 \end{lstlisting}
-\end{center}
-\caption{Type of the function for deciding equality between elements in a Group}
-\label{groupDecideEqType}
-\figrule
-\end{figure}
 
 The first thing this function has to do is to compute the normal form of the two expressions $ex$ and $ey$ respectively encoding $x$ and $y$.
 Then, the only thing remaining to do will be to compare syntactically $ex'$ and $ey'$, and if they are equal, then we will get $x'=y'$, and we will be able to produce the desired proof of $x \simeq y$ by using the two proofs $px : x \simeq x'$ and $py : y \simeq y'$. 
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 groupDecideEq p ex ey =
   let (x' ** (ex', px)) = groupReduce p ex in
   let (y' ** (ey', py)) = groupReduce p ey in
 	     buildProofGroup p ex' ey' px py
 \end{lstlisting}
-\end{center}
-\caption{Decides if two elements of a group are equal}
-\label{groupDecideEq}
-\figrule
-\end{figure}
+
 
 The syntactical test of equality between $ex'$ and $ey'$ and the composition of the two proofs is done in the auxiliary function $buildProofGroup$, similarly to what we've done on the smaller example in the previous section. 
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
   $\rightarrow$ {x : c} $\rightarrow$ {y : c} $\rightarrow$ {x':c} $\rightarrow$ {y':c} 
@@ -254,11 +233,7 @@ buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
     buildProofGroup p ex' ex' px py | Just refl = ?MbuildProofGroup
     buildProofGroup p ex' ey' px py | Nothing = Nothing
 \end{lstlisting}
-\end{center}
-\caption{Composes the two proofs if the normal forms are the same}
-\label{buildProofGroup}
-\figrule
-\end{figure}
+
 We've used here the function $exprG\_eq$ to decide the syntactical equality between the normalised reflected terms $ex'$ and $ey'$. This function plays the same role as $eqExpr$, presented on section 2.3 for the smaller example. Also, the proof for the metavariable $MbuildProofGroup$ corresponds exactly to what was done for the metariable $MbuildProof$ in the smaller example.
 
 
@@ -268,39 +243,27 @@ As we did for the very specific problem in section 2, we want to program an auto
 We are doing this reflection for any type $c$, so we don't know which constants are inhabiting this type. For this reason, we will need to expect an extra argument --$funReflectCsf$-- of type $(ConstantsRingReflector\ c\ p)$ which is a function able to do the reflection for constants only. We will be able to provide this function for various datatypes, like $Nat$, $Z$ and $List$. But if the user wants to use the reflection mechanism for a new datatype of this own, then he will only have to provide this function of encoding for the constants of his type. He won't have to rebuild the entire reflection mechanism.
 A $ConstantsRingReflector$ for a given type $c$ and a given instance $p$ is a function that takes any context $\Gamma$, any element of $c$, and which tries to produce an $(ExprR\ p\ \Gamma\ x)$.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 ConstantsRingReflector : {c:Type} $\rightarrow$ (p:Ring c) $\rightarrow$ Type
 ConstantsRingReflector {c=c} p = 
      ({n:Nat} $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ (x:c) $\rightarrow$ Maybe (ExprR p $\Gamma$ x))
 \end{lstlisting}
-\end{center}
-\caption{Type of the function doing the reflection for constants}
-\label{ConstantsRingReflector}
-\figrule
-\end{figure}
+
 
 If $x$ is indeed a constant, then it is supposed to return $Just$ and a term reflecting this constant. If $x$ was something else (a variable, a sum $a+b$, a product $a*b$, ...) then it simply returns $Nothing$. \\
 \\
 We can now present the type of the reflection function for ring.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
+
 \begin{lstlisting}
 reflectRingTerm : {c:Type} $\rightarrow$ {p:Ring c} $\rightarrow$ {n:Nat} $\rightarrow$ ($\Gamma$ : Vect n c) 
      $\rightarrow$ (funReflectCsf:ConstantsRingReflector {c=c} p) $\rightarrow$ (x:c) 
      $\rightarrow$ (n' ** ($\Gamma'$:Vect n' c ** (ExprR {c=c} {n=n+n'} p ($\Gamma$ ++ $\Gamma'$) x)))
 \end{lstlisting}
-\end{center}
-\caption{Automatic reflection to ring}
-\label{reflectRingTermType}
-\figrule
-\end{figure}
 
-This function will work very similarly to the reflection function for $Nat$ that we've writen in section~\ref{sect:ReflectNat}. Here, there are just more constructions to deal with, because $c$ is equipped with negations, subtractions and multiplications. We just show the pattern for the multiplication.
+
+This function will work very similarly to the reflection function for $Nat$ that we've writen in section~\ref{sect:ReflectNat}. Here, there are simply more constructions to deal with, because $c$ is also equipped with negations, subtractions and multiplications, and not only with additions. We show one of these new pattern on figure~{\ref{reflectRingTerm_pattern1}.
 
 \begin{figure}[H]
 \figrule
