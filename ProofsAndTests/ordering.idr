@@ -64,7 +64,7 @@ class PartialStrictOrder c => PartialOrder c where
 	lowerEq_trans (Or_introR x_equals_y) (Or_introR y_equals_z) = Or_introR (eq_trans x_equals_y y_equals_z)
 	
 
-class PartialOrder c => CompleteOrder c where
+class PartialOrder c => TotalOrder c where
 
 	lowerE_undec_total : (x:c) -> (y:c) -> or (Ordering.(<~=) x  y) (Ordering.(<~=) y x)
 
