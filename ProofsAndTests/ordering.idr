@@ -53,15 +53,15 @@ class PartialStrictOrder c => PartialOrder c where
 	lowerEq_refl x = ?Mlower_refl -- Or_introR (eq_refl x)
 
 	lowerEq_antisym : {x:c} -> {y:c} -> (x<~=y) -> (y<~=x) -> (x ~= y)
-	lowerEq_antisym (Or_introL x_lower_y) (Or_introL y_lower_x) = Or_introL (lower_antisym x_lower_y y_lower_x)
-	lowerEq_antisym (Or_introL x_lower_y) (Or_introR y_equals_x) = Or_introR (eq_sym y_equals x)
-	lowerEq_antisym (Or_introR x_equals_y) _ = Or_introR x_equals_y
+	lowerEq_antisym (Or_introL x_lower_y) (Or_introL y_lower_x) = ?MlowerEq_antisym_1 -- Or_introL (lower_antisym x_lower_y y_lower_x)
+	lowerEq_antisym (Or_introL x_lower_y) (Or_introR y_equals_x) = ?MlowerEq_antisym_2 -- Or_introR (eq_sym y_equals x)
+	lowerEq_antisym (Or_introR x_equals_y) _ = ?MlowerEq_antisym_3 -- Or_introR x_equals_y
 
 	lowerEq_trans : {x:c} -> {y:c} -> {z:c} -> (x<~=y) -> (y<~=z) -> (x<~=z)
-	lowerEq_trans (Or_introL x_lower_y) (Or_introL y_lower_z) = Or_introL (lower_trans x_lower_y y_lower_z)
-	lowerEq_trans (Or_introL x_lower_y)  (Or_introR y_equals_z) = ?MK1 -- We will need something
-	lowerEq_trans (Or_introR x_equals_y) (Or_introL y_lower_z) = ?MK2
-	lowerEq_trans (Or_introR x_equals_y) (Or_introR y_equals_z) = Or_introR (eq_trans x_equals_y y_equals_z)
+	lowerEq_trans (Or_introL x_lower_y) (Or_introL y_lower_z) = ?MlowerEq_trans_1-- Or_introL (lower_trans x_lower_y y_lower_z)
+	lowerEq_trans (Or_introL x_lower_y)  (Or_introR y_equals_z) = ?MlowerEq_trans_2 -- We will need the fact that <~= is "compatible" with "~=" here, which means that (a <~= b) -> (b ~= c) -> (a <~= c)
+	lowerEq_trans (Or_introR x_equals_y) (Or_introL y_lower_z) = ?MlowerEq_trans_3 -- And (a <~= b) -> (a ~= c) -> (c <~= a)
+	lowerEq_trans (Or_introR x_equals_y) (Or_introR y_equals_z) = ?MlowerEq_trans_4 -- Or_introR (eq_trans x_equals_y y_equals_z)
 	
 
 class PartialOrder c => TotalOrder c where
