@@ -33,28 +33,26 @@ interface Set c => PartialStrictOrder c where
 	lower_trans : {x:c} -> {y:c} -> {z:c} -> (x<<y) -> (y<<z) -> (x<<z)
 
 
--- This intermediate structure is just because Idris doesn't work as intended when you use an operation which has just been defined in the same typeclass
--- And in fact, it doesn't work enen when I use this intermediate structure... :-(
+
+-- FIX IDRIS HERE
+-- it's not needed to try with an intermediate structure Pre_PartialOrder as it doesn't work either :-(
 infixl 5 <~=
-interface PartialStrictOrder c => Pre_PartialOrder c where
+interface PartialStrictOrder c => PartialOrder c where
 	
 	(<~=) : (x:c) -> (y:c) -> Type -- The (undecidable) relation
 	(<~=) x y = Or (x<<y) (x~=y)
 
-
-interface Pre_PartialOrder c => PartialOrder c where
-	
-	-- WHY DOES IT REFUSES TO UNIFY AN OR AND A FUCKING (<~=) ! THERE'S EVEN NOTHING TO UNFOLD THE DEFINITION OF (<~=) IN PROOF MODE. WHAT THE FUCK !
+	-- WHY DOES IT REFUSES TO UNIFY AN OR AND A (<~=) ! IT CAN'T UNFOLD THE DEFINITION OF (<~=), AND NOT IN PROOF MODE EITHER. FIX IDRIS !
 	lowerEqDec : (x:c) -> (y:c) -> Maybe(x <~= y)
 	lowerEqDec x y with (lowerDec x y)
-		lowerEqDec x y | (Just prStrictlyLower) = ?MlowerEqDec_1 -- Just (Or_introL {B=(x~=y)} prStrictlyLower)
+		lowerEqDec x y | (Just prStrictlyLower) = ?MlowerEqDec_1 -- Just (Or_introL _ prStrictlyLower)
 		lowerEqDec x y | (Nothing) with (eqDec x y)
-			lowerEqDec x y | (Nothing) | (Just prEqual) = ?MlowerEqDec_2 -- Just (Or_introR prEqual)
+			lowerEqDec x y | (Nothing) | (Just prEqual) = ?MlowerEqDec_2 -- Just (Or_introR _ prEqual)
 			lowerEqDec x y | (Nothing) | (Nothing) = Nothing
 	
 	-- SAME HERE !
 	lowerEq_refl : (x:c) -> (x <~= x)
-	lowerEq_refl x = ?MlowerEq_refl_1 -- Or_introR (x<<x) (eq_refl x)
+	lowerEq_refl x = ?MlowerEq_refl_1 -- Or_introR _ (eq_refl x)
 
 {-
 	lowerEq_antisym : {x:c} -> {y:c} -> (x<~=y) -> (y<~=x) -> (x ~= y)
