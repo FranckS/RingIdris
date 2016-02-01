@@ -13,7 +13,7 @@ data Or : (A:Type) -> (B:Type) -> Type where
 
 infixl 5 ~=
 interface Set c where
-    -- We just requires an equivalence relation over the elements of the "set"
+    -- We just require an equivalence relation over the elements of the "set"
     -- which means that two elements are EQuivalent
     -- And a way to produce a proof when it holds (it is semi-decidable, or weakly-decidable, call it as you want)
     -- I could call this structure "Setoid" instead of "Set"
