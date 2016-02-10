@@ -1,4 +1,4 @@
-module Ordering
+module ordering
 
 
 
@@ -126,19 +126,18 @@ interface PartialOrder c => TotalOrder c where
 
 
 ---------- Proofs ----------
-Ordering.MlowerEq_antisym_2 = proof
+ordering.MlowerEq_antisym_2 = proof
   intros
   mrefine eq_sym
   exact y_equals_x 
 
-Ordering.MlowerEq_antisym_1 = proof
+ordering.MlowerEq_antisym_1 = proof
   intros
   mrefine lower_antisym 
   exact x_lower_y 
   exact y_lower_x 
 
-
-Ordering.MlowerEq_trans_1 = proof
+ordering.MlowerEq_trans_1 = proof
   intros
   mrefine Or_introL 
   mrefine lower_compat_equivalence_L
