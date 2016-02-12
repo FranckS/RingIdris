@@ -1,6 +1,12 @@
 module ordering
 
 
+%access public export
+
+%default total
+
+
+
 
 data Or : (A:Type) -> (B:Type) -> Type where
 	Or_introL : {A:Type} -> {B:Type} -> (a:A) -> Or A B
@@ -18,7 +24,7 @@ interface Set c where
     -- And a way to produce a proof when it holds (it is semi-decidable, or weakly-decidable, call it as you want)
     -- I could call this structure "Setoid" instead of "Set"
     (~=) : (x:c) -> (y:c) -> Type -- The (undecidable) relation
-    eqDec : (x:c) -> (y:c) -> Maybe(x~=y) -- This relation is "weakly" decidable (weekly because eqDec only gives a proof when it holds)
+    eqDec : (x:c) -> (y:c) -> Dec(x~=y)
     
     -- The binary relation should be an equivalence relation, ie
     -- Reflexive,
@@ -44,7 +50,7 @@ interface Set c => PartialStrictOrder c where
 	lower_compat_equivalence_L : {x:c} -> {y:c} -> {y':c} -> (x << y) -> (x ~= x') -> (x' << y)
 	lower_compat_equivalence_R : {x:c} -> {y:c} -> {y':c} -> (x << y) -> (y ~= y') -> (x << y')
 
-	lowerDec : (x:c) -> (y:c) -> Maybe(x<<y) -- The "weak" decidable relation (week because only gives a proof when it holds)
+	lowerDec : (x:c) -> (y:c) -> Dec(x<<y)
 
 	lower_antisym : {x:c} -> {y:c} -> (x<<y) -> (y<<x) -> (x~=y)
 	lower_trans : {x:c} -> {y:c} -> {z:c} -> (x<<y) -> (y<<z) -> (x<<z)
@@ -76,17 +82,23 @@ interface PartialStrictOrder c => PartialOrder c where
 (<~=) x y = Or (x<<y) (x~=y)
 
 
+
+not_lowerEq_lemma1 : {c:Type} -> {p:PartialOrder c} -> (x:c) -> (y:c) -> (p1 : (x<<y) -> Void) -> (p2 : (x~=y) -> Void) -> (pFalse : (<~=) {p=p} x y) -> Void
+not_lowerEq_lemma1 x y p1 p2 (Or_introL prStrictlyLower) = p1 prStrictlyLower
+not_lowerEq_lemma1 x y p1 p2 (Or_introR prEqual) = p2 prEqual
+
+
 -- There's only one way to define the function which decides the lower or equal operation
-lowerEqDec : {c:Type} -> (p:PartialOrder c) -> (x:c) -> (y:c) -> Maybe(x <~= y)
+lowerEqDec : {c:Type} -> (p:PartialOrder c) -> (x:c) -> (y:c) -> Dec((<~=) {p=p} x y) -- FIX IDRIS : If I write (x <~= y) then in the file proofAndTests.idr I get a weird and broken error message which says "can't infer argument 'p''...
 lowerEqDec p x y with (lowerDec x y)
-	lowerEqDec p x y | (Just prStrictlyLower) = Just (Or_introL prStrictlyLower)
-	lowerEqDec p x y | (Nothing) with (eqDec x y)
-		lowerEqDec p x y | (Nothing) | (Just prEqual) = Just (Or_introR prEqual)
-		lowerEqDec p x y | (Nothing) | (Nothing) = Nothing
+	lowerEqDec p x y | (Yes prStrictlyLower) = Yes (Or_introL prStrictlyLower)
+	lowerEqDec p x y | (No prNotStrictlyLower) with (eqDec x y)
+		lowerEqDec p x y | (No prNotStrictlyLower) | (Yes prEqual) = Yes (Or_introR prEqual)
+		lowerEqDec p x y | (No prNotStrictlyLower) | (No prNotEqual) = No ?MlowerEqDec_1
 
 
 -- I'm forced to make the (Partialorder c) an explicit argument, otherwise we end up with a non-sense arror message
-lowerEq_refl : {c:Type} -> (p:PartialOrder c) -> (x:c) -> (x <~= x)
+lowerEq_refl : {c:Type} -> (p:PartialOrder c) -> (x:c) -> ((<~=) {p=p} x x)
 lowerEq_refl p x = Or_introR (eq_refl x)
 
 
@@ -126,6 +138,10 @@ interface PartialOrder c => TotalOrder c where
 
 
 ---------- Proofs ----------
+ordering.MlowerEqDec_1 = proof
+  intros
+  exact (not_lowerEq_lemma1 x y prNotStrictlyLower prNotEqual __pi_arg)
+
 ordering.MlowerEq_antisym_2 = proof
   intros
   mrefine eq_sym
