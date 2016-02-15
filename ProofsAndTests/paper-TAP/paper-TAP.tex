@@ -1,0 +1,45 @@
+
+\documentclass[runningheads,a4paper]{llncs}
+
+\usepackage{amssymb}
+\setcounter{tocdepth}{3}
+\usepackage{graphicx}
+
+\usepackage{url}
+  
+\newcommand{\keywords}[1]{\par\addvspace\baselineskip
+\noindent\keywordname\enspace\ignorespaces#1}
+
+\begin{document}
+
+\mainmatter  % start of an individual contribution
+
+% first the title is needed
+\title{Automatic predicate testing in formal certification}
+\subtitle{You've only proven what you've said, not what you meant!}
+
+% a short form should be given in case it is too long for the running head
+%\titlerunning{Automatic predicate testing in formal certification}
+
+
+\author{Franck Slama\\
+         \email{fs39@st-andrews.ac.uk}}
+
+\institute{University of St Andrews, United Kingdom}
+
+%\toctitle{Lecture Notes in Computer Science}
+%\tocauthor{Authors' Instructions}
+\maketitle
+
+
+\begin{abstract}
+The use of formal methods helps to increase the confidence towards critical software. However, a formal proof is only a guarantee relative to a formal specification, and not about the real requirements. These real requirements are expressed in a natural language like english, and there is always a jump when going from an informal certification to a formal certification, expressed in a specific logic. Thus, proving the correctness about a piece of software always makes the implicit assumption that there is adequacy between the formalised specification and the real requirements. Unfortunately, a huge part of the complexity lies precisely in the specification itself, and it is far from obvious that the specification says exactly and completely what it should say. Why should we trust more these predicates than the code that we've first refused to trust, leading to these proofs? We show in this paper that the proving activity hasn't replaced the testing activity. Instead, it has changed the object being tested. We show recent ideas about how to deal with this new kind of tests, including how to automate them as far as possible.
+\keywords{Formal certification, predicate testing, specification, tests, requirements}
+\end{abstract}
+
+
+\input{./content/1-introduction.tex}
+
+
+
+\end{document}
