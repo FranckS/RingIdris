@@ -1,9 +1,25 @@
 \section{Naive and usual approaches to the adequacy problem}
 
 
+In order to gain confidence in the formal specifications we write, an easy an naive approach is to test the predicate itself. That consists of defining a few terms, usually by hand, for which we know if the predicate should hold or not, and to prove that the predicate effectively holds when it should, and that it doesn't when it shouldn't.
 
-- Different known approach for enhancing the confidence in a predicate : defining many of them and proving their equivalence, doing small tests on some data that we know belong or not to the predicate, etc... 
-[half a page : from 2.00 to 2.30]
+With the predicate $isSorted$ defined in section 1, we can try to prove that it holds on the list [3, 5, 7] that we know sorted according to our intentions.
+
+\begin{lstlisting}
+isSorted_test1 : isSorted natIsOrdered [3, 5, 7]
+isSorted_test1 = 
+  let p1 : (3 <= 5) = ?MA in
+  let p2 : (5 <= 7) = ?MB in
+    ConsSorted 3 5 [7] (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
+
+\end{lstlisting}
+
+
+
+
+
+- Other usual approach to mention : defining many of them and proving their equivalence,
+[quarter of a page]
 
 
 
