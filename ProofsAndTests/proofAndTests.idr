@@ -13,20 +13,20 @@ import ordering
 
 
 
-data isSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> {n:Nat} -> (v:Vect n T) -> Type where
+data isSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> (l:List T) -> Type where
     NilIsSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> isSorted TisOrdered []
     SingletonIsSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> (x:T) -> isSorted TisOrdered [x]
-    ConsSorted : {T:Type} -> {TisOrdered : PartialOrder T} -> (h1:T) -> (h2:T) -> {n:Nat} -> (t:Vect n T) -> (isSorted TisOrdered (h2::t)) -> ((<~=) {p=TisOrdered} h1 h2) -> (isSorted TisOrdered (h1::(h2::t)))
+    ConsSorted : {T:Type} -> {TisOrdered : PartialOrder T} -> (h1:T) -> (h2:T) -> (t:List T) -> (isSorted TisOrdered (h2::t)) -> ((<~=) {p=TisOrdered} h1 h2) -> (isSorted TisOrdered (h1::(h2::t)))
 
     
     
-isSorted_wkn : {T:Type} -> (TisOrdered : PartialOrder T) -> {n:Nat} -> (h1 : T) -> (h2 : T) -> (t:Vect n T) -> (isSorted TisOrdered (h1::(h2::t))) -> (isSorted TisOrdered (h2::t))
+isSorted_wkn : {T:Type} -> (TisOrdered : PartialOrder T) -> (h1 : T) -> (h2 : T) -> (t:List T) -> (isSorted TisOrdered (h1::(h2::t))) -> (isSorted TisOrdered (h2::t))
 isSorted_wkn TisOrdered h1 h2 t (NilIsSorted TisOrdered) impossible
 isSorted_wkn TisOrdered h1 h2 t (SingletonIsSorted TisOrdered _) impossible
 isSorted_wkn TisOrdered h1 h2 t (ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2) = h2_tail_sorted
 
 
-isSorted_wkn2 : {T:Type} -> (TisOrdered : PartialOrder T) -> {n:Nat} -> (h1 : T) -> (h2 : T) -> (t:Vect n T) -> (isSorted TisOrdered (h1::(h2::t))) -> ((<~=) {p=TisOrdered} h1 h2)
+isSorted_wkn2 : {T:Type} -> (TisOrdered : PartialOrder T) -> (h1 : T) -> (h2 : T) -> (t:List T) -> (isSorted TisOrdered (h1::(h2::t))) -> ((<~=) {p=TisOrdered} h1 h2)
 isSorted_wkn2 TisOrdered h1 h2 t (NilIsSorted TisOrdered) impossible
 isSorted_wkn2 TisOrdered h1 h2 t (SingletonIsSorted TisOrdered _) impossible
 isSorted_wkn2 TisOrdered h1 h2 t (ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2) = h1_lower_h2
@@ -34,7 +34,7 @@ isSorted_wkn2 TisOrdered h1 h2 t (ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2)
 
 
 %assert_total -- FIX IDRIS : Idris should see this function as total with a bit of work
-decideIsSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> {n:Nat} -> (v:Vect n T) -> Dec(isSorted TisOrdered v)
+decideIsSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> (l:List T) -> Dec(isSorted TisOrdered l)
 decideIsSorted TisOrdered [] = Yes (NilIsSorted TisOrdered)
 decideIsSorted TisOrdered [x] = Yes (SingletonIsSorted TisOrdered x)
 decideIsSorted TisOrdered (h1::(h2::t)) with (lowerEqDec TisOrdered h1 h2)
@@ -76,16 +76,21 @@ interface RecursivelyEnumerable c where
     map_is_surjective : (y:c) -> (x:Nat ** (computableMap x = Just y)) -- For all y in the image set, there is (at least) one 'x' in the domain, which is going to be associated to 'y' by the map
   
   
-consAll : {T:Type} -> {n:Nat} -> (ts:LList (Vect n T)) -> (h:T) -> (LList (Vect (S n) T))
+consAll : {T:Type} -> (ts:LList (List T)) -> (h:T) -> (LList (List T))
 consAll LLNil h = LLNil
 consAll (LLCons l1 ls) h = LLCons (h::l1) (consAll ls h)  
 
 
-consWhenLower : {T:Type} -> {n:Nat} -> (ts:LList (Vect n T)) -> (h:T) -> (LList (Vect (S n) T))
+consWhenLower : {T:Type} -> (Tord : PartialOrder T) -> (ts:LList (List T)) -> (h:T) -> (LList (List T))
+consWhenLower Tord LLNil h = LLNil
+consWhenLower Tord (LLCons Nil ls) h = LLCons [h] (consAll ls h) -- We can add h in front and continue recursively      
+consWhenLower Tord (LLCons (curHead::tail) ls) h with (lowerEqDec Tord h curHead) -- We need to check if 'h' is lower or equal than the current head
+  consWhenLower Tord (LLCons (curHead::tail) ls) h | (Yes pr_h_leq_currHead) = LLCons (h::(curHead::tail)) (consWhenLower Tord ls h)
+  consWhenLower Tord (LLCons (curHead::tail) ls) h | (No pr_h_not_leq_currHead) = LLCons (curHead::tail) (consWhenLower Tord ls h)
 
 
 {-
-appendAll : {T:Type} -> {n:Nat} -> (l:LList (Vect n T)) -> (h:T) -> LList (Vect (n+1) T)
+appendAll : {T:Type} -> {n:Nat} -> (l:LList (List T)) -> (h:T) -> LList (List T)
 appendAll LLNil h = LLNil -- Am I sure here ?
 appendAll (LLCons l1 ls) h = LLCons (l1++[h]) (appendAll ls h)
 -}  
@@ -98,36 +103,36 @@ plus_one_equals_succ (S pn) = let p_ihn : (pn + 1 = S pn) = plus_one_equals_succ
 mutual
   %assert_total -- Why Idris can't see that this definition is total ?
   -- This function should generate all Vect for a given size
-  generateVect : (T:Type) -> (recEnu:RecursivelyEnumerable T) -> (n:Nat) -> LList (Vect n T)
-  generateVect T recEnu Z = LLCons [] LLNil -- There's just one vector of size Zero to generate and its []
-  generateVect T recEnu (S pn) = aux_generateVect recEnu pn Z
+  generateList : (T:Type) -> (recEnu:RecursivelyEnumerable T) -> (n:Nat) -> LList (List T)
+  generateList T recEnu Z = LLCons [] LLNil -- There's just one list of size Zero to generate and its []
+  generateList T recEnu (S pn) = aux_generateList recEnu pn Z
   
   %assert_total -- Why Idris can't see that this definition is total ?
-  aux_generateVect : {T:Type} -> (recEnu:RecursivelyEnumerable T) -> (pn:Nat) -> (iCurrent:Nat) -> LList (Vect (S pn) T)
-  aux_generateVect {T=T} recEnu pn iCurrent = 
-    let ts = generateVect T recEnu pn in
+  aux_generateList : {T:Type} -> (recEnu:RecursivelyEnumerable T) -> (pn:Nat) -> (iCurrent:Nat) -> LList (List T)
+  aux_generateList {T=T} recEnu pn iCurrent = 
+    let ts = generateList T recEnu pn in
     let maybeInit = computableMap {c=T} iCurrent in
 	case maybeInit of
 	Just init => let resultStart = consAll ts init in
-			  LLappend resultStart (aux_generateVect recEnu pn (S iCurrent))
+			  LLappend resultStart (aux_generateList recEnu pn (S iCurrent))
 	Nothing => LLNil
 	
 	
 mutual
   %assert_total -- Why Idris can't see that this definition is total ?
   -- This function should generate all Vect for a given size
-  generateSortedVect : (T:Type) -> (recEnu:RecursivelyEnumerable T) -> (n:Nat) -> LList (Vect n T)
-  generateSortedVect T recEnu Z = LLCons [] LLNil -- There's just one vector of size Zero to generate and its []
-  generateSortedVect T recEnu (S pn) = aux_generateSortedVect recEnu pn Z
+  generateSortedList : (T:Type) -> (recEnu:RecursivelyEnumerable T) -> (Tord : PartialOrder T) -> (n:Nat) -> LList (List T)
+  generateSortedList T recEnu Tord Z = LLCons [] LLNil -- There's just one sorted list of size Zero to generate and its []
+  generateSortedList T recEnu Tord (S pn) = aux_generateSortedList recEnu Tord pn Z
   
   %assert_total -- Why Idris can't see that this definition is total ?
-  aux_generateSortedVect : {T:Type} -> (recEnu:RecursivelyEnumerable T) -> (pn:Nat) -> (iCurrent:Nat) -> LList (Vect (S pn) T)
-  aux_generateSortedVect {T=T} recEnu pn iCurrent = 
-    let ts = generateSortedVect T recEnu pn in
+  aux_generateSortedList : {T:Type} -> (recEnu:RecursivelyEnumerable T) -> (Tord : PartialOrder T) -> (pn:Nat) -> (iCurrent:Nat) -> LList (List T)
+  aux_generateSortedList {T=T} recEnu Tord pn iCurrent = 
+    let ts = generateSortedList T recEnu Tord pn in
     let maybeInit = computableMap {c=T} iCurrent in
 	case maybeInit of
-	Just init => let resultStart = consWhenLower ts init in
-			  LLappend resultStart (aux_generateSortedVect recEnu pn (S iCurrent))
+	Just init => let resultStart = consWhenLower Tord ts init in
+			  LLappend resultStart (aux_generateSortedList recEnu Tord pn (S iCurrent))
 	Nothing => LLNil	
 	
 	
@@ -168,16 +173,108 @@ unfold_n_times (LLCons h t) (S pn) = case (unfold_n_times t pn) of
 					
 
 -- Produces the first n vectors of size 3
-test : (n:Nat) -> Maybe(Vect n (Vect (S (S (S Z))) ThreeLeters))
-test n = let x = generateVect ThreeLeters ThreeLetersIsRecursivelyEnumarable (S (S (S Z)))
+test : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
+test n = let x = generateList ThreeLeters ThreeLetersIsRecursivelyEnumarable (S (S (S Z)))
 	 in unfold_n_times x n
  
 
--- ask for the evalutation of (test 27) for example
+ 
+-- ask for the evalutation of (test 27) for example 
+ 
+ 
+ 
+decEqThreeLeters : (l1:ThreeLeters) -> (l2:ThreeLeters) -> Dec(l1=l2)
+decEqThreeLeters A A = Yes Refl
+decEqThreeLeters A B = No ?MJ1
+decEqThreeLeters A C = No ?MJ2
+
+decEqThreeLeters B A = No ?MJ3
+decEqThreeLeters B B = Yes Refl
+decEqThreeLeters B C = No ?MJ4
+
+decEqThreeLeters C A = No ?MJ5
+decEqThreeLeters C B = No ?MJ6
+decEqThreeLeters C C = Yes Refl
+ 
+ 
+ 
+ 
+instance [ThreeLeters_set] Set ThreeLeters where
+  (~=) x y = (x = y)
+  
+  eqDec x y = decEqThreeLeters x y
+  
+  eq_refl x = Refl
+  
+  eq_sym p = sym p
+  
+  eq_trans p1 p2 = ?MthreeLeters_set_1
+ 
+ 
+total
+lowerThan_bool : (l1 : ThreeLeters) -> (l2 : ThreeLeters) -> Bool
+lowerThan_bool A A = False
+lowerThan_bool A _ = True -- A is lower than everything appart from A itself
+lowerThan_bool B C = True
+lowerThan_bool B _ = False -- B is only lower than C
+lowerThan_bool C _ = False -- C is lower than nothing
+
+
+
+-- the same as a proposition
+data lowerThan_prop : (l1 : ThreeLeters) -> (l2 : ThreeLeters) -> Type where
+  MkLowerThan_prop : (l1 : ThreeLeters) -> (l2 : ThreeLeters) -> (proofByComputation : (lowerThan_bool l1 l2 = True)) -> lowerThan_prop l1 l2
+
+
+instance [ThreeLeters_partialStrictOrder] Set ThreeLeters => PartialStrictOrder ThreeLeters where
+  (<<) x y = lowerThan_prop x y
+  
+  lower_compat_equivalence_L p1 p2 = ?MthreeLeters_partialStrictOrder_1
+  
+  lower_compat_equivalence_R p1 p2 = ?MthreeLeters_partialStrictOrder_2
+
+  lowerDec A A = No ?MthreeLeters_partialStrictOrder_3
+  lowerDec A B = Yes (MkLowerThan_prop A B Refl)
+  lowerDec A C = Yes (MkLowerThan_prop A C Refl)
+  lowerDec B A = No ?MthreeLeters_partialStrictOrder_4
+  lowerDec B B = No ?MthreeLeters_partialStrictOrder_5
+  lowerDec B C = Yes (MkLowerThan_prop B C Refl)
+  lowerDec C y = No ?MthreeLeters_partialStrictOrder_6
+  
+  
+  lower_antisym p1 p2 = ?MthreeLeters_partialStrictOrder_7
+  
+  lower_trans p1 p2 = ?MthreeLeters_partialStrictOrder_8
+  
+  
+instance [ThreeLeters_partialOrder] PartialStrictOrder ThreeLeters => PartialOrder ThreeLeters where
+
+
+-- FIX IDRIS HERE ! I basically need to do the instance resolution by hand
+fixMe_aux : Set ThreeLeters -> PartialStrictOrder ThreeLeters
+fixMe_aux x = ThreeLeters_partialStrictOrder
+
+fixMe : PartialStrictOrder ThreeLeters -> PartialOrder ThreeLeters
+fixMe x = ThreeLeters_partialOrder
+ 
+
+testSorted : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
+testSorted n = let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) (S (S (S Z)))
+		in unfold_n_times x n
+ 
+
+
 
 
 
 ---------- Proofs ----------
+
+proofAndTests.MthreeLeters_set_1 = proof
+  intros
+  rewrite (sym p1)
+  rewrite p2
+  exact Refl
+
 
 proofAndTests.Mplus_one_equals_succ_1 = proof
   intros
