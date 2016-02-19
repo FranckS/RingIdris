@@ -71,6 +71,12 @@ LLappend LLNil l2 = l2
 LLappend (LLCons h1 t1) l2 = LLCons h1 (LLappend t1 l2)
   
 
+LLmap : {T:Type} -> {U:Type} -> (f:T -> U) -> (LList T) -> LList U  
+LLmap f LLNil = LLNil
+LLmap f (LLCons h t) = LLCons (f h) (LLmap f t)
+  
+  
+  
 interface RecursivelyEnumerable c where
     computableMap : Nat -> Maybe c
     map_is_surjective : (y:c) -> (x:Nat ** (computableMap x = Just y)) -- For all y in the image set, there is (at least) one 'x' in the domain, which is going to be associated to 'y' by the map
@@ -81,12 +87,13 @@ consAll LLNil h = LLNil
 consAll (LLCons l1 ls) h = LLCons (h::l1) (consAll ls h)  
 
 
+%assert_total
 consWhenLower : {T:Type} -> (Tord : PartialOrder T) -> (ts:LList (List T)) -> (h:T) -> (LList (List T))
 consWhenLower Tord LLNil h = LLNil
 consWhenLower Tord (LLCons Nil ls) h = LLCons [h] (consAll ls h) -- We can add h in front and continue recursively      
 consWhenLower Tord (LLCons (curHead::tail) ls) h with (lowerEqDec Tord h curHead) -- We need to check if 'h' is lower or equal than the current head
   consWhenLower Tord (LLCons (curHead::tail) ls) h | (Yes pr_h_leq_currHead) = LLCons (h::(curHead::tail)) (consWhenLower Tord ls h)
-  consWhenLower Tord (LLCons (curHead::tail) ls) h | (No pr_h_not_leq_currHead) = LLCons (curHead::tail) (consWhenLower Tord ls h)
+  consWhenLower Tord (LLCons (curHead::tail) ls) h | (No pr_h_not_leq_currHead) = (consWhenLower Tord ls h)
 
 
 {-
@@ -173,13 +180,13 @@ unfold_n_times (LLCons h t) (S pn) = case (unfold_n_times t pn) of
 					
 
 -- Produces the first n vectors of size 3
-test : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
-test n = let x = generateList ThreeLeters ThreeLetersIsRecursivelyEnumarable (S (S (S Z)))
+testGen : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
+testGen n = let x = generateList ThreeLeters ThreeLetersIsRecursivelyEnumarable (S (S (S Z)))
 	 in unfold_n_times x n
  
 
  
--- ask for the evalutation of (test 27) for example 
+-- ask for the evalutation of (testGen 27) for example 
  
  
  
@@ -258,10 +265,41 @@ fixMe : PartialStrictOrder ThreeLeters -> PartialOrder ThreeLeters
 fixMe x = ThreeLeters_partialOrder
  
 
-testSorted : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
-testSorted n = let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) (S (S (S Z)))
+testGenSorted : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
+testGenSorted n = let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) (S (S (S Z)))
 		in unfold_n_times x n
  
+
+-- ask for the evalutation of (testGenSorted 10) to see the first 10 sorted list of size 3 
+
+
+-- -------------------------------------------------------------------
+-- Automatically generating n tests
+-- -------------------------------------------------------------------
+testSorted : (n:Nat) -> Maybe(Vect n Bool)
+testSorted n = 
+  let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) (S (S (S Z))) in
+    let y = LLmap (\l => let res = decideIsSorted (fixMe (fixMe_aux ThreeLeters_set)) l in
+			    case res of
+			      Yes _ => True
+			      No _ => False) x in
+	unfold_n_times y n
+
+
+
+-- ask for the evalutation of (testSorted 10) to see for example the result of testing the first 10 sorted list 
+
+
+
+
+-- -------------------------------------------------------------------
+-- Equivalence between the generated terms and the predicate isSorted
+-- -------------------------------------------------------------------
+
+
+
+
+
 
 
 
