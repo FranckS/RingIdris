@@ -91,16 +91,68 @@ tryDec (No prNo) = (False ** MkUnit)
 
 
 
--- First test to our predicate
+-- First test to our predicate, where the proof is done by hand
 total
 isSorted_test1 : isSorted nat_partialOrder [3, 5, 7]
 isSorted_test1 = let p1 : ((<~=) {p=nat_partialOrder} 3 5) = ?MA in -- rightDep (tryDec (lowerEqDec nat_partialOrder 3 5)) in
 		 let p2 : ((<~=) {p=nat_partialOrder} 5 7) = ?MB in
 		    ConsSorted 3 5 [7] (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
 
+		    
+		    
+		    
+		    
+isSorted_wkn : {T:Type} -> (TisOrdered : PartialOrder T) -> (h1 : T) -> (h2 : T) -> (l:List T) -> (isSorted TisOrdered (h1::(h2::l))) -> (isSorted TisOrdered (h2::l))
+isSorted_wkn TisOrdered h1 h2 l (NilIsSorted TisOrdered) impossible
+isSorted_wkn TisOrdered h1 h2 l (SingletonIsSorted TisOrdered _) impossible
+isSorted_wkn TisOrdered h1 h2 l (ConsSorted h1 h2 l h2_tail_sorted h1_lower_h2) = h2_tail_sorted
+
+
+isSorted_wkn2 : {T:Type} -> (TisOrdered : PartialOrder T) -> (h1 : T) -> (h2 : T) -> (l:List T) -> (isSorted TisOrdered (h1::(h2::l))) -> ((<~=) {p=TisOrdered} h1 h2)
+isSorted_wkn2 TisOrdered h1 h2 l (NilIsSorted TisOrdered) impossible
+isSorted_wkn2 TisOrdered h1 h2 l (SingletonIsSorted TisOrdered _) impossible
+isSorted_wkn2 TisOrdered h1 h2 l (ConsSorted h1 h2 l h2_tail_sorted h1_lower_h2) = h1_lower_h2
+
+
+
+-- We will now decide the predicate isSorted automatically
+
+
+%assert_total -- FIX IDRIS : Idris should see this function as total with a bit of work
+decideIsSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> (l:List T) -> Dec(isSorted TisOrdered l)
+decideIsSorted TisOrdered [] = Yes (NilIsSorted TisOrdered)
+decideIsSorted TisOrdered [x] = Yes (SingletonIsSorted TisOrdered x)
+decideIsSorted TisOrdered (h1::(h2::t)) with (lowerEqDec TisOrdered h1 h2)
+-- Does the first two elements are ordered ?
+  decideIsSorted TisOrdered (h1::(h2::t)) | (Yes h1_lower_h2) with (decideIsSorted TisOrdered (h2::t))
+    -- If so, we now need to check recursively
+    decideIsSorted TisOrdered (h1::(h2::t)) | (Yes h1_lower_h2) | (Yes h2_tail_sorted) = Yes (ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2)
+    decideIsSorted TisOrdered (h1::(h2::t)) | (Yes h1_lower_h2) | (No h2_tail_not_sorted) = No ?MdecideIsSorted_1
+-- If not, we know that the entire list isn't sorted
+  decideIsSorted TisOrdered (h1::(h2::t)) | No h1_not_lower_h2 = No ?MdecideIsSorted_2
+  		    
+		    
+		    
+test_isSorted_1 : Dec (isSorted nat_partialOrder [3,5,7])
+test_isSorted_1 = decideIsSorted nat_partialOrder [3,5,7] 
+		    
+		    
 
 
 ---------- Proofs ----------
+
+tests.MdecideIsSorted_2 = proof
+  intros
+  mrefine h1_not_lower_h2 
+  exact (isSorted_wkn2 TisOrdered h1 h2 t __pi_arg)
+
+
+tests.MdecideIsSorted_1 = proof
+  intros
+  mrefine h2_tail_not_sorted 
+  exact (isSorted_wkn TisOrdered h1 h2 t __pi_arg)
+
+
 {-
 tests.MX = proof
   intros

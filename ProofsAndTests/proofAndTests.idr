@@ -47,6 +47,9 @@ decideIsSorted TisOrdered (h1::(h2::t)) with (lowerEqDec TisOrdered h1 h2)
   decideIsSorted TisOrdered (h1::(h2::t)) | No h1_not_lower_h2 = No ?MdecideIsSorted_2
   
 
+
+  
+  
 -- Now, the big question is, does the (indictive) predicate isSorted effectively represents what we consider to be a sorted list ?
 -- 1) Does this predicate always hold for a sorted list ? ie, does intensionnaly_sorted -> formally_sorted
 -- 2) When this predicate holds for a data, can we be sure that this data is indeed sorted? ie, does formally_sorted -> intensionally_sorted ?
