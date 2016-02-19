@@ -1,10 +1,13 @@
+-- Franck Slama
+-- University of St Andrews
+-- ------------------------------
+
 module ordering
 
 
 %access public export
 
 %default total
-
 
 
 
