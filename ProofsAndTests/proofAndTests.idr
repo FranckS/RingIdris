@@ -33,7 +33,7 @@ isSorted_wkn2 TisOrdered h1 h2 t (ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2)
 
 
 
-%assert_total -- FIX IDRIS : Why Idris doesn't see this function as total ?
+%assert_total -- FIX IDRIS : Idris should see this function as total with a bit of work
 decideIsSorted : {T:Type} -> (TisOrdered : PartialOrder T) -> {n:Nat} -> (v:Vect n T) -> Dec(isSorted TisOrdered v)
 decideIsSorted TisOrdered [] = Yes (NilIsSorted TisOrdered)
 decideIsSorted TisOrdered [x] = Yes (SingletonIsSorted TisOrdered x)

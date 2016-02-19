@@ -8,14 +8,30 @@ With the predicate $isSorted$ defined in section 1, we can try to prove that it 
 \begin{lstlisting}
 isSorted_test1 : isSorted natIsOrdered [3, 5, 7]
 isSorted_test1 = 
-  let p1 : (3 <= 5) = ?MA in
-  let p2 : (5 <= 7) = ?MB in
+  let p1 : (3 <= 5) = tryDec (lowerEqDec nat_partialOrder 3 5) in
+  let p2 : (5 <= 7) = tryDec (lowerEqDec nat_partialOrder 5 7) in
     ConsSorted 3 5 [7] (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
-
 \end{lstlisting}
 
+It is important to realize that this kind of tests is very particular in the sense that is is a \emph{test by proof} : we show that the predicate holds by doing the proof on a specific value, here $[3,\ 5,\ 7]$.
 
+We could go a step forward, and remove the need of doing these specific proofs by hand, because in this case, the predicate isSorted can be decided : there exists an algorithm that decided if a list $l$ is sorted --according to isSorted-- and that produces a proof of $(isSorted\ l)$ if appropriate, or a proof of $(not\ (isSorted\ l))$ otherwise.
 
+\begin{lstlisting}
+decideIsSorted : (Tord : Order T) -> (l:List T) -> Dec(isSorted Tord v)
+decideIsSorted Tord [] = Yes (NilIsSorted Tord)
+decideIsSorted Tord [x] = Yes (SingletonIsSorted Tord x)
+decideIsSorted Tord (h1::(h2::t)) with (lowerEqDec Tord h1 h2)
+  decideIsSorted Tord (h1::(h2::t)) | (Yes h1_lower_h2) 
+          with (decideIsSorted Tord (h2::t))
+    decideIsSorted Tord (h1::(h2::t)) | (Yes h1_lower_h2) 
+          | (Yes h2_tail_sorted) = Yes (ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2)
+    decideIsSorted Tord (h1::(h2::t)) | (Yes h1_lower_h2) 
+          | (No h2_tail_not_sorted) = No [...]
+  decideIsSorted Tord (h1::(h2::t)) | No h1_not_lower_h2 = No [...]
+\end{lstlisting}
+
+When the list has two or more elements, we start by checking if the first two elements are ordered. If so, we continue to check recursively with the list deprived from its head $h1$, and otherwise we already know that the list isn't sorted. 
 
 
 - Other usual approach to mention : defining many of them and proving their equivalence,

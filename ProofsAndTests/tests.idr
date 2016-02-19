@@ -12,6 +12,15 @@ import ordering
 %default total
 
 
+total
+leftDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> A
+leftDep (a ** b) = a
+
+
+total
+rightDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> B (leftDep x)
+rightDep (a ** b) = b
+
 
 data isSorted : {T:Type} -> (Tord : PartialOrder T) 
                  -> (l:List T) -> Type where
@@ -66,17 +75,26 @@ instance [nat_partialStrictOrder] Set Nat => PartialStrictOrder Nat where
     
 instance [nat_partialOrder] PartialStrictOrder Nat => PartialOrder Nat where
   
-
   
-tryDec : {T:Type} -> (x:Dec T) -> (b:Bool ** (if b then T else Unit))
-tryDec (Yes prYes) = (True ** pr)
+total
+T_or_Unit : (T:Type) -> (b:Bool) -> Type
+T_or_Unit T True = T
+T_or_Unit T False = Unit
+
+
+
+total  
+tryDec : {T:Type} -> (x:Dec T) -> (b:Bool ** (T_or_Unit T b))
+tryDec (Yes prYes) = (True ** prYes)
 tryDec (No prNo) = (False ** MkUnit)
 
 
 
+
 -- First test to our predicate
+total
 isSorted_test1 : isSorted nat_partialOrder [3, 5, 7]
-isSorted_test1 = let p1 : ((<~=) {p=nat_partialOrder} 3 5) = ?MA in
+isSorted_test1 = let p1 : ((<~=) {p=nat_partialOrder} 3 5) = ?MA in -- rightDep (tryDec (lowerEqDec nat_partialOrder 3 5)) in
 		 let p2 : ((<~=) {p=nat_partialOrder} 5 7) = ?MB in
 		    ConsSorted 3 5 [7] (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
 

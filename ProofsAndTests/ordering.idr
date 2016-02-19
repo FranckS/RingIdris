@@ -90,11 +90,11 @@ not_lowerEq_lemma1 x y p1 p2 (Or_introR prEqual) = p2 prEqual
 
 -- There's only one way to define the function which decides the lower or equal operation
 lowerEqDec : {c:Type} -> (p:PartialOrder c) -> (x:c) -> (y:c) -> Dec((<~=) {p=p} x y) -- FIX IDRIS : If I write (x <~= y) then in the file proofAndTests.idr I get a weird and broken error message which says "can't infer argument 'p''...
-lowerEqDec p x y with (lowerDec x y)
-	lowerEqDec p x y | (Yes prStrictlyLower) = Yes (Or_introL prStrictlyLower)
-	lowerEqDec p x y | (No prNotStrictlyLower) with (eqDec x y)
-		lowerEqDec p x y | (No prNotStrictlyLower) | (Yes prEqual) = Yes (Or_introR prEqual)
-		lowerEqDec p x y | (No prNotStrictlyLower) | (No prNotEqual) = No ?MlowerEqDec_1
+lowerEqDec {c} p x y with (lowerDec {c=c} x y)
+	lowerEqDec {c} p x y | (Yes prStrictlyLower) = Yes (Or_introL prStrictlyLower)
+	lowerEqDec {c} p x y | (No prNotStrictlyLower) with (eqDec x y)
+		lowerEqDec {c} p x y | (No prNotStrictlyLower) | (Yes prEqual) = Yes (Or_introR prEqual)
+		lowerEqDec {c} p x y | (No prNotStrictlyLower) | (No prNotEqual) = No ?MlowerEqDec_1
 
 
 -- I'm forced to make the (Partialorder c) an explicit argument, otherwise we end up with a non-sense arror message
