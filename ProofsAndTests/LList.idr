@@ -31,7 +31,7 @@ LLmap : {T:Type} -> {U:Type} -> (f:T -> U) -> (LList T) -> LList U
 LLmap f LLNil = LLNil
 LLmap f (LLCons h t) = LLCons (f h) (LLmap f t)
   
-
+  
   
 codata LLall : {T:Type} -> (LList T) -> (P:T -> Type) -> Type where
   LLall_Nil : {T:Type} -> (P:T -> Type) -> LLall LLNil P
@@ -48,6 +48,17 @@ unfold_n_times (LLCons h t) Z = Just []
 unfold_n_times (LLCons h t) (S pn) = case (unfold_n_times t pn) of 
 					Just vectResultRec => Just (h::vectResultRec)
 					Nothing => Nothing
+
+
+-- If the provided LList isn't big enough, we will pad the rsult with the padding value givn 
+unfold_n_times_with_padding : {T:Type} -> (LList T) -> (n:Nat) -> (paddingValue:T) -> Vect n T
+-- Unfolding LLNil
+unfold_n_times_with_padding LLNil Z paddingValue = []
+unfold_n_times_with_padding LLNil (S pn) paddingValue = paddingValue::(unfold_n_times_with_padding LLNil pn paddingValue)
+-- Unfolding an LLCons
+unfold_n_times_with_padding (LLCons h t) Z paddingValue = []
+unfold_n_times_with_padding (LLCons h t) (S pn) paddingValue = h::(unfold_n_times_with_padding t pn paddingValue) 
+
 
 
 

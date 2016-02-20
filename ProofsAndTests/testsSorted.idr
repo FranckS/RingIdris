@@ -240,29 +240,49 @@ fixMe : PartialStrictOrder ThreeLeters -> PartialOrder ThreeLeters
 fixMe x = ThreeLeters_partialOrder
  
 
-testGenSorted : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
-testGenSorted n = let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) (S (S (S Z)))
-		in unfold_n_times x n
+ -- ------------------------------------------------------------------------
+-- Automatically generating m tests of lists of the sorted lists of size n
+-- ------------------------------------------------------------------------
+ 
+testGenSorted : (m:Nat) -> (n:Nat) -> Maybe(Vect m (List ThreeLeters))
+testGenSorted m n = let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) n
+		      in unfold_n_times x m
  
 
--- ask for the evalutation of (testGenSorted 10) to see the first 10 sorted list of size 3 
+-- ask for the evalutation of (testGenSorted 10 3) to see the first 10 sorted list of size 3 
 -- it works
 
--- ---------------------------------
--- Automatically generating n tests
--- ---------------------------------
-testSorted : (n:Nat) -> Maybe(Vect n Bool)
-testSorted n = 
-  let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) (S (S (S Z))) in
+-- ------------------------------------------------------------------------
+-- Now also automatically says if each test was passed or failed
+-- ------------------------------------------------------------------------
+testSorted : (m:Nat) -> (n:Nat) -> Vect m Bool
+testSorted m n = 
+  let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) n in
     let y = LLmap (\l => let res = decideIsSorted (fixMe (fixMe_aux ThreeLeters_set)) l in
 			    case res of
 			      Yes _ => True
 			      No _ => False) x in
-	unfold_n_times y n
+	unfold_n_times_with_padding y m True -- If the result wasn't big enough, we obviously consider that them to be success
 
+-- ask for the evalutation of (testSorted 10 3) to see for example the result of testing the first 10 sorted list 
+-- it works	
+	
+	
+-- ------------------------------------------------------------------------------------------
+-- Now just give the final answer : True if all the tests have been passed, False otherwise
+-- ------------------------------------------------------------------------------------------
+	
+testSorted_result : (m:Nat) -> (n:Nat) -> Bool
+testSorted_result m n = let vectorRes = testSorted m n in aux_testSorted_result vectorRes where
+  
+	aux_testSorted_result : {m:Nat} -> (Vect m Bool) -> Bool
+	aux_testSorted_result [] = True
+	aux_testSorted_result (h::t) = h && (aux_testSorted_result t) -- Does the logical and on the entire vector result
 
+	
+-- When you want to test a very big value of m and thus can't check by hand the result, run for example (testSorted_result 200 3)
+-- to see if the first 200 tests have passed the test
 
--- ask for the evalutation of (testSorted 10) to see for example the result of testing the first 10 sorted list 
 -- it works
 
 ---------- Proofs ----------
