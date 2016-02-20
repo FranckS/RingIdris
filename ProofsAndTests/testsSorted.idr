@@ -241,7 +241,7 @@ fixMe x = ThreeLeters_partialOrder
  
 
  -- ------------------------------------------------------------------------
--- Automatically generating m tests of lists of the sorted lists of size n
+-- Automatically generating m tests of the sorted lists of size n
 -- ------------------------------------------------------------------------
  
 testGenSorted : (m:Nat) -> (n:Nat) -> Maybe(Vect m (List ThreeLeters))
