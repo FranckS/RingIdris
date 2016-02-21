@@ -25,7 +25,7 @@ We can ask for the first 8 sorted lists of size 5 by evaluating $testGenSorted\ 
 Just [[A, A, A, A], [A, A, A, B], [A, A, A, C], [A, A, B, B],
       [A, A, B, C], [A, A, C, C], [A, B, B, B], [A, B, B, C]] : Maybe (Vect 8 (List T))
 \end{lstlisting}
-Now, instead of simply generating the first $m$ sorted lists, we want to run the decision procedure on all of these $m$ tests in order to know if the predicate and the generator agree on this portion. The result will be a vector $m$ booleans.
+Now, instead of simply generating the first $m$ sorted lists, we run the decision procedure on all of these $m$ tests in order to know if the predicate and the generator agree on this portion. The result will be a vector $m$ booleans.
 
 \begin{lstlisting}
 testSorted : (m:Nat) -> (n:Nat) -> Vect m Bool
