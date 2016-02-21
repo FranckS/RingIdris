@@ -10,7 +10,7 @@ This approach aims at increasing the confidence in our formal definitions by ass
 
 \
 
-In order to gain confidence in the formal specifications we write, another traditional approach is to test the predicate on some values. That consists of defining a few terms, usually by hand, for which we know if the predicate should hold or not, and to prove that the predicate effectively holds when it should, and that it doesn't when it shouldn't. For example, with the predicate $isSorted$ defined in section 1, we can prove that it holds on the list [3, 5, 7] that we know sorted according to our intentions.
+In order to gain confidence in the formal specifications we write, another traditional approach is to test the predicate on some values. That consists of defining a few terms, usually by hand, for which we know if the predicate should hold or not, and to prove that the predicate effectively holds when it should, and that it doesn't when it shouldn't. For example, with the predicate $isSorted$ defined in section 1, we can prove that it holds on the list [3, 5, 7] that we know sorted according to our informal sense of what being sorted is.
 
 \begin{lstlisting}
 isSorted_test1 : isSorted natIsOrdered [3, 5, 7]
@@ -19,9 +19,7 @@ isSorted_test1 =
   let p2 : (5 <= 7) = tryDec (lowerEqDec natIsOrdered 5 7) in
     ConsSorted 3 5 [7] (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
 \end{lstlisting}
-It is important to realize that this kind of tests is very particular in the sense that it is a \emph{test done by proof} : we show that the predicate holds on some specific value, here $[3,\ 5,\ 7]$, by doing the proof.
-
-We can go a step forward by removing the need of doing these specific proofs by hand, because in this case, the predicate isSorted can be decided : there exists an algorithm that produces a proof of $(isSorted\ l)$ if appropriate, or a proof of $(not\ (isSorted\ l))$ otherwise.
+This test is a \emph{test done by proof} : we show that the predicate holds on some specific value, here $[3,\ 5,\ 7]$, by doing the proof. We can go a step forward by removing the need of doing these specific proofs by hand, because in this case, the predicate isSorted can be decided : there exists an algorithm that produces a proof of $(isSorted\ l)$ if appropriate, or a proof of $(not\ (isSorted\ l))$ otherwise.
 
 \begin{lstlisting}
 decideIsSorted : (Tord : Order T) -> (l:List T) -> Dec(isSorted Tord v)
@@ -36,7 +34,7 @@ decideIsSorted Tord (h1::(h2::t)) with (lowerEqDec Tord h1 h2)
           | (No h2_tail_not_sorted) = No [...]
   decideIsSorted Tord (h1::(h2::t)) | No h1_not_lower_h2 = No [...]
 \end{lstlisting}
-Now, in order to do \emph{tests by proof} on the predicate $isSorted$, we can simply run the decision procedure.
+Now, in order to do \emph{tests by proof}, we can simply run the decision procedure.
 
 \begin{lstlisting}
 isSorted_test1' : Dec (isSorted natIsOrdered [3,5,7])
