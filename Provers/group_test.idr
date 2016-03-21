@@ -9,6 +9,7 @@ module Provers.group_test
 import Data.ZZ
 import Data.Vect
 import Data.Fin
+
 import Provers.globalDef
 import Provers.dataTypes
 import Provers.tools
@@ -18,8 +19,10 @@ import Provers.semiGroup_test
 import Provers.magma_test
 
 
+%access public export
 
-instance dataTypes.Set ZZ where
+
+implementation dataTypes.Set ZZ where
     -- The relation is just the equality
     (~=) x y = (x=y)
 
@@ -31,15 +34,15 @@ instance dataTypes.Set ZZ where
     set_eq_undec_sym p = sym p
     set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in Refl
 
-instance Magma ZZ where
+implementation Magma ZZ where
     Plus x y = x + y 
     
     Plus_preserves_equiv p1 p2 = ?MPlusZZ_preserves_equiv_1
     
-instance SemiGroup ZZ where
+implementation SemiGroup ZZ where
     Plus_assoc c1 c2 c3 = sym (plusAssociativeZ c1 c2 c3)    
 
-instance dataTypes.Monoid ZZ where
+implementation dataTypes.Monoid ZZ where
     Zero = Pos Z
     
     Plus_neutral_1 c = plusZeroLeftNeutralZ c
@@ -66,7 +69,7 @@ plus_inverse (NegS (S py)) = (minusNat_Z_Zero py, minusNat_Z_Zero py)
 
 
     
-instance dataTypes.Group ZZ where
+implementation dataTypes.Group ZZ where
     Neg x = -x
     Minus x y = x - y
     

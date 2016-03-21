@@ -14,8 +14,9 @@ import Provers.tools
 import Provers.semiGroup_reduce
 import Provers.magma_test
 
+%access public export
 
-instance SemiGroup Nat where
+implementation SemiGroup Nat where
     Plus_assoc c1 c2 c3 = sym (plusAssociative c1 c2 c3)
 
 

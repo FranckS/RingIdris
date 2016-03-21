@@ -10,6 +10,7 @@ module Provers.reflection
 import Decidable.Equality
 import Data.ZZ
 import Data.Fin
+import Data.Vect
 import Provers.dataTypes
 import Provers.tools
 
@@ -22,6 +23,7 @@ import Provers.monoid_test
 import Provers.semiGroup_test
 import Provers.magma_test
 
+%access public export
 
 -- --------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 -- Notes about the refleciton mechanism :
@@ -93,7 +95,7 @@ reflectTermNat {n=n} g (a+b) with (reflectTermNat g a)
 	  -- Fix Idris : Huge problem if convertVectInExprMa was taking proofs that (n=n') and (g=g') (instead of the other way arround) and if I give the "sym" for these proofs here.
 -- %logging 0  
 reflectTermNat {n=n} g t with (isElement t g)
-	| Just (i ** p) = let this = VarMa {c=Nat} {n=n+Z} {g=g++Data.VectType.Vect.Nil} (%instance) (neg (FakeSetAndNeg (magma_to_set_class (%instance)))) (FakeSetAndMult (magma_to_set_class (%instance))) (RealVariable {n=n+Z} _ _ _ (g++Data.VectType.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
+	| Just (i ** p) = let this = VarMa {c=Nat} {n=n+Z} {g=g++Data.Vect.Nil} (%instance) (neg (FakeSetAndNeg (magma_to_set_class (%instance)))) (FakeSetAndMult (magma_to_set_class (%instance))) (RealVariable {n=n+Z} _ _ _ (g++Data.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
 							 ?MreflectTermNat_1 -- (Z ** (Data.VectType.Vect.Nil ** this))
 	| Nothing = let this = VarMa {c=Nat} {n=n+S Z} {g=g++[t]} (%instance) (neg (FakeSetAndNeg (magma_to_set_class (%instance)))) (FakeSetAndMult (magma_to_set_class (%instance))) (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
 							 ?MreflectTermNat_2 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))  
@@ -162,8 +164,8 @@ reflectTermZForRing {n=n} g reflectCst t =
 	  Just this => ?MreflectTermZForRing_1 -- I just return (Z ** ([] ** this)) with a few conversions for having the type aggreing (because n+0=n and g++[] = [] at the same time)
 	  -- If not, then it should be considered as a variable
 	  Nothing => case (isElement t g) of
-					Just (i ** pr) => let this2 = VarR {n=n+Z} {g=g++Data.VectType.Vect.Nil} (%instance) (RealVariable {n=n+Z} _ _ _ (g++Data.VectType.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
-											?MreflectTermZForRing_2 -- (Z ** (Data.VectType.Vect.Nil ** this))
+					Just (i ** pr) => let this2 = VarR {n=n+Z} {g=g++Data.Vect.Nil} (%instance) (RealVariable {n=n+Z} _ _ _ (g++Data.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
+											?MreflectTermZForRing_2 -- (Z ** (Data.Vect.Nil ** this))
 					Nothing => let this3 = VarR {n=n+S Z} {g=g++[t]} (%instance) (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
 											?MreflectTermZForRing_3 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))
 

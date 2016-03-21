@@ -7,9 +7,13 @@
 module Provers.semiGroup_reduce
 
 import Decidable.Equality
+import Data.Vect
+
 import Provers.dataTypes
 import Provers.magma_reduce
 import Provers.tools
+
+%access public export
 
 
 --%default total

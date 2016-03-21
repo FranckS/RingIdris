@@ -9,10 +9,12 @@ module Provers.group_reduce
 import Data.Vect
 import Data.Fin
 import Decidable.Equality
+
 import Provers.dataTypes
 import Provers.monoid_reduce
 import Provers.tools
 
+%access public export
 
 --%default total
 
@@ -158,7 +160,7 @@ decode p setAndMult g (PlusMo _ _ e1 e2) =
 code_reduceM_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 code_reduceM_andDecode {c} p setAndMult g e = 
 	let (c2 ** (e2, pEncode)) = encode _ _ _ _ e in
-	let (c3 ** (e3, pReduce)) = monoidReduce (group_to_monoid_class p) (MkSetWithNeg (group_to_set p) Neg (\x => \y => \peq:x~=y => Neg_preserves_equiv {c} peq)) e2 in
+	let (c3 ** (e3, pReduce)) = monoidReduce (group_to_monoid_class p) (MkSetWithNeg Neg (\x => \y => \peq:x~=y => Neg_preserves_equiv {c} peq)) e2 in
 	let (c4 ** (e4, pDecode)) = decode p _ _ e3 in
 		(c4 ** (e4, ?Mcode_reduceM_andDecode_1))
                                               

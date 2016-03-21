@@ -9,6 +9,8 @@ module Provers.dataTypes
 import Data.Fin
 import Data.Vect
 
+%access public export
+
 %default total
 
 

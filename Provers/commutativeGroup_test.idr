@@ -13,7 +13,10 @@ import Provers.semiGroup_test
 import Provers.magma_test
 
 
-instance dataTypes.CommutativeGroup ZZ where
+%access public export
+
+
+implementation dataTypes.CommutativeGroup ZZ where
     Plus_comm x y = plusCommutativeZ x y
     
     

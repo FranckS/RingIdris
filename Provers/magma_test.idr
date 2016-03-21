@@ -13,8 +13,9 @@ import Provers.dataTypes
 import Provers.magma_reduce
 
 
+%access public export
 
-instance Set Nat where
+implementation Set Nat where
     -- The relation is just the (syntactical) equality
     (~=) x y = (x = y)
 
@@ -28,7 +29,7 @@ instance Set Nat where
     set_eq_undec_trans p1 p2 = rewrite p1 in rewrite p2 in Refl
     
     
-instance Magma Nat where
+implementation Magma Nat where
     Plus x y = plus x y
     
     -- proof that this plus preserves the (syntactical) equality

@@ -11,9 +11,9 @@ import Provers.globalDef
 import Provers.dataTypes
 import Provers.commutativeMonoid_reduce
 import Provers.monoid_test -- For the instance of the level under (Monoid Nat)
---import Data.ZZ
 
 
+%access public export
 
 instance dataTypes.CommutativeMonoid Nat where
     Plus_comm' x y = plusCommutative x y

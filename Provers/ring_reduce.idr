@@ -13,7 +13,8 @@ import Provers.dataTypes
 import Provers.tools
 import Provers.commutativeGroup_reduce
 
-import Data.Vect
+
+%access public export
 
 
 dist_minus : {c:Type} -> (p:dataTypes.Ring c) -> (c1:c) -> (c2:c) -> (c3:c) -> (Mult c1 (Minus c2 c3) ~= Minus (Mult c1 c2) (Mult c1 c3))
@@ -712,7 +713,7 @@ simplifyWithConstant_ProdOfMon c p g multAssoc multPreservesEquiv proofZeroL pro
 	
 	
 	
-decodeProdOfVar : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfVar:ProductOfVariables (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeProdOfVar : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfVar:ProductOfVariables (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 decodeProdOfVar c p g (LastVar g _ k) = (_ ** (VarR p (RealVariable _ _ _ g k), ?MdecodeProdOfVar_1))
 decodeProdOfVar c p g (VarMultProduct _ k prodOfVar) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = decodeProdOfVar c p g prodOfVar in
@@ -720,7 +721,7 @@ decodeProdOfVar c p g (VarMultProduct _ k prodOfVar) =
 	
 	
     
-encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
+encodeToMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (Monomial (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 -- The only thing we can get are : 
 -- a Var, a Constant, a Mult between a const and a var and a Mult between a var and a var
 -- (Mult between const and const is impossible because we would have deal with that directly, and Mult between var and const would not make a monomial so we would have already deal with it as well) 
@@ -731,7 +732,7 @@ encodeToMonomial c p g (MultR (VarR _ (RealVariable _ _ _ _ i)) (VarR _ (RealVar
 
 
 
-decodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (monomial:Monomial (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeMonomial : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (monomial:Monomial (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 decodeMonomial c p g (ProdOfVar _ prodOfVar) = decodeProdOfVar c p g prodOfVar
 decodeMonomial c p g (ProdOfVarWithConst _ const1 prodOfVar) = 
 	let (r1 ** (e1, p1)) = decodeProdOfVar c p g prodOfVar in
@@ -743,7 +744,7 @@ decodeMonomial c p g (ConstantMonomial g _ const1) = (_ ** (ConstR _ _ const1, ?
     
 
 -- The "e" here can't be a Plus, a Neg or a Minus
-encodeToProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
+encodeToProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ProductOfMonomials (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 -- This case gives only one monomial (base case)
 encodeToProductOfMonomials c p g (VarR _ v) = 
     let (r_1 ** (mon1, p_1)) = encodeToMonomial c p g (VarR _ v) in
@@ -792,7 +793,7 @@ encodeToProductOfMonomials c p g (MultR (VarR _ v1) e2) =
 		(_ ** (e_3, ?MencodeToProductOfMonomials_8))
             
 
-decodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfMon:ProductOfMonomials (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
+decodeProductOfMonomials : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (prodOfMon:ProductOfMonomials (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 decodeProductOfMonomials c p g (LastMonomial _ mon) = decodeMonomial c p g mon
 decodeProductOfMonomials c p g (MonomialMultProduct _ mon prod) =
 	let (r1 ** (e1, p1)) = decodeMonomial c p g mon in
@@ -810,7 +811,7 @@ decryptConstantAndVariable p setAndMult e = (_ ** (e, ?MdecryptConstantAndVariab
 		
 		
 -- NEW : does a bit of simplification after having encoded the product of monomials : 1 * v1v2v3 -> v1v2v3 and 0*v1v2v3 -> 0
-encodeToCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
+encodeToCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (e:ExprR p g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
 encodeToCG c p g (ConstR _ _ const1) = 
 	(_ ** (ConstCG _ _ _ const1, ?MencodeToCG_1))
 encodeToCG c p g (VarR _ v1) = 
@@ -833,7 +834,7 @@ encodeToCG c p g (MultR e1 e2) =
 
 	
 	
-decodeFromCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult (ring_to_set p) Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR {n=n} p g c2, c1~=c2))
+decodeFromCG : (c:Type) -> {n:Nat} -> (p:dataTypes.Ring c) -> (g:Vect n c) -> {c1:c} -> (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprR {n=n} p g c2, c1~=c2))
 decodeFromCG c p g (ConstCG _ _ g const1) = (_ ** (ConstR p _ const1, ?MdecodeFromCG_1)) -- Fix Idris : we can't simply give (set_eq_undec_refl _) which is exactly the proof we do in the proof mode !
 decodeFromCG c p g (PlusCG _ e1 e2) = 
     let (r_ih1 ** ((e_ih1, p_ih1))) = decodeFromCG c p g e1 in 
@@ -1881,8 +1882,8 @@ Provers.ring_reduce.Mdevelop_19 = proof
 Provers.ring_reduce.Mdevelop_18 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Mult (Minus r_ih_e11 r_ih_e12) c3)
-  exact (Minus (Mult r_ih_e11 c3) (Mult r_ih_e12 c3))
+  exact (Mult (Minus r_ih_e11 r_ih_e12) c2)
+  exact (Minus (Mult r_ih_e11 c2) (Mult r_ih_e12 c2))
   mrefine Mult_preserves_equiv 
   mrefine Minus_preserves_equiv 
   mrefine dist_minus_2
@@ -1999,8 +2000,8 @@ Provers.ring_reduce.Mdevelop_13 = proof
 Provers.ring_reduce.Mdevelop_12 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Mult c1 c3) (Mult c2 c3))
-  exact (Plus (Mult r_ih_e11 c3) (Mult r_ih_e12 c3))
+  exact (Plus (Mult c1 c2) (Mult c3 c2))
+  exact (Plus (Mult r_ih_e11 c2) (Mult r_ih_e12 c2))
   mrefine Mult_dist_2 
   mrefine set_eq_undec_refl
   mrefine Plus_preserves_equiv 
@@ -2195,7 +2196,9 @@ Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_new_1 = proof
   
 Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_param2 = proof
   intros
-  exact (multPreservesEquiv imp imp1 imp2 imp3 __pi_arg __pi_arg17 )
+  mrefine mult_preserves_equiv 
+  exact __pi_arg
+  exact __pi_arg17
 
 Provers.ring_reduce.MsimplifyWithConstant_ProdOfMon_param1 = proof
   intros

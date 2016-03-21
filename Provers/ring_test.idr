@@ -3,6 +3,7 @@ module Provers.ring_test
 import Data.ZZ
 import Data.Vect
 import Data.Fin
+
 import Provers.globalDef
 import Provers.dataTypes
 import Provers.tools
@@ -13,6 +14,7 @@ import Provers.monoid_test
 import Provers.semiGroup_test
 import Provers.magma_test
 
+%access public export
 
 
 -- In Nat, 0 * n = 0
@@ -161,7 +163,7 @@ mult_ZZ_neutral2 (NegS (S pa)) = (f_equal _ _ _ (f_equal (\x => S x) _ _ (multOn
 
 
 
-instance dataTypes.Ring ZZ where
+implementation dataTypes.Ring ZZ where
     One = Pos (S Z)
     Mult = multZ
     Mult_preserves_equiv {c1=c1} {c2=c2} {c1'=c1'} {c2'=c2'} pEq1 pEq2 = 

@@ -8,10 +8,12 @@ module Provers.tools
 
 import Data.ZZ
 import Data.Fin
+import Data.Vect
 
 import Provers.globalDef
 import Provers.dataTypes
 
+%access public export
 
 %default total
 
@@ -25,10 +27,10 @@ left (x,y) = x
 right : {A:Type} -> {B:Type} -> (A,B) -> B
 right (x,y) = y
 
-leftDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> A
+leftDep : {A:Type} -> {B:A->Type} -> (x : DPair A B) -> A
 leftDep (a ** b) = a
 
-rightDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> B (leftDep x)
+rightDep : {A:Type} -> {B:A->Type} -> (x : DPair A B) -> B (leftDep x)
 rightDep (a ** b) = b
 
 {-
@@ -190,7 +192,7 @@ lemmaRing1 C p a b =
 	let p6 : (Plus Zero (Neg (Mult a b)) ~= (Neg (Mult a b))) = ?MlemmaRing1_4 in
 		?MlemmaRing1_5
 
--- Moves the Neg in front of the producti when the Neg was on the first argument
+-- Moves the Neg in front of the product when the Neg was on the first argument
 lemmaRing2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (b:C) -> (Mult (Neg a) b ~= Neg (Mult a b))
 lemmaRing2 C p a b = 
 	let p1 : (Plus (Mult (Neg a) b) (Mult a b) ~= Mult (Plus (Neg a) a) b) = ?MlemmaRing2_1 in -- Uses distributivity 
@@ -206,10 +208,12 @@ subgoal1 C p a =
 	let p1 : (Mult a One ~= a) = ?Msubgoal1_1 in
 		?Msubgoal1_2
 
-subgoal2 : (C:Type) -> (dataTypes.Ring C) -> (a:C) -> (Mult (Neg One) a ~= Neg a)
+
+subgoal2 : (C:Type) -> (p:dataTypes.Ring C) -> (a:C) -> (Mult {c=C} (Neg One) a ~= Neg a) -- FIX IDRIS : I have to add this silly {c=C} with the lattest verison of Idris, otherwise Idris can't find the implementation of (Ring C)...
 subgoal2 C p a = 
 	let p1 : (Mult One a ~= a) = ?Msubgoal2_1 in
 		?Msubgoal2_2
+
 -- --------------------
 		
 -- Moves the Neg from the second argument of the Mult to the first argument
@@ -268,6 +272,10 @@ groupAssoc_4terms C p c1 c2 c3 c4 = ?MgroupAssoc_4terms_1
 -- -----------------------------------
 -- D.1) Arith for Nat
 
+succ_not_zero : (pn:Nat) -> (S pn = Z) -> Void
+succ_not_zero Z Refl impossible
+succ_not_zero (S ppn) Refl impossible
+
 lower_value : (x:Nat) -> (y:Nat) -> (LTE x y) -> LTE x (S y)
 lower_value Z Z LTEZero = LTEZero
 lower_value (S px) Z LTEZero impossible
@@ -287,6 +295,13 @@ greater_than_succ (S px) (S py) (LTESucc p) = lower_value (S py) px p
 S_both_side : (x:Nat) -> (y:Nat) -> (x=y) -> (S x = S y)
 S_both_side x y P = ?M_S_both_side_1
 
+
+removeSucc : (x:Nat) -> (y:Nat) -> (S x = S y) -> (x=y)
+removeSucc Z Z Refl = Refl
+removeSucc Z (S py) Refl impossible
+removeSucc (S px) Z Refl impossible
+removeSucc (S _) (S _) p with (p)
+	removeSucc (S _) (S _) p | Refl = Refl
 
 using (A:Type, B:Type)
     data or : A -> B -> Type where
@@ -613,15 +628,11 @@ pre_convertFin {n=S k} (FS x) (S pm) p = let m_gte_k : GTE (S pm) k = GTE_delete
 												FS x_conv
 -- Impossible case : transforming an element of Fin (S k) into an element of (Fin 1), which forces k to be Zero, and then
 -- there is only one element to convert : FZ {k=0}. But we're having an FS, and not an FZ...
-pre_convertFin {n=S k} (FS x) Z p with (decEq k Z, decEq k (S Z))
-    pre_convertFin {n=S k} (FS x) Z p | (Yes Refl, Yes Refl) impossible
-    pre_convertFin {n=S k} (FS x) Z p | (Yes Refl, No p2) impossible
-    pre_convertFin {n=S k} (FS x) Z p | (No p1, Yes Refl) impossible
-    pre_convertFin {n=S k} (FS x) Z p | (No p1, No p2) = let k_is_zero_or_one : (or (k=Z) (k=S Z)) = GTE_1_two_cases k (greater_than_succ _ _ p) in
-                                                            case k_is_zero_or_one of
-                                                            Left k_is_zero => ?Mpre_convertFin_1
-                                                            Right k_is_one => ?Mpre_convertFin_2
-
+pre_convertFin {n=S k} (FS x) Z p = let Sk_is_zero_or_one : (or (S k=Z) (S k=S Z)) = GTE_1_two_cases (S k) p in
+                                        case Sk_is_zero_or_one of
+                                             Left Sk_is_zero => absurd (succ_not_zero _ Sk_is_zero)
+                                             Right Sk_is_one => let k_is_zero = removeSucc _ _ Sk_is_one 
+                                             					in absurd (elimFinZero (rewrite (sym k_is_zero) in x))								
                                                             
 total
 pre_convertFin_proofIrr : {n:Nat} -> (i:Fin n) -> (m:Nat) -> (p1:GTE (S m) n) -> (p2:GTE (S m) n) -> (pre_convertFin i m p1 = pre_convertFin i m p2)
@@ -720,8 +731,8 @@ indexOfLastElem : {T:Type} -> {n:Nat} -> (v:Vect n T) -> (x:T) -> index (lastEle
 indexOfLastElem [] x = ?MindexOfLastElem_1 -- What the hell, I can't give Refl directly here, I need to do it in proof mode...
 indexOfLastElem {n=S pn} (vh::vt) x = 
 			     let paux = indexOfLastElem vt x in 
-			     let paux2 : ((=) {A=Fin (S (pn+1))} {B=Fin (S (S pn))} (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (FS (lastElement pn)) ) = ?MindexOfLastElem_2 in
-			     let paux3 = index_replace (FS (lastElement pn)) (trick_vect_size vh vt x) (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) in
+			     --let paux2 : ((=) {A=Fin (S (pn+1))} {B=Fin (S (S pn))} (replace (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) (FS (lastElement pn))) (FS (lastElement pn)) ) = ?MindexOfLastElem_2 in
+			     --let paux3 = index_replace (FS (lastElement pn)) (trick_vect_size vh vt x) (sym (Mplus_one_equals_succ_1 pn (plus_one_equals_succ pn))) in
 			     ?MindexOfLastElem_3 -- Will use elemInBigerVect and the induction hypothesis called paux and paux2 or paux3
 			     -- Damn, I can't do rewrite (index_replace (FS (lastElement pn)) (vh::vt++[x]) (sym (replace (plus_one_equals_succ pn) Refl)))
 			     -- in order to start the proof of this metavariable. There's a problem with the type of index_replace which is not unfolded as it should be. Why ?
@@ -1372,19 +1383,6 @@ Provers.tools.MplusAssociativeZ_8_5 = proof
   exact Refl
 
 -- Part E : Fin tools
-
-Provers.tools.Mpre_convertFin_1 = proof
-  intros
-  mrefine void -- is the eliminator of false, previously called FalseElim (which was a better name for the logical side :-( )
-  mrefine p1
-  mrefine k_is_zero
-
-Provers.tools.Mpre_convertFin_2 = proof
-  intros
-  mrefine void
-  mrefine p2
-  mrefine k_is_one
-
 Provers.tools.Mpre_convertFin_proofIrr_1 = proof
   intros
   exact (f_equal (\i => FS i) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p1)) (pre_convertFin pi pm (GTE_deleteSucc (S pm) k p2)) ihn)  
@@ -1416,11 +1414,13 @@ Provers.tools.trick_vect_size_lemma_1 = proof
 Provers.tools.MindexOfLastElem_1 = proof
   intros
   exact Refl  
-  
+ 
+{-  
 Provers.tools.MindexOfLastElem_2 = proof
   intros
   mrefine fin_replace   
-  
+-} 
+
 Provers.tools.MelemInBigerVect_1 = proof
   intros
   exact proofInside 

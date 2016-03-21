@@ -13,6 +13,10 @@ import Provers.dataTypes
 import Provers.tools
 import Provers.group_reduce
 
+
+%access public export
+
+
 -- Order : Variable (in order) and then constants
 
 
@@ -1085,29 +1089,29 @@ Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_4 = proof
 Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_3 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Plus (Neg c1) c3) c2)
+  exact (Plus (Plus (Neg c1) c2) c3)
   exact r_ihn
   mrefine set_eq_undec_sym 
   mrefine set_eq_undec_refl
   mrefine eq_preserves_eq 
   mrefine Plus_assoc 
-  exact (Plus (Plus (Neg c3) c3) c2)
+  exact (Plus (Plus (Neg c2) c2) c3)
   exact r_ihn 
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   mrefine eq_preserves_eq 
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
-  exact (Plus Zero c2)
+  exact (Plus Zero c3)
   exact r_ihn 
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   mrefine eq_preserves_eq 
   mrefine Neg_preserves_equiv 
   mrefine set_eq_undec_refl 
-  exact (right (Plus_inverse c3))
+  exact (right (Plus_inverse c2))
   mrefine set_eq_undec_refl 
-  exact c2
+  exact c3
   exact r_ihn
   mrefine Plus_neutral_1
   mrefine set_eq_undec_refl 
@@ -1123,29 +1127,29 @@ Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_2 = proof
 Provers.commutativeGroup_reduce.MsimplifyAfterReorg_new_1 = proof
   intros
   mrefine eq_preserves_eq 
-  exact (Plus (Plus c1 (Neg c3)) c2)
+  exact (Plus (Plus c1 (Neg c2)) c3)
   exact r_ihn
   mrefine set_eq_undec_sym 
   mrefine set_eq_undec_refl 
   mrefine eq_preserves_eq 
   mrefine Plus_assoc 
-  exact (Plus (Plus c3 (Neg c3)) c2)
+  exact (Plus (Plus c2 (Neg c2)) c3)
   exact r_ihn
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   mrefine eq_preserves_eq 
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
-  exact (Plus Zero c2)
+  exact (Plus Zero c3)
   exact r_ihn 
   mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
   mrefine eq_preserves_eq 
   exact prEqual 
   mrefine set_eq_undec_refl 
-  exact (left (Plus_inverse c3))
+  exact (left (Plus_inverse c2))
   mrefine set_eq_undec_refl 
-  exact c2
+  exact c3
   exact r_ihn 
   mrefine Plus_neutral_1
   mrefine set_eq_undec_refl 

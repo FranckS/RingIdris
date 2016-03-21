@@ -7,10 +7,13 @@
 module Provers.monoid_reduce
 
 import Decidable.Equality
+import Data.Vect
+
 import Provers.dataTypes
 import Provers.semiGroup_reduce
 import Provers.tools
 
+%access public export
 
 --%default total
 

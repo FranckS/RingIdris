@@ -8,6 +8,7 @@ module Provers.monoid_test
 
 import Data.Vect
 import Data.Fin
+
 import Provers.globalDef
 import Provers.dataTypes
 import Provers.tools
@@ -15,9 +16,10 @@ import Provers.monoid_reduce
 import Provers.semiGroup_test
 import Provers.magma_test
 
+%access public export
 
 
-instance dataTypes.Monoid Nat where
+implementation dataTypes.Monoid Nat where
     Zero = Z
     
     Plus_neutral_1 c = ?M_Nat_Monoid_1

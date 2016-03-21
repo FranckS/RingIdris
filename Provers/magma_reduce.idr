@@ -7,8 +7,11 @@
 module Provers.magma_reduce
 
 import Decidable.Equality
+import Data.Vect
 import Provers.dataTypes
 
+
+%access public export
 
 %default total
 
@@ -59,4 +62,4 @@ Provers.magma_reduce.MbuildProofMagma = proof
 
   
   
-  
+ 

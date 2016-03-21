@@ -9,12 +9,13 @@ module Provers.commutativeMonoid_reduce
 import Decidable.Equality
 import Data.Vect
 import Data.Fin
+
 import Provers.dataTypes
 import Provers.tools
 import Provers.monoid_reduce
 
 
-
+%access public export
 
 -- A usufel lemma for most rewriting in this section
 assoc_commute_and_assoc' : {c:Type} -> {p:CommutativeMonoid c} -> (x : c) -> (y : c) -> (z : c) -> (Plus (Plus x y) z ~= Plus (Plus x z) y)
