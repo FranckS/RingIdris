@@ -170,8 +170,6 @@ reflectTermZForRing {n=n} g reflectCst t =
 											?MreflectTermZForRing_3 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))
 
 
-reflectRingTerm : {c:Type} -> {p:Ring c} -> {n:Nat} -> (g : Vect n c) -> (reflectCst:TypeReflectConstants {c=c} p) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR {c=c} {n=n+n'} p (g ++ g') x)))
-
      
 
 -- ------------------------------------------------------------------------------------------------- 
@@ -238,29 +236,29 @@ full_auto x y u g = let (nbAddedLHS ** (gammaAddedLHS ** lhs)) = reflectTermZFor
 
 %reflection
 reflectTermForRing : {c:Type} -> {n:Nat} -> (p:Ring c) -> (g : Vect n c) -> (reflectCst:TypeReflectConstants p) -> (x:c) -> (n' ** (g':Vect n' c ** (ExprR p (g ++ g') x)))
-reflectTermForRing {n=n} p g reflectCst (Plus a b) with (reflectTermForRing p g reflectCst a)
+reflectTermForRing {c=c} {n=n} p g reflectCst (Plus a b) with (reflectTermForRing p g reflectCst a)
 -- Reflecting sums...
-  reflectTermForRing {n=n} p g reflectCst (Plus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') reflectCst b) 
-    reflectTermForRing {n=n} p g reflectCst (Plus a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
-      let this = PlusR (weakenR g'' a') b' in
-         ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+	reflectTermForRing {c=c} {n=n} p g reflectCst (Plus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') reflectCst b) 
+		reflectTermForRing {c=c} {n=n} p g reflectCst (Plus a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+			let this = PlusR {c=c} (weakenR g'' a') b' in
+			((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
 -- Reflecting substractions...
-reflectTermForRing {n=n} p g reflectCst (Minus a b) with (reflectTermForRing p g reflectCst a)
-  reflectTermForRing {n=n} p g reflectCst (Minus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') reflectCst b) 
-    reflectTermForRing {n=n} p g reflectCst (Minus a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
-      let this = MinusR (weakenR g'' a') b' in
-         ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+reflectTermForRing {c=c} {n=n} p g reflectCst (Minus a b) with (reflectTermForRing p g reflectCst a)
+	reflectTermForRing {c=c} {n=n} p g reflectCst (Minus a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') reflectCst b) 
+		reflectTermForRing {c=c} {n=n} p g reflectCst (Minus a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+			let this = MinusR {c=c} (weakenR g'' a') b' in
+			((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
 -- Reflecting opposites
-reflectTermForRing {n=n} p g reflectCst (Neg a) with (reflectTermForRing p g reflectCst a)
-    reflectTermForRing {n=n} p g reflectCst (Neg a) | (n' ** (g' ** a')) = 
-      let this = NegR a' in
+reflectTermForRing {c=c} {n=n} p g reflectCst (Neg a) with (reflectTermForRing p g reflectCst a)
+	reflectTermForRing {c=c} {n=n} p g reflectCst (Neg a) | (n' ** (g' ** a')) = 
+		let this = NegR {c=c} a' in
         (n' ** (g' ** this))
 -- Reflecting products....
-reflectTermForRing {n=n} p g reflectCst (Mult a b) with (reflectTermForRing p g reflectCst a)
-  reflectTermForRing {n=n} p g reflectCst (Mult a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') reflectCst b) 
-    reflectTermForRing {n=n} p g reflectCst (Mult a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
-      let this = MultR (weakenR g'' a') b' in
-         ((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
+reflectTermForRing {c=c} {n=n} p g reflectCst (Mult a b) with (reflectTermForRing p g reflectCst a)
+	reflectTermForRing {c=c} {n=n} p g reflectCst (Mult a b) | (n' ** (g' ** a')) with (reflectTermForRing p (g ++ g') reflectCst b) 
+		reflectTermForRing {c=c} {n=n} p g reflectCst (Mult a b) | (n' ** (g' ** a')) | (n'' ** (g'' ** b')) = 
+			let this = MultR {c=c} (weakenR g'' a') b' in
+			((n' + n'') ** ((g'++g'') ** (convertVectInExprR (plusAssociative n n' n'') (vectAppendAssociative g g' g'') this)))
 -- Constants and variables
 reflectTermForRing {n=n} p g reflectCst t =
 	case reflectCst g t of
@@ -268,7 +266,7 @@ reflectTermForRing {n=n} p g reflectCst t =
 	  Just this => ?MreflectTermForRing_1 -- I just return (Z ** ([] ** this)) with a few conversions for having the type aggreing (because n+0=n and g++[] = [] at the same time)
 	  -- If not, then it should be considered as a variable
 	  Nothing => case (isElement t g) of
-					Just (i ** pr) => let this2 = VarR {n=n+Z} {g=g++Data.VectType.Vect.Nil} p (RealVariable {n=n+Z} _ _ _ (g++Data.VectType.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
+					Just (i ** pr) => let this2 = VarR {n=n+Z} {g=g++Data.Vect.Nil} p (RealVariable {n=n+Z} _ _ _ (g++Data.Vect.Nil) (replace (sym (a_plus_zero n)) i)) in
 											?MreflectTermForRing_2 -- (Z ** (Data.VectType.Vect.Nil ** this))
 					Nothing => let this3 = VarR {n=n+S Z} {g=g++[t]} p (RealVariable {n=n+S Z} _ _ _ (g++[t]) (lastElement' n)) in
 											?MreflectTermForRing_3 -- (S Z ** ((t::Data.VectType.Vect.Nil) ** this))
@@ -278,7 +276,7 @@ reflectTermForRing {n=n} p g reflectCst t =
 -- CURRENT PROBLEMS WITH THE AUTOMATIC REFLECTION :
 -- ------------------------------------------------
 -- There are two problems at the moment with the general automatic reflection for Ring (which is just above) :
--- 1) It doesn't reflects the effective implementation of the abstract operations (Plus,Minus,Mult...) of the typeclass.
+-- 1) It doesn't reflect the effective implementation of the abstract operations (Plus,Minus,Mult...) of the typeclass.
 -- for example, if you test (\xx,yy,uu,gg:ZZ => leftDep ( rightDep( reflectTermForRing {c=ZZ} (%instance) [] (xx+yy+uu+gg)))) then it goes
 -- directly in the last case, and it adds the whole formulae in the context.
 -- -> Idris needs to be improved for (really) allowing reflection with abstract operation that might become concrete with an actual instance. At the moment,
@@ -306,10 +304,10 @@ Provers.reflection.MisElement_1 = proof
   
 Provers.reflection.MreflectTermNat_1 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact Z
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact Nil
   compute
   rewrite p
@@ -318,20 +316,20 @@ Provers.reflection.MreflectTermNat_1 = proof
   
 Provers.reflection.MreflectTermNat_2 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact (S Z)
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact ([t])
   compute
   exact (replace (indexOfLastElem g t) this)  
 
 Provers.reflection.MreflectTermZForRing_1 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact Z
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact Nil
   compute
   mrefine convertVectInExprR 
@@ -343,10 +341,10 @@ Provers.reflection.MreflectTermZForRing_1 = proof
   
 Provers.reflection.MreflectTermZForRing_2 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact Z
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact Nil
   compute
   rewrite pr
@@ -355,10 +353,10 @@ Provers.reflection.MreflectTermZForRing_2 = proof
   
 Provers.reflection.MreflectTermZForRing_3 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact (S Z)
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact ([t])
   compute
   exact (replace (indexOfLastElem g t) this3)  
@@ -366,10 +364,10 @@ Provers.reflection.MreflectTermZForRing_3 = proof
 
 Provers.reflection.MreflectTermForRing_1 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact Z
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact Nil
   compute
   mrefine convertVectInExprR 
@@ -381,10 +379,10 @@ Provers.reflection.MreflectTermForRing_1 = proof
   
 Provers.reflection.MreflectTermForRing_2 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact Z
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact Nil
   compute
   rewrite pr
@@ -393,10 +391,10 @@ Provers.reflection.MreflectTermForRing_2 = proof
   
 Provers.reflection.MreflectTermForRing_3 = proof
   intros
-  mrefine MkSigma
+  mrefine MkDPair
   exact (S Z)
   compute
-  mrefine MkSigma
+  mrefine MkDPair
   exact ([t])
   compute
   exact (replace (indexOfLastElem g t) this3)  

@@ -4,6 +4,8 @@
 module Main
 
 import Data.Fin
+import Data.Vect
+
 import Provers.dataTypes
 import Provers.commutativeMonoid_reduce -- For the appropriate reduction procedure
 import Provers.commutativeMonoid_test -- For the instance (CommutativeMonoid Nat)
@@ -13,22 +15,24 @@ import Provers.magma_test
 
 
 data Bit : Nat -> Type where
-     b0 : Bit Z
-     b1 : Bit (S Z)
+     B0 : Bit Z
+     B1 : Bit (S Z)
 
      
 infixl 5 #     
      
      
 data Binary : (width : Nat) -> (value : Nat) -> Type where
-     zero : Binary Z Z
+     Zero : Binary Z Z
      (#) : Binary w v -> Bit bit -> Binary (S w) (bit + 2 * v)
 
 
+-- pad is in fact not needed
+{-
 pad : Binary w n -> Binary (S w) n
-pad zero = zero # b0
+pad Zero = Zero # B0
 pad (num # x) = pad num # x
-
+-}
 
 
 pattern syntax bitpair [x] [y] = (_ ** (_ ** (x, y, _)))
@@ -36,28 +40,29 @@ term syntax bitpair [x] [y] = (_ ** (_ ** (x, y, Refl)))
 
 addBit : Bit x -> Bit y -> Bit c ->
           (bX ** (bY ** (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
-addBit b0 b0 b0 = bitpair b0 b0
-addBit b0 b0 b1 = bitpair b0 b1
-addBit b0 b1 b0 = bitpair b0 b1
-addBit b0 b1 b1 = bitpair b1 b0
-addBit b1 b0 b0 = bitpair b0 b1
-addBit b1 b0 b1 = bitpair b1 b0
-addBit b1 b1 b0 = bitpair b1 b0
-addBit b1 b1 b1 = bitpair b1 b1
+addBit B0 B0 B0 = bitpair B0 B0
+addBit B0 B0 B1 = bitpair B0 B1
+addBit B0 B1 B0 = bitpair B0 B1
+addBit B0 B1 B1 = bitpair B1 B0
+addBit B1 B0 B0 = bitpair B0 B1
+addBit B1 B0 B1 = bitpair B1 B0
+addBit B1 B1 B0 = bitpair B1 B0
+addBit B1 B1 B1 = bitpair B1 B1
 
 
 -- Used for the paper for telling the reader the expected and given indices
 
 -- adc rejected because the indices don't match
+{-
 adcRej : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
-adcRej zero zero carry ?= zero # carry
+adcRej Zero Zero carry ?= Zero # carry
 adcRej (numx # bX) (numy # bY) carry
    ?= let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
           adcRej numx numy carry0 # lsb
-
+-}
 
 adc : Binary w x -> Binary w y -> Bit c -> Binary (S w) (c + x + y)
-adc zero zero carry ?= zero # carry
+adc Zero Zero carry ?= Zero # carry
 adc (numx # bX) (numy # bY) carry
    ?= let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
           adc numx numy carry0 # lsb
@@ -382,7 +387,7 @@ goal_final l c bit0 bit1 x x1 v v1 known = getJust (goal_aux l c bit0 bit1 x x1 
 {-
 Main.adc_lemma_2 = proof {
     intro c,w,v,bit0,num0;
-    intro b0,v1,bit1,num1,b1;
+    intro B0,v1,bit1,num1,B1;
     intro bc,x,x1,bX,bX1;
     rewrite sym (plusZeroRightNeutral x);
     rewrite sym (plusZeroRightNeutral v1);

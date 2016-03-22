@@ -15,5 +15,5 @@ import Provers.monoid_test -- For the instance of the level under (Monoid Nat)
 
 %access public export
 
-instance dataTypes.CommutativeMonoid Nat where
+implementation dataTypes.CommutativeMonoid Nat where
     Plus_comm' x y = plusCommutative x y
