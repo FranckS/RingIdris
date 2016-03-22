@@ -477,11 +477,47 @@ expFr x y =  MultR
    
    
    
+-- --------------------------------------------------------------
+-- NEW TEST : Test if 3xy + 8xy = 11xy. Answer : NO, will need some actorisation
+-- -------------------------------------------------------------- 
+threeXY : (x:ZZ) -> (y:ZZ) -> ExprR (%instance) [x,y] (3*(x*y))
+threeXY x y = MultR (ConstR _ _ 3)
+					(MultR (VarR _ (RealVariable _ _ _ _ FZ))
+							(VarR _ (RealVariable _ _ _ _ (FS FZ))))
+					
+
+eightXY : (x:ZZ) -> (y:ZZ) -> ExprR (%instance) [x,y] (8*(x*y)) 
+eightXY x y = MultR (ConstR _ _ 8)
+					(MultR (VarR _ (RealVariable _ _ _ _ FZ))
+							(VarR _ (RealVariable _ _ _ _ (FS FZ))))
+
+thesum : (x:ZZ) -> (y:ZZ) -> ExprR (%instance) [x,y] ((3*(x*y)) + (8*(x*y)))
+thesum x y = PlusR (threeXY x y) (eightXY x y)	
+
+
+elevenXY : (x:ZZ) -> (y:ZZ) -> ExprR (%instance) [x,y] (11*(x*y))
+elevenXY x y = MultR (ConstR _ _ 11)
+					(MultR (VarR _ (RealVariable _ _ _ _ FZ))
+							(VarR _ (RealVariable _ _ _ _ (FS FZ))))
+							
+							
+-- Does 3xy + 8xy = 11xy ?
+compare_thesum_elevenXY : (x:ZZ) -> (y:ZZ) -> Maybe (((3*(x*y)) + (8*(x*y))) = (11*(x*y)))
+compare_thesum_elevenXY x y = ringDecideEq (%instance) (thesum x y) (elevenXY x y)
    
    
-   
-   
-   
+-- --------------------------------------------------------------
+-- NEW TEST : Test the normalisation of 3xy + 2z + 8xy
+-- --------------------------------------------------------------    
+bigsum : (x:ZZ) -> (y:ZZ) -> (z:ZZ) ->  ExprR (%instance) [x,y,z] ((3*(x*y)) + ((2*z) + (8*(x*y))))
+bigsum x y z = PlusR (MultR (ConstR _ _ 3) (MultR (VarR _ (RealVariable _ _ _ _ FZ)) (VarR _ (RealVariable _ _ _ _ (FS FZ)))))
+					(PlusR (MultR (ConstR _ _ 2) (VarR _ (RealVariable _ _ _ _ (FS (FS FZ)))))
+						(MultR (ConstR _ _ 8) (MultR (VarR _ (RealVariable _ _ _ _ FZ)) (VarR _ (RealVariable _ _ _ _ (FS FZ)))))
+					)
+
+ -- To test : 
+ -- (\x,y,z => debugRing (%instance) (%instance) (bigsum x y z) (bigsum x y z))  
+ -- seems OK !
     
 ---------- Proofs ----------
 Provers.ring_test.Mmult_ZZ_zero'_1 = proof
