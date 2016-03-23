@@ -478,7 +478,7 @@ expFr x y =  MultR
    
    
 -- --------------------------------------------------------------
--- NEW TEST : Test if 3xy + 8xy = 11xy. Answer : NO, will need some actorisation
+-- NEW TEST : Test if 3xy + 8xy = 11xy. Answer : NOW IT WORKS !
 -- -------------------------------------------------------------- 
 threeXY : (x:ZZ) -> (y:ZZ) -> ExprR (%instance) [x,y] (3*(x*y))
 threeXY x y = MultR (ConstR _ _ 3)
@@ -504,7 +504,7 @@ elevenXY x y = MultR (ConstR _ _ 11)
 -- Does 3xy + 8xy = 11xy ?
 compare_thesum_elevenXY : (x:ZZ) -> (y:ZZ) -> Maybe (((3*(x*y)) + (8*(x*y))) = (11*(x*y)))
 compare_thesum_elevenXY x y = ringDecideEq (%instance) (thesum x y) (elevenXY x y)
-   
+-- Works !   
    
 -- --------------------------------------------------------------
 -- NEW TEST : Test the normalisation of 3xy + 2z + 8xy

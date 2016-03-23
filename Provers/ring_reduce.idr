@@ -854,16 +854,113 @@ decodeFromCG c p g (VarCG _ _ (EncodingProductOfMonomials _ _ _ productOfMonomia
     let (r_1 ** ((e_1, p_1))) = decodeProductOfMonomials c p g productOfMonomials in
         (_ ** (e_1, ?MdecodeFromCG_7))
     
+    
+    
+    
+factorise_prodOfMon : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> {c2:c}
+						-> (ProductOfMonomials (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (ProductOfMonomials (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2) -> (c3 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c3, Plus c1 c2 ~= c3))
+factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) with (productOfVariables_eq _ prodOfVar1 prodOfVar2)
+	factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Just pr) with (productOfMonomials_eq _ prodOfMon1 prodOfMon2)
+		factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Just pr) | (Just pr2) = 
+			(_ ** (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ (Plus const1 const2) prodOfVar1) prodOfMon1)), ?Mfactorise_prodOfMon_1))
+		factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Just pr) | (Nothing) = 
+			(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2))), ?Mfactorise_prodOfMon_2))
+	factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Nothing) = 
+		(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2))), ?Mfactorise_prodOfMon_3))
+
+factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVar _ prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) with (productOfVariables_eq _ prodOfVar1 prodOfVar2)		
+	factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVar _ prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Just pr) with (productOfMonomials_eq _ prodOfMon1 prodOfMon2)	
+		factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVar _ prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Just pr) | (Just pr2) = 
+			(_ ** (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ (Plus One const2) prodOfVar1) prodOfMon1)), ?Mfactorise_prodOfMon_4))
+		factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVar _ prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Just pr) | (Nothing) = 
+			(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVar _ prodOfVar1) prodOfMon1))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2))), ?Mfactorise_prodOfMon_5))
+	factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVar _ prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2) | (Nothing) = 
+		(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVar _ prodOfVar1) prodOfMon1))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const2 prodOfVar2) prodOfMon2))), ?Mfactorise_prodOfMon_6))
+		
+factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVar _ prodOfVar2) prodOfMon2) with (productOfVariables_eq _ prodOfVar1 prodOfVar2)		
+	factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVar _ prodOfVar2) prodOfMon2) | (Just pr) with (productOfMonomials_eq _ prodOfMon1 prodOfMon2)
+		factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVar _ prodOfVar2) prodOfMon2) | (Just pr) | (Just pr2) = 
+			(_ ** (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ (Plus const1 One) prodOfVar1) prodOfMon1)), ?Mfactorise_prodOfMon_7))
+		factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVar _ prodOfVar2) prodOfMon2) | (Just pr) |(Nothing) = 
+			(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVar _ prodOfVar2) prodOfMon2))), ?Mfactorise_prodOfMon_8))	
+	factorise_prodOfMon p (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1) (MonomialMultProduct _ (ProdOfVar _ prodOfVar2) prodOfMon2) | (Nothing) = 
+		(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVarWithConst _ const1 prodOfVar1) prodOfMon1))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (MonomialMultProduct _ (ProdOfVar _ prodOfVar2) prodOfMon2))), ?Mfactorise_prodOfMon_9))
+		
+		
+factorise_prodOfMon p (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)) (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)) with (productOfVariables_eq _ prodOfVar1 prodOfVar2)
+	factorise_prodOfMon p (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)) (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)) | (Just pr) = 	
+		(_ ** (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVarWithConst _ (Plus const1 const2) prodOfVar1))), ?Mfactorise_prodOfMon_10))
+	factorise_prodOfMon p (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)) (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)) | (Nothing) = 
+		(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)))), ?Mfactorise_prodOfMon_11))
+		
+factorise_prodOfMon p (LastMonomial _ (ProdOfVar _ prodOfVar1)) (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)) with (productOfVariables_eq _ prodOfVar1 prodOfVar2)	
+	factorise_prodOfMon p (LastMonomial _ (ProdOfVar _ prodOfVar1)) (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)) | (Just pr) = 
+		(_ ** (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVarWithConst _ (Plus One const2) prodOfVar1))), ?Mfactorise_prodOfMon_12))
+	factorise_prodOfMon p (LastMonomial _ (ProdOfVar _ prodOfVar1)) (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)) | (Nothing) = 
+		(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVar _ prodOfVar1)))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVarWithConst _ const2 prodOfVar2)))), ?Mfactorise_prodOfMon_13))
+			
+factorise_prodOfMon p (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)) (LastMonomial _ (ProdOfVar _ prodOfVar2)) with (productOfVariables_eq _ prodOfVar1 prodOfVar2)
+	factorise_prodOfMon p (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)) (LastMonomial _ (ProdOfVar _ prodOfVar2)) | (Just pr) = 
+		(_ ** (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVarWithConst _ (Plus const1 One) prodOfVar1))), ?Mfactorise_prodOfMon_14))
+	factorise_prodOfMon p (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)) (LastMonomial _ (ProdOfVar _ prodOfVar2)) | (Nothing) = 	
+		(_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVarWithConst _ const1 prodOfVar1)))) (VarCG _ _ (EncodingProductOfMonomials _ _ _ (LastMonomial _ (ProdOfVar _ prodOfVar2)))), ?Mfactorise_prodOfMon_15))
+			
+-- Anything else
+factorise_prodOfMon p prod1 prod2 = (_ ** (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ prod1)) (VarCG _ _ (EncodingProductOfMonomials _ _ _ prod2)), ?Mfactorise_prodOfMon_16))
+
+
+    
+factorise : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))   
+factorise {c} p (ConstCG _ _ _ const) = (_ ** (ConstCG _ _ _ const, set_eq_undec_refl {c} _))
+
+factorise p (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ productOfMonomials1)) (VarCG _ _ (EncodingProductOfMonomials _ _ _ productOfMonomials2))) = factorise_prodOfMon p productOfMonomials1 productOfMonomials2
+factorise p (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ productOfMonomials1)) (PlusCG _ (VarCG _ _ (EncodingProductOfMonomials _ _ _ productOfMonomials2)) e2)) = 
+	let (r1 ** (e1, p1)) = factorise_prodOfMon p productOfMonomials1 productOfMonomials2 in
+	let (r_ih1 ** (e_ih1, p_ih1)) = factorise p e2 in
+		(_ ** (PlusCG _ e1 e_ih1, ?Mfactorise1))
+	
+factorise p (PlusCG _ e1 e2) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (factorise p e1) in
+  let (r_ih2 ** (e_ih2, p_ih2)) = (factorise p e2) in
+    ((Plus r_ih1 r_ih2) ** (PlusCG _ e_ih1 e_ih2, ?Mfactorise2))
+
+factorise {c} p (VarCG _ _ v) = (_ ** (VarCG _ _ v, set_eq_undec_refl {c} _))  
+
+factorise p (MinusCG _ e1 e2) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (factorise p e1) in
+  let (r_ih2 ** (e_ih2, p_ih2)) = (factorise p e2) in
+    ((Plus r_ih1 (Neg r_ih2)) ** (PlusCG _ e_ih1 (NegCG _ e_ih2), ?Mfactorise3)) 
+    
+factorise p (NegCG _ e1) = 
+  let (r_ih1 ** (e_ih1, p_ih1)) = (factorise p e1) in
+    (_ ** (NegCG _ e_ih1, ?Mfactorise4))
+    
+
+
+
+-- Compute the fixpoint of the function just above
+factorise_fix : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c1) -> (c2 ** (ExprCG {n=n} (ring_to_commutativeGroup_class p) (MkSetWithMult Mult (\a1,a2,a3,a4,px,py => Mult_preserves_equiv {c1=a1} {c2=a2} {c1'=a3} {c2'=a4} px py)) g c2, c1~=c2))
+factorise_fix p e = 
+let (r_1 ** (e_1, p_1)) = factorise p e in
+    case exprCG_eq (ring_to_commutativeGroup_class p) _ _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
+      Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
+      Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = factorise_fix p e_1 in -- We do another passe
+						  (r_ih1 ** (e_ih1, ?Mfactorise_fix_1))	 
+	    
+        
+    
 
 code_reduceCG_andDecode : {c:Type} -> {n:Nat} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))    
 code_reduceCG_andDecode p e = 	
 	let (c2 ** (e2, pEncode)) = encodeToCG _ p _ e in
 	let (c3 ** (e3, pReduce)) = commutativeGroupReduce (ring_to_commutativeGroup_class p) e2 in
-	let (c4 ** (e4, pDecode)) = decodeFromCG _ p _ e3 in
-		(c4 ** (e4, ?Mcode_reduceCG_andDecode_1))    
-    
+	let (c4 ** (e4, pFactorise)) = factorise_fix p e3 in
+	let (c5 ** (e5, pDecode)) = decodeFromCG _ p _ e4 in
+		(c5 ** (e5, ?Mcode_reduceCG_andDecode_1))    
     
 
+    
+    
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
   let (r_1 ** (e_1, p_1)) = elimMinus' p e in
@@ -2136,13 +2233,18 @@ Provers.ring_reduce.Mcode_reduceCG_andDecode_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact c2
-  exact c4
+  exact c5
   exact pEncode 
   mrefine set_eq_undec_refl 
   mrefine eq_preserves_eq 
   exact c3
-  exact c4
+  exact c5
   exact pReduce 
+  mrefine set_eq_undec_refl 
+  mrefine eq_preserves_eq 
+  exact c4
+  exact c5
+  exact pFactorise 
   mrefine set_eq_undec_refl 
   exact pDecode 
   
