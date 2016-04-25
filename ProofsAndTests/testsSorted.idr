@@ -18,6 +18,11 @@ import sorted
 %default total
 
 
+-- This is code that conforms to the description in the article
+-- "Automatic predicate testing in formal certification" (accepted for Tests and Proofs 2016)
+-- by the author
+
+
 total
 leftDep : {A:Type} -> {B:A->Type} -> (x : Sigma A B) -> A
 leftDep (a ** b) = a
@@ -29,10 +34,9 @@ rightDep (a ** b) = b
 
 
 -- ---------------------------------------------------------------
---            Test of the usual approach (with Nat)            ---
+--                  Nat is a sorted structure                  ---
 -- ---------------------------------------------------------------
 
-  
 instance [nat_set] Set Nat where
   (~=) x y = (x = y)
   
@@ -44,8 +48,7 @@ instance [nat_set] Set Nat where
   
   eq_trans p1 p2 = ?Mnat_set_1
   
-  
-  
+    
 data lowerThan : Nat -> Nat -> Type where
   -- It seems to be easier for deciding this predicate to say that 0 << x and that (px < py) -> (S px < S py)
   -- than saying that (x < S px) (lower than the value immediately after) and that (x < py) -> (x << S py)
@@ -53,7 +56,7 @@ data lowerThan : Nat -> Nat -> Type where
   LowerSucc : {px:Nat} -> {py:Nat} -> (lowerThan px py) -> lowerThan (S px) (S py)  
   
   
--- I can say that I want to extend the existing instance nat_set and it causes problems because then I can't use a proof of (x ~= x') as a rewritable proof of (x = x')   
+-- I can't say that I want to extend the specific existing instance nat_set and it causes problems because then I can't use a proof of (x ~= x') as a rewritable proof of (x = x')   
 instance [nat_partialStrictOrder] Set Nat => PartialStrictOrder Nat where
   
   (<<) x y = lowerThan x y
@@ -84,52 +87,36 @@ T_or_Unit T True = T
 T_or_Unit T False = Unit
 
 
-
 total  
 tryDec : {T:Type} -> (x:Dec T) -> (b:Bool ** (T_or_Unit T b))
 tryDec (Yes prYes) = (True ** prYes)
 tryDec (No prNo) = (False ** MkUnit)
 
 
+-- ---------------------------------------------------------------
+--  Usual approaches : doing "tests by proof" on the predicate ---
+--  (section 2 of the TAP 2016 paper)                          ---
+-- ---------------------------------------------------------------
 
-
--- First test to our predicate, where the proof is done by hand
+-- First we do 'test by proof' on the predicate, where the proof is done by hand
+-- cf. section 2, page 3 and 4
 total
 isSorted_test1 : isSorted nat_partialOrder [3, 5, 7]
 isSorted_test1 = let p1 : ((<~=) {p=nat_partialOrder} 3 5) = ?MA in -- rightDep (tryDec (lowerEqDec nat_partialOrder 3 5)) in
 		 let p2 : ((<~=) {p=nat_partialOrder} 5 7) = ?MB in
 		    ConsSorted 3 5 [7] (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
-
 		    
-		    
-		    
-		    
-isSorted_wkn : {T:Type} -> (TisOrdered : PartialOrder T) -> (h1 : T) -> (h2 : T) -> (l:List T) -> (isSorted TisOrdered (h1::(h2::l))) -> (isSorted TisOrdered (h2::l))
-isSorted_wkn TisOrdered h1 h2 l (NilIsSorted TisOrdered) impossible
-isSorted_wkn TisOrdered h1 h2 l (SingletonIsSorted TisOrdered _) impossible
-isSorted_wkn TisOrdered h1 h2 l (ConsSorted h1 h2 l h2_tail_sorted h1_lower_h2) = h2_tail_sorted
 
-
-isSorted_wkn2 : {T:Type} -> (TisOrdered : PartialOrder T) -> (h1 : T) -> (h2 : T) -> (l:List T) -> (isSorted TisOrdered (h1::(h2::l))) -> ((<~=) {p=TisOrdered} h1 h2)
-isSorted_wkn2 TisOrdered h1 h2 l (NilIsSorted TisOrdered) impossible
-isSorted_wkn2 TisOrdered h1 h2 l (SingletonIsSorted TisOrdered _) impossible
-isSorted_wkn2 TisOrdered h1 h2 l (ConsSorted h1 h2 l h2_tail_sorted h1_lower_h2) = h1_lower_h2
-
-
-
--- We will now decide the predicate isSorted automatically
-
+-- Thanks to the fact that isSorted can be decided, we can test this predicate "semi-automatically"
+-- cf. section 2, page 4
+isSorted_test1' : Dec (isSorted nat_partialOrder [3,5,7])
+isSorted_test1' = decideIsSorted nat_partialOrder [3,5,7] 
 	    
-test_isSorted_1 : Dec (isSorted nat_partialOrder [3,5,7])
-test_isSorted_1 = decideIsSorted nat_partialOrder [3,5,7] 
-	    
-	    
-	    
-	    
+	    	    
 -- ----------------------------------------------------------------------
---            Test of the our predicate testing mechanism             ---
+--       Testing the predicate by automatic generation of terms       ---
+--       (section 3 of the TAP 2016 paper)                            ---
 -- ----------------------------------------------------------------------	    
-	    
 	    
 data ThreeLeters : Type where
    A : ThreeLeters
@@ -152,17 +139,15 @@ instance [ThreeLetersIsRecursivelyEnumarable] RecursivelyEnumerable ThreeLeters 
   map_is_surjective C = ((S (S Z)) ** Refl)
  
 
-	
-
 -- Produces the first n vectors of size 3
+-- (not presented in the paper)
 testGen : (n:Nat) -> Maybe(Vect n (List ThreeLeters))
 testGen n = let x = generateList ThreeLeters ThreeLetersIsRecursivelyEnumarable (S (S (S Z)))
 	 in unfold_n_times x n
  
-
- 
--- ask for the evalutation of (testGen 27) for example 
- 
+-- (not presented in the paper) 
+-- ask for the evalutation of (testGen 27) to test the automatic generation of the
+-- first 27 lists of size 3
  
  
 decEqThreeLeters : (l1:ThreeLeters) -> (l2:ThreeLeters) -> Dec(l1=l2)
@@ -177,8 +162,6 @@ decEqThreeLeters B C = No ?MJ4
 decEqThreeLeters C A = No ?MJ5
 decEqThreeLeters C B = No ?MJ6
 decEqThreeLeters C C = Yes Refl
- 
- 
  
  
 instance [ThreeLeters_set] Set ThreeLeters where
@@ -200,7 +183,6 @@ lowerThan_bool A _ = True -- A is lower than everything appart from A itself
 lowerThan_bool B C = True
 lowerThan_bool B _ = False -- B is only lower than C
 lowerThan_bool C _ = False -- C is lower than nothing
-
 
 
 -- the same as a proposition
@@ -241,20 +223,27 @@ fixMe x = ThreeLeters_partialOrder
  
 
  -- ------------------------------------------------------------------------
--- Automatically generating m tests of the sorted lists of size n
+-- "Let’s automatically generate the first m sorted lists of T, of size n, 
+-- by unfolding m times the result of generateSortedList"
+-- (section 3 of the TAP 2016 paper)
 -- ------------------------------------------------------------------------
  
-testGenSorted : (m:Nat) -> (n:Nat) -> Maybe(Vect m (List ThreeLeters))
-testGenSorted m n = let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) n
-		      in unfold_n_times x m
+testGenerator : (m:Nat) -> (n:Nat) -> Maybe(Vect m (List ThreeLeters))
+testGenerator m n = 
+  let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) n
+    in unfold_n_times x m
  
 
--- ask for the evalutation of (testGenSorted 10 3) to see the first 10 sorted list of size 3 
+-- ask for the evalutation of (testGenerator 8 4) to see the first 8 sorted list of size 4 
+-- cf. section 3, page 5, at the bottom of the page
 -- it works
 
 -- ------------------------------------------------------------------------
--- Now also automatically says if each test was passed or failed
+-- "Now we run the decision procedure on all of these 'm' test in order to know
+-- if the predicate and the generator agree on this portion"
+-- (section 3 of the TAP 2016 paper)
 -- ------------------------------------------------------------------------
+
 testSorted : (m:Nat) -> (n:Nat) -> Vect m Bool
 testSorted m n = 
   let x = generateSortedList ThreeLeters ThreeLetersIsRecursivelyEnumarable (fixMe (fixMe_aux ThreeLeters_set)) n in
@@ -264,12 +253,15 @@ testSorted m n =
 			      No _ => False) x in
 	unfold_n_times_with_padding y m True -- If the result wasn't big enough, we obviously consider that them to be success
 
--- ask for the evalutation of (testSorted 10 3) to see for example the result of testing the first 10 sorted list 
+-- ask for the evalutation of (testSorted 8 4) to see the result of testing the predicate with the first 8 sorted list of size 4
+-- cf. section 3, page 5 and 6 
 -- it works	
 	
 	
 -- ------------------------------------------------------------------------------------------
--- Now just give the final answer : True if all the tests have been passed, False otherwise
+-- "We might not want to inspect manually the result of each test [...] so we write a function
+-- that calls testSorted and does the boolean And on each element of the resulting vector" in
+-- order to get the overall result
 -- ------------------------------------------------------------------------------------------
 	
 testSorted_result : (m:Nat) -> (n:Nat) -> Bool
@@ -277,13 +269,18 @@ testSorted_result m n = let vectorRes = testSorted m n in aux_testSorted_result 
   
 	aux_testSorted_result : {m:Nat} -> (Vect m Bool) -> Bool
 	aux_testSorted_result [] = True
-	aux_testSorted_result (h::t) = h && (aux_testSorted_result t) -- Does the logical and on the entire vector result
+	aux_testSorted_result (h::t) = h && (aux_testSorted_result t) -- Does the logical 'and' on the entire vector result
 
 	
--- When you want to test a very big value of m and thus can't check by hand the result, run for example (testSorted_result 200 3)
--- to see if the first 200 tests have passed the test
-
+-- When if you want to test the predicate against a very big number of automatically generated sorted list, ie when m is big 
+-- and you can't check the result by hand, run for example (testSorted_result 50 9)
+-- to see if the predicate agrees with the first 50 automatically generated list of size 9
+-- cf section 3, page 6
 -- it works
+
+-- If you want to test with an 'm' even bigger (which is only useful when 'n' is also big), 
+-- you can run it over night and get the final result without inspecting
+-- the result of every test
 
 ---------- Proofs ----------
 

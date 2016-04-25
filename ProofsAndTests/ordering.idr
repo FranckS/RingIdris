@@ -10,6 +10,10 @@ module ordering
 %default total
 
 
+-- This is code that conforms to the description in the article
+-- "Automatic predicate testing in formal certification" (accepted for Tests and Proofs 2016)
+-- by the author
+
 
 data Or : (A:Type) -> (B:Type) -> Type where
 	Or_introL : {A:Type} -> {B:Type} -> (a:A) -> Or A B
@@ -78,12 +82,10 @@ interface PartialStrictOrder c => PartialOrder c where
 	-- Without being sure that the user can't redefine it, we can't unfold the definition of (<~=)
 	-- Question to idris designers : Does Idris should have the keyword "final" for allowing this kind of constructions ?
 	
-		
-	
+			
 -- Lower or equivalent operation	
 (<~=) : {c:Type} -> {p:PartialOrder c} -> (x:c) -> (y:c) -> Type -- The (undecidable) relation
 (<~=) x y = Or (x<<y) (x~=y)
-
 
 
 not_lowerEq_lemma1 : {c:Type} -> {p:PartialOrder c} -> (x:c) -> (y:c) -> (p1 : (x<<y) -> Void) -> (p2 : (x~=y) -> Void) -> (pFalse : (<~=) {p=p} x y) -> Void
@@ -100,7 +102,7 @@ lowerEqDec {c} p x y with (lowerDec {c=c} x y)
 		lowerEqDec {c} p x y | (No prNotStrictlyLower) | (No prNotEqual) = No ?MlowerEqDec_1
 
 
--- I'm forced to make the (Partialorder c) an explicit argument, otherwise we end up with a non-sense arror message
+-- I'm forced to make the (Partialorder c) an explicit argument, otherwise we end up with a non-sense error message
 lowerEq_refl : {c:Type} -> (p:PartialOrder c) -> (x:c) -> ((<~=) {p=p} x x)
 lowerEq_refl p x = Or_introR (eq_refl x)
 

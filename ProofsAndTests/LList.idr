@@ -15,6 +15,9 @@ import Data.Vect
 %default total
 
 
+-- This is code that conforms to the description in the article
+-- "Automatic predicate testing in formal certification" (accepted for Tests and Proofs 2016)
+-- by the author
 
 
 codata LList : (T:Type) -> Type where    

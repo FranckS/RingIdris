@@ -42,6 +42,13 @@ And we can inspect the result of running the first 8 tests by evaluating $testSo
 \begin{lstlisting}
 [True, True, True, True, True, True, True, True] : Vect 8 Bool
 \end{lstlisting}
+
+However, if the predicate $isSorted$ has been incorrectly written, for example with the broken condition $(h1 \leq h1)$ instead of $(h1 \leq h2)$ in its third constructor $consSorted$, then the result of this test will be :
+
+\begin{lstlisting}
+[True, True, True, True, True, True, True, True] : Vect 8 Bool
+\end{lstlisting}
+
 When we want to test $isSorted$ on a big number of tests, we might not want to inspect manually the result of each test. We can write a function $testSorted\_result : (m:Nat)\ \rightarrow\ (n:Nat)\ \rightarrow\ Bool$ that calls $testSorted$ and does the boolean $And$ on each element of the resulting vector. Now, we can for example test the predicate on the first 50 sorted lists of size 8 by running $testSorted\_result\ 50\ 8$ and if we do so we get the overall result $True$ which means that the predicate agrees with the generator on all these 50 tests.
 
 
