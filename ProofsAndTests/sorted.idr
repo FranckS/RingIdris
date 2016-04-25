@@ -105,7 +105,7 @@ consWhenLower Tord (LLCons (curHead::tail) ls) h with (lowerEqDec Tord h curHead
   consWhenLower Tord (LLCons (curHead::tail) ls) h | (No pr_h_not_leq_currHead) = (consWhenLower Tord ls h)
 
 
--- The geenrator for all lists
+-- The generator for all lists
 -- (not presented in the paper)  
 mutual
   %assert_total -- Why Idris can't see that this definition is total ?
@@ -129,7 +129,7 @@ mutual
 -- cf. section 3, page 4 and 5	
 mutual
   %assert_total -- Why Idris can't see that this definition is total ?
-  -- This function generate all sorted list of a given size
+  -- This function generates all sorted list of a given size
   generateSortedList : (T:Type) -> (recEnu:RecursivelyEnumerable T) -> (Tord : PartialOrder T) -> (n:Nat) -> LList (List T)
   generateSortedList T recEnu Tord Z = LLCons [] LLNil -- There's just one sorted list of size Zero to generate and its []
   generateSortedList T recEnu Tord (S pn) = aux_generateSortedList recEnu Tord pn Z

@@ -15,15 +15,17 @@ Let's automatically generate the first $m$ sorted lists of $T$, of size $n$, by 
 
 
 \begin{lstlisting}
-testGenSorted : (m:Nat) -> (n:Nat) -> Maybe(Vect m (List T))
-testGenSorted m n = let x = generateSortedList T TisRecEnu TisOrdered n 
-                        in unfold_n_times x m
+testGenerator : (m:Nat) -> (n:Nat) -> Maybe(Vect m (List T))
+testGenerator m n = 
+	let x = generateSortedList T TisRecEnu TisOrdered n 
+	    in unfold_n_times x m
 \end{lstlisting}
-We can ask for the first 8 sorted lists of size 5 by evaluating $testGenSorted\ 8\ 5$:
+We can ask for the first 8 sorted lists of size 4 by evaluating $testGenerator\ 8\ 4$:
 
 \begin{lstlisting}
 Just [[A, A, A, A], [A, A, A, B], [A, A, A, C], [A, A, B, B],
-      [A, A, B, C], [A, A, C, C], [A, B, B, B], [A, B, B, C]] : Maybe (Vect 8 (List T))
+      [A, A, B, C], [A, A, C, C], [A, B, B, B], [A, B, B, C]] 
+      : Maybe (Vect 8 (List T))
 \end{lstlisting}
 Now, instead of simply generating the first $m$ sorted lists, we run the decision procedure on all of these $m$ tests in order to know if the predicate and the generator agree on this portion. The result will be a vector $m$ booleans.
 
@@ -37,18 +39,15 @@ testSorted m n =
 			      No _ => False) x in
 	unfold_n_times_with_padding y m True
 \end{lstlisting}
-And we can inspect the result of running the first 8 tests by evaluating $testSorted\ 8\ 5$.
+And we can inspect the result of running the first 8 tests of size 4 by evaluating $testSorted\ 8\ 4$.
 
 \begin{lstlisting}
 [True, True, True, True, True, True, True, True] : Vect 8 Bool
 \end{lstlisting}
 
-However, if the predicate $isSorted$ has been incorrectly written, for example with the broken condition $(h1 \leq h1)$ instead of $(h1 \leq h2)$ in its third constructor $consSorted$, then the result of this test will be :
+However, if the predicate $isSorted$ has been incorrectly written, then the result of this test might inform us that there's something wrong with the formal specification. For example, if we've forgotten the third constructor $consSorted$ in the definition of $isSorted$, then the result of (testSorted 8 4) will be : [False, False, False, False, False, False, False, False] because no produced list will be seen as sorted according to the predicate, and we will therefore know that the predicate $isSorted$ does not capture our intuitive notion of sortedness.
 
-\begin{lstlisting}
-[True, True, True, True, True, True, True, True] : Vect 8 Bool
-\end{lstlisting}
 
-When we want to test $isSorted$ on a big number of tests, we might not want to inspect manually the result of each test. We can write a function $testSorted\_result : (m:Nat)\ \rightarrow\ (n:Nat)\ \rightarrow\ Bool$ that calls $testSorted$ and does the boolean $And$ on each element of the resulting vector. Now, we can for example test the predicate on the first 50 sorted lists of size 8 by running $testSorted\_result\ 50\ 8$ and if we do so we get the overall result $True$ which means that the predicate agrees with the generator on all these 50 tests.
+When we want to test $isSorted$ on a big number of tests, we might not want to inspect manually the result of each test. We can write a function $testSorted\_result : (m:Nat)\ \rightarrow\ (n:Nat)\ \rightarrow\ Bool$ that calls $testSorted$ and does the boolean $And$ on each element of the resulting vector. Now, we can for example test the predicate on the first 50 sorted lists of size 9 by running $testSorted\_result\ 50\ 9$ and if we do so we get the overall result $True$ which means that the predicate agrees with the generator on all these 50 tests.
 
 

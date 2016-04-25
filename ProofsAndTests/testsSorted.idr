@@ -256,7 +256,13 @@ testSorted m n =
 -- ask for the evalutation of (testSorted 8 4) to see the result of testing the predicate with the first 8 sorted list of size 4
 -- cf. section 3, page 5 and 6 
 -- it works	
-	
+
+
+-- The important thing is that "if the predicate isSorted has been incorrectly written,
+-- then the result of the test (testSorted 8 4) might inform us that there's something wrong
+-- with the formal specification.
+-- For example, if we've forgotten the third constructor $consSorted$, then the result of (testSorted 8 4)
+-- will be : False, False, False, False, False, False, False, False
 	
 -- ------------------------------------------------------------------------------------------
 -- "We might not want to inspect manually the result of each test [...] so we write a function
@@ -280,7 +286,7 @@ testSorted_result m n = let vectorRes = testSorted m n in aux_testSorted_result 
 
 -- If you want to test with an 'm' even bigger (which is only useful when 'n' is also big), 
 -- you can run it over night and get the final result without inspecting
--- the result of every test
+-- the result of every single test
 
 ---------- Proofs ----------
 
