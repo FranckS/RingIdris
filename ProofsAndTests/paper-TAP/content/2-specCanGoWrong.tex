@@ -10,29 +10,29 @@ This approach aims at increasing the confidence in our formal definitions by ass
 
 \
 
-In order to gain confidence in the formal specifications we write, another traditional approach is to test the predicate on some values. That consists in defining a few terms, usually by hand, for which we know if the predicate should hold or not, and to prove that the predicate effectively holds when it should, and that it doesn't when it shouldn't. For example, with the predicate $isSorted$ defined above, we can prove that it holds on the list [3, 5, 7] that we know sorted.
+In order to gain confidence in the formal specifications we write, another traditional approach is to test the predicate on some values. That consists in defining a few terms, usually by hand, for which we know if the predicate should hold or not, and to prove that the predicate effectively holds when it should, and that it does not when it should not. For example, with the predicate $isSorted$ defined above, we can prove that it holds on the list [3, 5, 7] that we know sorted.
 
 \begin{lstlisting}
 isSorted_test1 : isSorted natIsOrdered [3, 5, 7]
 isSorted_test1 = 
   let p1 : (3 <= 5) = tryDec (lowerEqDec natIsOrdered 3 5) in
   let p2 : (5 <= 7) = tryDec (lowerEqDec natIsOrdered 5 7) in
-    ConsSorted 3 5 [7] (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
+    ConsSorted 3 5 [7] 
+      (ConsSorted 5 7 [] (SingletonIsSorted _ 7) p2) p1
 \end{lstlisting}
 This test is a \emph{test done by proof} : we show that the predicate holds on some specific value, here $[3,\ 5,\ 7]$, by doing the proof. We can go a step forward by removing the need of doing these specific proofs by hand, because in this case, the predicate isSorted can be decided : there exists an algorithm that produces a proof of $(isSorted\ l)$ if appropriate, or a proof of $(not\ (isSorted\ l))$ otherwise.
 
 \begin{lstlisting}
-decideIsSorted : (Tord : Order T) -> (l:List T) -> Dec(isSorted Tord l)
+decideIsSorted : (Tord : Order T) -> (l:List T) 
+                 -> Dec(isSorted Tord l)
 decideIsSorted Tord [] = Yes (NilIsSorted Tord)
 decideIsSorted Tord [x] = Yes (SingletonIsSorted Tord x)
 decideIsSorted Tord (h1::(h2::t)) with (lowerEqDec Tord h1 h2)
-  decideIsSorted Tord (h1::(h2::t)) | (Yes h1_lower_h2) 
-          with (decideIsSorted Tord (h2::t))
-    decideIsSorted Tord (h1::(h2::t)) | (Yes h1_lower_h2) 
-          | (Yes h2_tail_sorted) = Yes (ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2)
-    decideIsSorted Tord (h1::(h2::t)) | (Yes h1_lower_h2) 
-          | (No h2_tail_not_sorted) = No [...]
-  decideIsSorted Tord (h1::(h2::t)) | No h1_not_lower_h2 = No [...]
+  | (Yes h1_lower_h2) with (decideIsSorted Tord (h2::t))
+      | (Yes h2_tail_sorted) = Yes 
+      		(ConsSorted h1 h2 t h2_tail_sorted h1_lower_h2) 
+      | (No h2_tail_not_sorted) = No [...]
+  | (No h1_not_lower_h2) = No [...]
 \end{lstlisting}
 Now, in order to do \emph{tests by proof}, we can simply run the decision procedure.
 
@@ -40,7 +40,7 @@ Now, in order to do \emph{tests by proof}, we can simply run the decision proced
 isSorted_test1' : Dec (isSorted natIsOrdered [3,5,7])
 isSorted_test1' = decideIsSorted natIsOrdered [3,5,7] 
 \end{lstlisting}
-And if evaluate $isSorted\_test1'$, the system will answer $Yes$ and a proof of $isSorted\ [3,\ 5,\ 7]$, which means that the predicate has passed this test. With this technique, we can run semi-automatically a few tests on the predicate $isSorted$. It is semi-automatic in the sense that we still have to define by hand some terms that we know sorted and unsorted but we can let the machine produce the proof that the predicate holds or not on these specific values. This isn't bad --and this is in fact all that is done usually, when it is actually done-- but we would like to have a stronger guarantee, and not only that the predicate will coincide with our intuitive notion on a couple of tested terms.
+And if we evaluate $isSorted\_test1'$, the system will answer $Yes$ and a proof of $isSorted\ [3,\ 5,\ 7]$, which means that the predicate has passed this test. With this technique, we can run semi-automatically a few tests on the predicate $isSorted$. It is semi-automatic in the sense that we still have to define by hand some terms that we know sorted and unsorted but we can let the machine produce the proof that the predicate holds or not on these specific values. This is not bad --and this is in fact all that is done usually, when it is actually done-- but we would like to have a stronger guarantee, and not only that the predicate will coincide with our intuitive notion on a couple of tested terms.
 
 
 
