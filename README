@@ -4,7 +4,7 @@
 -- (very) brief explanation about what's this stuff
 -------------------------------------------------------------------
 
-Version 0.5 (12/12/14)
+Version 0.6 (05/06/2016)
 -----------------------
 
 This is the (early) implementation of a collection of tactics for Idris, 
@@ -16,47 +16,59 @@ We will explicitely mention when we consider to have something reliable and
 really usable.
 At the moment, you should use this collection of tactics for testing purpose 
 only. If you wish to give a feedback, don't forget, that THIS IS STILL WORK IN 
-PROGRESS. There may be bugs, the code is not clean, etc. 
+PROGRESS. There may be bugs, the code is far from being cleaned (this is research 
+code after all!), etc. 
 In definitive, you should not use it a for a "real" project right now.
 
-Current state (12/12/14) : 
+Current state (05/06/2016) : 
 ------------------------------
 
+New with version 0.6 : Compiles with Idris 0.11 (released on March 2016)
+						+ Automatic reflection in progress (but problems with Idris)
+
 ____________________
+
+
 New with version 0.5 : Compiles with Idris 0.9.15.1 amongst other things
+
 ____________________
 
 ____________________
+
+
 New with version 0.4: Each solver can now deal with any equivalence relation, instead of just
-the syntactical equality (Leibniz's equality).
+						the syntactical equality (Leibniz's equality).
+
 ____________________
 
 
-No axioms, no Meta-variable to solve.
+There are a few axioms to prove and Meta-variable to solve.
 
-- Magma solver WORKS
+- 1) Magma solver WORKS
 
-- Semi-group solver WORKS
+- 2) Semi-group solver WORKS
 However, one remark :
    . We don't pass the totality checker at the moment
 
-- Monoid solver WORKS
+- 3) Monoid solver WORKS
 However, one remark :
    . We don't pass the totality checker at the moment
    
-- Commutative Monoid solver WORKS  [Added with version 0.3] 
+- 4) Commutative Monoid solver WORKS  [Added with version 0.3] 
 However, one remark :
    . We don't pass the totality checker at the moment
 
-- Group solver WORKS
+- 5) Group solver WORKS
 However, one remark :
    . We don't pass the totality checker at the moment
 
-- Commutative Group (=Abelian group) solver WORKS
+- 6) Commutative Group (=Abelian group) solver WORKS
 However, one remark :
    . We don't pass the totality checker at the moment
 
-- Ring solver : IMPLEMENTATION IN PROGRESS (roughly 90% done)
+- 7) Ring solver : WORKS
+However, one remark :
+   . We don't pass the totality checker at the moment
 
 - Commutative Ring solver NOT YET IMPLEMENTED
 
@@ -65,13 +77,13 @@ How to compile it :
 Simply do :
 
 idris main.idr -p contrib
-That will compiles the 6 tactics available yet + the tests (which includes instances
+That will compiles the 7 tactics available yet + the tests (which includes instances
 of the corresponding typeclass) for each of them.
 
 How to use it :
 ----------------
 
-- Automatic metaification (or reflexion) is not yet implemented. That means that you will have 
+- Automatic metaification (or reflexion) is currently being implemented. But for the moment, you still have to 
 to encode by hand the two sides of your equality you wish to prove.
 
 See in commutativeGroup_test.idr and group_test.idr (and the other test files) for detailed examples.
