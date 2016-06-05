@@ -20,7 +20,7 @@ PROGRESS. There may be bugs, the code is far from being cleaned (this is researc
 code after all!), etc. 
 In definitive, you should not use it a for a "real" project right now.
 
-Current state (05/06/2016) : 
+News :
 ------------------------------
 
 New with version 0.6 : Compiles with Idris 0.11 (released on March 2016)
@@ -42,7 +42,12 @@ New with version 0.4: Each solver can now deal with any equivalence relation, in
 ____________________
 
 
-There are a few axioms to prove and Meta-variable to solve.
+Current state (05/06/2016) : 
+------------------------------
+
+There are a few axioms to prove and Meta-variable to solve :
+Some of them are because of a new treatment added in Ring (and these proofs will be easy)
+Some others are for the automatic reflection (and some are a bit annoying to do without using proof irrelevance)
 
 - 1) Magma solver WORKS
 
@@ -92,13 +97,15 @@ See in commutativeGroup_test.idr and group_test.idr (and the other test files) f
 A fairly big example
 ---------------------
 
-Can be found in the file myBinary_new.idr.
+Can be found in the file binary.idr.
 Simply run : 
-idris ./Provers/myBinary_new.idr
+idris ./Provers/binary.idr -p contrib
 That will compile the tactics and that will generate the proof required (in the term goal_aux).
+To see the proof generated, simply ask for the evaluation of :
+\l,c,bit0,bit1,x,x1,v,v1,known => goal_aux l c bit0 bit1 x x1 v v1 known
 
-Note that because there is no automatic reflexion at the moment, this file can be seen as a horrific monster.
-That will not be the case for a long time.
+Note that because the automatic reflexion is still under development, this file can be seen as a horrific monster.
+That should not be the case for much longer.
 
 About the technique :
 ----------------------
@@ -119,7 +126,7 @@ trivial.
 each tactic in the host language (Haskell). That's something nice, especially
 for a future bootstraping of Idris.
 
-3) Each solver uses the algebraic solvers for the structures underneath : we 
+3) Each prover uses the algebraic solvers for the structures underneath : we 
 don't "copy and paste" identic treatments at different levels : we convert our 
 terms between different structures, and we reuse every bit possible.
 For exemple, dealing with neutral elements (which appears for the first time at
@@ -136,12 +143,12 @@ provably total in Idris *yet* : mainly because of some non-structural
 recursions for which we will have to encode the termination).
 Thus, because we don't have any axiom nor meta-variable to solve, we can be 
 entirely sure that the proof generated is always A VALID PROOF.
-That mean that if the solver tells you that A = B (and gives you a proof of it),
+That mean that if the prover tells you that A = B (and gives you a proof of it),
 you can be shure that indeed A = B (maybe because of YOUR axioms, or because of
 YOUR implementation of your structure and operations).
 
 2) Completeness
-However, if one solver is not able to prove for you A=B, that doesn't prove 
+However, if one prover is not able to prove for you A=B, that doesn't prove 
 that A is not equal to B. Or at least, we can't prove this property in the 
 system itself.
 Of course, we hope (and we've done everyting possible!) to have a tactic
