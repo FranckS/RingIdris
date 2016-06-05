@@ -1,14 +1,15 @@
 {-
 Franck Slama - University of St Andrews
 file testReflection2Funs.idr
-Last version : 3rd December 2015
-Compiles with Idris 0.9.17.1-git:756bfb1 (1rst May 2015 : https://github.com/idris-lang/Idris-dev/commit/756bfb1373895da0abaf5ce606c71258273edf3e)
+This files correspond to the problem described here : https://github.com/idris-lang/Idris-dev/issues/2843
+Last version : 05 June 2016
+Compiles with Idris 0.11 (version released at the end of March 2016)
 
-This file shows two problems with the reflection facility :
-- 1) I looks like a function defined with %reflection can't call another one
+This file shows two problems with Idris' reflection mechanism :
+- 1) It looks like a function defined with %reflection can't call a subfunction doing a subpart of the reflection.
 	-> that would be useful for having a handler for constants only for example 
 	  (in my work, I need to implement an automatic reflection for any type that behaves as a Ring, 
-	  but I can't know beforehand what the constants are going to be, so would like that the user could pass a function dealing only with the reflection of constants)
+	  but I can't know beforehand what the constants are going to be, so what I want is that the user passes a function dealing only with the reflection of constants)
 - 2) Adding a "_" pattern that should not change anything did change the result
 -}
 
@@ -83,7 +84,7 @@ test2 = (\x,y => reflectNatToMyNat' reflectNatConstants (x+y))
 -- Here I should get (MySucc MyZero), and I do get it
 test3 : MyNat
 test3 = reflectNatToMyNat' reflectNatConstants (S Z)
--- BUT, if I de-comment the last line "_ => AVariable" of reflectNatToMyNat' (that should be useless), I don't get the same answer (indeed, I get AVariable!) ! Why ???
+-- BUT, if I de-comment the last line "_ => AVariable" of reflectNatToMyNat' (which should be useless), I don't get the same answer (indeed, I get AVariable!) ! Why ???
 
 
 
