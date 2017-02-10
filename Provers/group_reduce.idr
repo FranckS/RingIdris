@@ -58,8 +58,14 @@ propagateNeg {c} p setAndMult e =
 propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 propagateNeg_fix p setAndMult e = 
 	let (r_1 ** (e_1, p_1)) = propagateNeg p setAndMult e in
-		case exprG_eq p _ _ e e_1 of -- Look for syntactical equality (ie, if we have done some simplification in the last passe)!
-			Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
+		-- Look for syntactical equality :
+		-- have we done some simplification in the last pass ?
+		case exprG_eq p _ _ e e_1 of
+			-- Previous and current term are the same : 
+			-- we stop here
+			Just pr => (r_1 ** (e_1, p_1))
+			-- Previous and current are different : 
+			-- we do at least another pass
 			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg_fix p setAndMult e_1 in -- We do another passe
 							(r_ih1 ** (e_ih1, ?MpropagateNeg_fix_1))
   
