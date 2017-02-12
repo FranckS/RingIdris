@@ -18,6 +18,7 @@ import Provers.tools
 
 --%default total
 
+
 total
 elimMinus : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 elimMinus {c} p setAndMult (ConstG _ _ _ const) = (_ ** (ConstG _ _ _ const, set_eq_undec_refl {c} _))
@@ -42,9 +43,14 @@ propagateNeg p setAndMult (NegG _ (PlusG _ e1 e2)) =
 	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p setAndMult (NegG _ e1)) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p setAndMult (NegG _ e2)) in
 		((Plus r_ih2 r_ih1) ** (PlusG _ e_ih2 e_ih1, ?MpropagateNeg_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
-propagateNeg p setAndMult (NegG _ e) = 
+propagateNeg p setAndMult (NegG _ (NegG _ e)) =
+	-- We use the opportunity to remove this double negation (as this is what we'll have to do in the next treatement anyway)
 	let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg p setAndMult e in
-		(Neg r_ih1 ** (NegG _ e_ih1, ?MpropagateNeg_2))
+		(r_ih1 ** (e_ih1, ?MpropagateNeg_2))
+propagateNeg {c} p setAndMult (NegG _ e) =
+	-- Here 'e' can only be a constant or a variable as we've treated Plus and Neg before (and Minus has already been simplified)
+	-- Therefore, we can let the Neg where it is (no need to do a recursive call)
+	(_ ** (NegG _ e, set_eq_undec_refl {c} _))
 propagateNeg p setAndMult (PlusG _ e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg p setAndMult e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg p setAndMult e2) in
@@ -53,6 +59,10 @@ propagateNeg {c} p setAndMult e =
   (_ ** (e, set_eq_undec_refl {c} _)) 
   
 
+-- I guess computing the fixpoint is no longer needed, as we no longer have the case of two consecutive Neg,
+-- with the outermost that we initially treated afterwards. In the change of the above function, we now simplify
+-- such a sequence of two Neg
+{-
 -- Needed because calling propagateNeg on -(-(a+b)) gives - [-b + -a] : we may need other passes
 propagateNeg_fix : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 propagateNeg_fix p setAndMult e = 
@@ -67,7 +77,7 @@ propagateNeg_fix p setAndMult e =
 			-- we do at least another pass
 			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg_fix p setAndMult e_1 in -- We do another passe
 							(r_ih1 ** (e_ih1, ?MpropagateNeg_fix_1))
-  
+-}  
 
 total
 elimDoubleNeg : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
@@ -299,7 +309,7 @@ mutual
 	pre_groupReduce : (c:Type) -> {n:Nat} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> (g:Vect n c) -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 	pre_groupReduce c p setAndMult g e =
 		let (r_1 ** (e_1, p_1)) = elimMinus p setAndMult e in
-		let (r_2 ** (e_2, p_2)) = propagateNeg_fix p setAndMult e_1 in
+		let (r_2 ** (e_2, p_2)) = propagateNeg p setAndMult e_1 in -- changed : it's no longer the fixpoint as one pass should now be enough
 		let (r_3 ** (e_3, p_3)) = elimDoubleNeg p setAndMult e_2 in
 		let (r_4 ** (e_4, p_4)) = elim_plusInverse p setAndMult g e_3 in
 		let (r_5 ** (e_5, p_5)) = plusInverse_assoc p setAndMult g e_4 in
@@ -380,17 +390,21 @@ Provers.group_reduce.MpropagateNeg_1 = proof
   exact p_ih2
   exact p_ih1
 
+{-  
 Provers.group_reduce.MpropagateNeg_2 = proof
   intros
   mrefine Neg_preserves_equiv 
   exact p_ih1  
-
+  -}
+  
 Provers.group_reduce.MpropagateNeg_3 = proof
   intros
   mrefine Plus_preserves_equiv 
   exact p_ih1
   exact p_ih2
-  
+
+-- The fixpoint function for propagateNeg is in theory no longer needed  
+{-  
 Provers.group_reduce.MpropagateNeg_fix_1 = proof
   intros
   mrefine eq_preserves_eq 
@@ -400,7 +414,8 @@ Provers.group_reduce.MpropagateNeg_fix_1 = proof
   mrefine set_eq_undec_sym 
   mrefine set_eq_undec_refl 
   exact p_ih1 
-
+-}
+  
 Provers.group_reduce.MelimDoubleNeg_1 = proof
   intros
   mrefine eq_preserves_eq 
