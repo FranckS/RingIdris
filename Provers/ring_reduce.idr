@@ -412,19 +412,23 @@ shuffleProductRight p g (MultR (MultR e11 e12) (MultR e21 e22)) =
 
 -- Ex : -(a+b) becomes (-b) + (-a), -(a*b) becomes (-a) * b
 -- Not total for Idris, because recursive call with argument (NegG ei) instead of ei. Something can be done for this case with a natural number representing the size
-total
+--total
 propagateNeg' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 propagateNeg' p (NegR (PlusR e1 e2)) =
-	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call
-	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call
-		((Plus (Neg r_ih2) (Neg r_ih1)) ** (PlusR (NegR e_ih2) (NegR e_ih1), ?MpropagateNeg'_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in -- Restored for performances reasons : it was needed to compute the fixpoint
+	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p (NegR e2)) in 
+		((Plus r_ih2 r_ih1) ** (PlusR e_ih2 e_ih1, ?MpropagateNeg'_1)) -- Carefull : - (a + b) = (-b) + (-a) in a group and *not* (-a) + (-b) in general. See mathsResults.bad_push_negation_IMPLIES_commutativeGroup for more explanations about this
 propagateNeg' p (NegR (MultR e1 e2)) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in -- We do not forget to propagate the Neg inside of the product (we chose the first argument)
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p (NegR e1)) in -- We do not forget to propagate the Neg inside of the product (we chose the first argument)
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
-		((Mult (Neg r_ih1) r_ih2) ** (MultR (NegR e_ih1) e_ih2, ?MpropagateNeg'_2)) -- I've changed this so that every call is on something (syntactically) smaller. The output should still be exactly the same, as I've basically just unfolded the previous recursive call which was done on (NegR e1)
-propagateNeg' p (NegR e) = 
-	let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg' p e in
-		((Neg r_ih1) ** (NegR e_ih1, ?MpropagateNeg'_3))
+		((Mult r_ih1 r_ih2) ** (MultR e_ih1 e_ih2, ?MpropagateNeg'_2)) -- Restored for performances reasons : it was needed to compute the fixpoint
+propagateNeg' p (NegR (NegR e)) =
+	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e) in
+		(r_ih1 ** (e_ih1, ?MpropagateNeg'_3))
+propagateNeg' {c} p (NegR e) =
+	-- Here 'e' can only be a constant or a variable as we've treated Mult, Plus and Neg before (and Minus has already been simplified)
+	-- Therefore, we can let the Neg where it is (no need to do a recursive call)	
+	(_ ** (NegR e, set_eq_undec_refl {c} _))
 propagateNeg' p (PlusR e1 e2) = 
 	let (r_ih1 ** (e_ih1, p_ih1)) = (propagateNeg' p e1) in
 	let (r_ih2 ** (e_ih2, p_ih2)) = (propagateNeg' p e2) in
@@ -437,7 +441,7 @@ propagateNeg' {c} p e =
   (_ ** (e, set_eq_undec_refl {c} _))     
     
 
-    
+{- 
 -- Needed because calling propagateNeg on -(-(a+b)) gives - [-b + -a] : we may need other passes
 propagateNeg_fix' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 propagateNeg_fix' p e = 
@@ -446,7 +450,8 @@ propagateNeg_fix' p e =
 			Just pr => (r_1 ** (e_1, p_1)) -- Previous and current term are the same : we stop here
 			Nothing => let (r_ih1 ** (e_ih1, p_ih1)) = propagateNeg_fix' p e_1 in -- We do another passe
 							(r_ih1 ** (e_ih1, ?MpropagateNeg_fix'_1))    
-    
+-}  
+  
 
 total
 elimDoubleNeg' : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
@@ -964,7 +969,7 @@ code_reduceCG_andDecode p e =
 ring_reduce : {c:Type} -> (p:dataTypes.Ring c) -> {g:Vect n c} -> {c1:c} -> (ExprR p g c1) -> (c2 ** (ExprR p g c2, c1~=c2))
 ring_reduce p e = 
   let (r_1 ** (e_1, p_1)) = elimMinus' p e in
-  let (r_2 ** (e_2, p_2)) = propagateNeg_fix' p e_1 in 
+  let (r_2 ** (e_2, p_2)) = propagateNeg' p e_1 in -- Changed : no longer the fixpoint, as one pass should now be nough 
   let (r_3 ** (e_3, p_3)) = elimDoubleNeg' p e_2 in -- Needed because we've propagated some Neg just before
 	  
   let (r_4 ** (e_4, p_4)) = develop_fix p e_3 in
@@ -1295,35 +1300,37 @@ Provers.ring_reduce.MpropagateNeg'_1 = proof
   intros
   mrefine eq_preserves_eq 
   exact (Plus (Neg c2) (Neg c1))
-  exact (Plus (Neg c2) (Neg c1))
+  exact (Plus r_ih2 r_ih1)
   mrefine push_negation 
-  mrefine Plus_preserves_equiv 
   mrefine set_eq_undec_refl 
-  mrefine set_eq_undec_sym
-  mrefine set_eq_undec_sym
-  mrefine Neg_preserves_equiv
-  mrefine Neg_preserves_equiv
+  mrefine Plus_preserves_equiv 
   exact p_ih2
   exact p_ih1
-
+  
 Provers.ring_reduce.MpropagateNeg'_2 = proof
   intros
-  mrefine eq_preserves_eq 
-  exact (Neg (Mult r_ih1 r_ih2))
-  exact (Mult (Neg r_ih1) r_ih2)
-  mrefine Neg_preserves_equiv 
-  mrefine set_eq_undec_refl 
   mrefine set_eq_undec_sym 
+  mrefine eq_preserves_eq 
+  exact (Mult (Neg c1) c2)
+  exact (Neg (Mult c1 c2))
   mrefine Mult_preserves_equiv 
+  mrefine set_eq_undec_refl 
   mrefine lemmaRing2
+  mrefine set_eq_undec_sym 
+  mrefine set_eq_undec_sym 
   exact p_ih1
   exact p_ih2
   
 Provers.ring_reduce.MpropagateNeg'_3 = proof
   intros
-  mrefine Neg_preserves_equiv 
-  exact p_ih1
-
+  mrefine eq_preserves_eq 
+  exact (Neg (Neg c1))
+  exact c1
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine group_doubleNeg 
+  exact p_ih1  
+  
 Provers.ring_reduce.MpropagateNeg'_4 = proof
   intros
   mrefine Plus_preserves_equiv 
@@ -1336,6 +1343,7 @@ Provers.ring_reduce.MpropagateNeg'_5 = proof
   exact p_ih1
   exact p_ih2
 
+{-  
 Provers.ring_reduce.MpropagateNeg_fix'_1 = proof
   intros
   mrefine eq_preserves_eq 
@@ -1344,7 +1352,8 @@ Provers.ring_reduce.MpropagateNeg_fix'_1 = proof
   exact p_1
   mrefine set_eq_undec_refl 
   exact p_ih1
-
+-}
+  
 Provers.ring_reduce.MelimDoubleNeg'_1 = proof
   intros
   mrefine eq_preserves_eq 

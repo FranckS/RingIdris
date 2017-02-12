@@ -390,12 +390,15 @@ Provers.group_reduce.MpropagateNeg_1 = proof
   exact p_ih2
   exact p_ih1
 
-{-  
 Provers.group_reduce.MpropagateNeg_2 = proof
   intros
-  mrefine Neg_preserves_equiv 
-  exact p_ih1  
-  -}
+  mrefine eq_preserves_eq 
+  exact (Neg (Neg c1))
+  exact c1
+  mrefine set_eq_undec_refl 
+  mrefine set_eq_undec_sym 
+  mrefine group_doubleNeg 
+  exact p_ih1
   
 Provers.group_reduce.MpropagateNeg_3 = proof
   intros
