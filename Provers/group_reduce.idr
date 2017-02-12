@@ -18,7 +18,6 @@ import Provers.tools
 
 --%default total
 
-
 total
 elimMinus : {c:Type} -> (p:dataTypes.Group c) -> (setAndMult:SetWithMult c (group_to_set p)) -> {g:Vect n c} -> {c1:c} -> (ExprG p setAndMult g c1) -> (c2 ** (ExprG p setAndMult g c2, c1~=c2))
 elimMinus {c} p setAndMult (ConstG _ _ _ const) = (_ ** (ConstG _ _ _ const, set_eq_undec_refl {c} _))
