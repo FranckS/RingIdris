@@ -300,7 +300,7 @@ goal_aux l c bit0 bit1 x x1 v v1 known =
 -- ----------------------------------------
 
 thisIsAJust : {T:Type} -> (Lazy(Maybe T)) -> Bool
-thisIsAJust (Just something) = True
+thisIsAJust (Just _) = True
 thisIsAJust Nothing = False
 
 
@@ -309,6 +309,19 @@ resultOfProof : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat)
                -> (known : (plus (plus c bit0) bit1 = plus x1 (plus x (plus x Z)))) 
                -> Bool
 resultOfProof = \l, c, bit0, bit1, x, x1, v, v1, known => thisIsAJust (goal_aux l c bit0 bit1 x x1 v v1 known)
+
+
+
+{-
+resultOfProof' : (l:Nat) -> (c:Nat) -> (bit0:Nat) -> (bit1:Nat) 
+               -> (x:Nat) -> (x1:Nat) -> (v:Nat) -> (v1:Nat)
+               -> (known : (plus (plus c bit0) bit1 = plus x1 (plus x (plus x Z)))) 
+               -> Bool
+resultOfProof' = \l, c, bit0, bit1, x, x1, v, v1, known=> 
+					case (goal_aux l c bit0 bit1 x x1 v v1 known) of
+					Just _ => True
+					Nothing => False
+-}
 
 
 
@@ -329,8 +342,11 @@ goalProven l c bit0 bit1 x x1 v v1 known = eqb
                                             True
 
 
--- I want to do the test of perf by evaluating the execution time of (\l, c, bit0, bit1, x, x1, v, v1, known => goalProven l c bit0 bit1 x x1 v v1 known)
--- But I don't get a simple boolean as anwser. Why ?
+-- I want to do the test of perfs by evaluating the execution time of (\l, c, bit0, bit1, x, x1, v, v1, known => goalProven l c bit0 bit1 x x1 v v1 known)
+-- But I don't get a simple boolean as anwser. How can I get a simple boolean as answer ?
+-- The idea of what I'm trying to do is to test the perfs for generating the proof only, and NOT for printing it. That's why I wanted to simply output the value True or False.
+
+
 
 -- ----------------------------------------
 -- End of part added for performances tests
