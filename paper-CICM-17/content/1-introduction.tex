@@ -47,15 +47,8 @@ in formal certification. For example, when working with natural numbers, one mig
 \subsection{Motivating example: Verified Binary Arithmetic}
 \label{sect:motivatingExample}
 
-We revisit an example from previous work~\cite{bradytfp07} 
-which shows how proof obligations might appear
-when we index a type by natural numbers.  We define the types of
-$Bit$ and $Binary$ number in Figure~\ref{binarynums}, 
-both indexed over the value they represent, expressed as a natural number.
+We revisit an example from a previous work of Edwin Brady~\cite{bradytfp07} which shows how proof obligations may arise when a type is indexed by natural numbers. In this development, the goal is to implement a formally verified library of binary numbers. In order to ensure the correctness of the methods that will be developed, we define the types $Bit$ and $Binary$ as indexed over the value they represent (expressed as a natural number), following a correct-by-construction approach.
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 data Bit : Nat $\rightarrow$ Type where
      b0 : Bit Z
@@ -65,31 +58,14 @@ data Binary : (width : Nat) $\rightarrow$ (value : Nat) $\rightarrow$ Type where
      zero : Binary Z Z
      (#) : Binary w v $\rightarrow$ Bit bit $\rightarrow$ Binary (S w) (bit + 2 * v)
 \end{lstlisting}
-\end{center}
-\caption{Bit and binary number}
-\label{binarynums}
-\figrule
-\end{figure}
 
-It allows representing a
-binary number of width zero with the constructor $zero$, 
-and representing larger numbers with $\#$.
-We
-can extend a binary number $bin$ by adding a digit to its right, and the value
-represented by this new binary number is two times the value ($v$) represented
-by $bin$ plus the value ($bit$) represented by the added digit.
-
-To write a function performing the addition between two binary numbers,
-we start with an auxiliary function (Figure~\ref{addbit}) which adds three bits
+We want to write a function performing the addition between two binary numbers. In order to do so, we start with an auxiliary function, which adds three bits
 (the third one plays the role of a carry flag), and produces the two bits of
-the result.
+the result, where the first one is the most significant bit. 
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 addBit : Bit x $\rightarrow$ Bit y $\rightarrow$ Bit c $\rightarrow$ (bX ** (bY ** 
-              (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
+         (Bit bX, Bit bY, c + x + y = bY + 2 * bX)))
 addBit b0 b0 b0 = (_ ** (_ ** (b0, b0, Refl)))
 addBit b0 b0 b1 = (_ ** (_ ** (b0, b1, Refl)))
 addBit b0 b1 b0 = (_ ** (_ ** (b0, b1, Refl)))
@@ -99,67 +75,32 @@ addBit b1 b0 b1 = (_ ** (_ ** (b1, b0, Refl)))
 addBit b1 b1 b0 = (_ ** (_ ** (b1, b0, Refl)))
 addBit b1 b1 b1 = (_ ** (_ ** (b1, b1, Refl)))
 \end{lstlisting}
-\end{center}
-\caption{Addition of three bits}
-\label{addbit}
-\figrule
-\end{figure}
 
-This function produces a dependent pair. The first component is the value $bX$
-(expressed as a natural number) represented by the first bit produced (of type
-$Bit\ bX$), and the second component is another dependent pair. This
-second dependent pair is composed of the value $bY$ represented by the second
-bit produced, and of a triple containing the two bits produced and a
-proof that these two bits correctly encode the result of the addition.
-For example, with the line corresponding to the computation
-$1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$)
-and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
+This function produces a dependent pair. The first component is the value $bX$ (expressed as a natural number) representing the first bit produced (therefore of type $Bit\ bX$), and the second component is another dependent pair. This second dependent pair is composed of the value $bY$ representing the second bit produced, and of a triple containing the two bits produced and a proof that these two bits correctly encode the result of the addition.
+For example, on the fifth line, which corresponds to the computation $1_2 + 0_2 + 0_2 = (01)_2$, the function produces the bit $b0$ (encoding $0_2$) and the bit $b1$ (encoding $1_2$), and a proof that $1 + 0 + 0 = 1 + (2*0)$.
 
-It should be pointed that the proof component of this function is established without any effort, as we always give ``Refl" for the proof. Indeed, for each of the eight patterns, a simple computation reduces the given and expected values to the same value, and ``Refl" can therefore be used. We also note that
-there is no need to produce any lemma of correctness about $addBit$ afterwards.
-The correct by construction style in which it is written already gives the
-property that we want: the two bits produced effectively represent the
-addition of the three bits given in input.
-
-We finally define the function adding two binary numbers and a carry flag.
-This addition works for two binary numbers
-expressed with the same number of bits, and it produces a result with one more
-bit. This result represents the value $c + x + y$, where $c$ 
-represents the value of the input carry bit, and $x$ and $y$ represent
-the values of the two binary numbers given in input. Thus, we'd like to
-be able to write:
+We finally define the function $adc$ that adds two binary numbers and a carry flag. This addition works for two binary numbers expressed with the same number of bits, and it produces a result with one more bit. This result represents the value $c + x + y$, where $c$ represents the value of the input carry bit, and $x$ and $y$ represent the values of the two binary numbers given in input. Therefore, we would like to be able to write :
 
 \begin{lstlisting}
-adc : Binary w x $\rightarrow$ Binary w y $\rightarrow$ Bit c $\rightarrow$ Binary (S w) (c + x + y)
+adc : Binary w x $\rightarrow$ Binary w y $\rightarrow$ Bit c 
+      $\rightarrow$ Binary (S w) (c + x + y)
 adc zero zero carry = zero # carry
 adc (numx # bX) (numy # bY) carry
-   = let (vCarry0 ** (vLsb ** (carry0, lsb, _))) = addBit bX bY carry in
+   = let (vCarry0 ** (vLsb ** (carry0, lsb, _))) 
+          = addBit bX bY carry in
           adc numx numy carry0 # lsb
 \end{lstlisting}
 
-Unfortunately, the types do not match for either of the two cases. 
-The result of the first line $adc\ zero\ zero\ carry$ is
-expected to have the type\[Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)\] but we
-provide a term of type \[Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0))).\]
-The problem is even worse for the second case where the expected index is 
-\[(plus\ (plus\ c\ (plus\ bit2\ (plus\ v1\ (plus\ v1\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))\] while we're trying to provide a term indexed over 
-\[plus\ vLsb\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ 0))\]
+The first pattern performs the addition between the values zero, zero and a carry. In this simple case, we simply have to produce the one-digit value $zero\ \#\ carry$. The second pattern is when the two binary numbers are respectively $(numx\ \#\ bX)$ and $(numy\ \#\ bY)$ where $numx$ and $numy$ are smaller binary numbers and $bX$ and $bY$ are bits added to the right of $numx$ and $numy$. In this case, we start by adding the least significant bits $bX$ and $bY$ with the $carry$, and this is performed by calling the function $addBit$. It will essentially produce 2 bits, the first one representing the carry of the result (called $carry0$), and the second one the least-significant bit of the result (called $lsb$). Once we have this intermediate result, we can call recursively $adc$ on the smaller terms $numx$ and $numy$ with $carry0$ as the carry that we need to propagate, and finally add $lsb$ to the right of this result.
 
-For
-this situation, Idris provides \emph{provisional definitions} with the 
-syntax \texttt{?=}. Using a provisional definition here will make
-the definition acceptable, but it also generates two proof obligations, one
-for each pattern, both of which say that the provided term can be
-converted into a term which has the expected type.  For both of these
-patterns, it is possible to prove the equality between the expected and
-the provided types. These proofs
-consist of a series of rewriting steps, where each step uses a property about the
-operation $+$ on natural numbers.  For example, the proof for the second
-pattern is shown in Figure \ref{adc_lemma_2} (with some detail elided):
+Unfortunately, this straightforward definition is rejected by Idris' type-checker because the types mismatch for both of the two patterns. The result of the first line $adc\ zero\ zero\ carry$ is expected to have the type $Binary\ 1\ (plus\ (plus\ c\ 0)\ 0)$ but we provide a term of type $Binary\ 1\ (plus\ c\ (plus\ 0\ (plus\ 0\ 0)))$.
+The problem is even worse for the second case where the expected index is \\
+$(plus\ (plus\ c\ (plus\ bit2\ (plus\ v1\ (plus\ v1\ 0))))\ (plus\ bit\ (plus\ v\ (plus\ v\ 0))))$
+while we're trying to provide a term indexed over \\
+$plus\ vLsb\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ 0))$.
+We know that the definition of $adc$ we have given is correct, and it has \emph{provably} the expected type, but it does not have it \emph{immediately} or \emph{by reduction} : after full reductions\footnote{In dependently typed theories, the presence of types predicated on values creates the need of using reductions also inside of types}, the expected and provided types are still different, and idris can not figure out a proof of compatibility on its own. 
+If we use provisional definitions[ref], the previous definition can be accepted by the system, but we now have two proof obligations $adc\_lemma\_1$ and $adc\_lemma\_2$ demanding proofs of equality between the two types, and they have to be provided by hand --here with a proof script-- :
 
-\begin{figure}[H]
-\figrule
-\begin{center}
 \begin{lstlisting}
 adc_lemma_2 = proof {
     intros;
@@ -172,91 +113,54 @@ adc_lemma_2 = proof {
     [...]
     rewrite (plusAssociative (plus (plus x v) v1) (plus x v) v1);
     trivial;
+}
 \end{lstlisting}
-\end{center}
-\caption{Proof by hand of the correspondence between expected and provided types for the second pattern of the definition of adc}
-\label{adc_lemma_2}
-\figrule
-\end{figure}
 
+As we see, this kind of proof consists of a potentially long sequence of rewriting steps, where each step uses one of the available properties: neutral element, commutativity, associativity. Without some specific automation, this sequence of rewriting must be done by the programmer.
+This is time consuming and more importantly, just a small change in the left or the right hand side of the equality may invalidate the proof. That means that a minor change in our datatypes, or in the definition of $addBit$ or $adc$ will require us to replace this proof by another one fulfilling the same task.
+This kind of proof is therefore absolutely not reusable, because it performs rewritings for very specific terms.
+These proofs become the everyday routine in any dependently-typed language, as soon as we index types over values in order to capture some logical properties.  As we've seen, when a type $T$ is indexed over $Nat$, the definition of a function which has codomain $T$ is likely to require a proof of equality between the produced index and the expected one. 
 
-Thus, this kind of proof consists of a potentially long sequence of rewriting
-steps,
-where each step uses one of the available properties. Without some
-specific automation, this sequence of rewriting must be done by the programmer.
-This is time consuming, and perhaps more importantly, even a small
-change in the left
-or the right hand side of the equality may invalidate the proof.
-This mean that a minor change in our
-datatypes, or in the definition of $addBit$ or $adc$ will require us to
-replace this proof by another one doing the same job.
-This kind
-of proof is therefore not reusable, because it performs rewritings for
-very specific terms.
-
-If we look at the proof we have written by hand, we realize that we only use
-the existence of neutral elements (this is the lemma $plusZeroRightNeutral$),
-and the associativity and commutativity of $+$. Thus, we're rewriting a term by
-using the properties of a commutative monoid.
-
-We would like to let a generic prover for commutative monoid find a proof on its own.
-This should be achievable, because algebraic structures like monoids, groups and
-rings (commutative or otherwise) have a very useful property, that
-every expression can be normalised to a canonical representation. Thus
-these kind of proofs can be automatically produced by computing the
-normal forms for each side of the equality, and then comparing them using
-syntactical equality. When they are in normal
-form, being equal is a matter of being syntactically the same entity.
+The proof that we have written by hand only uses the existence of neutral elements, and the associativity and commutativity of $+$ on $Nat$. Thus, we're rewriting a term by using the properties of a commutative monoid. We would like to let a generic prover for commutative monoid find a proof on its own.
 
 \subsection{Our contributions}
 
 Ring solvers are already implemented for various proof
 assistants, including Coq~\cite{Coq2005} and Agda\footnote{\url{http://wiki.portal.chalmers.se/agda/\%22?n=Libraries.UsingTheRingSolver}}. 
 In this paper, we describe a certified
-implementation\footnote{The implementation of our hierarchy of tactics can be found online at \url{https://github.com/FranckS/RingIdris}} of an automatic prover for equalities in a
-\emph{hierarchy} of algebraic
+implementation\footnote{The implementation of our hierarchy of tactics can be found online at \url{https://github.com/FranckS/RingIdris}} of an automatic prover for equalities in a \emph{hierarchy} of algebraic
 structures, including Monoid, Groups and Rings (all potentially commutative),
 for the Idris language. 
 
 The principal novelty is in the approach that we follow, using a
-new kind of \emph{type-safe reflection}.  Working by reflection for implementing
-tactics has been done several times, including for the implementation of a
-ring solver for the Coq proof assistant, but without
+new kind of \emph{type-safe reflection}.  Working by reflection for implementing tactics has been done several times, including for the implementation of a ring solver for the Coq proof assistant, but without
 providing any guarantees, contrary to our type-safe reflection. We will
-compare our approach with other implementations in Section~\ref{sect:discuss}.
+compare our approach with other implementations in Section~\ref{sect:AlternativeApproaches}.
 
-We make the following contributions:
+The contributions of this paper are the following :
 
-\begin{itemize}
-        \item We present a new type-safe reflection mechanism, where the
-        reflected terms are indexed over the concrete inputs, thus providing a
-        direct way to pull out the proofs, and providing two guarantees.
-        The first guarantee is that the reflection of a term is guaranteed to be a
-        faithful representation of the term. The second is that any generated
-        proof is guaranteed to be a proof of the required property. The basic
-        ideas of the technique are first presented in Section~\ref{sect:ideas} on a
-        smaller problem with only natural numbers and addition, and are later
-        adapted for the hierarchy of tactics in Section~\ref{sect:general}. 
-        Section~\ref{sect:reuse} contains some implementation details.	
+\begin{enumerate}
 
-        \item The normalisation procedures are implemented by following a
-        correct by construction approach, instead of implementing a
-        normalization procedure, and proving afterwards that this function
-        is correct. This approach is much more suitable
-        for programming languages like Idris. Again, this approach will be
-        presented in Section~\ref{sect:ideas} on the smaller problem, 
-        and in Sections~\ref{sect:general} and~\ref{sect:reuse}
-        for the complete hierarchy of algebraic structures.
+\item We present a new type-safe reflection mechanism, where the reflected terms are indexed over the concrete inputs, thus providing a
+direct way to pull out the proofs, and providing the guarantee that the reflection of a term is indeed a faithful representation of the term.
+The basic ideas of the technique are first presented in Section~\ref{sect:aSimpleProofAutomation} on a smaller problem with only natural numbers and addition, and are later adapted for a hierarchy of tactics proving equalities in algebraic strcures, in Section~\ref{sect:ProvingEquivalencesInAlgebraicStructures}. 
 
-        \item We develop a hierarchy of tactics where each tactic reuses the
-        rewriting machinery from the structure immediately below in the hierarchy.
-        For example,
-        simplifying neutral elements is only implemented at the monoid level,
-        and each level inheriting from it will reuse it. Re-usability can be quite tricky
-        to obtain when we want to reuse a prover from a structure which is less
-        expressive. For example, reusing the monoid prover for building the
-        group prover is not trivial, since we lose the possibility to express
-        negations ($-x$) and subtractions ($x-y$). Some specific encodings
-        will be presented in Section~\ref{sect:reuse} for solving this problem.
+\item The normalisation procedures are implemented by following a
+correct by construction approach, instead of implementing a
+normalisation procedure, and proving afterwards that this function
+is correct with external lemmas. This approach is much more suitable
+for programming languages like Idris. Again, this approach will be
+presented in Section~\ref{sect:aSimpleProofAutomation} on the smaller problem, 
+and in Sections~\ref{sect:ProvingEquivalencesInAlgebraicStructures} for the complete hierarchy of algebraic structures.
 
-\end{itemize}
+\item We develop a hierarchy of tactics where each tactic reuses the
+rewriting machinery of the structure from which it naturally inherits.
+For example, simplifying neutral elements is only implemented at the monoid level,
+and each level inheriting from it will reuse it. Re-usability is difficult to obtain when we want to reuse the prover of a less expressive structure. For example, reusing the monoid prover for building the
+group prover is not trivial, since we lose the possibility to express
+negations ($-x$) and subtractions ($x-y$). Some specific encodings
+will be presented in Section~\ref{sect:NormalisationsFunctionsAndReusabilityOfTheProvers} for solving this problem.
+
+\end{enumerate}
+
+
