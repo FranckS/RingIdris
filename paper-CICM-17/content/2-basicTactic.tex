@@ -1,0 +1,204 @@
+\section{A simple proof automation for universally quantified natural numbers and their associative addition}
+\label{sect:aSimpleProofAutomation}
+
+
+We will first present the basic ideas of our technique on a simplified problem, in which we aim to deal with universally quantified natural numbers and additions. We would like to be able to automatically generate proofs of this kind of goals :
+\\
+\textbf{Example 1.} $\forall (x\ y\ z:Nat),\ (x + y) + (x + z) = x + ((y + x) + z)$  \\
+\
+In this section, we will only work with the properties of associativity and of neutral element for the $+$ operation on $Nat$.
+
+\subsection{Type-safe reflection}
+
+
+When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. The general idea --that will also apply for the more general problem detailed in the next section-- will be to normalize both sides of the "potential equality" $x=y$, and afterwards to compare them with a syntactic equality test. The problem is that such a normalisation function will need to do different treatments for a ``variable natural number" (ie, a number which has been universally quantified) and for the constant $Z$. For this reason, we will need to work by reflection, with a datatype encoding natural numbers composed of ``variable numbers", $Z$, and additions of these things. The novelty is that we use a a type-safe reflection mechanism where we index the reflected terms by the concrete value that they represent : 
+
+\begin{lstlisting}
+using (x : Nat, y : Nat, $\Gamma$ : Vect n Nat)
+  data Expr : (Vect n Nat) $\rightarrow$ Nat $\rightarrow$ Type where
+       Plus : Expr $\Gamma$ x $\rightarrow$ Expr $\Gamma$ y $\rightarrow$ Expr $\Gamma$ (x + y)
+       Var  : (i : Fin n) $\rightarrow$ Expr $\Gamma$ (index i $\Gamma$)
+       Zero : Expr $\Gamma$ Z
+\end{lstlisting}
+
+For an expression $e_x\ :\ Expr\ \Gamma\ x$, we will say that $e_x$ denotes (or encodes) the number $x$ in the context $\Gamma$.
+When an expression is a variable $Var\ i$, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ \Gamma)$.
+Also, the $Zero$ expression denotes the natural number $Z$.
+Finally, and fairly trivially, if $e_x$ is an expression encoding the number $x$, and $e_y$ is an expression encoding the number $y$, then the expression $Plus\ e_x\ e_y$ denotes the concrete natural number $(x + y)$.
+
+Variables are represented using a De Brujin-like index: $Var\:FZ$ denotes the first variable abstracted, $Var\:(FS\:FZ)$ the second one, and so on.
+
+Let's write the encoding of the left hand-side of the example 1 :
+\begin{lstlisting}
+e1 : (x, y, z : Nat) $\rightarrow$ Expr [x, y, z]
+e1 x y z = Plus (Plus (Var FZ) (Var (FS FZ))) 
+                (Plus (Var FZ) (Var (FS (FS FZ))))
+\end{lstlisting}
+
+
+
+	\subsection{A correct by construction approach}
+\label{sect:aCorrectByConstructionApproach}
+
+We want to write the reduction function on a \emph{correct by construction} way, which means that no additional proof should be required after the definition of the function. Thus, $reduce$ will produce the proof that the new Expr freshly produced has the same interpretation as the original Expr, and this will be made easier by the fact that the datatype Expr is indexed over the real --concrete-- natural number : a term of type $Expr\ \Gamma\ x$ is the encoding of the number $x$.
+Thus, we can write the type of $reduce$ like this : \\
+$reduce\ :\ Expr\ \Gamma\ x\ \rightarrow\ (x'\ **\ (Expr\ \Gamma\ x',\ x\ =\ x'))$ \\
+The function $reduce$ produces a dependent pair : the new concrete number $x'$, and a pair made of an $Expr\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new --concrete-- natural numbers are equal.
+
+This function doesn't simply produce an $Expr\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x=x'$ is an essential component for building the desired proof of $x=y$, which is the main problem that we are trying to solve.
+\\
+More precisely, the tactic will work as follow.
+We have an expression $e_x$ encoding $x$, and an expression $e_y$ encoding $y$. We will normalize $e_x$ and this will give a new concrete number $x'$, a new expression $e_{x'}:Expr\ \Gamma\ x'$, and a proof of $x=x'$. We will do the same with $e_y$ and we will get a new concrete number $y'$, an expression $e_{y'}:Expr\ \Gamma\ y'$, and a proof of $y=y'$. \\
+It is now enough to simply compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test because these two expressions are now supposed to be in normal form.
+
+
+\begin{lstlisting}
+eqExpr : (e : Expr $\Gamma$ x) $\rightarrow$ (e' : Expr $\Gamma$ y) $\rightarrow$ Maybe (e = e')
+\end{lstlisting}
+
+
+Now, if the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$.
+By rewriting the two equalities $x=x'$ and $y=y'$ (that we obtained during the normalisations) in the new equality $x'=y'$, we can get a proof of $x=y$. This is what the function $buildProof$ is doing.
+
+\begin{lstlisting}
+buildProof : {x : Nat} $\rightarrow$ {y : Nat} $\rightarrow$ Expr $\Gamma$ x' $\rightarrow$ Expr $\Gamma$ y' 
+           $\rightarrow$ (x = x') $\rightarrow$ (y = y') $\rightarrow$ Maybe (x = y)
+buildProof ex' ey' lp rp with (eqExpr ex' ey')
+  buildProof ex' ex' lp rp | Just Refl = ?MbuildProof
+  buildProof ex' ey' lp rp | Nothing = Nothing
+\end{lstlisting}
+
+
+The argument of type $Expr\ \Gamma\ x'$ is the normalised reflected left hand size of the equality, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The same applies to the right-hand side. The function also expects a proof of $x=x'$ and of $y=y'$, and we will be able to provide them because the normalisation function also produces the proof of equality between the original and the new concrete values.
+
+As mentioned, the proof-term that fills the hole represented by the metavariable $MbuildProof$ is just a rewriting of the two equalities that we have :
+
+\begin{lstlisting}
+MbuildProof = proof {
+  intros; refine Just; rewrite sym p1; rewrite sym p2; exact Refl;
+}  
+\end{lstlisting}
+
+
+Finally, the main function which tries to prove the equality $x=y$ simply has to reduce the two reflected terms encoding the left and the right hand side, and to use the function $buildProof$ in order to compose the two proofs that have been obtained :
+
+
+\begin{lstlisting}
+  testEq : Expr $\Gamma$ x $\rightarrow$ Expr $\Gamma$ y $\rightarrow$ Maybe (x = y)
+  testEq ex ey = 
+     let (x' ** (ex', px)) = reduce ex in 
+     let (y' ** (ey', py)) = reduce ey in
+        buildProof ex' ey' px py 
+\end{lstlisting}
+
+
+The remaining part is to define the function $reduce$. We decide that the left associative form will be the canonical representation. We define a new datatype which captures the property of being left-associative by its shape :
+
+\begin{lstlisting}
+data LExpr : ($\Gamma$ : Vect n Nat) $\rightarrow$ Nat $\rightarrow$ Type where
+     LPlus : LExpr $\Gamma$ x $\rightarrow$ (i : Fin n) 
+             $\rightarrow$ LExpr $\Gamma$ (x + index i $\Gamma$)
+     LZero : LExpr $\Gamma$ Z
+\end{lstlisting}
+
+
+This datatype has only two constructors. In fact, it combines the previous $Var$ and $Plus$ constructors so that it becomes impossible to write an expression which isn't left associative, because the constructor LPlus is only recursive on its first argument.
+ 
+As part of the normalization, we write a function $expr\_l$ which converts an $Expr\ \Gamma\ x$ to a $LExpr\ \Gamma\ x'$ and which produces a proof of $x=x'$. This function will therefore use the two available properties multiple times, while rewriting the term until the fully left associative desired form is obtained.
+
+
+\begin{lstlisting}
+expr_l : Expr $\Gamma$ x $\rightarrow$ (x' ** (LExpr $\Gamma$ x', x = x'))
+expr_l Zero = (_ ** (LZero, Refl))
+expr_l (Var i) = (_ ** (LPlus LZero i, Refl))
+expr_l (Plus ex ey) = 
+  let (x' ** (ex', px)) = expr_l ex in
+  let (y' ** (ey', py)) = expr_l ey in
+  let (res ** (normRes, Pres)) = plusLExpr ex' ey' in
+    (res ** (normRes, rewrite px in (rewrite py in Pres))) where 
+      plusLExpr : {$\Gamma$ : Vect n Nat} $\rightarrow$ {x, y : Nat} $\rightarrow$ LExpr $\Gamma$ x 
+                  $\rightarrow$ LExpr $\Gamma$ y  $\rightarrow$ (z ** (LExpr $\Gamma$ z, x+y=z))
+      plusLExpr {x=x} ex LZero =
+        (_ ** (ex, rewrite (plusZeroRightNeutral x) in Refl))            
+      plusLExpr ex (LPlus e i) =
+        let (xRec ** (rec, prfRec)) = plusLExpr ex e in
+            (_ ** (LPlus rec i, ?MplusLExpr))
+
+\end{lstlisting}
+
+In the case of an addition $Plus\ ex\ ey$, the function $expr\_l$ does the job of normalisation recursively on $ex$ and on $ey$, and then it uses the sub-function $plusLExpr$ to normalise the addition of these two --already normalised-- terms. This sub-function $plusLExpr$ has two kind of simplifications to do. When the second argument is an $LZero$, it simply returns its first arguments along with the justification for this rewriting, which obviously uses $plusZeroRightNeutral$. However, when the second argument is an $LPlus\ e\ i$, it continues recursively by computing $plusLExpr\ ex\ e$, and it finally adds $i$ to it. That had for effect to move the parenthesis on the left, and the correctness of this treatment is going to be justified by the use of $plusAssociative$ in the proof that corresponds to the meta variable $MplusLExpr$ .
+
+This metavariable $MplusLExpr$ --that expressed the equality between the old and the new index-- requires us to prove the goal : $x1 + (x2 + index\ i\ \Gamma) = xrec + index\ i\ \Gamma$ in a context where we've got, amongst other things, $prfRec : x1 + x2 = xrec$.
+By using the property of associativity on the goal, we now need to prove $(x1 + x2) + index\ i\ \Gamma$, which can be done by rewriting the proof $prfRec$ obtained recursively.
+
+
+\begin{lstlisting}
+MplusLExpr = proof {
+  intros
+  rewrite (sym (plusAssociative x1 x2 (index i $\Gamma$))); 
+  rewrite prfRec; 
+  exact Refl;
+}
+\end{lstlisting}
+
+
+It is really important to understand that the kernel of the automatic construction of the desired proof of $x=y$ happens precisely in these nested use of $plusZeroRightNeutral$ and $plusAssociative$ that we've seen in the definition of $expr\_l$ and of its meta-variable $MplusLExpr$. These proofs replace the arithmetical proofs that we were doing previously by hand, as it was the case in section~\ref{sect:HowProofObligationsArise} with the lemma $adc\_lemma\_2$.
+
+The normalisation function is just the composition of the functions $expr\_l$ and $l\_expr$, where the later is the conversion back to the type $Expr$ :
+
+\begin{lstlisting}
+  reduce : Expr $\Gamma$ x $\rightarrow$ (x' ** (Expr $\Gamma$ x', x = x'))
+  reduce e = let (x' ** (e', prf)) = expr_l e 
+                 in (x' ** (l_expr e', prf))
+\end{lstlisting}
+
+At the moment, what we've got is not exactly a real tactic, in the sense that we only have a function which produces a value of type $Maybe (x = y)$. A real tactic would be a wrapper of this function that would fail properly with an error message when the two terms are not equal. However, here, when $x\ne y$, the function $testEq$ will simply produce the value $Nothing$. \\
+
+
+	\subsection{Usage of the ``tactic"}
+
+It's now time to see how to use this minimalist ``tactic".
+Let's go back to the example 1. We had defined the expression $e1$ representing the value $((x + y) + (x + z))$ and we now have to produce the encoding for $(x + ((y + x) + z))$, still in the context $[x, y, z]$ of three abstracted variables.
+
+
+\begin{lstlisting}
+e2 : (x, y, z : Nat) 
+     $\rightarrow$ Expr [x, y, z] (x + ((y + x) + z))
+e2 x y z = Plus (Var FZ) 
+                (Plus (Plus (Var (FS FZ)) 
+                            (Var FZ)) 
+                      (Var (FS (FS FZ))))
+\end{lstlisting}
+
+
+The numbers denoted by the expressions $e1$ and $e2$ are equal, and we can generate a proof of this fact by using $testEq$.
+
+
+\begin{lstlisting}
+e1_e2_testEq : (x, y, z : Nat) 
+      $\rightarrow$ Maybe (((x + y) + (x + z)) = (x + ((y + x) + z)))
+e1_e2_testEq x y z = testEq (e1 x y z) (e2 x y z)
+\end{lstlisting}
+
+
+
+And if we ask for the evaluation of this term, we obtain $Just$ and a proof of equality between the two underlying concrete values :
+
+
+\begin{lstlisting}
+#\x => \y => \z => e1_e2_testEq x y z
+
+\x => \y => \z => Just (replace (sym (replace (sym (replace 
+(sym (plusAssociative x 0 y)) (replace (replace (sym 
+(plusZeroRightNeutral x)) Refl) Refl))) (replace (sym 
+(replace (sym (plusAssociative x 0 z)) (replace (replace 
+(sym (plusZeroRightNeutral x)) Refl) Refl))) (replace (sym 
+(plusAssociative (x+y) x z)) [...]
+: (x : Nat) $\rightarrow$ (y : Nat) $\rightarrow$ (z : Nat) 
+  $\rightarrow$ Maybe ((x + y) + (x + z) 
+            = x + ((y + x) + z))
+\end{lstlisting}
+
+As expected, this proof uses the properties of associativity ($plusAssociative$) and the property of neutrality of $Z$ for $+$ ($plusZeroRightNeutral$).
+
+
