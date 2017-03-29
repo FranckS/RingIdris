@@ -135,25 +135,16 @@ The contributions of this paper are the following :
 
 \begin{enumerate}
 
-\item We present a new type-safe reflection mechanism, where the reflected terms are indexed over the concrete inputs, thus providing a
-direct way to pull out the proofs, and providing the guarantee that the reflection of a term is indeed a faithful representation of the term.
-The basic ideas of the technique are first presented in Section~\ref{sect:aSimpleProofAutomation} on a smaller problem with only natural numbers and addition, and are later adapted for a hierarchy of tactics proving equalities in algebraic strcures, in Section~\ref{sect:ProvingEquivalencesInAlgebraicStructures}. 
+\item We present in section~\ref{sect:typeSafeReflection} a new type-safe reflection mechanism, where the reflected terms are indexed over the concrete inputs, thus providing a direct way to pull out the proofs, and providing the guarantee that the reflection of a term is indeed a faithful representation of the term.
 
-\item The normalisation procedures are implemented by following a
-correct by construction approach, instead of implementing a
-normalisation procedure, and proving afterwards that this function
-is correct with external lemmas. This approach is much more suitable
-for programming languages like Idris. Again, this approach will be
-presented in Section~\ref{sect:aSimpleProofAutomation} on the smaller problem, 
-and in Sections~\ref{sect:ProvingEquivalencesInAlgebraicStructures} for the complete hierarchy of algebraic structures.
+\item The normalisation procedures are implemented by following a correct by construction approach, instead of proving the correctness afterwards with auxiliary lemmas. This approach is much more suitable for programming languages like Idris. This correct-by-construction aspect is developed in section~\ref{sect:correctByConstruction}
 
 \item We develop a hierarchy of tactics where each tactic reuses the
 rewriting machinery of the structure from which it naturally inherits.
-For example, simplifying neutral elements is only implemented at the monoid level,
-and each level inheriting from it will reuse it. Re-usability is difficult to obtain when we want to reuse the prover of a less expressive structure. For example, reusing the monoid prover for building the
+For example, simplifying neutral elements is only implemented at the monoid level, and each level inheriting from it will reuse it. Reusability is difficult to obtain when we want to reuse the prover of a less expressive structure. For example, reusing the monoid prover for building the
 group prover is not trivial, since we lose the possibility to express
 negations ($-x$) and subtractions ($x-y$). Some specific encodings
-will be presented in Section~\ref{sect:NormalisationsFunctionsAndReusabilityOfTheProvers} for solving this problem.
+will be presented in Section~\ref{sect:reusabilityOfTheProvers} to overcome this problem.
 
 \end{enumerate}
 

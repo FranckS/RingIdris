@@ -7,6 +7,8 @@
 %
 \usepackage{makeidx}  % allows for indexgeneration
 
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{amsfonts}
 \usepackage{float}
 \usepackage{url}
@@ -46,16 +48,22 @@
 
 \begin{abstract}
 One common difficulty with programming and reasoning with dependent types is that proof obligations arise naturally once programs become even moderately sized. For example, implementing an adder for binary numbers indexed over their natural number equivalents will naturally lead to proof obligations for equalities of expressions over universally quantified natural numbers. The need of these proofs of equalities comes, in intensional type theories, from the fact that the propositional equality enables to prove as equal terms that are not judgementally equal, which means that the typechecker can't always obtain equalities by reduction, and therefore often needs proofs before accepting definitions.
-As far as possible, we would like to solve such proof obligations automatically. In this paper, we show one way to automate these proofs by reflection for the dependently-typed programming language Idris. We will show how type-safe reflection, where reflected terms are indexed by the original Idris expression, leads to straightforward construction and manipulation of proofs. We start with the presentation of our key ideas on a small example, and then we build a hierarchy of reflexive tactics for proving equivalences in Semi-Groups, Monoids, Commutative Monoids, Groups, Commutative Groups, Semi-Rings and Rings. We will also show how each tactic reuses the ones from the simplest structures, thus avoiding as much as possible the duplication of code and proofs.
+As far as possible, we would like to solve such proof obligations automatically. In this paper, we show one way to automate these proofs by reflection for the dependently-typed programming language Idris. We will show how type-safe reflection, where reflected terms are indexed by the original Idris expression, leads to straightforward construction and manipulation of proofs. We build a hierarchy of reflexive tactics for proving equivalences in Semi-Groups, Monoids, Commutative Monoids, Groups, Commutative Groups, Semi-Rings and Rings. We will also show how each tactic reuses the ones from the simplest structures, thus avoiding as much as possible the duplication of code and proofs.
 \keywords{proof automation, equivalence, equality, proof by reflection, correct-by-construction software}
 \end{abstract}
 %
 
 \input{./content/1-introduction.tex}
 
-\input{./content/2-basicTactic.tex}
+% The chap 2 on the smaller tactic for Nat has been removed for space constraint
 
 \input{./content/3-hierarchyOfTactics.tex}
 
+\input{./content/4-relatedWork.tex}
+
+\input{./content/5-conclusions.tex}
+
+\bibliographystyle{splncs03}
+\bibliography{dtp}
 
 \end{document}

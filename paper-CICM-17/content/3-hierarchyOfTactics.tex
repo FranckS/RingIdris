@@ -1,6 +1,6 @@
-\section{A hierarchy of tactics}
+\section{A hierarchy of provers}
 
-In this section, we want to prove equalities not only for $Nat$ but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrix, and many others \emph{all at once} by implementing a very generic prover that works for any type that is an instance of an algebraic structure. In fact, that will be a hierarchy of provers --with one prover for each algebraic structure-- that can prove equalities of terms in any instance of the corresponding structure. We will no longer only work with the properties of associativity and of right neutral element for natural numbers as it was the case in the previous section, but we will have available the properties of a given algebraic structure. These tactics will be usable on any type that satisfies these properties. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface. This interface will extend the interface from which it naturally inherits. For example, the $Group$ interface will extend the $Monoid$ one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. All the tactics that we will implement (the ring prover, the group prover, etc) will be able to work on any type, being given that an implementation of the corresponding interface is provided.
+What we want to build is a prover able to prover not only equalities for $Nat$, $List$,or nay specific type but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrix, and many others \emph{all at once} by implementing a very generic hierarchy of provers that can prove equalities of terms for Semi-Groups, Monoids, Commutative-Monoids, Groups, Commutative-Groups, Semi-Rings and Rings. These tactics will be usable on any type that satisfies the properties of one of these algebraic structure. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface (sometimes called typeclass in other progamming languages). This interface will extend the interface from which it naturally inherits. For example, the $Group$ interface will extend the $Monoid$ one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. All the tactics that we will implement (the ring prover, the group prover, etc) will be able to work on any type, being given that an implementation of the corresponding interface is provided.
 
 	\subsection{Proving equivalences instead of equalities}
 	
@@ -8,35 +8,25 @@ With some reasonable additional effort, we could produce a collection of tactics
 
 All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of Set\footnote{This notion of Set isn't a formalisation of sets and their elements, but is only a way to talk about the carrier type and an equivalence relation, sometimes called Setoid}, which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this interface :
 
-\begin{figure}[H]
-\begin{center}
 \begin{lstlisting}
 interface Set c where
     ($\simeq$) : c $\rightarrow$ c $\rightarrow$ Type
-
     refl : (x:c) $\rightarrow$ x $\simeq$ x
     sym : {x:c} $\rightarrow$ {y:c} $\rightarrow$ (x $\simeq$ y) $\rightarrow$ (y $\simeq$ x)
-    trans : {x:c} $\rightarrow$ {y:c} $\rightarrow$ {z:c} 
-            $\rightarrow$ (x $\simeq$ y) $\rightarrow$ (y $\simeq$ z) $\rightarrow$ (x $\simeq$ z)    
-    
+    trans : {x:c} $\rightarrow$ {y:c} $\rightarrow$ {z:c} $\rightarrow$ (x $\simeq$ y) $\rightarrow$ (y $\simeq$ z) $\rightarrow$ (x $\simeq$ z)    
     set_eq : (x:c) $\rightarrow$ (y:c) $\rightarrow$ Maybe (x $\simeq$ y)
 \end{lstlisting}
-\end{center}
-\caption{Set}
-\label{Set}
-\end{figure}
+
 If the user wants to prove propositional equalities, then he will simply instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the $Set$ implementation.
 Note that $(\simeq)$ is only weakly decidable in the sense that $set\_eq$ only produces a proof when the two elements are equivalent, but it doesn't produce a proof of dis-equivalence when they are different -- instead, it simply produces the value $Nothing$--. That's natural, as we want to generate proof of equivalence, and not to generate counter examples for proving dis-equivalence, which is another problem.
 
 Obviously, there is no tactic associated to $Set$, since we have no operations and no properties associated to this structure. Therefore, equivalences in a $Set$ are just the "syntactic equivalences", and they can simply be proven with $refl$\footnote{$refl$ should not be confused with $Refl$, the only constructor of $=$. But of course, when $(\simeq)$ is instantiated with the equality $=$, the instantiation of $refl$ will be $Refl$. Therefore, $refl$ of the interface $Set$ is a generalisation of the most specialised $Refl$ for $=$}.
 
-As it was the case in section~\ref{sect:aSimpleProofAutomation}, the kernel of our machinery will be a function $reduce$ that will be composed of multiples functions composed together, that each do a part of the normalisation and that generate the proof of equivalence between old and new concrete values for this part of the normalisation. That was the two functions $expr\_l$ and $l\_expr$ on the smaller problem presented in chapter~\ref{sect:aSimpleProofAutomation}.
+%The kernel of our machinery will be a function $norm$ that will be composed of %multiples functions composed together, that each do a part of the normalisation %and that generate the proof of equivalence between old and new concrete values %for this part of the normalisation.
 
 Working with equivalences instead of equalities will bring one complication. These proofs of correctness that we will have to produce by hand will be slightly more complicated, as we won't be able to use idris' "rewrite" command, that enables to rewrite a subterm of a term by another one, provided that the two subterms are equal. More precisely, if we need to prove $P\ x$, and have a proof of equivalence $pr:x \simeq x'$, we can't use "rewrite pr" in order to transform the goal into $P\ x'$, as we would normally do if the available proof would be an equality $x=x'$. This is a classical problem of working within a setoid, and this problem can be slightly mitigated when the programming language offers a good support for rewriting terms in setoids. However, Idris isn't equipped with any automation for setoids, ans everything will have to be done by hand. For this purpose, we will use the following lemma :
 
 $eq\_preserves\_eq : \{c:Type\} \rightarrow (Set\ c) \rightarrow (x:c) \rightarrow (y:c) \rightarrow (c1:c) \rightarrow (c2:c) \rightarrow (x \simeq c1) \rightarrow (y \simeq c2) \rightarrow (c1 \simeq c2) \rightarrow (x \simeq y)$.
-
-This lemma says that the equivalence preserves the equivalence, which means that in order to prove $x \simeq y$, we can prove the (hopefully) simplest problem $c1 \simeq c2$, provided that $x \simeq c1$ and that $y \simeq c2$. This lemma will be intensively used for building the proofs of equivalence (between the old and new indices) that are required by the development of our machinery.
 
 \begin{proof}
 We have $x \simeq c1$ and we have $c1 \simeq c2$, therefore we have $x \simeq c2$ by the use of the axiom of transitivity (of the interface $Set$). \
@@ -44,40 +34,41 @@ We have $x \simeq c1$ and we have $c1 \simeq c2$, therefore we have $x \simeq c2
 We also have $y \simeq c2$ and therefore we have $c2 \simeq y$ by the use of the symmetry axiom (of the interface $Set$). \
 
 Now that we have these fresh proofs of $x \simeq c2$ and of $c2 \simeq y$, we can use one last time the property of transitivity, in order to get a proof of $x \simeq y$.
-
+\qed
 \end{proof}
 
-This lemma will be basically used as a replacement to the "rewrite" tactic that we can no longer use since we are dealing with equivalence and not equality.
+This lemma says that the equivalence preserves the equivalence, which means that in order to prove $x \simeq y$, we can prove the (hopefully) simplest problem $c1 \simeq c2$, provided that $x \simeq c1$ and that $y \simeq c2$. This lemma will be intensively used for building the proofs of correctness of the normalisation functions that will help to build the desired proof of $x \simeq y$. It will be basically used as a replacement to the "rewrite" tactic that we can no longer use since we are dealing with equivalence and not equality.
 
 		\subsection{Hierarchy of interfaces}
 
-Each interface will contain the axioms of the corresponding abstract structure. The first structure, completely trivial, is the magma. A magma is a structure built on top of $Set$, that just adds a $Plus$ operation, and no specific properties about it :
+The operations, constants and properties of each algebraic structure will be described in a dedicated interface. The first structure, completely trivial, is the magma. A magma is a structure built on top of $Set$, that just adds a $Plus$ operation, and no specific properties about it :
 
 \begin{lstlisting}
 interface Set c => Magma c where
-    Plus : c $\rightarrow$ c $\rightarrow$ c
+    + : c $\rightarrow$ c $\rightarrow$ c
 \end{lstlisting}
 
-This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equipped with the equivalence relation $\simeq$ and the test $set\_eq$), and if it has a $Plus$ operation.
-In fact, there is an additional requirement that will apply for all operators (in this case, the Plus operation), which is that they need to be "compatible" with the equivalence relation, which is expressed by the following axiom for $Plus$ : \\ $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow ((Plus\ c1\ c2) \simeq (Plus\ c1'\ c2'))$ \\ 
+This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equipped with the equivalence relation $\simeq$ and the equivalence test $set\_eq$), and if it has a $+$ operation.
+In fact, there is an additional requirement that will apply for all operators (in this case, the $+$ operation), which is that they need to be "compatible" with the equivalence relation, which is expressed by the following axiom for $+$ : \\ $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow ((c1+c2) \simeq (c1'+c2'))$ \\ 
 This requirement comes from the fact that we're dealing with any equivalence relation. The user is free to use his own equivalence relation, but it should be compatible with the operations that he is using.
-As it was the case for $Set$, there is no tactic to write for $Magma$, because there is no property at all : all equivalences are again syntactic equivalences, and they can all be proven by $refl$\footnote{$refl$ should not be confused with $Refl$, the only constructor of $=$. But of course, when $(\simeq)$ is instantiated with the equality $=$, the instantiation of $refl$ will be $Refl$. Therefore, $refl$ of the interface $Set$ is a generalisation of the most specialised $Refl$ for $=$}. 
+As it was the case for $Set$, there is no tactic to write for $Magma$, because there is no property at all : all equivalences are again syntactic equivalences, and they can all be proven by $refl$. 
 
 A semi-group is a magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation. 
 
 \begin{lstlisting}
 interface Magma c => SemiGroup c where
-    Plus_assoc : (c1:c) $\rightarrow$ (c2:c) $\rightarrow$ (c3:c) 
-               $\rightarrow$ (Plus (Plus c1 c2) c3 $\simeq$ Plus c1 (Plus c2 c3))
+    Plus_assoc : (c1:c) $\rightarrow$ (c2:c) $\rightarrow$ (c3:c) $\rightarrow$ ((c1+c2)+c3 $\simeq$ c1+(c2+c3))
 \end{lstlisting}
 
-The Monoid structure is a Semi-Group with the property of neutral element for a distinguished element called $Zero$.
+As example of magma, we can cite $Nat$ equipped with its operation of addition, $List$ and the operation of concatenation.
+
+Now, the Monoid structure is a Semi-Group with the property of neutral element for a distinguished element called $Zero$.
 
 \begin{lstlisting}
 interface SemiGroup c => Monoid c where
     Zero : c    
-    Plus_neutral_1 : (c1:c) $\rightarrow$ (Plus Zero c1 $\simeq$ c1)    
-    Plus_neutral_2 : (c1:c) $\rightarrow$ (Plus c1 Zero $\simeq$ c1)
+    Plus_neutral_1 : (c1:c) $\rightarrow$ (Zero+c1 $\simeq$ c1)    
+    Plus_neutral_2 : (c1:c) $\rightarrow$ (c1+Zero $\simeq$ c1)
 \end{lstlisting}
 
 The hierarchy of interfaces continues with Commutative-Monoid, Group, Commutative Group, Semi-Ring, Ring, but we only show Group for reasons of space :
@@ -86,8 +77,182 @@ The hierarchy of interfaces continues with Commutative-Monoid, Group, Commutativ
 interface Monoid c => Group c where
     Minus : c $\rightarrow$ c $\rightarrow$ c
     Neg : c $\rightarrow$ c
-    Minus_simpl : (c1:c) $\rightarrow$ (c2:c) $\rightarrow$ Minus c1 c2 $\simeq$ Plus c1 (Neg c2) 
-    Plus_inverse : (c1:c) $\rightarrow$ (Plus c1 (Neg c1) $\simeq$ Zero, Plus (Neg c1) c1 $\simeq$ Zero)
+    Minus_simpl : (c1:c) $\rightarrow$ (c2:c) $\rightarrow$ Minus c1 c2 $\simeq$ c1 + (Neg c2) 
+    Plus_inverse : (c1:c) $\rightarrow$ (c1 + (Neg c1) $\simeq$ Zero, (Neg c1) + c1 $\simeq$ Zero)
 \end{lstlisting}
 
-As discussed on the smaller problem, the algorithm of normalisation will not directly use the concrete values of type $c$, but reflected terms instead, indexed over the concrete values. That still holds here.
+The notion of group uses two new operations ($Neg$ and $Minus$), but $Minus$ is not primitive and can be simplified with $+$ and $Neg$. The important property of a group is that every element $c1$ must admit $Neg\ c1$ as inverse element for the $+$ operation.
+
+\subsection{Type-safe reflection}
+\label{sect:typeSafeReflection}
+			
+When trying to prove an equivalence $x \simeq y$, the universally-quantified variables have been abstracted, and they are now part of the context. Our tatics will work by normalising both sides of the "potential equivalence" $x \simeq y$, and afterwards comparing them with a syntactic equality test. The problem is that such a normalisation function will need to do different treatments for a a variable, for a constant and for an operator. For this reason, we will need to work by reflection. There will be one type of reflected terms for each algebraic structure. The novelty is not the use of reflected terms (this has already been done, as discussed in~\ref{references}), but it is the use of a type-safe reflection mechanism where we index the reflected terms by the concrete value that they represent. Each of these datatype is parametrised over a type $c$, which is the real type on which we want to prove equalities (the $carrier$ type). It is also indexed over an implementation of the corresponding interface for $c$ (we usually call it $p$, because it behaves as a $proof$ telling that the structure $c$ has the desired properties), indexed over a context of abstracted variables (a vector $\Gamma$ of $n$ elements of type $c$), and most important it is also indexed over a value of type $c$, which is precisely the concrete value being encoded.
+
+A magma is only equipped with one operation $+$. Thus, we only have three concepts to express in order to reflect terms in a Magma : constants, variables, and additions.
+
+\begin{lstlisting}
+data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
+    ConstMa : (p : Magma c) $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ (c1:c)  $\rightarrow$ ExprMa p $\Gamma$ c1 
+    PlusMa : {p : Magma c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} $\rightarrow$ {c2:c} 
+         $\rightarrow$ ExprMa p $\Gamma$ c1 $\rightarrow$ ExprMa p $\Gamma$ c2 $\rightarrow$ ExprMa p $\Gamma$ (c1+c2) 
+    VarMa : (p:Magma c) $\rightarrow$ ($\Gamma$:Vect n c)
+         $\rightarrow$ (i:Fin n) $\rightarrow$ ExprMa p $\Gamma$ (index i $\Gamma$)
+\end{lstlisting}
+
+
+For an expression $e_x\ :\ ExprMa\ \Gamma\ x$, we will say that $e_x$ denotes (or encodes) the number $x$ in the context $\Gamma$.
+When an expression is a variable $(VarMa\ \_\ \Gamma\ i)$, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ \Gamma)$.
+The expression $(ConstMa\ \_\ \Gamma\ k)$ denotes the constant $k$ of type $c$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and $e_y$ is an expression encoding the concrete value $y$, then the expression $PlusMa\ e_x\ e_y$ denotes the concrete value $(x + y)$. Because the reflected terms embed their corresponding inputs, they are guarantee to be faithful representations of them.
+
+There is no additional operations in SemiGroup and Monoid, so the datatypes that reflect terms in these two structures will have exactly the same shape as the one for Magma that we have given above.
+However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
+
+\begin{lstlisting}
+data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
+    ConstG : (p : Group c) $\rightarrow$ ($\Gamma$:Vect n c) $\rightarrow$ (c1:c) $\rightarrow$ ExprG p $\Gamma$ c1
+    PlusG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} $\rightarrow$ {c2:c} 
+         $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ c2 $\rightarrow$ ExprG p $\Gamma$ (c1+c2)
+    MinusG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} $\rightarrow$ {c2:c} 
+         $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ c2 $\rightarrow$ ExprG p $\Gamma$ (Minus c1 c2)
+    NegG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} 
+         $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ (Neg c1)
+    VarG : (p : Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
+         $\rightarrow$ (i:Fin n) $\rightarrow$ ExprG p $\Gamma$ (index i $\Gamma$)
+\end{lstlisting}
+
+
+The index of type $c$ (the real value encoded by an expression) is always expressed by using the lookup function $index$ and the available operations in the implementation $p$, which for a group are $+$, $Minus$ and $Neg$.
+
+	\subsection{A correct by construction approach}
+\label{sect:correctByConstruction}
+
+We want to write the reduction function on a \emph{correct by construction} way, which means that no additional proof should be required after the definition of the function. Thus, $norm$ will produce the proof that the new expression freshly produced has the same interpretation as the original expression, and this will be made easier by the fact that all the datatypes for reflecting terms ($ExprSG$, $ExprG$, $ExprR$) are indexed over the real --concrete-- value : a term of type $Expr\ \Gamma\ x$ is the encoding of the concrete value $x$ in the context $\Gamma$.
+Thus, for each algebraic structure, the type of the function $norm$ will look like this : \\
+$norm :\ Expr\ \Gamma\ x\ \rightarrow\ (x'\ **\ (Expr\ \Gamma\ x',\ x\ \simeq\ x'))$ \\
+Every function of normalisation $norm$ will produce a dependent pair : the new concrete value $x'$, and a pair made of an $Expr\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new concrete values $x$ and $x'$ are equivalent.
+
+This function doesn't simply produce an $Expr\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x \simeq x'$ is an essential component for building the desired proof of $x \simeq y$, which is the main problem that we are trying to solve.
+
+
+We will explain how the tactic works by commenting the construction of the tactic for Group, but the other algebraic structures will be equipped similarly. The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are elements of the type $c$, which  simulates a group. The reflected term for $x$ will be denoted $e_x$, and this term will have the type $ExprG\ p\ \Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$ because $e_x$ is precisely indexed over the real value $x$.
+We've got similar things for $y$, which is encoded by $e_y$, and its type is indexed over the real value $y$.
+Running the normalisation procedure on $e_x$ will produce the normal form $e_{x'}$ of type $ExprG\ p\ \Gamma\ x'$ and a proof $p_x$ of $x \simeq x'$ while running the normalisation procedure on $e_y$ will produce the normal form $e_{y'}$ of type $ExprG\ p\ \Gamma\ y'$ and a proof $p_y$ of $y \simeq y'$.
+It is now enough to simply compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test $exprG\_eq$ because these two expressions are now supposed to be in normal form.
+
+Now, if the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$, which implies $x' \simeq y'$ because the propositional equality is more restrictive than an equivalence relation.
+By using the two equivalences $x \simeq x'$ and $y \simeq y'$ that we obtained during the normalisations in the new equivalence $x' \simeq y'$ with the use of $eq\_preserves\_eq$, we can get a proof of $x \simeq y$. This is what the function $buildProof$ is doing :
+
+\begin{lstlisting}
+buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
+  $\rightarrow$ {x':c} $\rightarrow$ {y':c} $\rightarrow$ (ExprG p $\Gamma$ x') $\rightarrow$ (ExprG p $\Gamma$ y') 
+  $\rightarrow$ (x $\simeq$ x') $\rightarrow$ (y $\simeq$ y') $\rightarrow$ (Maybe (x $\simeq$ y))
+buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
+    buildProofGroup p ex' ex' px py | Just refl = ?MbuildProofGroup
+    buildProofGroup p ex' ey' px py | Nothing = Nothing
+\end{lstlisting}
+
+The argument of type $ExprG\ p\ \Gamma\ x'$ is the normalised reflected left hand size of the equality, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The same applies to the right-hand side. The function also expects proofs of $x \simeq x'$ and of $y \simeq y'$, that we will be able to provide because the normalisation function has produced them while it was building the normalised reflected terms.
+
+% TALK ABOUT THE METAVARIABLE MbuildProodGroup to add here !
+
+Finally, the main function which tries to prove the equality $x \simeq y$ simply has to normalise the two reflected terms encoding the left and the right hand side, and to use the function $buildProof$ in order to compose the two proofs that have been obtained :
+
+\begin{lstlisting}
+groupDecideEq : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
+               $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (ExprG p $\Gamma$ y) $\rightarrow$ Maybe (x $\simeq$ y)
+groupDecideEq p ex ey =
+  let (x' ** (ex', px)) = groupNormalise p ex in
+  let (y' ** (ey', py)) = groupNormalise p ey in
+	     buildProofGroup p ex' ey' px py
+\end{lstlisting}
+
+
+The remaining part is to define the function $norm$. Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equality without brute-forcing a serie of rewriting, that might even not terminate.
+These normalisation functions will compute the canonical representation of the reflected input term, by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the original real value (indexing the input term) and the produced real value (indexing the produced term). Thus, the type of the reduction function for group is :
+
+
+\begin{lstlisting}
+groupNormalise : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) 	   	   	   
+	   $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x:c} $\rightarrow$ (ExprG p $\Gamma$ x) 
+	   $\rightarrow$ (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
+\end{lstlisting}
+
+
+The functions of normalisation have more work to do in structures with multiple axioms (like Group and Ring), than for the easier structure (like Semi-Group and Monoid).
+The details of these functions will be given in the next section.
+
+
+\subsection{Normalisation functions}
+\label{sect:normalFormShape}
+
+For the sake of completeness, we will describe the normal form for the ring structure, as it has all the operations and all the properties about these operations.
+The normalisation function takes in input an expression expressed with sums, products, constants (zero, one...) and variables that belong to an ordered set $\mathcal{V}$ of variables. In short, the normalisation function takes in input a polynomial of multiple variables. In output, it must produce a normal form representing the same polynomial. Therefore, we have to decide a canonical representation of polynomials. Many canonical representations can be used. We decide to stick with classical mathematical conventions. The first one, is that the polynomial will be completely developed, ie, the distributivity of $*$ over $+$ will be applied until it can't be applied anymore. The advantage is the simplicity, as factorising would be significantly more complicated and we're looking for simplicity as the normalisation functions will also have to produce the proof of equivalence between the old and the new index. Because the polynomial is completely developed, at the toplevel, it is a sum :
+
+\[
+P = \sum_{i=1}^{a}\ (\prod_{j=1}^{b} Monomial_{i}^j)
+\text{ where } 
+Monomial_{i}^j = C_{i}^j * \prod_{k=1}^{c} Var_{i,k}^{j}
+\]
+with $C_{i}^j$ a constant, and $Var_{i,k}^{j}$ one of the variable that belong to $\mathcal{V}$.
+
+One could be surprised by the fact that the normal form is a sum of product of monomial, and not directly a sum of monomials. The reason is the following. A monomial is a product of a constant $C_{i}^j$ (like $4$) and of a product of variables (like $x*y*z$). For example,  $5*(x*(y*z))$ is a monomial. Now let's consider the term $(5*(x*(y*z))) * (4*(z*z))$. This term is not a monomial, but we could be tempted to simplify it into the monomial $20*(x*(y*(z*(z*z))))$. However, that would assume that the product is always commutative, ie, that we can re-organize the subterms of a product as we want. This is the case in a commutative ring, but this does not hold for any ring. Therefore, after the full development, the polynomial is a sum of \emph{product of monomials}, and not directly a sum of monomials. The only rearrangement that can be done with the multiplication is to check if two constants are consecutive in a product, and if so, to replace them by the constant that represents the product of them.
+
+However, because $+$ is always a commutative operator in a ring, the different products of monomials themselves can be rearranged in different ways in this sum. That will be done at the level of the commutative group prover if we can provide an ordering between products of monomials.
+
+The ordering on product of monomials will be defined by using an ordering on monomials, that we will call $isBefore\_mon$, which works by looking at the order of variables for comparing two monomials $Monomial_{i}^{j}$ and $Monomial_{i'}^{j'}$.
+\[
+Monomial_{i}^{j} = C_{i}^{j} * (Var_{i,1}^{j} * \prod_{k=2}^{c} Var_{i,k}^{j})
+\text{ and }
+Monomial_{i'}^{j'} = C_{i'}^{j'} * (Var_{i',1}^{j'} * \prod_{k=2}^{c'} Var_{i',k}^{j'})
+\]
+
+The order between these two monomials will be decided by looking at the order between the first variables $Var_{i,1}^{j}$ and $Var_{i',1}^{j'}$. In the case where both monomials start with the same variable, we continue by inspecting the remaining variables. If we can't continue because one of the two monomials has less variables than the other, then we decide that the one with fewer variables comes first (exactly like the word "house" comes before the word "housemate" with the lexicographic order).
+
+We can now build the order on \emph{product of monomials} that we needed. We name it $isBefore$. Given two product of monomials $Prod_{i}$ and $Prod_{i'}$ we need to decide which one comes first. We will obviously use the order $isBefore\_mon$ on the first monomials of these two products. If it says that $Monomial_{i}^{1}$ comes before $Monomial_{i'}^{1}$, then we decide that $Prod_{i}$ comes before $Prod_{i'}$. Conversely, if that's $Monomial_{i'}^{1}$ that comes first, then we decide that $Prod_{i'}$ comes first. However, if $Monomial_{i}^{1}$ and $Monomial_{i'}^{1}$ have exactly the same position in the order, then we continue by inspecting the remaining monomials with a recursive call on $isBefore$. As previously, if we can't continue because one of the two products has less monomials than the other, then the one with fewer monomials will come first.
+
+A few additional conventions had to be decided about the normal form :
+\begin{itemize}
+
+\item The top-level sum of the polynomial will be written on the completely right-associative form : \\
+$prodMon_1\ +\ (prodMon_2\ + (prodMon_3\ +\ (...\ +\ prodMon_a)))$
+\item The two levels of product that we have, namely the products of monomials (at the main level) and the products of variables (at the monomial level), will also be written on the completely right-associative form.
+\item We always simplify as much as possible with constants. That includes doing the simplification for the addition with zero and for the multiplication with one, doing the computation between two constants that are nearby in a sum or in a product, etc...
+\item We always replace the binary operator $Minus$ by a sum and a $Neg$ (following $a-b=a+(-b)$) since the binary operator $Minus$ are just allowed for the user's convenience, but internally we simplify them all.
+\item We always simplify the sum of an expression $e$ and its inverse $-e$ into the constant zero. 
+
+\end{itemize}
+
+\subsection{Reusing the provers}
+\label{sect:reusabilityOfTheProvers}
+
+The normalisation function of each structure will use as much as possible the normalisation function of the structure from which it inherits. For example, the normalisation on monoids will reuse the normalisation on semi-groups so that it won't have to deal with the associativity. For this case, that's not a problem since the datatype reflecting terms in semi-groups has the same expressivity power than the one for monoids. However, that's not the case with groups and monoids: if the function of normalisation for group needs to call the normalisation for monoid, it will have to encode the negations that can't be directly expressed in a monoid. For this reason, we will develop some specific encodings.
+
+The idea is that we will encode negations as variables, and we will let the monoid prover deal with them as ordinary variables. In order to achieve this goal, we need the following datatype that will help us to distinguish between a real variable and the encoding of a negation :
+
+\begin{lstlisting}
+data Variable : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
+  RealVariable : ($\Gamma$:Vect n c) $\rightarrow$ (i:Fin n) $\rightarrow$ Variable $\Gamma$ (index i $\Gamma$)
+  EncodingNeg : ($\Gamma$:Vect n c) $\rightarrow$ (i:Fin n) $\rightarrow$ Variable $\Gamma$ (Neg (index i $\Gamma$))
+\end{lstlisting}
+
+We only need to encode negations of variables, as the negation of a constant can be simplified into a constant. Also, there can't be a negation of something different than an atom (a variable or a constant), because the normalisation in group will have first systematically propagated $Neg$ inside the parenthesis, following the simplification\footnote{Note that we have to be careful and not simplify it to $(-a) + (-b)$ as it would assume that $+$ is commutative} $-(a+b) = -b + -a$.
+
+The constructor for variables now takes a Variable as parameter, instead of taking directly an element of $(Fin\ n)$ :
+
+\begin{lstlisting}
+    VarG : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {val:c} 
+           $\rightarrow$ (Variable $\Gamma$ val) $\rightarrow$ ExprG p $\Gamma$ val
+\end{lstlisting}
+
+
+Thanks to this encoding, we can now transform an $ExprG$ to an $ExprMo$. A constant $(ConstG\ p\ \Gamma\ c1)$ will be transformed into the corresponding constant $(ConstMo\ p\ \Gamma\ c1)$, a $PlusG$ into the corresponding $PlusMo$, a real variable into the same real variable, the negation of a constant into the resulting constant, and finally the negation of a variable $i$ into a $(VarMo\ p\ (EncodingNegOfVar\ \Gamma\ i))$.
+
+We will use a similar technique for converting an expression from the ring level to the commutative-group level, where we will encode the product of monomials because the product is not an operation define at the commutative-group level. That will enable the function of normalisation for ring to benefit from the normalisation function for commutative-group.
+
+
+\subsection{Automatic reflection}
+		
+We've built an automatic reflection mechanism, in order to let the machine build automatically the reflected terms for us. This is not something absolutely vital, as it only simplifies the usage of the tactics, avoiding to write long encodings by hand. To do so, we've used Idris' reflection mechanism, which enables to do pattern matching on syntax, rather than on constructors. 
+
+
+
