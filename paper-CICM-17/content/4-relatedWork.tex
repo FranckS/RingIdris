@@ -1,6 +1,14 @@
 \section{Related work}
 \label{sect:relatedWork}
 
-blablabla
+As mentioned, Coq's implementation of a ring prover was also using proof-by-reflection techniques, but without the guarantees obtained with our type-safe reflection mechanism. Their automatic reflection is programmed in Ltac~\cite{DelahayeLTac} : a proof dedicated and untyped meta-language for the writing of automations. \\
 
+Doing proofs by reflection has been intensively investigated by many authors, including Adam Chlipala, in particular in his book~\cite{ChlipalaBook} and in~\cite{Malecha14}. However, we haven't found anything similar to the type-safe reflection technique that we've presented in this paper. \\
 
+At the connexion bewteen proof automation and proof by reflection, we can cite SSreflect~\cite{GonthierTuto}, which is an extension of Coq which aims to provide additional formalisations and tactics suitable for long mathematical proofs. \\
+
+Proof automations have been investigated for various proof assistants and programming languages. In Coq, appart from the $ring$ prover~\cite{Coq2005}, there's also the $omega$ solver~\cite{Cregut04}, which solves a goal in Presburger arithmetic (i.e. a universally quantified formula made of equations and inequations), and a Field~\cite{DelahayeField} decision procedure for real numbers, which plugs to Coq's ring prover after simplification of the multiplicative inverses. Various automations have also been done in Agda~\cite{Lindblad04}. \\
+
+$Mtac$~\cite{Ziliani13} is an extension to Coq that supports dependently-typed tactic programming that uses monad to avoid the need to touch the trusted kernel typechecker of Coq. \\
+
+Finally, when we leave the ground of nice mathematical structures like groups, rings and fields, one can decide to work with arbitrary rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there's usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} and heuristics for proof search starts.
