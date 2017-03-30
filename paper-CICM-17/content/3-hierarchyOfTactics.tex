@@ -1,12 +1,12 @@
 \section{A hierarchy of provers}
 
-What we want to build is a prover able to prover not only equalities for $Nat$, $List$, or any specific type but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrix, and many others \emph{all at once} by implementing a very generic hierarchy of provers that can prove equalities of terms for Semi-Groups, Monoids, Commutative-Monoids, Groups, Commutative-Groups, Semi-Rings and Rings. These tactics will be usable on any type that satisfies the properties of one of these algebraic structure. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface (sometimes called typeclass in other progamming languages). This interface will extend the interface from which it naturally inherits. For example, the $Group$ interface will extend the $Monoid$ one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. All the tactics that we will implement (the ring prover, the group prover, etc) will be able to work on any type, being given that an implementation of the corresponding interface is provided.
+What we want to build is a prover able to prover not only equalities for \code{Nat}, \code{List}, or any specific type but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrix, and many others \emph{all at once} by implementing a very generic hierarchy of provers that can prove equalities of terms for Semi-Groups, Monoids, Commutative-Monoids, Groups, Commutative-Groups, Semi-Rings and Rings. These tactics will be usable on any type that satisfies the properties of one of these algebraic structure. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface (sometimes called typeclass in other progamming languages). This interface will extend the interface from which it naturally inherits. For example, the \code{Group} interface will extend the \code{Monoid} one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. All the tactics that we will implement (the ring prover, the group prover, etc) will be able to work on any type, being given that an implementation of the corresponding interface is provided.
 
 	\subsection{Proving equivalences instead of equalities}
 	
-With some reasonable additional effort, we could produce a collection of tactics for proving equivalences instead of only equality. The machinery would be very similar, and if we do the right abstraction from the start, we could gain one more degree of genericity, with the freedom of choosing the equivalence relation (which can of course be the usual equality). We want to give to the user the possibility to define his own equivalence notion, as long as he's able to provide the properties of the algebraic structure he wants to use. Let's call $c$ the \emph{carrier} type, ie, the type on which we want to prove equivalences. The equivalence relation on $c$ has the following profile $(\simeq) : c \rightarrow c \rightarrow Type$\footnote{This 'Type' would be a 'Prop' in systems --like Coq-- that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
+With some reasonable additional effort, we could produce a collection of tactics for proving equivalences instead of only equality. The machinery would be very similar, and if we do the right abstraction from the start, we could gain one more degree of genericity, with the freedom of choosing the equivalence relation (which can of course be the usual equality). We want to give to the user the possibility to define his own equivalence notion, as long as he's able to provide the properties of the algebraic structure he wants to use. Let's call $c$ the \emph{carrier} type, ie, the type on which we want to prove equivalences. The equivalence relation on $c$ has the following profile $(\simeq) : \code{c} \rightarrow \code{c} \rightarrow \code{Type}$\footnote{This \code{Type} would be a \code{Prop} in systems --like Coq-- that make a distinction between the world of computations and the world of logical statements}, and has to be accompanied by the usual properties of reflexivity, symmetry and transitivity.
 
-All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of Set\footnote{This notion of Set isn't a formalisation of sets and their elements, but is only a way to talk about the carrier type and an equivalence relation, sometimes called Setoid}, which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test $set\_eq$. All the algebraic structures will later extend this interface :
+All of our tactics will require to have a way of testing this equivalence between elements of the underlying set, that is to say, a way to test equivalence between constants. For this reason, we define a notion of \code{Set}\footnote{This notion of set isn't a formalisation of sets and their elements, but is only a way to talk about the carrier type and an equivalence relation, sometimes called Setoid}, which only requires the definition of the equivalence relation --accompanied with the proofs that this is indeed an equivalence relation-- and this equivalence test \code{set\_eq}. All the interfaces representing the algebraic structures will later extend \code{Set} :
 
 \begin{lstlisting}
 interface Set c where
@@ -17,21 +17,21 @@ interface Set c where
     set_eq : (x:c) $\rightarrow$ (y:c) $\rightarrow$ Maybe (x $\simeq$ y)
 \end{lstlisting}
 
-If the user wants to prove propositional equalities, then he will simply instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the $Set$ implementation.
-Note that $(\simeq)$ is only weakly decidable in the sense that $set\_eq$ only produces a proof when the two elements are equivalent, but it doesn't produce a proof of dis-equivalence when they are different -- instead, it simply produces the value $Nothing$--. That's natural, as we want to generate proof of equivalence, and not to generate counter examples for proving dis-equivalence, which is another problem.
+If the user wants to prove propositional equalities, then he will simply instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the \code{Set} implementation.
+Note that $(\simeq)$ is only weakly decidable in the sense that \code{set\_eq} only produces a proof when the two elements are equivalent, but it doesn't produce a proof of dis-equivalence when they are different -- instead, it simply produces the value \code{Nothing}--. That is normal, as we want to generate proof of equivalence, and not to generate counter examples for proving dis-equivalence, which is another problem.
 
-Obviously, there is no tactic associated to $Set$, since we have no operations and no properties associated to this structure. Therefore, equivalences in a $Set$ are just the "syntactic equivalences", and they can simply be proven with $refl$\footnote{$refl$ should not be confused with $Refl$, the only constructor of $=$. But of course, when $(\simeq)$ is instantiated with the equality $=$, the instantiation of $refl$ will be $Refl$. Therefore, $refl$ of the interface $Set$ is a generalisation of the most specialised $Refl$ for $=$}.
+Obviously, there is no tactic associated to \code{Set}, since we have no operations and no properties associated to this structure. Therefore, equivalences in a \code{Set} are just the "syntactic equivalences", and they can simply be proven with \code{refl}\footnote{\code{refl} should not be confused with \code{Refl}, the only constructor of $=$. But of course, when $(\simeq)$ is instantiated with the equality $=$, the instantiation of \code{refl} will be \code{Refl}. Therefore, \code{refl} of the interface \code{Set} is a generalisation of the most specialised \code{Refl} for \code{=}}.
 
 %The kernel of our machinery will be a function $norm$ that will be composed of %multiples functions composed together, that each do a part of the normalisation %and that generate the proof of equivalence between old and new concrete values %for this part of the normalisation.
 
-Working with equivalences instead of equalities will bring one complication. These proofs of correctness that we will have to produce by hand will be slightly more complicated, as we won't be able to use idris' "rewrite" command, that enables to rewrite a subterm of a term by another one, provided that the two subterms are equal. More precisely, if we need to prove $P\ x$, and have a proof of equivalence $pr:x \simeq x'$, we can't use "rewrite pr" in order to transform the goal into $P\ x'$, as we would normally do if the available proof would be an equality $x=x'$. This is a classical problem of working within a setoid, and this problem can be slightly mitigated when the programming language offers a good support for rewriting terms in setoids. However, Idris isn't equipped with any automation for setoids, ans everything will have to be done by hand. For this purpose, we will use the following lemma :
+Working with equivalences instead of equalities will bring one complication. These proofs of correctness that we will have to produce by hand will be slightly more complicated, as we won't be able to use idris' "rewrite" command, that enables to rewrite a subterm of a term by another one, provided that the two subterms are equal. More precisely, if we need to prove $P\ x$, and have a proof of equivalence $pr:x \simeq x'$, we can't use "rewrite pr" in order to transform the goal into $P\ x'$, as we would normally do if the available proof would be an equality $x=x'$. This is a classical problem of working within a setoid, and this problem can be slightly mitigated when the programming language offers a good support for rewriting terms in setoids. However, Idris isn't equipped with any automation for setoids, and everything will have to be done by hand. For this purpose, we will use the following lemma :
 
-$eq\_preserves\_eq : \{c:Type\} \rightarrow (Set\ c) \rightarrow (x:c) \rightarrow (y:c) \rightarrow (c1:c) \rightarrow (c2:c) \rightarrow (x \simeq c1) \rightarrow (y \simeq c2) \rightarrow (c1 \simeq c2) \rightarrow (x \simeq y)$.
+$\code{eq\_preserves\_eq} : \{c:Type\} \rightarrow (Set\ c) \rightarrow (x:c) \rightarrow (y:c) \rightarrow (c1:c) \rightarrow (c2:c) \rightarrow (x \simeq c1) \rightarrow (y \simeq c2) \rightarrow (c1 \simeq c2) \rightarrow (x \simeq y)$.
 
 \begin{proof}
-We have $x \simeq c1$ and we have $c1 \simeq c2$, therefore we have $x \simeq c2$ by the use of the axiom of transitivity (of the interface $Set$). \
+We have $x \simeq c1$ and we have $c1 \simeq c2$, therefore we have $x \simeq c2$ by the use of the axiom of transitivity (of the interface \code{Set}). \
 
-We also have $y \simeq c2$ and therefore we have $c2 \simeq y$ by the use of the symmetry axiom (of the interface $Set$). \
+We also have $y \simeq c2$ and therefore we have $c2 \simeq y$ by the use of the symmetry axiom (of the interface \code{Set}). \
 
 Now that we have these fresh proofs of $x \simeq c2$ and of $c2 \simeq y$, we can use one last time the property of transitivity, in order to get a proof of $x \simeq y$.
 \qed
@@ -41,28 +41,28 @@ This lemma says that the equivalence preserves the equivalence, which means that
 
 		\subsection{Hierarchy of interfaces}
 
-The operations, constants and properties of each algebraic structure will be described in a dedicated interface. The first structure, completely trivial, is the magma. A magma is a structure built on top of $Set$, that just adds a $Plus$ operation, and no specific properties about it :
+The operations, constants and properties of each algebraic structure will be described in a dedicated interface. The first structure, completely trivial, is the magma. A magma is a structure built on top of \code{Set}, that just adds a \code{Plus} operation, and no specific properties about it :
 
 \begin{lstlisting}
 interface Set c => Magma c where
     + : c $\rightarrow$ c $\rightarrow$ c
 \end{lstlisting}
 
-This code means that a type $c$ (for $carrier$) is a Magma if it is already a Set (ie, it is equipped with the equivalence relation $\simeq$ and the equivalence test $set\_eq$), and if it has a $+$ operation.
-In fact, there is an additional requirement that will apply for all operators (in this case, the $+$ operation), which is that they need to be "compatible" with the equivalence relation, which is expressed by the following axiom for $+$ : \\ $Plus\_preserves\_equiv : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow ((c1+c2) \simeq (c1'+c2'))$ \\ 
+This code means that a type $c$ (for $carrier$) is a \code{Magma} if it is already a \code{Set} (ie, it is equipped with the equivalence relation $\simeq$ and the equivalence test \code{set\_eq}), and if it has a $+$ operation.
+In fact, there is an additional requirement that will apply for all operators (in this case, the $+$ operation), which is that they need to be "compatible" with the equivalence relation, which is expressed by the following axiom for $+$ : \\ $\code{Plus\_preserves\_equiv} : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow ((c1+c2) \simeq (c1'+c2'))$ \\ 
 This requirement comes from the fact that we're dealing with any equivalence relation. The user is free to use his own equivalence relation, but it should be compatible with the operations that he is using.
-As it was the case for $Set$, there is no tactic to write for $Magma$, because there is no property at all : all equivalences are again syntactic equivalences, and they can all be proven by $refl$. 
+As it was the case for \code{Set}, there is no tactic to write for \code{Magma}, because there is no property at all : all equivalences are again syntactic equivalences, and they can all be proven by \code{refl}. 
 
-A semi-group is a magma (ie, it still has a $Plus$ operation), but moreover it has the property of associativity for this operation. 
+A semi-group is a magma (ie, it still has a \code{Plus} operation), but moreover it has the property of associativity for this operation. 
 
 \begin{lstlisting}
 interface Magma c => SemiGroup c where
     Plus_assoc : (c1:c) $\rightarrow$ (c2:c) $\rightarrow$ (c3:c) $\rightarrow$ ((c1+c2)+c3 $\simeq$ c1+(c2+c3))
 \end{lstlisting}
 
-As example of magma, we can cite $Nat$ equipped with its operation of addition, $List$ and the operation of concatenation.
+As example of magma, we can cite \code{Nat} equipped with its operation of addition and \code{List} and the operation of concatenation.
 
-Now, the Monoid structure is a Semi-Group with the property of neutral element for a distinguished element called $Zero$.
+The Monoid structure is a Semi-Group with the property of neutral element for a distinguished element called \code{Zero}.
 
 \begin{lstlisting}
 interface SemiGroup c => Monoid c where
@@ -71,7 +71,7 @@ interface SemiGroup c => Monoid c where
     Plus_neutral_2 : (c1:c) $\rightarrow$ (c1+Zero $\simeq$ c1)
 \end{lstlisting}
 
-The hierarchy of interfaces continues with Commutative-Monoid, Group, Commutative Group, Semi-Ring and Ring, but we only show the Group interface for reasons of space :
+The hierarchy of interfaces continues with Commutative-Monoid, Group, Commutative Group, Semi-Ring and Ring, but we only show the \code{Group} interface for reasons of space :
 
 \begin{lstlisting}
 interface Monoid c => Group c where
@@ -81,14 +81,14 @@ interface Monoid c => Group c where
     Plus_inverse : (c1:c) $\rightarrow$ (c1 + (Neg c1) $\simeq$ Zero, (Neg c1) + c1 $\simeq$ Zero)
 \end{lstlisting}
 
-The notion of group uses two new operations ($Neg$ and $Minus$), but $Minus$ is not primitive and can be simplified with $+$ and $Neg$. The important property of a group is that every element $c1$ must admit $Neg\ c1$ as inverse element for the $+$ operation.
+The notion of group uses two new operations (\code{Neg} and \code{Minus}), but \code{Minus} is not primitive and can be simplified with $+$ and \code{Neg}. The important property of a group is that every element \code{c1} must admit \code{Neg\ c1} as inverse element for the $+$ operation.
 
 \subsection{Type-safe reflection}
 \label{sect:typeSafeReflection}
 			
-When trying to prove an equivalence $x \simeq y$, the universally-quantified variables have been abstracted, and they are now part of the context. Our tatics will work by normalising both sides of the "potential equivalence" $x \simeq y$, and afterwards comparing them with a syntactic equality test. The problem is that such a normalisation function will need to do different treatments for a a variable, for a constant and for an operator. For this reason, we will need to work by reflection. There will be one type of reflected terms for each algebraic structure. The novelty is not the use of reflected terms (this has already been done, as discussed in section~\ref{sect:relatedWork}), but is the use of a type-safe reflection mechanism where we index the reflected terms by the concrete value that they represent. Each of these datatype is parametrised over a type $c$, which is the real type on which we want to prove equalities (the $carrier$ type). It is also indexed over an implementation of the corresponding interface for $c$ (we usually call it $p$, because it behaves as a $proof$ telling that the structure $c$ has the desired properties), indexed over a context of abstracted variables (a vector $\Gamma$ of $n$ elements of type $c$), and most important it is also indexed over a value of type $c$, which is precisely the concrete value being encoded.
+When trying to prove an equivalence $x \simeq y$, the universally-quantified variables have been abstracted, and they are now part of the context. Our tatics will work by normalising both sides of the "potential equivalence" $x \simeq y$, and afterwards comparing them with a syntactic equality test. The problem is that such a normalisation function will need to do different treatments for a a variable, for a constant and for an operator. For this reason, we will need to work by reflection. There will be one type of reflected terms for each algebraic structure. The novelty is not the use of reflected terms (this has already been done, as discussed in section~\ref{sect:relatedWork}), but is the use of a type-safe reflection mechanism where we index the reflected terms by the concrete value that they represent. Each of these datatype is parametrised over a type \code{c}, which is the real type on which we want to prove equalities (the \emph{carrier} type). It is also indexed over an implementation of the corresponding interface for \code{c} (we usually call it \code{p}, because it behaves as a \emph{proof} telling that the structure \code{c} has the desired properties), indexed over a context of abstracted variables (a vector $\Gamma$ of \code{n} elements of type \code{c}), and most important it is also indexed over a value of type \code{c}, which is precisely the concrete value being encoded.
 
-A magma is only equipped with one operation $+$. Thus, we only have three concepts to express in order to reflect terms in a Magma : constants, variables, and additions.
+A magma is only equipped with the operation of addition. Thus, we only have three concepts to express in order to reflect terms in a Magma : constants, variables, and additions.
 
 \begin{lstlisting}
 data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
@@ -100,12 +100,12 @@ data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
 \end{lstlisting}
 
 
-For an expression $e_x\ :\ ExprMa\ \Gamma\ x$, we will say that $e_x$ denotes (or encodes) the number $x$ in the context $\Gamma$.
-When an expression is a variable $(VarMa\ \_\ \Gamma\ i)$, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ \Gamma)$.
-The expression $(ConstMa\ \_\ \Gamma\ k)$ denotes the constant $k$ of type $c$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and $e_y$ is an expression encoding the concrete value $y$, then the expression $PlusMa\ e_x\ e_y$ denotes the concrete value $(x + y)$. Because the reflected terms embed their corresponding inputs, they are guarantee to be faithful representations of them.
+For an expression $e_x\ :\ \code{ExprMa}\ \Gamma\ x$, we will say that $e_x$ denotes (or encodes) the number $x$ in the context $\Gamma$.
+When an expression is a variable \code{(VarMa\ \_\ $\Gamma$\ i)}, the denoted number is simply the corresponding variable in the context, ie, \code{(index\ i\ $\Gamma$)}.
+The expression \code{(ConstMa\ \_\ $\Gamma$\ k)} denotes the constant $k$ of type $c$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and $e_y$ is an expression encoding the concrete value $y$, then the expression \code{PlusMa\ $e_x$\ $e_y$} denotes the concrete value $(x + y)$. Because the reflected terms embed their corresponding inputs, they are guarantee to be faithful representations of them.
 
 There is no additional operations in SemiGroup and Monoid, so the datatypes that reflect terms in these two structures will have exactly the same shape as the one for Magma that we have given above.
-However, the one for $Group$ will introduce two new constructors for the $Neg$ and $Minus$ operations :
+However, the \code{Group} interface will have to introduce two new constructors for the \code{Neg} and \code{Minus} operations :
 
 \begin{lstlisting}
 data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
@@ -121,23 +121,23 @@ data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
 \end{lstlisting}
 
 
-The index of type $c$ (the real value encoded by an expression) is always expressed by using the lookup function $index$ and the available operations in the implementation $p$, which for a group are $+$, $Minus$ and $Neg$.
+The index of type $c$ (the real value encoded by an expression) is always expressed by using the lookup function \code{index} and the available operations in the implementation $p$, which for a group are $+$, \code{Minus} and \code{Neg}.
 
 	\subsection{A correct by construction approach}
 \label{sect:correctByConstruction}
 
-We want to write the reduction function on a \emph{correct by construction} way, which means that no additional proof should be required after the definition of the function. Thus, $norm$ will produce the proof that the new expression freshly produced has the same interpretation as the original expression, and this will be made easier by the fact that all the datatypes for reflecting terms ($ExprSG$, $ExprG$, $ExprR$) are indexed over the real --concrete-- value : a term of type $Expr\ \Gamma\ x$ is the encoding of the concrete value $x$ in the context $\Gamma$.
-Thus, for each algebraic structure, the type of the function $norm$ will look like this : \\
-$norm :\ Expr\ \Gamma\ x\ \rightarrow\ (x'\ **\ (Expr\ \Gamma\ x',\ x\ \simeq\ x'))$ \\
-Every function of normalisation $norm$ will produce a dependent pair : the new concrete value $x'$, and a pair made of an $Expr\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new concrete values $x$ and $x'$ are equivalent.
+We want to write the normalisation function on a \emph{correct by construction} way, which means that no additional proof should be required after the definition of the function. Thus, \code{norm} will produce the proof that the new expression freshly produced has the same interpretation as the original expression, and this will be made easier by the fact that all the datatypes for reflecting terms (\code{ExprMa}, \code{ExprG}, \code{ExprR}, etc) are indexed over the real --concrete-- value : a term of type $\code{Expr}\ \Gamma\ x$ is the encoding of the concrete value $x$ in the context $\Gamma$.
+Thus, for each algebraic structure, the type of the function \code{norm} will look like this : \\
+$\code{norm} :\ \code{Expr}\ \Gamma\ x\ \rightarrow\ (x'\ \code{**}\ (\code{Expr}\ \Gamma\ x',\ x\ \simeq\ x'))$ \\
+Every function of normalisation \code{norm} will produce a dependent pair : the new concrete value $x'$, and a pair made of an $\code{Expr}\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new concrete values $x$ and $x'$ are equivalent.
 
-This function doesn't simply produce an $Expr\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x \simeq x'$ is an essential component for building the desired proof of $x \simeq y$, which is the main problem that we are trying to solve.
+This function doesn't simply produce an $\code{Expr}\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x \simeq x'$ is an essential component for building the desired proof of $x \simeq y$, which is the main problem that we are trying to solve.
 
 
-We will explain how the tactic works by commenting the construction of the tactic for Group, but the other algebraic structures will be equipped similarly. The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are elements of the type $c$, which  simulates a group. The reflected term for $x$ will be denoted $e_x$, and this term will have the type $ExprG\ p\ \Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$ because $e_x$ is precisely indexed over the real value $x$.
+We will explain how the tactic works by commenting the construction of the tactic for Group, but the other algebraic structures will be equipped similarly. The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are elements of the type $c$, which  simulates a group. The reflected term for $x$ will be denoted $e_x$, and this term will have the type $\code{ExprG}\ p\ \Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$ because $e_x$ is precisely indexed over the real value $x$.
 We've got similar things for $y$, which is encoded by $e_y$, and its type is indexed over the real value $y$.
-Running the normalisation procedure on $e_x$ will produce the normal form $e_{x'}$ of type $ExprG\ p\ \Gamma\ x'$ and a proof $p_x$ of $x \simeq x'$ while running the normalisation procedure on $e_y$ will produce the normal form $e_{y'}$ of type $ExprG\ p\ \Gamma\ y'$ and a proof $p_y$ of $y \simeq y'$.
-It is now enough to simply compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test $exprG\_eq$ because these two expressions are now supposed to be in normal form.
+Running the normalisation procedure on $e_x$ will produce the normal form $e_{x'}$ of type $\code{ExprG}\ p\ \Gamma\ x'$ and a proof $p_x$ of $x \simeq x'$ while running the normalisation procedure on $e_y$ will produce the normal form $e_{y'}$ of type $\code{ExprG}\ p\ \Gamma\ y'$ and a proof $p_y$ of $y \simeq y'$.
+It is now enough to simply compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test \code{exprG\_eq} because these two expressions are now supposed to be in normal form.
 
 Now, if the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$, which implies $x' \simeq y'$ because the propositional equality is more restrictive than an equivalence relation.
 By using the two equivalences $x \simeq x'$ and $y \simeq y'$ that we obtained during the normalisations in the new equivalence $x' \simeq y'$ with the use of $eq\_preserves\_eq$, we can get a proof of $x \simeq y$. This is what the function $buildProof$ is doing :
