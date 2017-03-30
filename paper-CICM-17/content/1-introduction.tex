@@ -136,8 +136,7 @@ The contributions of this paper are the following :
 
 \item The normalisation procedures are implemented by following a correct by construction approach, instead of proving the correctness afterwards with auxiliary lemmas. This approach is much more suitable for programming languages like Idris. This correct-by-construction aspect is developed in section~\ref{sect:correctByConstruction}
 
-\item We develop a hierarchy of tactics where each tactic reuses the
-rewriting machinery of the structure from which it naturally inherits.
+\item We develop a hierarchy of tactics (and not just a tactic for, say, Ring) where each tactic reuses the rewriting machinery of the structure from which it naturally inherits.
 For example, simplifying neutral elements is only implemented at the monoid level, and each level inheriting from it will reuse it. Reusability is difficult to obtain when we want to reuse the prover of a less expressive structure. For example, reusing the monoid prover for building the
 group prover is not trivial, since we lose the possibility to express
 negations ($-x$) and subtractions ($x-y$). Some specific encodings

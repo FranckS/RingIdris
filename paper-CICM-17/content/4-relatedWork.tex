@@ -2,7 +2,7 @@
 \label{sect:relatedWork}
 
 As mentioned, Coq's implementation of a ring prover was also using proof-by-reflection techniques, but without the guarantees obtained with our type-safe reflection mechanism, and without the correct-by-construction approach : they have first defined the normalisation of terms, and afterwards they've proven the correctness of the normalisation with the external lemma :
-$\forall\ (e1\ e2\ :\ Expr),\ beq_{Expr}\ (norm\ e1)\ (norm\ e2)\ =\ true\ \rightarrow\ reify\ e1\ \simeq\ reify\ e2$ which therefore needs a $reify$ function that we do not need in our development.
+$\forall\ (e1\ e2\ :\ \code{Expr}),\ beq_{Expr}\ (\code{norm}\ e1)\ (\code{norm}\ e2)\ =\ true\ \rightarrow\ \code{reify}\ e1\ \simeq\ \code{reify}\ e2$ which therefore needs a \code{reify} function that we do not need in our development.
 Our automatic reflection was written with Idris reflection mechanism which allows to do pattern matching on syntax, and their automatic reflection is programmed in Ltac~\cite{DelahayeLTac} : a proof dedicated and untyped meta-language for the writing of automations. \\
 
 Proof automations have been investigated for various proof assistants and programming languages. In Coq, appart from the $ring$ prover~\cite{Coq2005}, there's also the $omega$ solver~\cite{Cregut04}, which solves a goal in Presburger arithmetic (i.e. a universally quantified formula made of equations and inequations), and a Field~\cite{DelahayeField} decision procedure for real numbers, which plugs to Coq's ring prover after simplification of the multiplicative inverses. Various automations have also been done in Agda~\cite{DBLP:conf/mpc/KokkeS15} ~\cite{Lindblad04}. \\
@@ -11,7 +11,7 @@ Doing proofs by reflection has been intensively investigated by many authors, in
 
 At the connexion bewteen proof automation and proof by reflection, we can cite SSreflect~\cite{GonthierTuto}, which is an extension of Coq which aims to provide additional formalisations and tactics suitable for long mathematical proofs. \\
 
-Finally, when we leave the ground of nice mathematical structures like groups, rings and fields, one can decide to work with arbitrary rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there's usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} and heuristics for proof search starts. \\
+Finally, when we leave the ground of nice mathematical structures like groups, rings and fields, one can decide to work with arbitrary rewriting rules, but in the general case there isn't a complete decision procedure for such problems, because there is usually no normal form. This is where deduction modulo~\cite{Dowek03} ~\cite{DelahayeModulo} and heuristics for proof search starts. \\
 
 We also need to mention $Mtac$~\cite{Ziliani13}, which is an extension to Coq that supports dependently-typed tactic programming that uses monad to avoid the need to touch the trusted kernel typechecker of Coq.
 
