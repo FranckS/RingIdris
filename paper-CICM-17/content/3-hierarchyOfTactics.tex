@@ -1,6 +1,6 @@
 \section{A hierarchy of provers}
 
-What we want to build is a prover able to prover not only equalities for \code{Nat}, \code{List}, or any specific type but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrix, and many others \emph{all at once} by implementing a very generic hierarchy of provers that can prove equalities of terms for Semi-Groups, Monoids, Commutative-Monoids, Groups, Commutative-Groups, Semi-Rings and Rings. These tactics will be usable on any type that satisfies the properties of one of these algebraic structure. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface (sometimes called typeclass in other progamming languages). This interface will extend the interface from which it naturally inherits. For example, the \code{Group} interface will extend the \code{Monoid} one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. All the tactics that we will implement (the ring prover, the group prover, etc) will be able to work on any type, being given that an implementation of the corresponding interface is provided.
+What we want to build is a prover able to prove not only equalities for \code{Nat}, \code{List}, or any specific type, but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrix, and many others \emph{all at once} by implementing a very generic hierarchy of provers that can prove equalities of terms for Semi-Groups, Monoids, Commutative-Monoids, Groups, Commutative-Groups, Semi-Rings and Rings. These tactics will be usable on any type that satisfies the properties of one of these algebraic structure. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface (sometimes called typeclass in other progamming languages). This interface will extend the interface from which it naturally inherits. For example, the \code{Group} interface will extend the \code{Monoid} one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. At every level of the hierarchy, we will be able to work on any type, being given that an implementation of the corresponding interface is provided.
 
 	\subsection{Proving equivalences instead of equalities}
 	
@@ -151,11 +151,11 @@ buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
     buildProofGroup p ex' ey' px py | Nothing = Nothing
 \end{lstlisting}
 
-The argument of type $\code{ExprG}\ p\ \Gamma\ x'$ is the normalised reflected left hand size of the equality, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The same applies to the right-hand side. The function also expects proofs of $x \simeq x'$ and of $y \simeq y'$, that we will be able to provide because the normalisation function has produced them while it was building the normalised reflected terms.
+The argument of type $\code{ExprG}\ p\ \Gamma\ x'$ is the normalised reflected left hand size of the equivalence, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The same applies to the right-hand side. The function also expects proofs of $x \simeq x'$ and of $y \simeq y'$, that we will be able to provide because the normalisation function has produced them while it was building the normalised reflected terms.
 
 % TALK ABOUT THE METAVARIABLE MbuildProodGroup to add here !
 
-Finally, the main function which tries to prove the equality $x \simeq y$ simply has to normalise the two reflected terms encoding the left and the right hand side, and to use the function \code{buildProof} in order to compose the two proofs that have been obtained :
+Finally, the main function which tries to prove the equivalence $x \simeq y$ simply has to normalise the two reflected terms encoding the left and the right hand side, and to use the function \code{buildProof} in order to compose the two proofs that have been obtained :
 
 \begin{lstlisting}
 groupDecideEq : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
@@ -167,8 +167,8 @@ groupDecideEq p ex ey =
 \end{lstlisting}
 
 
-The remaining part is to define the function \code{norm}. Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equality without brute-forcing a series of rewritings, that would have no guarantee to terminate.
-As said before, these normalisation functions will compute the canonical representation of the reflected input term by rewriting the given term multiple times, and at the same time, it will produce the proof of equality between the initial real value (indexing the input term) and the final real value (indexing the produced term). Thus, the type of the reduction function for group is :
+The remaining part is to define the function \code{norm}. Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equivalence without brute-forcing a series of rewritings, that would have no guarantee to terminate.
+As said before, these normalisation functions will compute the canonical representation of the reflected input term by rewriting the given term multiple times, and at the same time, it will produce the proof of equivalence between the initial real value (indexing the input term) and the final real value (indexing the produced term). Thus, the type of the reduction function for group is :
 
 
 \begin{lstlisting}
