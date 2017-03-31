@@ -4,7 +4,7 @@ Proofs assistants like Coq~\cite{BertotC04}, Agda~\cite{DBLP:conf/tldi/Norell09}
 proposition that two elements $x$ and $y$ are equal corresponds to a type.
 If $x$ and $y$ are of type $a$, then the type
 $Id_a(x, y)$ represents the proposition ``$x$ is equal to $y$". If this type is
-inhabited, then $x$ is said to be provably equal to $y$. Thus, $Id$ is a type family (parameterised by the type $a$) indexed over two elements of $a$, giving $Id (a:Type)\ :\ a \rightarrow a \rightarrow Type$. For
+inhabited, then $x$ is said to be provably equal to $y$. Thus, $Id$ is a type family (parametrised by the type $a$) indexed over two elements of $a$, giving $Id (a:Type)\ :\ a \rightarrow a \rightarrow Type$. For
 convenience, we write $(Id_a\ x\ y)$ as $(x\ =_a\ y)$. 
 
 The second notion of equality in Intentional Type Theories is a primitive concept, called judgemental equality, or definitional equality. This second equality means ``equal by definition''. The judgemental equality cannot be negated or assumed; we cannot talk about this primitive equality inside the theory.
@@ -28,7 +28,7 @@ The only way for $(Id_a\ x\ y)$ to be inhabited is therefore that $x$ should be
 proof of this equality : \code{(Refl\ x)} is precisely the proof which says that
 $x=_ax$. 
 
-When reading these definitions, one could think that the propositional equality is a wrapper of the judgemental equality. This is not the case : the propositional equality does not only contain the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. If a type $T$ is an inductive type with a constant constructor and a recursive constructor, ie, $T = 1 + T$, defined in Idris as : 
+When reading these definitions, one could wrongly think that the propositional equality is a simple wrapper of the judgemental equality. This is not the case : the propositional equality does not only contain the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. If a type $T$ is an inductive type with a constant constructor and a recursive constructor, ie, $T = 1 + T$, defined in Idris as : 
 
 \begin{lstlisting}
 data T : Type where
@@ -47,7 +47,7 @@ in formal certification. This is even an everyday routine when working in a depe
 \subsection{Motivating example: Verified Binary Arithmetic}
 \label{sect:motivatingExample}
 
-We revisit an example from previous work~\cite{DBLP:conf/plpv/Brady13} which shows how proof obligations may arise when a type is indexed by natural numbers. The goal is to implement a formally verified library of binary numbers. In order to ensure the correctness of the methods that will be developed, we define the types \code{Bit} and \code{Binary} as indexed over the value they represent (expressed as a natural number), following a correct-by-construction approach.
+We revisit an example from a previous work of Edwin Brady~\cite{DBLP:conf/plpv/Brady13} which shows how proof obligations may arise when a type is indexed by natural numbers. In this development, the goal is to implement a formally verified library of binary numbers. In order to ensure the correctness of the methods that will be developed, we define the types \code{Bit} and \code{Binary} as indexed over the value they represent (expressed as a natural number), following a correct-by-construction approach.
 
 \begin{lstlisting}
 data Bit : Nat $\rightarrow$ Type where
@@ -111,7 +111,7 @@ adc_lemma_2 = proof {
 }
 \end{lstlisting}
 
-As we see, this kind of proof consists of a potentially long sequence of rewriting steps, where each step uses one of the available properties: neutral element, commutativity, associativity. Without some specific automation, this sequence of rewriting must be done by the programmer.
+As we see, this kind of proof consists of a potentially long sequence of rewriting steps, where each step uses one of the available properties: neutral element, commutativity, associativity. Without some specific automation, this sequence of rewritings must be done by the programmer.
 This is time consuming and more importantly, just a small change in the left or the right hand side of the equality may invalidate the proof. That means that a minor change in our datatypes, or in the definition of \code{addBit} or \code{adc} will require us to replace this proof by another one fulfilling the same task.
 These proofs become the everyday routine in any dependently-typed language, as soon as we index types over values in order to capture some logical properties.  
 
@@ -121,7 +121,7 @@ The proof that we have written by hand only uses the existence of a neutral elem
 
 Prover for some algebraic structures have already been implemented for various proof assistants, including Coq~\cite{Coq2005} and Agda\footnote{\url{http://wiki.portal.chalmers.se/agda\%5C?n=Libraries.UsingTheRingSolver}} ring prover. In this paper, we describe a certified
 implementation\footnote{The implementation of our hierarchy of tactics can be found online at \url{https://github.com/FranckS/RingIdris/Provers}} of an automatic prover for equalities in a \emph{hierarchy} of algebraic
-structures, including Monoid, Groups and Rings (all potentially commutative),
+structures, including monoid, groups and rings (all potentially commutative),
 for the Idris language. 
 
 The principal novelty is in the approach that we follow, using a
