@@ -1,4 +1,4 @@
-\section{Results, conclusions and futur work}
+\section{Results, conclusions and future work}
 
 We have implemented a very generic solution to the initial problem of index mismatch that appeared in section~\ref{sect:motivatingExample} when we were defying functions that use dependent types. This solution takes the form of a hierarchy of provers for equivalence in algebraic structures. These provers are generic in multiple ways: they work for many algebraic structures (Semi-Group, Monoid, Commutative Monoid, Group, Commutative Group, Ring and Semi-Ring), for any type that behaves as one of these structures, and for any equivalence relation on this type (and not only for the propositional equality). The implementation is modular and each prover reuses the prover of the structure from which it directly inherits. \\
 

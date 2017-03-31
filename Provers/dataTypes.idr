@@ -100,7 +100,7 @@ interface dataTypes.Monoid c => dataTypes.Group c where
 
     Minus_simpl : (c1:c) -> (c2:c) -> (Minus c1 c2) ~= (Plus c1 (Neg c2)) --Minus should not be primitive and should be simplifiable
     -- The most important stuff for a group is the following :
-    Plus_inverse : (c1:c) -> hasSymmetric c (%instance) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
+    Plus_inverse : (c1:c) -> hasSymmetric c (%implementation) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
 --%logging 0
 
 
