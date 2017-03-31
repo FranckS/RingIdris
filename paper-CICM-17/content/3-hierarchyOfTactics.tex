@@ -17,10 +17,10 @@ interface Set c where
     set_eq : (x:c) $\rightarrow$ (y:c) $\rightarrow$ Maybe (x $\simeq$ y)
 \end{lstlisting}
 
-If the user wants to prove propositional equalities, then he will simply instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the \code{Set} implementation.
+If the user wants to prove propositional equalities, they will instantiate $(\simeq)$ with the built-in $(=)$ during the definition of the \code{Set} implementation.
 Note that $(\simeq)$ is only weakly decidable in the sense that \code{set\_eq} only produces a proof when the two elements are equivalent, but it doesn't produce a proof of dis-equivalence when they are different -- instead, it simply produces the value \code{Nothing}--. That is normal, as we want to generate proof of equivalence, and not to generate counter examples for proving dis-equivalence, which is another problem.
 
-Obviously, there is no tactic associated to \code{Set}, since we have no operations and no properties associated to this structure. Therefore, equivalences in a \code{Set} are just the ``syntactic equivalences", and they can simply be proven with \code{refl}\footnote{\code{refl} should not be confused with \code{Refl}, the only constructor of $=$. But of course, when $(\simeq)$ is instantiated with the equality $=$, the instantiation of \code{refl} will be \code{Refl}. Therefore, \code{refl} of the interface \code{Set} is a generalisation of the most specialised \code{Refl} for \code{=}}.
+There is no tactic associated to \code{Set}, since we have no operations and no properties associated to this structure. Therefore, equivalences in a \code{Set} are just the ``syntactic equivalences", and they can simply be proven with \code{refl}\footnote{\code{refl} should not be confused with \code{Refl}, the only constructor of $=$. But of course, when $(\simeq)$ is instantiated with the equality $=$, the instantiation of \code{refl} will be \code{Refl}. Therefore, \code{refl} of the interface \code{Set} is a generalisation of the most specialised \code{Refl} for \code{=}}.
 
 %The kernel of our machinery will be a function $norm$ that will be composed of %multiples functions composed together, that each do a part of the normalisation %and that generate the proof of equivalence between old and new concrete values %for this part of the normalisation.
 
@@ -101,7 +101,7 @@ data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
 
 
 For an expression $e_x\ :\ \code{ExprMa}\ \Gamma\ x$, we will say that $e_x$ denotes (or encodes) the number $x$ in the context $\Gamma$.
-When an expression is a variable \code{(VarMa\ \_\ $\Gamma$\ i)}, the denoted number is simply the corresponding variable in the context, ie, \code{(index\ i\ $\Gamma$)}.
+When an expression is a variable \code{(VarMa\ \_\ $\Gamma$\ i)}, the denoted number is the corresponding variable in the context, ie, \code{(index\ i\ $\Gamma$)}.
 The expression \code{(ConstMa\ \_\ $\Gamma$\ k)} denotes the constant $k$ of type $c$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and $e_y$ is an expression encoding the concrete value $y$, then the expression \code{PlusMa\ $e_x$\ $e_y$} denotes the concrete value $(x + y)$. Because the reflected terms embed their corresponding inputs, they are guarantee to be faithful representations of them.
 
 There is no additional operations in SemiGroup and Monoid, so the datatypes that reflect terms in these two structures will have exactly the same shape as the one for Magma that we have given above.
@@ -131,13 +131,13 @@ Thus, for each algebraic structure, the type of the function \code{norm} will lo
 $\code{norm} :\ \code{Expr}\ \Gamma\ x\ \rightarrow\ (x'\ \code{**}\ (\code{Expr}\ \Gamma\ x',\ x\ \simeq\ x'))$ \\
 Every function of normalisation \code{norm} will produce a dependent pair : the new concrete value $x'$, and a pair made of an $\code{Expr}\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete number we have just produced, and a proof that old and new concrete values $x$ and $x'$ are equivalent.
 
-This function doesn't simply produce an $\code{Expr}\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x \simeq x'$ is an essential component for building the desired proof of $x \simeq y$, which is the main problem that we are trying to solve.
+This function doesn't only produce an $\code{Expr}\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x \simeq x'$ is an essential component for building the desired proof of $x \simeq y$, which is the main problem that we are trying to solve.
 
 
 We will explain how the tactic works by commenting the construction of the tactic for Group, but the other algebraic structures will be equipped similarly. The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are elements of the type $c$, which  simulates a group. The reflected term for $x$ will be denoted $e_x$, and this term will have the type $\code{ExprG}\ p\ \Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$ because $e_x$ is precisely indexed over the real value $x$.
 We've got similar things for $y$, which is encoded by $e_y$, and its type is indexed over the real value $y$.
 Running the normalisation procedure on $e_x$ will produce the normal form $e_{x'}$ of type $\code{ExprG}\ p\ \Gamma\ x'$ and a proof $p_x$ of $x \simeq x'$ while running the normalisation procedure on $e_y$ will produce the normal form $e_{y'}$ of type $\code{ExprG}\ p\ \Gamma\ y'$ and a proof $p_y$ of $y \simeq y'$.
-It is now enough to simply compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test \code{exprG\_eq} because these two expressions are now supposed to be in normal form.
+It is now enough to compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test \code{exprG\_eq} because these two expressions are now supposed to be in normal form.
 
 Now, if the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$, which implies $x' \simeq y'$ because the propositional equality is more restrictive than an equivalence relation.
 By using the two equivalences $x \simeq x'$ and $y \simeq y'$ that we obtained during the normalisations in the new equivalence $x' \simeq y'$ with the use of \code{eq\_preserves\_eq}, we can get a proof of $x \simeq y$. This is what the function \code{buildProof} is doing :
@@ -155,7 +155,7 @@ buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
 The argument of type $\code{ExprG}\ p\ \Gamma\ x'$ is the normalised reflected left hand size of the equivalence, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The same applies to the right-hand side. The function also expects proofs of $x \simeq x'$ and of $y \simeq y'$, that we will be able to provide because the normalisation function has produced them while it was building the normalised reflected terms.
 
 
-Finally, the main function which tries to prove the equivalence $x \simeq y$ simply has to normalise the two reflected terms encoding the left and the right hand side, and to use the function \code{buildProof} in order to compose the two proofs that have been obtained :
+Finally, the main function which tries to prove the equivalence $x \simeq y$ has to normalise the two reflected terms encoding the left and the right hand side, and to use the function \code{buildProof} in order to compose the two proofs that have been obtained :
 
 \begin{lstlisting}
 groupDecideEq : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
