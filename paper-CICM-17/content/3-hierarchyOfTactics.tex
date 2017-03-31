@@ -105,7 +105,7 @@ When an expression is a variable \code{(VarMa\ \_\ $\Gamma$\ i)}, the denoted nu
 The expression \code{(ConstMa\ \_\ $\Gamma$\ k)} denotes the constant $k$ of type $c$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and $e_y$ is an expression encoding the concrete value $y$, then the expression \code{PlusMa\ $e_x$\ $e_y$} denotes the concrete value $(x + y)$. Because the reflected terms embed their corresponding inputs, they are guarantee to be faithful representations of them.
 
 There is no additional operations in SemiGroup and Monoid, so the datatypes that reflect terms in these two structures will have exactly the same shape as the one for Magma that we have given above.
-However, the \code{Group} interface will have to introduce two new constructors for the \code{Neg} and \code{Minus} operations :
+However, the datatype for reflected terms in Groups will have to introduce two new constructors for the \code{Neg} and \code{Minus} operations :
 
 \begin{lstlisting}
 data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
@@ -168,7 +168,7 @@ groupDecideEq p ex ey =
 
 
 The remaining part is to define the function \code{norm}. Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equivalence without brute-forcing a series of rewritings, that would have no guarantee to terminate.
-As said before, these normalisation functions will compute the canonical representation of the reflected input term by rewriting the given term multiple times, and at the same time, it will produce the proof of equivalence between the initial real value (indexing the input term) and the final real value (indexing the produced term). Thus, the type of the reduction function for group is :
+As said before, these normalisation functions will compute the canonical representation of the reflected input term by rewriting the given term multiple times, and at the same time, it will produce the proof of equivalence between the initial real value (the index of the input term) and the final real value (the index of the produced term). Thus, the type of the reduction function for group is :
 
 
 \begin{lstlisting}
