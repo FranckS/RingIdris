@@ -94,7 +94,7 @@ The problem is even worse for the second case where the expected index is \codeL
 while we're trying to provide a term indexed over
 \codeL{plus\ vLsb\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ (plus\ (plus\ (plus\ vCarry0\ v1)\ v)\ 0))}.
 We know that the definition of \code{adc} we have given is correct, and it has \emph{provably} the expected type, but it does not have it \emph{immediately} or \emph{by reduction} : after full reductions\footnote{In dependently typed theories, the presence of types predicated on values creates the need of using reductions also inside of types}, the expected and provided types are still different, and Idris can not figure out a proof of compatibility on its own. 
-If we use provisional definitions[ref], the previous definition can be accepted by the system, but we now have two proof obligations \code{adc\_lemma\_1} and \code{adc\_lemma\_2} demanding proofs of equality between the two types, and they have to be provided by hand --here with a proof script-- :
+If we use provisional definitions~\cite{DBLP:conf/plpv/Brady13}, the previous definition can be accepted by the system, but we now have two proof obligations \code{adc\_lemma\_1} and \code{adc\_lemma\_2} demanding proofs of equality between the two types, and they have to be provided by hand --here with a proof script-- :
 
 \begin{lstlisting}
 adc_lemma_2 = proof {
