@@ -28,7 +28,7 @@ The only way for $(Id_a\ x\ y)$ to be inhabited is therefore that $x$ should be
 proof of this equality : \code{(Refl\ x)} is precisely the proof which says that
 $x=_ax$. 
 
-When reading these definitions, one could wrongly think that the propositional equality is a simple wrapper of the judgemental equality. This is not the case : the propositional equality does not only contain the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. If a type $T$ is an inductive type with a constant constructor and a recursive constructor, ie, $T = 1 + T$, defined in Idris as : 
+When reading these definitions, one could think that the propositional equality is a wrapper of the judgemental equality. This is not the case : the propositional equality does not only contain the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. If a type $T$ is an inductive type with a constant constructor and a recursive constructor, ie, $T = 1 + T$, defined in Idris as : 
 
 \begin{lstlisting}
 data T : Type where
@@ -47,7 +47,7 @@ in formal certification. This is even an everyday routine when working in a depe
 \subsection{Motivating example: Verified Binary Arithmetic}
 \label{sect:motivatingExample}
 
-We revisit an example from a previous work of Edwin Brady~\cite{DBLP:conf/plpv/Brady13} which shows how proof obligations may arise when a type is indexed by natural numbers. In this development, the goal is to implement a formally verified library of binary numbers. In order to ensure the correctness of the methods that will be developed, we define the types \code{Bit} and \code{Binary} as indexed over the value they represent (expressed as a natural number), following a correct-by-construction approach.
+We revisit an example from previous work~\cite{DBLP:conf/plpv/Brady13} which shows how proof obligations may arise when a type is indexed by natural numbers. The goal is to implement a formally verified library of binary numbers. In order to ensure the correctness of the methods that will be developed, we define the types \code{Bit} and \code{Binary} as indexed over the value they represent (expressed as a natural number), following a correct-by-construction approach.
 
 \begin{lstlisting}
 data Bit : Nat $\rightarrow$ Type where
