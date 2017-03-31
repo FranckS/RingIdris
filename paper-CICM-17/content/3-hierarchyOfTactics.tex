@@ -49,7 +49,7 @@ interface Set c => Magma c where
 \end{lstlisting}
 
 This code means that a type $c$ (for $carrier$) is a \code{Magma} if it is already a \code{Set} (ie, it is equipped with the equivalence relation $\simeq$ and the equivalence test \code{set\_eq}), and if it has a $+$ operation.
-In fact, there is an additional requirement that will apply for all operators (in this case, the $+$ operation), which is that they need to be ``compatible" with the equivalence relation, which is expressed by the following axiom for $+$ : \\ $\code{Plus\_preserves\_equiv} : \{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow ((c1+c2) \simeq (c1'+c2'))$ \\ 
+In fact, there is an additional requirement that will apply for all operators (in this case, the $+$ operation), which is that they need to be ``compatible" with the equivalence relation, which is expressed by the following axiom for $+$ : \\ $\code{Plus\_preserves\_equiv} : \{c:\code{Type}\} \rightarrow \{\code{Magma}\ c\} \rightarrow\{c1:c\} \rightarrow \{c2:c\} \rightarrow \{c1':c\} \rightarrow \{c2':c\} \rightarrow (c1 \simeq c1') \rightarrow (c2 \simeq c2') \rightarrow ((c1+c2) \simeq (c1'+c2'))$ \\ 
 This requirement comes from the fact that we're dealing with any equivalence relation. The user is free to use his own equivalence relation, but it should be compatible with the operations that he is using.
 As it was the case for \code{Set}, there is no tactic to write for \code{Magma}, because there is no property at all : all equivalences are again syntactic equivalences, and they can all be proven by \code{refl}. 
 
