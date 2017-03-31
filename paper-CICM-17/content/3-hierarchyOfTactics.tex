@@ -71,7 +71,7 @@ interface SemiGroup c => Monoid c where
     Plus_neutral_2 : (c1:c) $\rightarrow$ (c1+Zero $\simeq$ c1)
 \end{lstlisting}
 
-The hierarchy of interfaces continues with commutative-monoids, groups, commutative groups, semi-rings and rings, but we only show the \code{Group} interface for reasons of space :
+The hierarchy of interfaces continues, but we only show the \code{Group} interface for reasons of space :
 
 \begin{lstlisting}
 interface Monoid c => Group c where
@@ -210,9 +210,9 @@ We can now build the order on \emph{product of monomials} that we needed. We nam
 A few additional conventions had to be decided about the normal form :
 \begin{itemize}
 
-\item The top-level sum of the polynomial will be in right-associative form : \\
+\item The top-level sum of the polynomial will be put in right-associative form : \\
 $prodMon_1\ +\ (prodMon_2\ + (prodMon_3\ +\ (...\ +\ prodMon_a)))$
-\item All the products that we have at the two levels, namely the products of monomials (at the main level) and the products of variables (at the monomial level), will also be written on the completely right-associative form.
+\item All the products that we have (the products of monomials and the products of variables), will also be written on the completely right-associative form.
 \item We always simplify as much as possible with constants. That includes simplifying the addition with zero and the multiplication with the constants zero and one, doing the computations between two nearby constants, etc...
 \item We always simplify the sum of an expression $e$ and its inverse $-e$ into the constant zero. 
 
@@ -243,7 +243,7 @@ All the constructors for variables now take a \code{Variable} as parameter, inst
 
 Thanks to this encoding, we can now transform an \code{ExprG} from the group level to an \code{ExprMo} at the monoid level. A constant $(\code{ConstG}\ p\ \Gamma\ c1)$ will be transformed into the corresponding constant $(\code{ConstMo}\ p\ \Gamma\ c1)$, a \code{PlusG} into the corresponding \code{PlusMo}, a real variable into the same real variable, the negation of a constant into the resulting constant, and finally the negation of a variable $i$ into a $(\code{VarMo}\ p\ (\code{EncodingNegOfVar}\ \Gamma\ i))$.
 
-We've used a similar technique for converting an expression from the ring level to the commutative-group level, where we have encoded the product of monomials, because the product is not an operation defined at the commutative-group level. That enables the function of normalisation for ring to benefit from the normalisation function for commutative-group.
+We've used a similar technique for converting an expression from the ring level to the commutative-group level, where we have encoded the product of monomials, because the product is not an operation defined at the commutative-group level. That enables the function of normalisation for rings to benefit from the normalisation function for commutative-groups.
 
 
 \subsection{Automatic reflection}
