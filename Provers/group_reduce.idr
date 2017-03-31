@@ -333,13 +333,13 @@ mutual
 				Just pr => (c' ** (e', p'))-- We stop here
 				Nothing => let (c'' ** (e'', p'')) = groupReduce p e' in
 							(c'' ** (e'', ?Mgroup_Reduce_1))
-		
-			
+	
+
 	total
 	buildProofGroup : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {setAndMult:SetWithMult c (group_to_set p)} -> {g:Vect n c} -> {x : c} -> {y : c} -> {c1:c} -> {c2:c} -> (ExprG p setAndMult g c1) -> (ExprG p setAndMult g c2) -> (x~=c1) -> (y~=c2) -> (Maybe (x~=y))
-	buildProofGroup p e1 e2 lp rp with (exprG_eq p _ _ e1 e2)
-		buildProofGroup p e1 e2 lp rp | Just e1_equiv_e2 = ?MbuildProofGroup
-		buildProofGroup p e1 e2 lp rp | Nothing = Nothing
+	buildProofGroup p {x=x} {y=y} {c1=c1} {c2=c2} e1 e2 lp rp with (exprG_eq p _ _ e1 e2)
+		buildProofGroup p {x=x} {y=y} {c1=c1} {c2=c2} e1 e2 lp rp | Just e1_equiv_e2 = Just(eq_preserves_eq _ x y c1 c2 lp rp e1_equiv_e2)
+		buildProofGroup p {x=x} {y=y} {c1=c1} {c2=c2} e1 e2 lp rp | Nothing = Nothing
 
 		
 	groupDecideEq : {c:Type} -> {n:Nat} -> (p:dataTypes.Group c) -> {setAndMult:SetWithMult c (group_to_set p)} -> {g:Vect n c} -> {x : c} -> {y : c} -> (ExprG p setAndMult g x) -> (ExprG p setAndMult g y) -> (Maybe (x~=y))
@@ -902,6 +902,7 @@ Provers.group_reduce.Mgroup_Reduce_1 = proof
   mrefine set_eq_undec_refl
   exact p'' 
     
+{-    
 Provers.group_reduce.MbuildProofGroup = proof
   intros
   refine Just
@@ -911,7 +912,7 @@ Provers.group_reduce.MbuildProofGroup = proof
   exact lp
   exact rp
   exact e1_equiv_e2 
-
+-}
 
 
 

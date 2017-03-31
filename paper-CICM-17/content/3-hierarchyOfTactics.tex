@@ -26,7 +26,7 @@ Obviously, there is no tactic associated to \code{Set}, since we have no operati
 
 Working with equivalences instead of equalities will bring one complication. These proofs of correctness that we will have to produce by hand will be slightly more complicated, as we won't be able to use Idris' ``rewrite" command, that enables to rewrite a subterm of a term by another one, provided that the two subterms are equal. More precisely, if we need to prove $P\ x$, and have a proof of equivalence $pr:x \simeq x'$, we can't use ``rewrite pr" in order to transform the goal into $P\ x'$, as we would normally do if the available proof would be an equality $x=x'$. This is a classical problem of working within a setoid, and this problem can be slightly mitigated when the programming language offers a good support for rewriting terms in setoids. However, Idris isn't equipped with any automation for setoids, and everything will have to be done by hand. For this purpose, we will use the following lemma :
 
-$\code{eq\_preserves\_eq} : \{c:Type\} \rightarrow (Set\ c) \rightarrow (x:c) \rightarrow (y:c) \rightarrow (c1:c) \rightarrow (c2:c) \rightarrow (x \simeq c1) \rightarrow (y \simeq c2) \rightarrow (c1 \simeq c2) \rightarrow (x \simeq y)$.
+$\code{eq\_preserves\_eq} : \{c:\code{Type}\} \rightarrow \{\code{Set}\ c\} \rightarrow (x:c) \rightarrow (y:c) \rightarrow (c1:c) \rightarrow (c2:c) \rightarrow (x \simeq c1) \rightarrow (y \simeq c2) \rightarrow (c1 \simeq c2) \rightarrow (x \simeq y)$.
 
 \begin{proof}
 We have $x \simeq c1$ and we have $c1 \simeq c2$, therefore we have $x \simeq c2$ by the use of the axiom of transitivity (of the interface \code{Set}). \
@@ -147,13 +147,13 @@ buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x
   $\rightarrow$ {x':c} $\rightarrow$ {y':c} $\rightarrow$ (ExprG p $\Gamma$ x') $\rightarrow$ (ExprG p $\Gamma$ y') 
   $\rightarrow$ (x $\simeq$ x') $\rightarrow$ (y $\simeq$ y') $\rightarrow$ (Maybe (x $\simeq$ y))
 buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
-    buildProofGroup p ex' ex' px py | Just refl = ?MbuildProofGroup
+    buildProofGroup p ex' ex' px py | Just refl = 
+                Just(eq_preserves_eq x y c1 c2 lp rp e1_equiv_e2)
     buildProofGroup p ex' ey' px py | Nothing = Nothing
 \end{lstlisting}
 
 The argument of type $\code{ExprG}\ p\ \Gamma\ x'$ is the normalised reflected left hand size of the equivalence, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The same applies to the right-hand side. The function also expects proofs of $x \simeq x'$ and of $y \simeq y'$, that we will be able to provide because the normalisation function has produced them while it was building the normalised reflected terms.
 
-% TALK ABOUT THE METAVARIABLE MbuildProodGroup to add here !
 
 Finally, the main function which tries to prove the equivalence $x \simeq y$ simply has to normalise the two reflected terms encoding the left and the right hand side, and to use the function \code{buildProof} in order to compose the two proofs that have been obtained :
 
