@@ -172,20 +172,19 @@ As said before, these normalisation functions will compute the canonical represe
 
 
 \begin{lstlisting}
-groupNormalise : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) 	   	   	   
-	   $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x:c} $\rightarrow$ (ExprG p $\Gamma$ x) 
-	   $\rightarrow$ (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
+groupNormalise : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
+       $\rightarrow$ {x:c} $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
 \end{lstlisting}
 
 
 The function of normalisation has more work to do for structures with many axioms (commutative-monoids, groups, commutative-groups, semi-rings and rings), than for the easier structure (semi-groups and monoids).
-The operations performed by these normalisation functions will be detailed in the next subsection.
+The operations performed by the normalisation functions are detailed in the next section.
 
 
 \subsection{Normalisation functions}
 \label{sect:normalFormShape}
 
-For the sake of completeness, we will describe the normal form for the ring structure, as it has all the operations and all the properties about these operations.
+For the sake of completeness, we describe the normal form for rings which is our most sophisticated structure.
 The normalisation function takes in input an expression expressed with sums, products, constants (zero, one...) and variables that belong to an ordered set $\mathcal{V}$ of variables. In short, the normalisation function takes in input a polynomial of multiple variables. In output, it must produce a normal form representing the same polynomial. Therefore, we have to decide a canonical representation of polynomials. Many canonical representations can be used. We decide to stick with classical mathematical conventions. The first one, is that the polynomial will be completely developed, ie, the distributivity of $*$ over $+$ will be applied until it can't be applied anymore. The advantage is the simplicity, as factorising would be significantly more complicated and we're looking for simplicity as the normalisation functions will also have to produce the proof of equivalence between the old and the new index. Because the polynomial is completely developed, at the toplevel, it is a sum :
 
 \[
@@ -197,9 +196,7 @@ with $C_{i}^j$ a constant, and $Var_{i,k}^{j}$ one of the variable that belong t
 
 One could be surprised by the fact that the normal form is a sum of product of monomial, and not directly a sum of monomials. The reason is the following. A monomial is a product of a constant $C_{i}^j$ (like $4$) and of a product of variables (like $x*y*z$). For example,  $5*(x*(y*z))$ is a monomial. Now let's consider the term $(5*(x*(y*z))) * (4*(z*z))$. This term is not a monomial, but we could be tempted to simplify it into the monomial $20*(x*(y*(z*(z*z))))$. However, that would assume that the product is always commutative, ie, that we can re-organize the subterms of a product as we want. This is the case in a commutative ring, but this does not hold for any ring. Therefore, after the full development, the polynomial is a sum of \emph{product of monomials}, and not directly a sum of monomials. The only rearrangement that can be done towards the multiplication is to check if two constants are consecutive in a product, and if so, to replace them by the constant that represents the product of them.
 
-However, because $+$ is always a commutative operator in a ring, the different products of monomials themselves can be rearranged in different ways in this sum. That will be done at the level of the commutative group prover if we can provide an ordering on products of monomials.
-
-This ordering on product of monomials will be defined by using an ordering on monomials, that we will call \code{isBefore\_mon}, which works by looking at the order of variables for comparing two monomials $Monomial_{i}^{j}$ and $Monomial_{i'}^{j'}$.
+However, because $+$ is always a commutative operator in a ring, the different products of monomials themselves can be rearranged in different ways in this sum. That will be done at the underneath level for commutative groups if we can provide an ordering on products of monomials. This ordering will be defined by using an ordering on monomials, that we will call \code{isBefore\_mon}, which works by looking at the order of variables for comparing two monomials $Monomial_{i}^{j}$ and $Monomial_{i'}^{j'}$.
 \[
 Monomial_{i}^{j} = C_{i}^{j} * (Var_{i,1}^{j} * \prod_{k=2}^{c} Var_{i,k}^{j})
 \text{ and }
@@ -213,11 +210,10 @@ We can now build the order on \emph{product of monomials} that we needed. We nam
 A few additional conventions had to be decided about the normal form :
 \begin{itemize}
 
-\item The top-level sum of the polynomial will be written on the completely right-associative form : \\
+\item The top-level sum of the polynomial will be in right-associative form : \\
 $prodMon_1\ +\ (prodMon_2\ + (prodMon_3\ +\ (...\ +\ prodMon_a)))$
-\item The two levels of product that we have, namely the products of monomials (at the main level) and the products of variables (at the monomial level), will also be written on the completely right-associative form.
-\item We always simplify as much as possible with constants. That includes performing the simplification for the addition with zero and for the multiplication with zero and one, doing the computation between two constants that are nearby in a sum or in a product, etc...
-\item We always replace the binary operator \code{Minus} by a sum and a \code{Neg} (following $a-b=a+(-b)$) since the binary operator \code{Minus} is just allowed for the user's convenience, but internally we simplify them all.
+\item All the products that we have at the two levels, namely the products of monomials (at the main level) and the products of variables (at the monomial level), will also be written on the completely right-associative form.
+\item We always simplify as much as possible with constants. That includes simplifying the addition with zero and the multiplication with the constants zero and one, doing the computations between two nearby constants, etc...
 \item We always simplify the sum of an expression $e$ and its inverse $-e$ into the constant zero. 
 
 \end{itemize}
