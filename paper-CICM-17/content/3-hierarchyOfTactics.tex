@@ -62,7 +62,7 @@ interface Magma c => SemiGroup c where
 
 As example of magma, we can cite \code{Nat} equipped with its operation of addition and \code{List} with the operation of concatenation.
 
-The Monoid structure is a Semi-Group with the property of neutral element for a distinguished element called \code{Zero}.
+The monoid structure is a semi-group with the property of neutral element for a distinguished element called \code{Zero}.
 
 \begin{lstlisting}
 interface SemiGroup c => Monoid c where
@@ -71,7 +71,7 @@ interface SemiGroup c => Monoid c where
     Plus_neutral_2 : (c1:c) $\rightarrow$ (c1+Zero $\simeq$ c1)
 \end{lstlisting}
 
-The hierarchy of interfaces continues with Commutative-Monoid, Group, Commutative Group, Semi-Ring and Ring, but we only show the \code{Group} interface for reasons of space :
+The hierarchy of interfaces continues with commutative-monoids, groups, commutative groups, semi-rings and rings, but we only show the \code{Group} interface for reasons of space :
 
 \begin{lstlisting}
 interface Monoid c => Group c where
@@ -88,7 +88,7 @@ The notion of group uses two new operations (\code{Neg} and \code{Minus}), but \
 			
 When trying to prove an equivalence $x \simeq y$, the universally-quantified variables have been abstracted, and they are now part of the context. Our tatics will work by normalising both sides of the ``potential equivalence" $x \simeq y$, and afterwards comparing them with a syntactic equality test. The problem is that such a normalisation function will need to do different treatments for a a variable, for a constant and for an operator. For this reason, we will need to work by reflection. There will be one type of reflected terms for each algebraic structure. The novelty is not the use of reflected terms (this has already been done, as discussed in section~\ref{sect:relatedWork}), but is the use of a type-safe reflection mechanism where we index the reflected terms by the concrete value that they represent. Each of these datatype is parametrised over a type \code{c}, which is the real type on which we want to prove equalities (the \emph{carrier} type). It is also indexed over an implementation of the corresponding interface for \code{c} (we usually call it \code{p}, because it behaves as a \emph{proof} telling that the structure \code{c} has the desired properties), indexed over a context of abstracted variables (a vector $\Gamma$ of \code{n} elements of type \code{c}), and most important it is also indexed over a value of type \code{c}, which is precisely the concrete value being encoded.
 
-A magma is only equipped with the operation of addition. Thus, we only have three concepts to express in order to reflect terms in a Magma : constants, variables, and additions.
+A magma is only equipped with the operation of addition. Thus, we only have three concepts to express in order to reflect terms in a magma : constants, variables, and additions.
 
 \begin{lstlisting}
 data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
@@ -104,8 +104,8 @@ For an expression $e_x\ :\ \code{ExprMa}\ \Gamma\ x$, we will say that $e_x$ den
 When an expression is a variable \code{(VarMa\ \_\ $\Gamma$\ i)}, the denoted number is the corresponding variable in the context, ie, \code{(index\ i\ $\Gamma$)}.
 The expression \code{(ConstMa\ \_\ $\Gamma$\ k)} denotes the constant $k$ of type $c$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and $e_y$ is an expression encoding the concrete value $y$, then the expression \code{PlusMa\ $e_x$\ $e_y$} denotes the concrete value $(x + y)$. Because the reflected terms embed their corresponding inputs, they are guarantee to be faithful representations of them.
 
-There is no additional operations in SemiGroup and Monoid, so the datatypes that reflect terms in these two structures will have exactly the same shape as the one for Magma that we have given above.
-However, the datatype for reflected terms in Groups will have to introduce two new constructors for the \code{Neg} and \code{Minus} operations :
+There is no additional operations in semi-groups and monoids, so the datatypes that reflect terms in these two structures will have exactly the same shape as the one for magma that we have given above.
+However, the datatype for reflected terms in groups will have to introduce two new constructors for the \code{Neg} and \code{Minus} operations :
 
 \begin{lstlisting}
 data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
@@ -134,7 +134,7 @@ Every function of normalisation \code{norm} will produce a dependent pair : the 
 This function doesn't only produce an $\code{Expr}\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x \simeq x'$ is an essential component for building the desired proof of $x \simeq y$, which is the main problem that we are trying to solve.
 
 
-We will explain how the tactic works by commenting the construction of the tactic for Group, but the other algebraic structures will be equipped similarly. The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are elements of the type $c$, which  simulates a group. The reflected term for $x$ will be denoted $e_x$, and this term will have the type $\code{ExprG}\ p\ \Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$ because $e_x$ is precisely indexed over the real value $x$.
+We will explain how the tactic works by commenting the construction of the tactic for groups, but the other algebraic structures will be equipped similarly. The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are elements of the type $c$, which  simulates a group. The reflected term for $x$ will be denoted $e_x$, and this term will have the type $\code{ExprG}\ p\ \Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$ because $e_x$ is precisely indexed over the real value $x$.
 We've got similar things for $y$, which is encoded by $e_y$, and its type is indexed over the real value $y$.
 Running the normalisation procedure on $e_x$ will produce the normal form $e_{x'}$ of type $\code{ExprG}\ p\ \Gamma\ x'$ and a proof $p_x$ of $x \simeq x'$ while running the normalisation procedure on $e_y$ will produce the normal form $e_{y'}$ of type $\code{ExprG}\ p\ \Gamma\ y'$ and a proof $p_y$ of $y \simeq y'$.
 It is now enough to compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test \code{exprG\_eq} because these two expressions are now supposed to be in normal form.
@@ -178,8 +178,8 @@ groupNormalise : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c)
 \end{lstlisting}
 
 
-The function of normalisation has more work to do for structures with many axioms (Commutative-Monoid, Group, Commutative-Group, Semi-Ring and Ring), than for the easier structure (Semi-Group and Monoid).
-The operation performed by these normalisation functions will be detailed in the next subsection.
+The function of normalisation has more work to do for structures with many axioms (commutative-monoids, groups, commutative-groups, semi-rings and rings), than for the easier structure (semi-groups and monoids).
+The operations performed by these normalisation functions will be detailed in the next subsection.
 
 
 \subsection{Normalisation functions}
