@@ -28,7 +28,7 @@ The only way for $(Id_a\ x\ y)$ to be inhabited is therefore that $x$ should be
 proof of this equality : \code{(Refl\ x)} is precisely the proof which says that
 $x=_ax$. 
 
-When reading these definitions, one could wrongly think that the propositional equality is a simple wrapper of the judgemental equality. This is not the case : the propositional equality does not only contain the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. If a type $T$ is an inductive type with a constant constructor and a recursive constructor, ie, $T = 1 + T$, defined in idris as : 
+When reading these definitions, one could wrongly think that the propositional equality is a simple wrapper of the judgemental equality. This is not the case : the propositional equality does not only contain the judgemental equality, because in these type theories, a principle of induction is associated with each inductive type. If a type $T$ is an inductive type with a constant constructor and a recursive constructor, ie, $T = 1 + T$, defined in Idris as : 
 
 \begin{lstlisting}
 data T : Type where
