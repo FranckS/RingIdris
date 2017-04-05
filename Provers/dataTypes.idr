@@ -141,36 +141,36 @@ interface dataTypes.Ring c => CommutativeRing c where
 ------------------------------
 -- Magma -> Set
 magma_to_set_class : (Magma c) -> (Set c)
-magma_to_set_class x = (%instance)
+magma_to_set_class x = (%implementation)
 
 -- SemiGroup -> Magma
 semiGroup_to_magma_class : (SemiGroup c) -> (Magma c)
-semiGroup_to_magma_class p = (%instance)
+semiGroup_to_magma_class p = (%implementation)
 
 -- Monoid -> SemiGroup
 monoid_to_semiGroup_class : (dataTypes.Monoid c) -> (SemiGroup c)
-monoid_to_semiGroup_class p = (%instance)
+monoid_to_semiGroup_class p = (%implementation)
 
 -- Group -> Monoid (needed for tools.idr, for unicity of symmetric)
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
-group_to_monoid_class p = (%instance)
+group_to_monoid_class p = (%implementation)
 
 -- CommutativeMonoid -> Monoid
 -- NEW
 commutativeMonoid_to_monoid_class : (CommutativeMonoid c) -> (dataTypes.Monoid c)
-commutativeMonoid_to_monoid_class p = (%instance)
+commutativeMonoid_to_monoid_class p = (%implementation)
 
 -- CommutativeGroup -> Group
 commutativeGroup_to_group_class : (CommutativeGroup c) -> (dataTypes.Group c)
-commutativeGroup_to_group_class p = (%instance)
+commutativeGroup_to_group_class p = (%implementation)
 
 -- Ring -> CommutativeGroup
 ring_to_commutativeGroup_class : (dataTypes.Ring c) -> (dataTypes.CommutativeGroup c)
-ring_to_commutativeGroup_class p = (%instance)
+ring_to_commutativeGroup_class p = (%implementation)
 
 -- CommutativeRing -> Ring
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
-cr_to_r_class p = (%instance) -- finds the instance automatically from p
+cr_to_r_class p = (%implementation) -- finds the implementation automatically from p
 
 -- -----------------------------------------
 -- (getters) Equality as elements of set ---
@@ -190,14 +190,14 @@ magma_eq_as_elem_of_set x = set_eq_as_elem_of_set (magma_to_set_class x)
 
 -- Semi group
 semiGroup_to_set : (SemiGroup c) -> (Set c)
-semiGroup_to_set x = (%instance)
+semiGroup_to_set x = (%implementation)
 
 semiGroup_eq_as_elem_of_set : (SemiGroup c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 semiGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (semiGroup_to_set x)
 
 -- Monoid
 monoid_to_set : (dataTypes.Monoid c) -> (Set c)
-monoid_to_set x = (%instance)
+monoid_to_set x = (%implementation)
 
 monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
@@ -205,7 +205,7 @@ monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
 
 -- Commutative Monoid
 commutativeMonoid_to_set : (CommutativeMonoid c) -> (Set c)
-commutativeMonoid_to_set x = (%instance)
+commutativeMonoid_to_set x = (%implementation)
 
 commutativeMonoid_eq_as_elem_of_set : (CommutativeMonoid c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid_to_set x)
@@ -213,7 +213,7 @@ commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid
 
 -- Group
 group_to_set : (dataTypes.Group c) -> (Set c)
-group_to_set x = (%instance)
+group_to_set x = (%implementation)
 
 group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
@@ -221,7 +221,7 @@ group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 
 -- Commutative Group
 commutativeGroup_to_set : (CommutativeGroup c) -> (Set c)
-commutativeGroup_to_set x = (%instance)
+commutativeGroup_to_set x = (%implementation)
 
 commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_to_set x)
@@ -229,7 +229,7 @@ commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_t
 
 -- Ring
 ring_to_set : (dataTypes.Ring c) -> (Set c)
-ring_to_set x = (%instance)
+ring_to_set x = (%implementation)
 
 ring_eq_as_elem_of_set : (dataTypes.Ring c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
@@ -386,7 +386,6 @@ print_Variable f (EncodingGroupTerm_var _ _ _ _ i) = "[Encoding_var (" ++ (show(
 print_Variable f (EncodingProductOfMonomials _ _ _ prod) = "encoding of product of monomials" -- Perhaps will need to print something more useful here for debug
 print_Variable f (EncodingNegProductOfMonomials _ _ _ prod) = "encoding NEG of product of monomials" -- same
 --print_VariableA f (EncodingGroupTerm_const _ _ _ c1) = "[Encoding_const (" ++ (f c1) ++ ") ]"
-
 
 
 -- Reflected terms in a magma
