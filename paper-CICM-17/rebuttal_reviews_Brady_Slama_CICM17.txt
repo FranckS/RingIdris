@@ -22,7 +22,7 @@ Agreed.
 
 > The example in the introduction provides a good motivation, although proofs of type equivalences are not the only use case for this work.
 
-You're entierly right : the motivating example is an illustration of how these proofs obligations can naturally occur, but there are also many other possible utilisations of our proof automation.
+You're entierly right : the motivating example is an illustration of how these proofs obligations can naturally occur, but there are also many other possible utilisations of our proof automations.
 
 > One question that comes to mind is whether it easy to prove properties of the normalization functions (e.g. given a concrete equivalence relation, proving that each equivalence class indeed has a unique canonical representative). Does the use of reflected terms have an impact on such proofs?
  
@@ -30,7 +30,7 @@ Things become very difficult when we leave the ground of the algebraic structure
 dedution modulo. Determining if such a rewriting system admits a normal form requires to determine if the rewriting system formed is confluent and terminating. Both questions are very difficult to answer in the general case. Currently, systems like Dedukti 
 (an implementation of lambda-Pi-calculus modulo) can plug to an auxiliary confluence checker such as CSI^ho ( http://cl-informatik.uibk.ac.at/software/csi/ho/ ) or ACPH ( http://coco.nue.riec.tohoku.ac.jp/2015/papers/acph.pdf ).
 
-It is interesting to note that the study of the properties of an alleged normalisation function can only be meta-theoretic : it's not possible to prove it within the proof assistant. Benjamin Grégoire and Assia Mahboubi [cited in our paper] have also notice it for their implementation
+It is interesting to note that the study of the properties of an alleged normalisation function can only be meta-theoretic : it's not possible to prove completeness within the proof assistant. Benjamin Grégoire and Assia Mahboubi [cited in our paper] have also noticed it for their implementation
 of their Ring prover for Coq. It's not an issue as it does not affect the correctness of the decision procedure.
 
 > An interesting question for future work would be to exploit external provers (first-order theorem provers, rewriting engines...) to find equivalences on structures with arbitrary rewriting rules, and later reconstruct the proofs within the proof assistant.
@@ -51,7 +51,7 @@ We still need to say two words about the equivalence relation (~=) at the start 
 > p.11: "admit a canonical [representative]"
 > p.15: "deduction modulo and proof search heuristics [start]."
 
-Sorry about them. Thanks for finding them. We will correct.
+Sorry about them, and thanks for finding them. We will correct.
 
 > ----------------------- REVIEW 2 ---------------------
 > PAPER: 42
@@ -66,20 +66,20 @@ Sorry about them. Thanks for finding them. We will correct.
 > First two items:
 > 1. Paper is definitely in-scope for Calculemus
 > 2. As written, it is too long by 2 pages [but see below].
-> 
+>
 > This paper describes one method (type-safe reflection) to obtain methods of proving
 > equivalence which is (somewhat) modular.
-> 
 > The explanations are clear -- but written in an extremely verbose style.  Cutting
 > two pages would be very easy; cutting 3, feasible.
-> 
 > Saving such space would allow a bit of room to detail some features of Idris a bit
 > more for the average CICM reader, such as
 > a. unbound variables (like 'a' in the definition of Id being implicitly quantified
 >   over Type)
 > b. that ** is dependent pairing
 > c. why no implicits are used (such as in the signature of addBit)
-> 
+
+We believe it will be possible to condense the paper to make space for your suggestions.
+
 > The start of section 2 talks about 'natural inheritance' of interfaces, such as that
 > between Group and Monoid.  When such algebraic hierarchies are done "naively", yes
 > this appears to occur.  But as soon as the hierarchy grows large enough, such
@@ -88,89 +88,198 @@ Sorry about them. Thanks for finding them. We will correct.
 > to move results from one place to another.  Some morphisms are still special (the
 > display morphisms of the opposite category]; see "Theory Presentation Combinators" [1]
 > by Carette & O'Connor for the details. (All papers linked have been published)
-> 
+
+Agreed, but this is not a problem for us, as the hierarchy is not supposed to deal with more
+than the 7 to 10 useful albebraic structures. Coq for example only has a Ring prover (commutative
+or not), but we've obtained, almost for free, provers for semigroups, monoids, and groups thanks
+to the modularity with which we compute the normal form.
+
 > Furthermore, there seems to be an implicit assumption that algebraic theories
 > (such as Group) have a canonical presentation -- this is not true.  And that is
 > exactly what "Realms" [2] are all about.
-> 
+
+Sorry, we haven't been very clear on this point. When we were saying that groups admit a 
+normal form, we were talking about structures that *only* have the axioms of a group,
+without additional axioms. Additional axioms can of course lead to a rewriting system
+that is not confluent (or that is not guarantee to terminate), thus destroying the existence
+of the normal form. This is not particular to group and this also applies to the other algebraic structures.
+
+In our paper, we only focus in these "pures" algebraic structures (semi-groups, monoids,
+groups, rings...) that do not have any additional axiom and which are guarantee to have a normal form.
+If the user uses a structure that does have additional axioms, then there is no guarantee that
+one of our prover will be able produce the proofs that he/she needs (it will depend on the equation
+he needs to prove and the necessity to use the extra axioms). If it fails, he can try to 
+extend the closest algebraic structure of the hierarchy by dealing on his own with his 
+additional axioms (in the case where his concrete structure effectively admits a normal form).
+ 
 > The largest flaw though seems to be the implicit assumption that lots (most? all?)
 > interesting structures have normal forms.  And that these can be found using a
-> modular algorithm.  Without ever talking about Knuth-Bendix, no less!  If one is going
+> modular algorithm. Without ever talking about Knuth-Bendix, no less!  
+
+Agreed, there are indeed many structures which do not have normal norms. But deduction modulo, 
+although very interesting, was somehow out of scope for our goals. We initially wanted Idris 
+to be equiped with some automations, as Coq is with its ring tactic, and we've done it on a modular way
+which made it easy to also implement at the same time (and almost for free) a prover for semi-groups, 
+monoids, and groups (commutative or not). We do not want to clame that every interesting structure 
+can be treated by one prover of our hierachy of tactics. However, our hierarchy of provers is more general
+than the automations available in Coq or Agda for example.
+
+> If one is going
 > to talk about a "correct by construction" approach, then the *definition* of what a
 > normal form is (i.e. syntax where intensional equality is a decision procedure for
 > equality).  This is implicit everywhere, but never explicit.  And it is not an
 > invariant kept by the types!
-> 
+
+Yes, the types only say that the original reflected term and the normalised one both represent the
+same concrete value, and this is in fact the proof of *correctness* of the approach. 
+The *completeness* is a meta property that we cannot prove in the language itself. 
+Benjamin Grégoire and Assia Mahboubi [cited in our paper] have also noticed it for their implementation
+of their Ring prover for Coq. It's not an issue as it does not affect the correctness of the decision procedure.
+
 > For example, the word problem for groups is undecidable.  This implies that there are
 > theories with no normal forms.
-> 
+
+Yes, we agree, see our answer to the two previous questions.
+
 > In section 2.5, an *order* is snuck in, onto the set of variables.  This is crucial!
 > It should not be buried.  Hint: Groebner bases.  Term orders are important.
 > But normal forms are extremely sensitive to term orders (as bad as exponential).
+
+The set of variables V is said to be ordered in section 2.5 (page 12). Note that this is not a limitation
+as it is always possible to build an adhoc ordering by using the order of appearance of the variables in the goal A = B
+This is in fact exactly what our automatically reflection does (mentionned briefly in section 2.7).
+
 > Furthermore, the discussion in this section implicitly assumes associativity.  There
 > are many useful, interesting, non-associative algebras...
-> 
-> Overall, the point is that given a structure X, then the induced language-of-X
-> has a nice structure as well.  Most of it is fairly automatically derivable from the
-> definition of X.
-> 
+
+We agree that there are many useful non-associative algebras. However, our work was focused on rings
+and all of the underneath structures. This is why, at the very root, we have semi-groups. Therefore,
+the associativity is the first axiom that we deal with, and our machinery is not intended for non-associative algebras.
+
 > Various further comments:
 > - a citation in the last paragraph of the introduction ("This is even an everyday
 > routine when ...") would be appreciated.  I index types with values all the time,
 > and yet have managed to avoid such proofs (as well as 'subst') completely.
+
+Edwin, what would you answer here  I could perhaps say that anyway, our automation is *not only* intended
+for problems related to the use of dependent types (as the first reviewer has kindly mentionned). Proving
+equalities happens more often that proving type equalities...
+
 > - in the example for 'adc' on p.4, why doesn't (plus 0 0) reduce to 0 ?  That seems odd.
+
+Edwin : I don't know if it is still the case. It might have been due to an older version of Idris.
+
 > - it should be mentioned that with the right combinators, proofs such as those of
 >    adc_lemma_2 really are not bad.  [This doesn't take anything away from the core
 >     contributions of the paper!]
+
+Agreed.
+
 > - There is a huge buried assumption, that all terms over algebraic structures
 >   have decidable equality!  [set_eq of the Set interface].  This clashes quite a bit
 >   with the naive interpretation of lifting constants into the Expression domains
->   (ConstMa, ConstG, etc).  This means, for example, that the 'reals' cannot be
->   seen as a Ring, unless one forbids representations of constants other than those
->   from Z or Q.
+>   (ConstMa, ConstG, etc). 
+
+We think that there is a misunderstanding on this point : the required decidable equality
+is only a decidable equality for the set of constants of the polynomials. For example, when 
+trying to prove equalities over Nat, the needed decidable equality is the one that decides 
+the equality between two natural numbers (with no variables and no operations), called decEq in Idris.
+
 > - Why on earth would there be a 'hand proof' (eq_preserves_eq) on p.7 in a paper
 >   about Idris?!?
+
+We thought such a 'hand proof' would be easier to read to a general audience.
+
 > - What happened to Pointed Magma?  Left-unital semigroup?  Right-unital semigroup?
 >   Quasigroup? left and right loops?
 >   All sorts of odd things happen when one starts being fine-grained.
+
+As said before, we did not aim to implement all algebraic structures that exist.
+Our machinery only deals with the intermediate algebraic structures that lead to rings.
+That certainly wasn't said clearly in the paper. We will make it clearer.
+
 > - The interface to a Group should have *either* unary or binary -, and then use a
 >   *definitional* (and thus conservative) extensio to add the other.  This is again
 >   what Realms are useful for.
+
+Having both is useful if the user has something to prove with both the unary Neg and the binary Minus. 
+Expressing in the interface something like "there is either a unary or binary -" 
+would have been a hassle. However, this is not a limitation : it is always possible 
+for the user to define one with the other (and the proof Minus_simpl that he/she 
+has to provide then becomes trivial).
+
 > - It is worth mentioning at the start of section 2.3 that "analysing syntax" is the
 >   heart of reflection.
+
+Agreed, we will mention it.
+
 > - ExprMa: who writes this?  Humans?  The structure of this is SO regular, it screams
 >   automation.  It is done that way in MathScheme.
+
+The datatypes themselves are handwritten. However, building the terms of type ExprMa, ExprG, ExprR,
+ie, building the encoding of the concrete values is done automatically by our automatic reflection mecanism (described briefly in 2.7).
+
 > - It should also be noted that this paper uses the 'local method' of reasoning
 >   with syntax; it should be constrasted with the 'global method' as well. [4]
+
+I don't know what to answer to this. Edwin ? :)
+
 > - What is the reason for lifting constants?
+
+This is so trivial that I don't know how to answer to this point. Any idea Edwin ?
+
 > - Given that there is a 'hierarchy' of algebraic structures, why are the syntax
 >   types hand-built and non-hierarchical?  [I know why, but not all readers will
 >   know!]
+
+This is so trivial that I don't know how to answer to this point. Any idea Edwin ?
+
 > - buildPRoofGroup:
 >   a) is there a need for one of these per structure? [Group, Magma, etc]?
 >   b) what is 'exprG_eq' ?
+
+This is a standard equality test (mentionned on the fly page 7) that checks equality of syntax.
+
 >   c) who binds 'c1' and 'c2'?
+
+Sorry, it's a typo. c1 should be x' and c2 should be y'. We will fix it. Thanks for finding it.
+
 > - p.13 "We always simplify as much as possible with constants".
 >   a) what is 'simplification'?
 >   b) this isn't something you have a choice to do / not do.  If you don't, you won't
 >   get a normal form.
+
+Indeed, we *have* to do it. We still wanted to describe what the normalisation function has to do,
+and not to only mention the arbitrary decisions that we had to take (such as writing everything on
+the complete left or complete right associative form).
+
+These simplifications entail simplifying the addition with zero, and the multiplication 
+with the constants zero and with one, doing the computations between two nearby constants, etc.
+(mentionned briefly on page 13)
+
 > - The hacks involved in Variable (i.e. treat Neg as a pseudo-variable) don't scale
 >   well.  Once you get to > 100 structures in your hierarchy, that will become quite
 >   obvious.  And life gets really fun when you get above 1000 (as we now have).
+
+We completely agree, but we won't have more than 10 structures. The goal was to implement automatic provers
+for the albebraic structures that are underneath rings, not to deal with all possible algebraic structure.
+Having a modular computation of the normal form as the one we have would be very difficult if not impossible to maintain for
+more than 10, or perhaps 20 algebraic structures. We would encounter a lot of other issues before we encounter the
+one you mentionned about the hacks in Variable. Our modularity was useful for getting almost for free some
+provers for the undernath structures of rings, but this approach would not necessarly would be well suited for dealing with
+100 or 1000 structures, nor it would for dealing with arbitrary rewriting rules.
+
 > - section 2.7 really REALLY deserves to be longer.  There are interesting things to
 >   be said here.
+
+Ok, we will say more about it in the final draft.
+
 > - You really should also compare to Agda's reflection in the related work.  Possibly
 >   to Lean as well.
-> 
-> [1] https://arxiv.org/abs/1204.0053
-> [2] https://arxiv.org/abs/1405.5956
-> [3] https://arxiv.org/abs/1105.0548
-> [4] https://arxiv.org/abs/1305.6052
-> 
-> ===
-> 
-> Jacques Carette
-> 
+
+Ok.
+
+
 > ----------------------- REVIEW 3 ---------------------
 > PAPER: 42
 > TITLE: Automatically Proving Equivalence by Type-Safe Reflection
@@ -184,13 +293,17 @@ Sorry about them. Thanks for finding them. We will correct.
 > equality, which is not automatically decidable. In this setting
 > proving equalities automatically for a wide set of common cases is
 > certainly very desirable.
-> 
+
+Agreed.
+
 > The paper starts with a simple example of a bit-vector adder
 > illustrating the (well known) issues with proving equality and
 > motivates the need for a generic prover for typical structures – one
 > would like to have a generic prover that can handle various datatypes
 > with a similar structures.
-> 
+
+Agreed.
+
 > The design and implementation of the provers are then described. The
 > provers are based on reflection that is type-safe and correct by
 > construction (Agda and Coq don’t have this property). Additionally,
@@ -198,11 +311,13 @@ Sorry about them. Thanks for finding them. We will correct.
 > normalization is generic and can be inherited from the underlying
 > structures. The developed provers cover many useful algebraic cases
 > such as monoids, semi-groups, groups, semi-rings and rings.
-> 
+
+Agreed.
+
 > Overall the paper is a nice presentation of a new and useful
 > development in Idris, with some novel features compared to similar
 > tools.
-> 
-> ------------------------------------------------------
-> 
-> Best wishes,
+
+Thanks, we agree.
+
+
