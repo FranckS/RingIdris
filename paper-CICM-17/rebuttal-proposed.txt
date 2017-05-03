@@ -1,6 +1,6 @@
-We thank the reviews for their careful reading of the paper and many helpful
-comments, which we will address in a revision. In particular, we are sure we
-can condense the paper according to Jacques' suggestions.
+We thank the reviewers for their careful reading of the paper and many helpful
+comments, which we will incorporate in the final draft. In particular, we are 
+sure we can condense the paper according to Jacques' suggestions.
 
 Regarding the choice of structures and normal forms: our hierarchy is not
 supposed to deal with more than the most useful algebraic structures which
@@ -14,26 +14,25 @@ our hierachy of tactics, although our hierarchy of provers is more general than
 the automations available in e.g. Coq or Agda.
 
 On proving properties of normalisation: Things become difficult when we leave
-the ground of the algebraic structures in which we work (monoids, groups and
-rings essentially) and move to an arbitrary equivalence relation with arbitrary
-axioms. Such a system can be seen as a rewriting system of deduction modulo.
-Determining if such a rewriting system admits a normal form requires
+the ground of the "pure" algebraic structures in which we work (semigroups, monoids, 
+groups and rings essentially) and move to an arbitrary equivalence relation with 
+arbitrary axioms. Such a system can be seen as a rewriting system of deduction 
+modulo. Determining if such a rewriting system admits a normal form requires
 determining whether the rewriting system is confluent and terminating. Both
 questions are difficult to answer in the general case. Currently, systems like
 Dedukti (an implementation of lambda-Pi-calculus modulo) can plug to an
-auxiliary confluence checker such as CSI^ho or ACPH.
+auxiliary confluence checker such as CSI^ho or ACPH. That would be an interesting
+future work for Idris, as suggested by the first reviewer.
+
+There are indeed many structures which do not have normal norms. But deduction
+modulo, although very interesting, was somehow out of scope for our goals. We
+initially wanted Idris to be equipped with some automations, which we did in a
+modular way which made it easy to implement provers for other structures as well.
 
 It is interesting to note that the study of the properties of a proposed
 normalisation function can only be meta-theoretic. Indeed, Grégoire and
-Mahboubi notice it for their Ring solver in Coq.  However, this does not affect
+Mahboubi noticed it for their Ring solver in Coq. However, this does not affect
 the correctness of the decision procedure.
-
-there are indeed many structures which do not have normal norms. But deduction
-modulo, although very interesting, was somehow out of scope for our goals. We
-initially wanted Idris to be equiped with some automations, which we do in a
-modular way which makes it easy to implement provers for other structures.
 
 The motivating example is an illustration of how these proofs obligations occur
 naturally, but there are many other uses.
-
-
