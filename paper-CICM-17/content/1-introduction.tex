@@ -150,13 +150,13 @@ definition can be accepted by the system, but we now have two proof obligations
 between the two types, and they have to be provided by hand.
 For example, using a proof script: 
 
+% EB - I took out a step because without the whole proof, all we really
+% need to see is some representative examples of rewritings
 \begin{lstlisting}
 adc_lemma_2 = proof {
     intros;
     rewrite sym (plusZeroRightNeutral x);
     [...]
-    rewrite sym (plusAssociative (plus c (plus bit0 (plus v v))) 
-                 bit1 (plus v1 v1));
     rewrite (plusAssociative c (plus bit0 (plus v v)) bit1);
     rewrite plusCommutative bit1 (plus v v);
     [...]
@@ -165,11 +165,11 @@ adc_lemma_2 = proof {
 }
 \end{lstlisting}
 
-As we see, this kind of proof consists of a potentially long sequence of
-rewriting steps, each using one of the available properties: neutral element,
+Such proofs consist of a potentially long sequence of
+rewriting steps, each using one of the properties: neutral element,
 commutativity, associativity. Without some automation, this sequence of
 rewritings must be done by the programmer.  Not only is this time consuming,
-just a small change in the definition may lead to a different proof obligation,
+but a small change in the definition may lead to a different proof obligation,
 thus invalidating the proof. 
 A minor change in the datatype, or 
 the definition of \code{addBit} or \code{adc} will require us
@@ -204,8 +204,8 @@ guaranteeing that the reflected term is a sound representation.
 
 \item The normalisation procedures are implemented by following a correct by
 construction approach (section~\ref{sect:correctByConstruction}), instead of proving the correctness afterwards with
-auxiliary lemmas. This approach is much more suitable for programming languages
-like Idris. 
+auxiliary lemmas. 
+% This approach is much more suitable for programming languages like Idris. 
 
 \item We develop a \emph{hierarchy} of tactics where each tactic reuses the
 rewriting machinery of the structure from which it inherits.  For
