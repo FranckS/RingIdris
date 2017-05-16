@@ -37,7 +37,7 @@
 \mainmatter              % start of the contributions
 %
 \title{Automatically Proving Equivalence by Type-Safe Reflection}
-\subtitle{Or how to use dependent types to address some of the problems they have caused}
+%\subtitle{Or how to use dependent types to address some of the problems they have caused}
 %
 \titlerunning{xxx}  % abbreviated title (for running head)
 %                                     also used for the TOC unless
@@ -50,8 +50,22 @@
 \maketitle              % typeset the title of the contribution
 
 \begin{abstract}
-One common difficulty with programming and reasoning with dependent types is that proof obligations arise naturally once programs become even moderately sized. For example, implementing an adder for binary numbers indexed over their natural number equivalents will naturally lead to proof obligations for equalities of expressions over universally quantified natural numbers. The need of these proofs of equalities comes, in intensional type theories, from the fact that the propositional equality enables to prove as equal terms that are not judgmentally equal, which means that the typechecker can't always obtain equalities by reduction, and therefore often needs proofs before accepting definitions.
-As far as possible, we would like to solve such proof obligations automatically. In this paper, we show one way to automate these proofs by reflection for the dependently-typed programming language Idris. We will show how type-safe reflection, where reflected terms are indexed by the original Idris expression, leads to straightforward construction and manipulation of proofs. We build a hierarchy of reflexive tactics for proving equivalences in semi-groups, monoids, commutative monoids, groups, commutative groups, semi-rings and rings. We will also show how each tactic reuses the ones from the simplest structures, thus avoiding as much as possible the duplication of code and proofs.
+One difficulty with programming with dependent types is that proof obligations
+arise naturally once programs become even moderately sized. For example,
+implementing an adder for binary numbers indexed over their natural number
+equivalents naturally leads to proof obligations for equalities of expressions
+over natural numbers. The need for these equality proofs comes, in intensional
+type theories, from the fact that the propositional equality enables us to
+prove as equal terms that are not judgementally equal, which means that the
+typechecker can't always obtain equalities by reduction.  As far as possible,
+we would like to solve such proof obligations automatically. In this paper, we
+show one way to automate these proofs by reflection in the dependently typed
+programming language Idris.  We show how defining reflected terms indexed by
+the original Idris expression allows us to construct and manipulate proofs. We
+build a hierarchy of tactics for proving equivalences in semi-groups, monoids,
+commutative monoids, groups, commutative groups, semi-rings and rings. We also
+show how each tactic reuses those from simpler structures, thus avoiding
+duplication of code and proofs.
 
 
 \keywords{proof automation, equivalence, equality, proof by reflection, correct-by-construction software, type-driven development}
