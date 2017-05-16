@@ -243,26 +243,62 @@ data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
 \end{lstlisting}
 
 
-The index of type $c$ (the real value encoded by an expression) is always expressed by using the lookup function \code{index} and the available operations in the implementation $p$, which for a group are $+$, \code{Minus} and \code{Neg}.
+The index of type $c$ (the value encoded by an expression) is always expressed
+by using the lookup function \code{index} and the available operations in the
+implementation $p$, which for a group are $+$, \code{Minus} and \code{Neg}.
 
-	\subsection{A correct by construction approach}
+\subsection{A correct-by-construction approach}
 \label{sect:correctByConstruction}
 
-We want to write the normalisation function on a \emph{correct by construction} way, which means that no additional proof should be required after the definition of the function. Thus, \code{norm} will produce the proof that the new expression freshly produced has the same interpretation as the original expression, and this will be made easier by the fact that all the datatypes for reflecting terms (\code{ExprMa}, \code{ExprG}, \code{ExprR}, etc) are indexed over the real --concrete-- value : a term of type $\code{Expr}\ \Gamma\ x$ is the encoding of the concrete value $x$ in the context $\Gamma$.
-Thus, for each algebraic structure, the type of the function \code{norm} will look like this : \\
-$\code{norm} :\ \code{Expr}\ \Gamma\ x\ \rightarrow\ (x'\ \code{**}\ (\code{Expr}\ \Gamma\ x',\ x\ \simeq\ x'))$ \\
-Every function of normalisation \code{norm} will produce a dependent pair : the new concrete value $x'$, and a pair made of an $\code{Expr}\ \Gamma\ x'$ which is the new encoded term indexed over the new concrete value we have just produced, and a proof that old and new concrete values $x$ and $x'$ are equivalent.
+We take a \emph{correct-by-construction} approach to implementing
+normalisation, which means that no additional proof will be required after
+defining normalisation.
+The normalisation function \code{norm} produces a new expression,
+and a proof that it
+has the same interpretation as the original.
+This will be enforced by the fact that all the datatypes for
+reflected terms (\code{ExprMa}, \code{ExprG}, \code{ExprR}, etc) are indexed
+over the concrete value: a term of type $\code{Expr}\ \Gamma\ x$ is
+the encoding of the concrete value $x$ in the context $\Gamma$.  For each
+structure, the type of \code{norm} has
+the following form:
+\\ $\code{norm} :\ \code{Expr}\ \Gamma\ x\ \rightarrow\ (x'\ \code{**}\
+(\code{Expr}\ \Gamma\ x',\ x\ \simeq\ x'))$ \\ 
+Every instance of
+\code{norm} produces a dependent pair: the new concrete value $x'$, and a
+pair made of an $\code{Expr}\ \Gamma\ x'$ which is the new encoded term indexed
+over the new concrete value we have just produced, and a proof that old and new
+concrete values $x$ and $x'$ are equivalent.
+This proof of $x \simeq y$ is the crucial component which allows us to
+automatically produce proofs of equivalences.
 
-This function doesn't only produce an $\code{Expr}\ \Gamma\ x$ (with an internal conversion of type) because the proof of $x \simeq x'$ is an essential component for building the desired proof of $x \simeq y$, which is the main problem that we are trying to solve.
+We will explain how to implement the tactic for \code{Group} specifically,
+using a normalisation function \code{groupNormalise},
+but the other structures are implemented similarly. 
+The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are
+elements of the type $c$, which implements a group. The reflected term for $x$
+is denoted $e_x$, and has type $\code{ExprG}\ p\
+\Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$.  
+Similarly,
+$y$, is encoded by $e_y$, and its type is indexed by the
+value $y$.  Evaluating \code{norm} on $e_x$ produces the
+normal form $e_{x'}$ of type $\code{ExprG}\ p\ \Gamma\ x'$ and a proof $p_x$ of
+$x \simeq x'$.
+Similarly, for $e_y$, it produces
+the normal form $e_{y'}$ of type $\code{ExprG}\ p\ \Gamma\ y'$ and a proof
+$p_y$ of $y \simeq y'$.  It now suffices to compare $e_{x'}$ and $e_{y'}$
+using a syntactic equality test \code{exprG\_eq} on the normal forms.
 
-
-We will explain how the tactic works by commenting the construction of the tactic for groups, but the other algebraic structures will be equipped similarly. The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are elements of the type $c$, which  simulates a group. The reflected term for $x$ will be denoted $e_x$, and this term will have the type $\code{ExprG}\ p\ \Gamma\ x$, which means that $e_x$ is guaranteed to be the encoding of $x$ because $e_x$ is precisely indexed over the real value $x$.
-We've got similar things for $y$, which is encoded by $e_y$, and its type is indexed over the real value $y$.
-Running the normalisation procedure on $e_x$ will produce the normal form $e_{x'}$ of type $\code{ExprG}\ p\ \Gamma\ x'$ and a proof $p_x$ of $x \simeq x'$ while running the normalisation procedure on $e_y$ will produce the normal form $e_{y'}$ of type $\code{ExprG}\ p\ \Gamma\ y'$ and a proof $p_y$ of $y \simeq y'$.
-It is now enough to compare $e_{x'}$ and $e_{y'}$ using a standard syntactic equality test \code{exprG\_eq} because these two expressions are now supposed to be in normal form.
-
-Now, if the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then they necessary have the same type\footnote{We are working with the heterogeneous equality JMeq by default in Idris, but as always, the only way to have a proof of a:A = b:B is when A=B}, and therefore $x'=y'$, which implies $x' \simeq y'$ because the propositional equality is more restrictive than an equivalence relation.
-By using the two equivalences $x \simeq x'$ and $y \simeq y'$ that we obtained during the normalisations in the new equivalence $x' \simeq y'$ with the use of \code{eq\_preserves\_eq}, we can get a proof of $x \simeq y$. This is what the function \code{buildProof} is doing :
+If the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then
+they necessarily have the same type\footnote{We work with the
+heterogeneous equality by default in Idris, but as always, the only way to
+have a proof of \code{a:A = b:B} is when \code{A = B}}, and therefore $x'=y'$, which implies
+$x' \simeq y'$ because the propositional equality is more restrictive than an
+equivalence relation.  By using the two equivalences $x \simeq x'$ and $y
+\simeq y'$, and the new equivalence
+$x' \simeq y'$, we can use \code{eq\_preserves\_eq}, to get the desired proof of
+$x \simeq y$. We put all of this together in a function
+\code{buildProofGroup}:
 
 \begin{lstlisting}
 buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
@@ -274,10 +310,15 @@ buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
     buildProofGroup p ex' ey' px py | Nothing = Nothing
 \end{lstlisting}
 
-The argument of type $\code{ExprG}\ p\ \Gamma\ x'$ is the normalised reflected left hand size of the equivalence, which represents the value $x'$. Before the normalisation, the reflected LHS was reflecting the value $x$. The same applies to the right-hand side. The function also expects proofs of $x \simeq x'$ and of $y \simeq y'$, that we will be able to provide because the normalisation function has produced them while it was building the normalised reflected terms.
+The argument of type $\code{ExprG}\ p\ \Gamma\ x'$ is the normalised reflected
+left hand size of the equivalence, which represents the value $x'$. 
+The function also expects proofs of $x \simeq x'$ and
+of $y \simeq y'$, which are built by the normalisation process.
 
-
-Finally, the main function which tries to prove the equivalence $x \simeq y$ has to normalise the two reflected terms encoding the left and the right hand side, and to use the function \code{buildProof} in order to compose the two proofs that have been obtained :
+Finally, the main function which tries to prove the equivalence $x \simeq y$
+has to normalise the two reflected terms encoding the left and the right hand
+side, and use the function \code{buildProof} to compose the two
+proofs:
 
 \begin{lstlisting}
 groupDecideEq : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
@@ -289,25 +330,46 @@ groupDecideEq p ex ey =
 \end{lstlisting}
 
 
-The remaining part is to define the function \code{norm}. Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical representative for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equivalence without brute-forcing a series of rewritings, that would have no guarantee to terminate.
-As said before, the normalisation functions also produce the proof of equivalence between the initial real value (the index of the input term) and the final real value (the index of the produced term). Thus, the type of the reduction function for group is :
-
+It remains to define the function \code{groupNormalise}, which is an
+instance of \code{norm} for groups:
 
 \begin{lstlisting}
 groupNormalise : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
        $\rightarrow$ {x:c} $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
 \end{lstlisting}
 
+Each algebraic structure has a function for reducing reflected terms to normal.
+The algebraic structures which concern us admit a canonical representative for
+any element, a property which we use to decide equalities. Without this
+property, it would be more complicated to decide equivalence without
+brute-forcing a series of rewritings, that would have no termination guarantee.  
 
-The function of normalisation has more work to do for structures with many axioms (commutative-monoids, groups, commutative-groups, semi-rings and rings), than for the easier structure (semi-groups and monoids).
-The operations performed by the normalisation functions are detailed in the next section.
+The normalisation function has more work to do for structures with many
+axioms (commutative-monoids, groups, commutative-groups, semi-rings and rings),
+than for the simpler structures (semi-groups and monoids). In the next
+section, we describe the normalisation process.
 
 
 \subsection{Normalisation functions}
 \label{sect:normalFormShape}
 
-For the sake of completeness, we describe the normal form for rings which is our most sophisticated structure.
-The normalisation function takes in input an expression expressed with sums, products, constants (zero, one...) and variables that belong to an ordered set $\mathcal{V}$ of variables. In short, the normalisation function takes in input a polynomial of multiple variables. In output, it must produce a normal form representing the same polynomial. Therefore, we have to decide a canonical representation of polynomials. Many canonical representations can be used. We decide to stick with classical mathematical conventions. The first one, is that the polynomial will be completely developed, ie, the distributivity of $*$ over $+$ will be applied until it can't be applied anymore. The advantage is the simplicity, as factorising would be significantly more complicated and we're looking for simplicity as the normalisation functions will also have to produce the proof of equivalence between the old and the new index. Because the polynomial is completely developed, at the toplevel, it is a sum :
+We describe the normal form for rings, which is our most sophisticated
+structure. The input to normalisation is an expression 
+with sums, products, constants and variables belonging to an
+ordered set $\mathcal{V}$ of variables, which is
+a polynomial of multiple variables. As output, it produces a
+normal form representing the same polynomial. Therefore, we need a
+canonical representation of polynomials. 
+There are several possibilities, but we choose
+classical mathematical conventions: 
+the polynomial will be completely developed, i.e., the
+distributivity of $*$ over $+$ will be applied until it cannot be applied
+further.
+This is a simple but effective approach: the benefit of simplicity is that we
+can directly produce a proof of equivalence between the new and old indices
+during normalisation.
+Because the polynomial is completely developed, at the
+toplevel, it is a sum:
 
 \[
 P = \sum_{i=1}^{a}\ (\prod_{j=1}^{b} Monomial_{i}^j)
@@ -316,36 +378,95 @@ Monomial_{i}^j = C_{i}^j * \prod_{k=1}^{c} Var_{i,k}^{j}
 \]
 with $C_{i}^j$ a constant, and $Var_{i,k}^{j}$ one of the variable that belong to $\mathcal{V}$.
 
-One could be surprised by the fact that the normal form is a sum of product of monomial, and not directly a sum of monomials. The reason is the following. A monomial is a product of a constant $C_{i}^j$ (like $4$) and of a product of variables (like $x*y*z$). For example,  $5*(x*(y*z))$ is a monomial. Now let's consider the term $(5*(x*(y*z))) * (4*(z*z))$. This term is not a monomial, but we could be tempted to simplify it into the monomial $20*(x*(y*(z*(z*z))))$. However, that would assume that the product is always commutative, ie, that we can re-organize the subterms of a product as we want. This is the case in a commutative ring, but this does not hold for any ring. Therefore, after the full development, the polynomial is a sum of \emph{product of monomials}, and not directly a sum of monomials. The only rearrangement that can be done towards the multiplication is to check if two constants are consecutive in a product, and if so, to replace them by the constant that represents the product of them.
+It may be surprising that the normal form is a sum of product of
+monomials, and not directly a sum of monomials. This is because a
+monomial is a product of a constant $C_{i}^j$ (e.g. $4$) and of a product of
+variables (e.g. $x*y*z$). For example, $5*(x*(y*z))$ is a monomial. Now let's
+consider the term $(5*(x*(y*z))) * (4*(z*z))$. This term is not a monomial, but
+we could be tempted to simplify it into the monomial $20*(x*(y*(z*(z*z))))$.
+However, that would assume that the product is always commutative, which
+is not the case for \emph{every} ring.
+Therefore, after 
+development, the polynomial is a sum of \emph{product of monomials}, and
+not directly a sum of monomials. The only rearrangement that can be done
+towards the multiplication is to check if two constants are consecutive in a
+product, and if so, to replace them by the constant that represents 
+their product.
 
-However, because $+$ is always a commutative operator in a ring, the different products of monomials themselves can be rearranged in different ways in this sum. That will be done at the underneath level for commutative groups if we can provide an ordering on products of monomials. This ordering will be defined by using an ordering on monomials, that we will call \code{isBefore\_mon}, which works by looking at the order of variables for comparing two monomials $Monomial_{i}^{j}$ and $Monomial_{i'}^{j'}$.
+However, because $+$ is always commutative in a ring, the different
+products of monomials themselves can be rearranged in different ways in this
+sum. This will be done at the lower level for commutative groups if we can
+provide an ordering on products of monomials. This ordering will be defined 
+with an ordering on monomials, called \code{isBefore\_mon}, which
+looks at the order of variables for comparing two monomials
+$Monomial_{i}^{j}$ and $Monomial_{i'}^{j'}$.
 \[
 Monomial_{i}^{j} = C_{i}^{j} * (Var_{i,1}^{j} * \prod_{k=2}^{c} Var_{i,k}^{j})
 \text{ and }
 Monomial_{i'}^{j'} = C_{i'}^{j'} * (Var_{i',1}^{j'} * \prod_{k=2}^{c'} Var_{i',k}^{j'})
 \]
 
-The order between these two monomials will be decided by looking at the order between the first variables $Var_{i,1}^{j}$ and $Var_{i',1}^{j'}$. In the case where both monomials start with the same variable, we continue by inspecting the remaining variables. If we can't continue because one of the two monomials has less variables than the other, then we decide that the one with fewer variables comes first (exactly like the word ``house" comes before the word ``housemate" with the lexicographic order).
+The order between these two monomials is decided by looking at the order
+between the variables $Var_{i,1}^{j}$ and $Var_{i',1}^{j'}$. 
+If both monomials start with the same variable, we continue by inspecting
+the remaining variables. If one of the two monomials
+has fewer variables, that one comes first.
 
-We can now build the order on \emph{product of monomials} that we needed. We name it \code{isBefore}. Given two product of monomials $Prod_{i}$ and $Prod_{i'}$ we need to decide which one comes first. We will obviously use the order \code{isBefore\_mon} on the first monomials of these two products. If it says that $Monomial_{i}^{1}$ comes before $Monomial_{i'}^{1}$, then we decide that $Prod_{i}$ comes before $Prod_{i'}$. Conversely, if that's $Monomial_{i'}^{1}$ that comes first, then we decide that $Prod_{i'}$ comes first. However, if $Monomial_{i}^{1}$ and $Monomial_{i'}^{1}$ have exactly the same position in the order, then we continue by inspecting the remaining monomials with a recursive call. As previously, if we can't continue because one of the two products has less monomials than the other, then the one with fewer monomials will come first.
+We can now build the order on \emph{product of monomials}, named
+\code{isBefore}. Given two products of monomials $Prod_{i}$ and
+$Prod_{i'}$ we need to decide which one comes first. 
+We will use the
+order \code{isBefore\_mon} on the first monomials of these two products. If it
+says that $Monomial_{i}^{1}$ comes before $Monomial_{i'}^{1}$, then we decide
+that $Prod_{i}$ comes before $Prod_{i'}$. Conversely, if
+$Monomial_{i'}^{1}$ comes first, then $Prod_{i'}$ comes
+first. However, if $Monomial_{i}^{1}$ and $Monomial_{i'}^{1}$ have exactly the
+same position in the order, then we continue by inspecting the remaining
+monomials recursively. As previously, if 
+one of the two products has fewer monomials than the other, then that one 
+comes first.
 
-A few additional conventions had to be decided about the normal form :
+Additionally, we use the following conventions when deciding on
+a normal form:
 \begin{itemize}
 
-\item The top-level sum of the polynomial will be put in right-associative form : \\
+\item The top-level sum of the polynomial is in right-associative form: \\
 $prodMon_1\ +\ (prodMon_2\ + (prodMon_3\ +\ (...\ +\ prodMon_a)))$
-\item All the products that we have (the products of monomials and the products of variables), will also be written on the completely right-associative form.
-\item We always simplify as much as possible with constants. That includes simplifying the addition with zero and the multiplication with the constants zero and one, doing the computations between two nearby constants, etc...
-\item We always simplify the sum of an expression $e$ and its inverse $-e$ into the constant zero. 
+\item All the products that we have (the products of monomials and the products
+of variables), are written in right-associative form.
+\item We simplify as much as possible with constants. This includes
+simplifying addition with zero and multiplication with the constants
+zero and one, doing the computations between two nearby constants, etc\ldots
+\item We simplify the sum of an expression $e$ and its inverse $-e$ to
+zero. 
 
 \end{itemize}
 
 \subsection{Reusing the provers}
 \label{sect:reusabilityOfTheProvers}
 
-One of the novelty of our work is that we haven't built just a prover for a specific algebraic structure, but we have instead built a hierarchy of provers for many algebraic structures. Morover, each prover is not isolated from the others, and the various simplifications are not duplicated at the different levels : the normalisation function of each structure uses as much as possible the normalisation function of the structure from which it inherits. For example, the normalisation on monoids reuses the normalisation on semi-groups in such a way that it does not have to deal with the associativity. For this case, it's not a problem since the datatype reflecting terms in semi-groups has the same expressivity power than the one for monoids. However, that's not the case with groups and monoids: the function of normalisation for groups that will need to call the normalisation for monoids will have to encode the negations, because they can't be directly expressed in a monoid. For this reason, we will develop some specific encodings.
+A novelty of our work is that not only have we built a prover for a
+specific algebraic structure, but we have also built a hierarchy of provers
+for many algebraic structures. Moreover, each prover reuses components
+of the others so that
+the various simplifications are not duplicated at the different
+levels: the normalisation function of each structure uses as much as possible
+the normalisation function of the structure from which it inherits. For
+example, the normalisation on monoids reuses the normalisation on semi-groups
+in such a way that it does not have to deal with associativity. In this
+case, the datatype reflecting terms in semi-groups has
+the same expressive power as that for monoids. However, 
+there is a difficulty with
+groups and monoids: normalisation for groups
+needs to reuse the normalisation for monoids, meaning that
+we will have to encode 
+negations somehow, which can't be directly expressed in a monoid. For this
+reason, we develop some specific encodings.
 
-The idea is that we will encode negations as variables, and we will let the monoid prover deal with them as ordinary variables. In order to achieve this goal, we need the following datatype that will help us to distinguish between a real variable and the encoding of a negation :
+The idea is that we encode negations as variables, and let the
+monoid prover consider them as ordinary variables. To achieve this,
+we use the following datatype that helps us distinguish between a
+variable and the encoding of a negation:
 
 \begin{lstlisting}
 data Variable : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
@@ -353,9 +474,19 @@ data Variable : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (Vect n c) $\righta
   EncodingNeg : ($\Gamma$:Vect n c) $\rightarrow$ (i:Fin n) $\rightarrow$ Variable $\Gamma$ (Neg (index i $\Gamma$))
 \end{lstlisting}
 
-We only need to encode negations of variables, as the negation of a constant can be simplified into a constant. Also, there can't be a negation of something different than an atom (a variable or a constant), because the normalisation in groups has first systematically propagated \code{Neg} inside the parenthesis, following the simplification\footnote{Note that we have to be careful and not simplify it to $(-a) + (-b)$ as it would assume that $+$ is commutative} $-(a+b) = -b + -a$.
+We only need to encode negations of variables, as we can simplify 
+the negation of a constant into a constant.
+Also, there cannot be a negation of something
+different non-atomic (i.e. a variable or a constant), because normalisation 
+of
+groups has systematically propagated \code{Neg} inside the parentheses,
+following simplification\footnote{Note that we have to be careful and not
+simplify it to $(-a) + (-b)$ as it would assume that $+$ is commutative}
+$-(a+b) = -b + -a$.
 
-All the constructors for variables now take a \code{Variable} as parameter, instead of taking directly an element of $(\code{Fin}\ n)$. That gives the following, for groups :
+All the constructors for variables now take a \code{Variable} as parameter,
+instead of taking directly an element of $(\code{Fin}\ n)$. That gives the
+following, for groups:
 
 \begin{lstlisting}
     VarG : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {val:c} 
@@ -363,14 +494,28 @@ All the constructors for variables now take a \code{Variable} as parameter, inst
 \end{lstlisting}
 
 
-Thanks to this encoding, we can now transform an \code{ExprG} from the group level to an \code{ExprMo} at the monoid level. A constant $(\code{ConstG}\ p\ \Gamma\ c1)$ will be transformed into the corresponding constant $(\code{ConstMo}\ p\ \Gamma\ c1)$, a \code{PlusG} into the corresponding \code{PlusMo}, a real variable into the same real variable, the negation of a constant into the resulting constant, and finally the negation of a variable $i$ into a $(\code{VarMo}\ p\ (\code{EncodingNegOfVar}\ \Gamma\ i))$.
+Thanks to this encoding, we can now transform an \code{ExprG} from the group
+level to an \code{ExprMo} at the monoid level. A constant $(\code{ConstG}\ p\
+\Gamma\ c1)$ is transformed into the corresponding constant
+$(\code{ConstMo}\ p\ \Gamma\ c1)$, a \code{PlusG} into the corresponding
+\code{PlusMo}, a variable into the same variable, the negation of a
+constant into the resulting constant, and finally the negation of a variable
+$i$ into a $(\code{VarMo}\ p\ (\code{EncodingNegOfVar}\ \Gamma\ i))$.
 
-We've used a similar technique for converting an expression from the ring level to the commutative-group level, where we have encoded the product of monomials, because the product is not an operation defined at the commutative-group level. That enables the function of normalisation for rings to benefit from the normalisation function for commutative-groups.
+We use a similar technique for converting an expression from the ring level
+to the commutative-group level, where we encode the product of monomials,
+because the product is not defined at the commutative-group level.
+That enables the function of normalisation for rings to benefit from the
+normalisation function for commutative-groups.
 
 
 \subsection{Automatic reflection}
 		
-We've built an automatic reflection mechanism which enables to let the machine build automatically the reflected terms for us. This is not something absolutely vital, as it only simplifies the usage of the tactics, avoiding to write long encodings by hand. To do so, we've used Idris' reflection mechanism, which enables to do pattern matching on syntax, rather than on constructors. 
+We have built an automatic reflection mechanism which enables the machine to
+build the reflected terms for us automatically. This is not essential to our
+approach, but it simplifies the usage of the tactics by removing the need to
+write long encodings by hand.  To do so, we used Idris' reflection mechanism,
+which enables pattern matching on syntax, rather than on constructors. 
 
 
 
