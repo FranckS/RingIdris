@@ -1,6 +1,6 @@
 \section{A hierarchy of provers}
 
-What we want to build is a prover able to prove not only equalities for \code{Nat}, \code{List}, or any specific type, but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrix, and many others \emph{all at once} by implementing a very generic hierarchy of provers that can prove equalities of terms for semi-groups, monoids, commutative-monoids, groups, commutative-groups, semi-rings and rings. These tactics will be usable on any type that satisfies the properties of one of these algebraic structure. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface (sometimes called typeclass in other progamming languages). This interface will extend the interface from which it naturally inherits. For example, the \code{Group} interface will extend the \code{Monoid} one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. At every level of the hierarchy, we will be able to work on any type, being given that an implementation of the corresponding interface is provided.
+What we want to build is a prover able to prove not only equalities for \code{Nat}, \code{List}, or any specific type, but for various datatypes, and for various properties. With some abstraction, we can solve the problem of generating proof of equality for many datatypes like natural numbers, lists, matrices, and many others \emph{all at once} by implementing a very generic hierarchy of provers that can prove equalities of terms for semi-groups, monoids, commutative-monoids, groups, commutative-groups, semi-rings and rings. These tactics will be usable on any type that satisfies the properties of one of these algebraic structure. The properties of a given algebraic algebraic structure will be expressed in a corresponding interface (sometimes called typeclass in other progamming languages). This interface will extend the interface from which it naturally inherits. For example, the \code{Group} interface will extend the \code{Monoid} one. We will end up with a hierarchy of interfaces and will write one tactic for each of these interface. At every level of the hierarchy, we will be able to work on any type, being given that an implementation of the corresponding interface is provided.
 
 	\subsection{Proving equivalences instead of equalities}
 	
@@ -148,7 +148,7 @@ buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x
   $\rightarrow$ (x $\simeq$ x') $\rightarrow$ (y $\simeq$ y') $\rightarrow$ (Maybe (x $\simeq$ y))
 buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
     buildProofGroup p ex' ex' px py | Just refl = 
-                Just(eq_preserves_eq x y c1 c2 lp rp e1_equiv_e2)
+                Just(eq_preserves_eq x y x' y' lp rp e1_equiv_e2)
     buildProofGroup p ex' ey' px py | Nothing = Nothing
 \end{lstlisting}
 
@@ -167,7 +167,7 @@ groupDecideEq p ex ey =
 \end{lstlisting}
 
 
-The remaining part is to define the function \code{norm}. Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical represent for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equivalence without brute-forcing a series of rewritings, that would have no guarantee to terminate.
+The remaining part is to define the function \code{norm}. Each algebraic structure will have a function for reducing the reflected terms into their normal forms. The fact that all of these algebraic structures admit a canonical representative for any element is in fact a very nice property that we are using in order to decide equalities. Without this property, it would become a lot more complicated to decide the equivalence without brute-forcing a series of rewritings, that would have no guarantee to terminate.
 As said before, the normalisation functions also produce the proof of equivalence between the initial real value (the index of the input term) and the final real value (the index of the produced term). Thus, the type of the reduction function for group is :
 
 

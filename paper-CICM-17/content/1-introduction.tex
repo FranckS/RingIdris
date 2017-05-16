@@ -113,15 +113,15 @@ adc_lemma_2 = proof {
 
 As we see, this kind of proof consists of a potentially long sequence of rewriting steps, where each step uses one of the available properties: neutral element, commutativity, associativity. Without some specific automation, this sequence of rewritings must be done by the programmer.
 This is time consuming and more importantly, just a small change in the left or the right hand side of the equality may invalidate the proof. That means that a minor change in our datatypes, or in the definition of \code{addBit} or \code{adc} will require us to replace this proof by another one fulfilling the same task.
-These proofs become the everyday routine in any dependently-typed language, as soon as we index types over values in order to capture some logical properties.  
+These proofs become the everyday routine in any dependently-typed language, as soon as we index types over values in order to capture some logical properties.
 
 The proof that we have written by hand only uses the existence of a neutral element, and the associativity and commutativity of $+$ on \code{Nat}. Thus, we're rewriting a term by using the properties of a commutative monoid. We would like to let a generic prover for commutative monoid find a proof on its own.
 
 \subsection{Our contributions}
 
-Prover for some algebraic structures have already been implemented for various proof assistants, including Coq~\cite{Coq2005} and Agda\footnote{\url{http://wiki.portal.chalmers.se/agda\%5C?n=Libraries.UsingTheRingSolver}} ring prover. In this paper, we describe a certified
+Provers for some algebraic structures have already been implemented for various proof assistants, including Coq~\cite{Coq2005} and Agda\footnote{\url{http://wiki.portal.chalmers.se/agda\%5C?n=Libraries.UsingTheRingSolver}} ring prover. In this paper, we describe a certified
 implementation\footnote{The implementation of our hierarchy of tactics can be found online at \url{https://github.com/FranckS/RingIdris/Provers}} of an automatic prover for equalities in a \emph{hierarchy} of algebraic
-structures, including monoid, groups and rings (all potentially commutative),
+structures, including monoids, groups and rings (all potentially commutative),
 for the Idris language. 
 
 The principal novelty is in the approach that we follow, using a
@@ -136,7 +136,7 @@ The contributions of this paper are the following :
 
 \item The normalisation procedures are implemented by following a correct by construction approach, instead of proving the correctness afterwards with auxiliary lemmas. This approach is much more suitable for programming languages like Idris. This correct-by-construction aspect is developed in section~\ref{sect:correctByConstruction}
 
-\item We develop a hierarchy of tactics (and not just a tactic for, say, ring) where each tactic reuses the rewriting machinery of the structure from which it naturally inherits.
+\item We develop a hierarchy of tactics (and not just a tactic for, say, rings) where each tactic reuses the rewriting machinery of the structure from which it naturally inherits.
 For example, simplifying neutral elements is only implemented at the monoid level, and each level inheriting from it will reuse it. Reusability is difficult to obtain when we want to reuse the prover of a less expressive structure. For example, reusing the monoid prover for building the
 group prover is not trivial, since we lose the possibility to express
 negations ($-x$) and subtractions ($x-y$). Some specific encodings

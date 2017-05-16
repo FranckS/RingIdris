@@ -10,7 +10,7 @@ which we compute the normal form.  We focus on "pure" algebraic structures that
 do not have additional axioms and which do have a normal form.
  
 We don't claim that every interesting structure can be treated by one prover of
-our hierachy of tactics, although our hierarchy of provers is more general than
+our hierarchy of tactics, although our hierarchy of provers is more general than
 the automations available in e.g. Coq or Agda.
 
 On proving properties of normalisation: Things become difficult when we leave
@@ -27,7 +27,8 @@ work for Idris, as suggested by the first reviewer.
 There are indeed many structures which do not have normal norms. But this problem, 
 although very interesting, was somehow out of scope for our goals. We initially 
 wanted Idris to be equipped with some automations, which we did in a modular way 
-which made it easy to implement provers for other structures as well.
+and with a new type-safe reflection approach, which made it easy to implement 
+provers for other structures as well.
 
 It is interesting to note that the study of the properties of a proposed
 normalisation function can only be meta-theoretic. Indeed, Grégoire and
