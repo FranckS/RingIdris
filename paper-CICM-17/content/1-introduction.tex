@@ -5,7 +5,7 @@ and programming languages like
 Agda~\cite{DBLP:conf/tldi/Norell09} and
 Idris~\cite{brady2013idris} are based on Intensional Type Theories that contain
 two notions of equality: propositional equality, that can be
-manipulated in the language, and judgemental (or definition) equality.
+manipulated in the language, and judgemental (or definitional) equality.
 Propositional equality corresponds to the mathematical notion: this is
 a proposition that can be assumed, negated, proved or disproved. Since in type
 theory, propositions are types~\cite{How80}, the proposition that two
@@ -35,9 +35,7 @@ data Id : a $\rightarrow$ a $\rightarrow$ Type where
      Refl : (x : a) $\rightarrow$ Id x x
 \end{lstlisting}
 
-The only way for $(\code{Id}_a\ x\ y)$ to be inhabited is therefore that $x$
-equals $y$. In this case, the constructor \code{Refl} helps
-to create a proof of this equality: \code{(Refl\ x)} is precisely the proof
+The only way for $(\code{Id}_a\ x\ y)$ to be inhabited is therefore that $x$ and $y$ are equal by definition. In this case, the constructor \code{Refl} helps to create a proof of this equality: \code{(Refl\ x)} is precisely the proof
 which says that $x=_ax$. 
 
 The propositional equality does not only contain the judgemental equality,
@@ -90,7 +88,7 @@ data Binary : (width : Nat) $\rightarrow$ (value : Nat) $\rightarrow$ Type where
 We will write a function to add two binary numbers.
 To do so, we begin with an auxiliary function, which adds three bits
 (the third is a carry bit), and produces the two bits of
-the result, where the first is the more significant bit:
+the result, where the first is the most significant bit:
 
 \begin{lstlisting}
 addBit : Bit x $\rightarrow$ Bit y $\rightarrow$ Bit c $\rightarrow$ (bX ** (bY ** 
@@ -124,16 +122,16 @@ adc (numx # bX) (numy # bY) carry
         adc numx numy carry0 # lsb
 \end{lstlisting}
 
-Unfortunately, this definition is rejected because the types of each side do
-not match.  The result of the first line \code{adc zero zero carry} is expected
-to have the type:
-
-\codeL{Binary\ 1\ ((c\ + 0)\ + 0)} but we provide a
-term of type:
-
-\code{Binary\ 1\ (c\ + (0\ + (0\ + 0)))}.
-
-The problem is even worse for the second case where the expected index is:
+Unfortunately, this definition is rejected because the types do
+not match for both patterns.  
+%The result of the first line \code{adc zero zero carry} is expected
+%to have the type:
+%
+%\codeL{Binary\ 1\ ((c\ + 0)\ + 0)} but we provide a
+%term of type:
+%
+%\code{Binary\ 1\ (c\ + (0\ + (0\ + 0)))}.
+For the second case, the expected index is:
 
 \codeL{((c\ + (bit2\ + (v1\ + (v1\ + 0)))) + (bit\ + (v\ + (v\ + 0))))}
 while we're trying to provide a term indexed over
@@ -175,7 +173,7 @@ A minor change in the datatype, or
 the definition of \code{addBit} or \code{adc} will require us
 to do a new proof, and thus, without support from the machine, these
 proofs
-could become the everyday routine in any dependently-typed language.
+could become the everyday routine in any dependently-typed language. It is worth mentioning that even without using dependent types, these proof obligations for equalities happen very frequently during the formal certification of most applications.
 
 Our handwritten proof uses only the existence of a neutral
 element, and the associativity and commutativity of $+$ on \code{Nat}. Thus,
@@ -192,7 +190,7 @@ In this paper, we describe an implementation\footnote{The
 implementation of our hierarchy of tactics can be found online at
 \url{https://github.com/FranckS/RingIdris/Provers}} of an automatic prover for
 equalities in a \emph{hierarchy} of algebraic structures, including monoids,
-groups and rings (all potentially commutative), for the Idris language.,
+groups and rings (all potentially commutative), for the Idris language,
 making the following contributions:
 
 \begin{enumerate}

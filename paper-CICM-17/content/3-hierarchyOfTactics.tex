@@ -6,9 +6,8 @@ the right
 abstraction, we can generate proofs of equalities for
 many datatypes \emph{at once} by implementing a generic hierarchy of provers
 for semi-groups, monoids,
-commutative-monoids, groups, commutative-groups, semi-rings and rings. 
-The
-properties of an algebraic structure are expressed in an
+commutative-monoids, groups, commutative-groups, semi-rings and rings.
+The properties of an algebraic structure are expressed in an
 interface (an interface in Idris is similar to a type class
 in Haskell). This interface will extend the interface from which it
 inherits; for example, \code{Group} extends \code{Monoid}.
@@ -33,8 +32,7 @@ The
 equivalence relation on \code{c} has the following profile $(\simeq) : \code{c}
 \rightarrow \code{c} \rightarrow \code{Type}$\footnote{This \code{Type} would
 be a \code{Prop} in systems, like Coq, that make a distinction between the
-world of computations and the world of logical statements}, and must be
-be reflexive, symmetric and transitive.
+world of computations and the world of logical statements}, and must be reflexive, symmetric and transitive.
 
 Our tactics need to be able to test this equivalence
 between elements of the underlying set, that is a way of testing
@@ -51,7 +49,7 @@ interface Set c where
     refl : (x : c) $\rightarrow$ x $\simeq$ x
     sym : {x, y : c} $\rightarrow$ (x $\simeq$ y) $\rightarrow$ (y $\simeq$ x)
     trans : {x, y, z : c} $\rightarrow$ (x $\simeq$ y) $\rightarrow$ (y $\simeq$ z) $\rightarrow$ (x $\simeq$ z)    
-    set_eq : (x : c) $\rightarrow$ (y:c) $\rightarrow$ Maybe (x $\simeq$ y)
+    set_eq : (x : c) $\rightarrow$ (y : c) $\rightarrow$ Maybe (x $\simeq$ y)
 \end{lstlisting}
 
 To prove propositional equalities, the user instantiates
@@ -73,7 +71,7 @@ generalisation of \code{Refl}}.
 
 %The kernel of our machinery will be a function $norm$ that will be composed of %multiples functions composed together, that each do a part of the normalisation %and that generate the proof of equivalence between old and new concrete values %for this part of the normalisation.
 
-Working with equivalences instead of equalities brings one complication: Proofs
+Working with equivalences instead of equalities brings one complication : the proofs
 of correctness that we produce by hand cannot use Idris' ``rewrite'' mechanism,
 which enables rewriting of a subterm by another one, provided that the two
 subterms are propositionally equal. 
@@ -134,7 +132,7 @@ the equivalence relation, which is expressed by the following axiom for $+$:
 \simeq c2') \rightarrow ((c1+c2) \simeq (c1'+c2'))$ 
 
 We have this requirement because we support
-any equivalence relation.
+any equivalence relation. The user is free to define the equivalence relation of their choice, but it should be compatible with the operations that he is using.
 As with \code{Set}, there is no
 tactic for \code{Magma}, because there is no property; all
 equivalences are again syntactic equivalences, and can thus be proven by
@@ -150,8 +148,7 @@ interface Magma c => SemiGroup c where
 
 \noindent
 Examples of magma are \code{Nat} equipped with addition, and \code{List} with
-concatenation.  Next, a monoid is a semi-group with a ``neutral``, or
-distinguished, element called \code{Zero}.
+concatenation.  Next, a monoid is a semi-group with the property of neutral element for a distinguished element called \code{Zero}.
 
 \begin{lstlisting}
 interface SemiGroup c => Monoid c where
@@ -182,12 +179,12 @@ For reasons of space, we elide the remaining details of the hierarchy.
 \label{sect:typeSafeReflection}
 			
 When proving an equivalence $x \simeq y$, the universally-quantified
-variables are abstracted. Our
+variables are abstracted and they become part of the context. Our
 tatics normalise both sides of the ``potential equivalence'' $x
 \simeq y$, and compare the results by syntactic equality. The
 difficulty is that the normalisation function needs to consider
 variables, constants and operators. For this
-reason, we work by reflection. We have one type of reflected
+reason, we work by reflection, which allows us to work on syntax instead of values. We define one type of reflected
 terms for each algebraic structure. The novelty is not the use of reflected
 terms, but the use of a type-safe reflection
 mechanism where we index the reflected terms by the concrete value that they
@@ -238,7 +235,7 @@ data ExprG :  Group c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
          $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ c2 $\rightarrow$ ExprG p $\Gamma$ (Minus c1 c2)
     NegG : {p : Group c} $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {c1:c} 
          $\rightarrow$ ExprG p $\Gamma$ c1 $\rightarrow$ ExprG p $\Gamma$ (Neg c1)
-    VarG : (p : Group c) $\rightarrow$ {$\Gamma$:Vect n c} 
+    VarG : (p : Group c) $\rightarrow$ ($\Gamma$:Vect n c) 
          $\rightarrow$ (i:Fin n) $\rightarrow$ ExprG p $\Gamma$ (index i $\Gamma$)
 \end{lstlisting}
 
@@ -273,8 +270,7 @@ This proof of $x \simeq y$ is the crucial component which allows us to
 automatically produce proofs of equivalences.
 
 We will explain how to implement the tactic for \code{Group} specifically,
-using a normalisation function \code{groupNormalise},
-but the other structures are implemented similarly. 
+but the other structures are implemented similarly.
 The equivalence we are trying to prove is $x \simeq y$, where $x$ and $y$ are
 elements of the type $c$, which implements a group. The reflected term for $x$
 is denoted $e_x$, and has type $\code{ExprG}\ p\
@@ -286,10 +282,8 @@ normal form $e_{x'}$ of type $\code{ExprG}\ p\ \Gamma\ x'$ and a proof $p_x$ of
 $x \simeq x'$.
 Similarly, for $e_y$, it produces
 the normal form $e_{y'}$ of type $\code{ExprG}\ p\ \Gamma\ y'$ and a proof
-$p_y$ of $y \simeq y'$.  It now suffices to compare $e_{x'}$ and $e_{y'}$
-using a syntactic equality test \code{exprG\_eq} on the normal forms.
-
-If the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then
+$p_y$ of $y \simeq y'$.  It now suffices to compare the normal forms $e_{x'}$ and $e_{y'}$
+using a syntactic equality test \code{exprG\_eq}. If the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then
 they necessarily have the same type\footnote{We work with the
 heterogeneous equality by default in Idris, but as always, the only way to
 have a proof of \code{a:A = b:B} is when \code{A = B}}, and therefore $x'=y'$, which implies
@@ -305,14 +299,14 @@ buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x
   $\rightarrow$ {x':c} $\rightarrow$ {y':c} $\rightarrow$ (ExprG p $\Gamma$ x') $\rightarrow$ (ExprG p $\Gamma$ y') 
   $\rightarrow$ (x $\simeq$ x') $\rightarrow$ (y $\simeq$ y') $\rightarrow$ (Maybe (x $\simeq$ y))
 buildProofGroup p ex' ey' px py with (exprG_eq p ex' ey')
-    buildProofGroup p ex' ex' px py | Just refl = 
-                Just(eq_preserves_eq x y x' y' lp rp e1_equiv_e2)
+    buildProofGroup p ex' ey' px py | Just ex'_equiv_ey' = 
+                Just(eq_preserves_eq x y x' y' px py ex'_equiv_ey')
     buildProofGroup p ex' ey' px py | Nothing = Nothing
 \end{lstlisting}
 
-The argument of type $\code{ExprG}\ p\ \Gamma\ x'$ is the normalised reflected
-left hand size of the equivalence, which represents the value $x'$. 
-The function also expects proofs of $x \simeq x'$ and
+The arguments of type $\code{ExprG}\ p\ \Gamma\ x'$ and $\code{ExprG}\ p\ \Gamma\ y'$ are the normalised reflected
+left and right hand sides of the equivalence, which respectively represent the value $x'$ and $y'$. 
+This function also expects proofs of $x \simeq x'$ and
 of $y \simeq y'$, which are built by the normalisation process.
 
 Finally, the main function which tries to prove the equivalence $x \simeq y$
@@ -338,8 +332,8 @@ groupNormalise : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\righ
        $\rightarrow$ {x:c} $\rightarrow$ (ExprG p $\Gamma$ x) $\rightarrow$ (x' ** (ExprG p $\Gamma$ x', x $\simeq$ x'))
 \end{lstlisting}
 
-Each algebraic structure has a function for reducing reflected terms to normal.
-The algebraic structures which concern us admit a canonical representative for
+Each algebraic structure is equipped with a function for reducing reflected terms to their normal form.
+The algebraic theories which concern us admit a canonical representative\footnote{This only holds in the absence of additional axioms}  for
 any element, a property which we use to decide equalities. Without this
 property, it would be more complicated to decide equivalence without
 brute-forcing a series of rewritings, that would have no termination guarantee.  
@@ -354,10 +348,9 @@ section, we describe the normalisation process.
 \label{sect:normalFormShape}
 
 We describe the normal form for rings, which is our most sophisticated
-structure. The input to normalisation is an expression 
+structure. The input to the normalisation function is an expression 
 with sums, products, constants and variables belonging to an
-ordered set $\mathcal{V}$ of variables, which is
-a polynomial of multiple variables. As output, it produces a
+ordered set $\mathcal{V}$ of variables. In short, the normalisation function takes in input a polynomial of multiple variables. As output, it produces a
 normal form representing the same polynomial. Therefore, we need a
 canonical representation of polynomials. 
 There are several possibilities, but we choose
@@ -366,7 +359,7 @@ the polynomial will be completely developed, i.e., the
 distributivity of $*$ over $+$ will be applied until it cannot be applied
 further.
 This is a simple but effective approach: the benefit of simplicity is that we
-can directly produce a proof of equivalence between the new and old indices
+can directly produce a proof of equivalence between the new and old concrete values
 during normalisation.
 Because the polynomial is completely developed, at the
 toplevel, it is a sum:
@@ -380,7 +373,7 @@ with $C_{i}^j$ a constant, and $Var_{i,k}^{j}$ one of the variable that belong t
 
 It may be surprising that the normal form is a sum of product of
 monomials, and not directly a sum of monomials. This is because a
-monomial is a product of a constant $C_{i}^j$ (e.g. $4$) and of a product of
+monomial is a product of a constant $C_{i}^j$ (e.g. $5$) and of a product of
 variables (e.g. $x*y*z$). For example, $5*(x*(y*z))$ is a monomial. Now let's
 consider the term $(5*(x*(y*z))) * (4*(z*z))$. This term is not a monomial, but
 we could be tempted to simplify it into the monomial $20*(x*(y*(z*(z*z))))$.
@@ -388,7 +381,7 @@ However, that would assume that the product is always commutative, which
 is not the case for \emph{every} ring.
 Therefore, after 
 development, the polynomial is a sum of \emph{product of monomials}, and
-not directly a sum of monomials. The only rearrangement that can be done
+not directly a sum of monomials. The only rearrangement that can and needs to be done
 towards the multiplication is to check if two constants are consecutive in a
 product, and if so, to replace them by the constant that represents 
 their product.
@@ -396,8 +389,7 @@ their product.
 However, because $+$ is always commutative in a ring, the different
 products of monomials themselves can be rearranged in different ways in this
 sum. This will be done at the lower level for commutative groups if we can
-provide an ordering on products of monomials. This ordering will be defined 
-with an ordering on monomials, called \code{isBefore\_mon}, which
+provide an ordering on products of monomials. This ordering will be defined by using an ordering on monomials, called \code{isBefore\_mon}, which
 looks at the order of variables for comparing two monomials
 $Monomial_{i}^{j}$ and $Monomial_{i'}^{j'}$.
 \[
@@ -445,8 +437,8 @@ zero.
 \subsection{Reusing the provers}
 \label{sect:reusabilityOfTheProvers}
 
-A novelty of our work is that not only have we built a prover for a
-specific algebraic structure, but we have also built a hierarchy of provers
+A novelty of our work is that instead of building a prover for a
+specific algebraic structure (like ring), we have built a hierarchy of provers
 for many algebraic structures. Moreover, each prover reuses components
 of the others so that
 the various simplifications are not duplicated at the different
@@ -455,7 +447,7 @@ the normalisation function of the structure from which it inherits. For
 example, the normalisation on monoids reuses the normalisation on semi-groups
 in such a way that it does not have to deal with associativity. In this
 case, the datatype reflecting terms in semi-groups has
-the same expressive power as that for monoids. However, 
+the same expressive power as that for monoids, so a term of a monoid can easily be transformed into a term of a semi-group. However, 
 there is a difficulty with
 groups and monoids: normalisation for groups
 needs to reuse the normalisation for monoids, meaning that
@@ -477,7 +469,7 @@ data Variable : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (Vect n c) $\righta
 We only need to encode negations of variables, as we can simplify 
 the negation of a constant into a constant.
 Also, there cannot be a negation of something
-different non-atomic (i.e. a variable or a constant), because normalisation 
+different non-atomic (i.e. a term that is not a variable or a constant), because normalisation 
 of
 groups has systematically propagated \code{Neg} inside the parentheses,
 following simplification\footnote{Note that we have to be careful and not
