@@ -12,7 +12,7 @@ theory, propositions are types~\cite{How80}, the proposition that two
 elements $x$ and $y$ are equal corresponds to a type.
 If $x$ and $y$ are of type $a$, then the type
 $Id_a(x, y)$ represents the proposition ``$x$ is equal to $y$". If this type is
-inhabited, then $x$ is said to be provably equal to $y$. Thus, $Id$ is a type family (parameterised by the type $a$) indexed over two elements of $a$, giving $\code{Id} (a:\code{Type}):a \rightarrow a \rightarrow \code{Type}$. For
+inhabited, then $x$ is said to be provably equal to $y$. Thus, $Id$ is a type family (parameterised by the type $a$) indexed over two elements of $a$, giving $\code{Id}\ (a:\code{Type}):a \rightarrow a \rightarrow \code{Type}$. For
 convenience, we write $(\code{Id}_a\ x\ y)$ as $(x\ =_a\ y)$. 
 
 Judgemental equality, on the other hand, is a primitive concept of
@@ -72,8 +72,7 @@ we revisit an example from previous work~\cite{DBLP:conf/plpv/Brady13} which
 shows how proof obligations arise when a type is indexed by natural
 numbers. Our goal is to implement a verified
 library of binary numbers. To ensure functional correctness,
-we define types \code{Bit} and \code{Binary},
-indexed over the value they represent (expressed as a natural number):
+we define the types \code{Bit} and \code{Binary} indexed over the value they represent (expressed as a natural number):
 
 \begin{lstlisting}
 data Bit : Nat $\rightarrow$ Type where
@@ -175,7 +174,7 @@ to do a new proof, and thus, without support from the machine, these
 proofs
 could become the everyday routine in any dependently-typed language. It is worth mentioning that even without using dependent types, these proof obligations for equalities happen very frequently during the formal certification of most applications.
 
-Our handwritten proof uses only the existence of a neutral
+Our handwritten proof \code{adc\_lemma\_2} uses only the existence of a neutral
 element, and the associativity and commutativity of $+$ on \code{Nat}. Thus,
 we're rewriting a term by using the properties of a commutative monoid. We
 would like a generic prover for commutative monoids to find a proof 

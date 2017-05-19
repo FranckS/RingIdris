@@ -110,9 +110,8 @@ We will use this lemma extensively.
 
 \subsection{Hierarchy of interfaces}
 
-We describe operations, constants and properties of each algebraic structure
-in an interface. The first structure is
-the magma. which is a structure built on top of \code{Set} that adds
+We describe operations, constants and properties of each algebraic structure 
+in an interface. The first algebraic theory is \code{Magma}, which is a structure built on top of \code{Set} that adds
 \code{Plus} operation, and no specific properties:
 
 \begin{lstlisting}
@@ -123,8 +122,8 @@ interface Set c => Magma c where
 This code means that a type \code{c} (for $carrier$) is a \code{Magma} if it is
 already a \code{Set} (ie, it is equipped with the equivalence relation $\simeq$
 and the equivalence test \code{set\_eq}), and if it has a $+$ operation.  In
-fact, there is an additional requirement that will apply to all operators (in
-this case, the $+$ operation), which is that they need to be ``compatible" with
+fact, there is an additional requirement that will apply to all operations (in
+this case, the $+$ operation), which is that they need to be ``compatible'' with
 the equivalence relation, which is expressed by the following axiom for $+$:
 \\ $\code{Plus\_preserves\_equiv} : \{c:\code{Type}\} \rightarrow
 \{\code{Magma}\ c\} \rightarrow\{c1:c\} \rightarrow \{c2:c\} \rightarrow
@@ -181,7 +180,7 @@ For reasons of space, we elide the remaining details of the hierarchy.
 When proving an equivalence $x \simeq y$, the universally-quantified
 variables are abstracted and they become part of the context. Our
 tatics normalise both sides of the ``potential equivalence'' $x
-\simeq y$, and compare the results by syntactic equality. The
+\simeq y$, and compare the results by syntactic equivalence. The
 difficulty is that the normalisation function needs to consider
 variables, constants and operators. For this
 reason, we work by reflection, which allows us to work on syntax instead of values. We define one type of reflected
@@ -214,8 +213,7 @@ For an expression $e_x\ :\ \code{ExprMa}\ \Gamma\ x$, we say that $e_x$
 denotes the value $x$ in the context $\Gamma$.  When an expression
 is a variable \code{(VarMa\ \_\ $\Gamma$\ i)}, the denoted value is the
 corresponding variable in the context, i.e., \code{(index\ i\ $\Gamma$)}.  The
-expression \code{(ConstMa\ \_\ $\Gamma$\ k)} denotes the constant $k$ of type
-$c$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and
+expression \code{(ConstMa\ \_\ $\Gamma$\ k)} denotes the constant $k$ in any context $\Gamma$. Finally, if $e_x$ is an expression encoding the concrete value $x$, and
 $e_y$ is an expression encoding the concrete value $y$, then the expression
 \code{PlusMa\ $e_x$\ $e_y$} denotes the concrete value $(x + y)$. Because the
 reflected terms embed their corresponding inputs, they are guaranteed to be
@@ -282,17 +280,16 @@ normal form $e_{x'}$ of type $\code{ExprG}\ p\ \Gamma\ x'$ and a proof $p_x$ of
 $x \simeq x'$.
 Similarly, for $e_y$, it produces
 the normal form $e_{y'}$ of type $\code{ExprG}\ p\ \Gamma\ y'$ and a proof
-$p_y$ of $y \simeq y'$.  It now suffices to compare the normal forms $e_{x'}$ and $e_{y'}$
-using a syntactic equality test \code{exprG\_eq}. If the two normalised expressions $e_{x'}$ and $e_{y'}$ are equal, then
-they necessarily have the same type\footnote{We work with the
-heterogeneous equality by default in Idris, but as always, the only way to
-have a proof of \code{a:A = b:B} is when \code{A = B}}, and therefore $x'=y'$, which implies
-$x' \simeq y'$ because the propositional equality is more restrictive than an
-equivalence relation.  By using the two equivalences $x \simeq x'$ and $y
-\simeq y'$, and the new equivalence
-$x' \simeq y'$, we can use \code{eq\_preserves\_eq}, to get the desired proof of
-$x \simeq y$. We put all of this together in a function
-\code{buildProofGroup}:
+$p_y$ of $y \simeq y'$.  It now suffices to compare the normal forms $e_{x'}$ and $e_{y'}$ using a syntactic equivalence test \code{ExprG\_eq}, because once everything is in normal form, being equivalent is just a matter of being syntactically equivalent.
+
+\begin{lstlisting}
+exprG_eq : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\rightarrow$ ($\Gamma$:Vect n c) 
+           $\rightarrow$ {x' : c} $\rightarrow$ {y' : c} 
+           $\rightarrow$ (ex' : ExprG p $\Gamma$ x') $\rightarrow$ (ey' : ExprG p $\Gamma$ y') 
+           $\rightarrow$ Maybe(x' $\simeq$ y')
+\end{lstlisting}
+This syntactical equivalence test checks if the two input terms $ex'$ and $ey'$ are \emph{syntactically} the same, and if they do, it directly builds a proof of equivalence between their indices $x' \simeq y'$, which is what we need, because we can use it 
+with the two equivalences $x \simeq x'$ and $y\simeq y'$ that we already have, in order to get the desired proof of $x \simeq y$ with \code{eq\_preserves\_eq}. We put all of this together in a function \code{buildProofGroup}:
 
 \begin{lstlisting}
 buildProofGroup : (p:Group c) $\rightarrow$ {$\Gamma$:Vect n c} $\rightarrow$ {x : c} $\rightarrow$ {y : c} 
@@ -333,7 +330,7 @@ groupNormalise : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (p:Group c) $\righ
 \end{lstlisting}
 
 Each algebraic structure is equipped with a function for reducing reflected terms to their normal form.
-The algebraic theories which concern us admit a canonical representative\footnote{This only holds in the absence of additional axioms}  for
+The algebraic theories which concern us admit a canonical representative\footnote{It only holds for ``pure'' algebraic structures, ie, in the absence of additional axioms}  for
 any element, a property which we use to decide equalities. Without this
 property, it would be more complicated to decide equivalence without
 brute-forcing a series of rewritings, that would have no termination guarantee.  
