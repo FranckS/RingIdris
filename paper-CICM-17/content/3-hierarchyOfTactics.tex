@@ -491,10 +491,10 @@ following, for groups:
 Thanks to this encoding, we can now transform an \code{ExprG} from the group
 level to an \code{ExprMo} at the monoid level. A constant $(\code{ConstG}\ p\
 \Gamma\ c1)$ is transformed into the corresponding constant
-$(\code{ConstMo}\ p\ \Gamma\ c1)$, a \code{PlusG} into the corresponding
+$(\code{ConstMo}\ \_\ \Gamma\ c1)$, a \code{PlusG} into the corresponding
 \code{PlusMo}, a variable into the same variable, the negation of a
 constant into the resulting constant, and finally the negation of a variable
-$i$ into a $(\code{VarMo}\ p\ (\code{EncodingNegOfVar}\ \Gamma\ i))$.
+$i$ into a $(\code{VarMo}\ \_\ (\code{EncodingNeg}\ \Gamma\ i))$.
 
 We use a similar technique for converting an expression from the ring level
 to the commutative-group level, where we encode the product of monomials,
@@ -521,7 +521,7 @@ involves defining functions of the following form:
 The \texttt{\%reflection} annotation means that Idris treats this as a 
 compile time function on \emph{syntax}. Given a value of type
 \texttt{c}, in some context $\Gamma$, it constructs a reflected expression 
-in an extended context \texttt{$\Gamma'$ ++ $\Gamma$}. The context
+in an extended context \texttt{$\Gamma$ ++ $\Gamma'$}. The context
 contains references to subexpressions 
 which are not themselves representable by \texttt{ExprG}.
 
