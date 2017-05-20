@@ -515,7 +515,7 @@ involves defining functions of the following form:
 
 \begin{lstlisting}
 %reflection reflectGroup : (p : Group c) $\rightarrow$ ($\Gamma$ : Vect n c) $\rightarrow$ 
-                           (x : c) $\rightarrow$ ($\Gamma'$ ** ExprG p ($\Gamma'$ ++ $\Gamma$) x)
+                           (x : c) $\rightarrow$ ($\Gamma'$ ** ExprG p ($\Gamma$ ++ $\Gamma'$) x)
 \end{lstlisting}
 
 The \texttt{\%reflection} annotation means that Idris treats this as a 
