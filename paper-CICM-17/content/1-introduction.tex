@@ -37,6 +37,9 @@ data Id : a $\rightarrow$ a $\rightarrow$ Type where
 
 The only way for $(\code{Id}_a\ x\ y)$ to be inhabited is therefore that $x$ and $y$ are equal by definition. In this case, the constructor \code{Refl} helps to create a proof of this equality: \code{(Refl\ x)} is precisely the proof
 which says that $x=_ax$. 
+Here, we are using the notation of Idris, where unbound variables
+like \texttt{a} in the definition of \texttt{Id} are
+\emph{implicitly} quantified, as a concise programming notation. 
 
 The propositional equality does not only contain the judgemental equality,
 however, because a principle of induction is associated with each inductive
@@ -178,9 +181,9 @@ could become the everyday routine in any dependently-typed language. It is worth
 Our handwritten proof \code{adc\_lemma\_2} uses only the existence of a neutral
 element, and the associativity and commutativity of $+$ on \code{Nat}. Thus,
 we're rewriting a term by using the properties of a commutative monoid. 
-With the right choice of combinators, such proofs could be made much simpler,
-but we would like a generic prover for commutative monoids to find a proof
-automatically.
+With the right choice of combinators~\cite{Carette12} such proofs could be made
+much simpler, but we would like a generic prover for commutative monoids to
+find a proof automatically.
 
 \subsection{Our contributions}
 

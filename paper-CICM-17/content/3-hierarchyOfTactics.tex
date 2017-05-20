@@ -437,22 +437,23 @@ zero.
 \label{sect:reusabilityOfTheProvers}
 
 A novelty of our work is that instead of building a prover for a
-specific algebraic structure (like ring), we have built a hierarchy of provers
-for many algebraic structures. Moreover, each prover reuses components
+specific algebraic structure, we have built a hierarchy of provers.
+Each prover reuses components
 of the others so that
-the various simplifications are not duplicated at the different
-levels: the normalisation function of each structure uses as much as possible
+the simplifications are not duplicated at different
+levels: normalisation of each structure uses as much as possible
 the normalisation function of the structure from which it inherits. For
-example, the normalisation on monoids reuses the normalisation on semi-groups
-in such a way that it does not have to deal with associativity. In this
+example, normalisation on monoids reuses normalisation on semi-groups
+so that it does not have to deal with associativity. In this
 case, the datatype reflecting terms in semi-groups has
-the same expressive power as that for monoids, so a term valid in a monoid can easily be transformed into a corresponding term of a semi-group. However, 
+the same expressive power as that for monoids, so a term in a monoid can
+be transformed directly into a corresponding term of a semi-group. However, 
 there is a difficulty with
-groups and monoids: normalisation for groups
-needs to reuse the normalisation for monoids, meaning that
+groups and monoids: if normalisation for groups
+uses the normalisation for monoids, 
 we will have to encode 
-negations somehow, which can't be directly expressed in a monoid. For this
-reason, we develop some specific encodings.
+negations somehow, which can't be directly expressed in a monoid.
+Therefore, we develop some specific encodings.
 
 The idea is that we encode negations as variables, and let the
 monoid prover consider them as ordinary variables. To achieve this,
@@ -505,7 +506,7 @@ normalisation function for commutative-groups.
 \subsection{Automatic reflection}
 		
 We have built an automatic reflection mechanism which enables the machine to
-build the reflected terms for us automatically. This is not essential to our
+build reflected terms. This is not essential to our
 approach, but it simplifies the usage of the tactics by removing the need to
 write long encodings by hand.  To do so, we used Idris' reflection mechanism,
 which enables pattern matching on syntax, rather than on constructors. 

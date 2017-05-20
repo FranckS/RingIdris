@@ -9,10 +9,10 @@ they prove correctness of the normalisation with an external lemma:
 $\forall\ (e1\ e2\ :\ \code{Expr}),\ beq_{Expr}\ (\code{norm}\ e1)\
 (\code{norm}\ e2)\ =\ true\ \rightarrow\ \code{reify}\ e1\ \simeq\
 \code{reify}\ e2$.
-This needs a \code{reify} function that we do not
-in our development. Another difference is that Coq's prover only deals
+This needs a \code{reify} function, which we do not need.
+Furthermore, Coq's prover deals
 with rings and semi-rings (commutative or not), but not with any of the
-intermediate structures (semi-group, monoid, group, etc), unlike our solver. 
+intermediate structures (semi-group, monoid, group, etc).
 However,
 their implementation has better performances due to the use of sparse normal
 form and more optimised algorithms.  Our automatic reflection was written with
@@ -20,21 +20,24 @@ Idris reflection mechanism which allows pattern matching on syntax, and
 their automatic reflection is programmed in Ltac~\cite{DelahayeLTac}, a proof
 dedicated and untyped meta-language for the writing of automations.
 More recently, the Mtac extension~\cite{Ziliani13} provides a
-typed language for implementation proof automations.
+typed language for implementating proof automation.
 
-Proof automations have been investigated for various proof assistants and
-programming languages. In Coq, appart from the ring prover, there's also the
+As well as the ring solver, Coq also provides the
 Omega solver~\cite{Cregut04}, which solves a goal in Presburger arithmetic
 (i.e. a universally quantified formula made of equations and inequations), and
 a field~\cite{DelahayeField} decision procedure for real numbers, which plugs
 to Coq's ring prover after simplification of the multiplicative inverses.
-Various automations have also been done in
-Agda~\cite{DBLP:conf/mpc/KokkeS15,Lindblad04}.
-%
-Proofs by reflection has been intensively
-studied~\cite{ChlipalaBook,Malecha14}, but again without anything similar to
-the type-safe reflection that we have presented here.
+Agda's reflection
+mechanism\footnote{\url{http://wiki.portal.chalmers.se/agda/pmwiki.php?n=ReferenceManual.Reflection}}
+gives access to a representation of the current goal (that is,
+the required type) at a particular point in a program.
+This allows various proof automations to be done in
+Agda~\cite{DBLP:conf/mpc/KokkeS15,Lindblad04}. 
 
+Proofs by reflection has been intensively
+studied~\cite{ChlipalaBook,Malecha14}, but without anything similar to
+the type-safe reflection that we have presented here.
+%
 If we leave the ground of nice mathematical structures, one can decide
 to work with arbitrary rewriting rules, but in the general case there isn't a
 complete decision procedure for such systems, because there is usually no
