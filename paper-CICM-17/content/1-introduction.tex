@@ -2,7 +2,7 @@
 
 Proofs assistants like Coq~\cite{BertotC04} 
 and programming languages like 
-Agda~\cite{DBLP:conf/tldi/Norell09} and
+Agda~\cite{norell2007thesis} and
 Idris~\cite{brady2013idris} are based on Intensional Type Theories that contain
 two notions of equality: propositional equality, that can be
 manipulated in the language, and judgemental (or definitional) equality.
@@ -68,7 +68,7 @@ Proving that one term is equal to another is common in formal verification, and
 proof obligations arise naturally in dependently typed programming when
 indexing types over values in order to capture some logical properties.
 To demonstrate this,
-we revisit an example from previous work~\cite{DBLP:conf/plpv/Brady13} which
+we revisit an example from previous work~\cite{BradyTFP07} which
 shows how proof obligations arise when a type is indexed by natural
 numbers. Our goal is to implement a verified
 library of binary numbers. To ensure functional correctness,
@@ -87,7 +87,7 @@ data Binary : (width : Nat) $\rightarrow$ (value : Nat) $\rightarrow$ Type where
 We will write a function to add two binary numbers.
 To do so, we begin with an auxiliary function, which adds three bits
 (the third is a carry bit), and produces the two bits of
-the result, where the first is the most significant bit:
+the result, where the first is the more significant bit:
 
 \begin{lstlisting}
 addBit : Bit x $\rightarrow$ Bit y $\rightarrow$ Bit c $\rightarrow$ (bX ** (bY ** 
@@ -133,7 +133,8 @@ not match for both patterns.
 For the second case, the expected index is:
 
 \codeL{((c\ + (bit2\ + (v1\ + (v1\ + 0)))) + (bit\ + (v\ + (v\ + 0))))}
-while we're trying to provide a term indexed over
+\\
+while we're trying to provide a term indexed over:
 
 \codeL{vLsb\ + (((vCarry0\ + v1) + v)\ + (((vCarry0\ + v1)\ + v)\ + 0))}.
 
@@ -141,10 +142,10 @@ The definition of \code{adc} we have given would behave correctly, and it has
 \emph{provably} the expected type, but it does not have it \emph{immediately}
 or \emph{judgementally}: after full reductions the expected and provided types are still
 different.
-If we use provisional definitions~\cite{DBLP:conf/plpv/Brady13}, the previous
-definition can be accepted by the system, but we now have two proof obligations
-\code{adc\_lemma\_1} and \code{adc\_lemma\_2} demanding proofs of equality
-between the two types, and they have to be provided by hand.
+To make the previous
+definition acceptable, we need to solve two proof obligations
+\code{adc\_lemma\_1} and \code{adc\_lemma\_2} which demand proofs of equality
+between the two types.
 For example, using a proof script: 
 
 % EB - I took out a step because without the whole proof, all we really
@@ -176,8 +177,9 @@ could become the everyday routine in any dependently-typed language. It is worth
 
 Our handwritten proof \code{adc\_lemma\_2} uses only the existence of a neutral
 element, and the associativity and commutativity of $+$ on \code{Nat}. Thus,
-we're rewriting a term by using the properties of a commutative monoid. We
-would like a generic prover for commutative monoids to find a proof 
+we're rewriting a term by using the properties of a commutative monoid. 
+With the right choice of combinators, such proofs could be made much simpler,
+but we would like a generic prover for commutative monoids to find a proof
 automatically.
 
 \subsection{Our contributions}

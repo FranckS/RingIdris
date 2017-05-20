@@ -11,7 +11,17 @@ In this section, we will only work with the properties of associativity and of n
 \subsection{Type-safe reflection}
 
 
-When trying to prove this kind of equalities, the variables are abstracted, and they become part of the context. The general idea --that will also apply for the more general problem detailed in the next section-- will be to normalize both sides of the "potential equality" $x=y$, and afterwards to compare them with a syntactic equality test. The problem is that such a normalisation function will need to do different treatments for a ``variable natural number" (ie, a number which has been universally quantified), for the constant $Z$ and for a sum. For this reason, we will need to work by reflection, with a datatype encoding natural numbers composed of ``variable numbers", $Z$, and additions of these things. The novelty is that we use a a type-safe reflection mechanism where we index the reflected terms by the concrete value that they represent : 
+When trying to prove this kind of equalities, the variables are abstracted, and
+they become part of the context. The general idea --that will also apply for
+the more general problem detailed in the next section-- will be to normalize
+both sides of the "potential equality" $x=y$, and afterwards to compare them
+with a syntactic equality test. The problem is that such a normalisation
+function will need to do different treatments for a ``variable natural number"
+(ie, a number which has been universally quantified), for the constant $Z$ and
+for a sum. For this reason, we will need to work by reflection, with a datatype
+encoding natural numbers composed of ``variable numbers", $Z$, and additions of
+these things. The novelty is that we use a a type-safe reflection mechanism
+where we index the reflected terms by the concrete value that they represent: 
 
 \begin{lstlisting}
 using (x : Nat, y : Nat, $\Gamma$ : Vect n Nat)
@@ -21,11 +31,17 @@ using (x : Nat, y : Nat, $\Gamma$ : Vect n Nat)
        Zero : Expr $\Gamma$ Z
 \end{lstlisting}
 
-For an expression $e_x\ :\ Expr\ \Gamma\ x$, we will say that $e_x$ denotes (or encodes) the number $x$ in the context $\Gamma$.
-When an expression is a variable $Var\ i$, the denoted number is simply the corresponding variable in the context, ie, $(index\ i\ \Gamma)$.
-Also, the $Zero$ expression denotes the natural number $Z$. Finally, if $e_x$ is an expression encoding the number $x$, and $e_y$ is an expression encoding the number $y$, then the expression $Plus\ e_x\ e_y$ denotes the concrete natural number $(x + y)$.
+For an expression $e_x\ :\ Expr\ \Gamma\ x$, we will say that $e_x$ denotes (or
+encodes) the number $x$ in the context $\Gamma$.  When an expression is a
+variable $Var\ i$, the denoted number is simply the corresponding variable in
+the context, ie, $(index\ i\ \Gamma)$.  Also, the $Zero$ expression denotes the
+natural number $Z$. Finally, if $e_x$ is an expression encoding the number $x$,
+and $e_y$ is an expression encoding the number $y$, then the expression $Plus\
+e_x\ e_y$ denotes the concrete natural number $(x + y)$.
 
-Note that variables are represented using a De Brujin-like index: $Var\:FZ$ denotes the first variable abstracted, $Var\:(FS\:FZ)$ the second one, and so on.
+Note that variables are represented using a De Brujin-like index: $Var\:FZ$
+denotes the first variable abstracted, $Var\:(FS\:FZ)$ the second one, and so
+on.
 
 We can define the reflection of the left-hand side of the example 1 like this :
 \begin{lstlisting}

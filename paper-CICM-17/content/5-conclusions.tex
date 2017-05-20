@@ -1,9 +1,45 @@
 \section{Results, conclusions and future work}
 
-We have implemented a very generic solution to the initial problem of index mismatch that appeared in section~\ref{sect:motivatingExample} when we were using indexed types. This solution takes the form of a hierarchy of provers for equivalences in algebraic structures. These provers are generic in multiple ways: they work for many algebraic structures (semi-group, monoid, commutative monoid, group, commutative group, ring and semi-ring), for any type that behaves as one of these structures, and for any equivalence relation on this type (and not only for the propositional equality). The implementation is modular and each prover reuses the prover of the structure from which it inherits. These provers can automatically prove equivalences between terms, which discharges the user of providing proofs for some proof obligations, as \code{adc\_lemma\_2}. Thus, these provers enable the user to focus on the interesting proofs that requires specific knowledge and creativity, instead of wasting time for proving routine lemmas that can be automated.\\
+We have implemented a very generic solution to the initial problem of index
+mismatch that appeared in section~\ref{sect:motivatingExample} when we were
+using indexed types. This solution takes the form of a hierarchy of provers for
+equivalences in algebraic structures. These provers are generic in multiple
+ways: they work for many algebraic structures (semi-group, monoid, commutative
+monoid, group, commutative group, ring and semi-ring), for any type that
+behaves as one of these structures, and for any equivalence relation on this
+type (and not only for the propositional equality). The implementation is
+modular and each prover reuses the prover of the structure from which it
+inherits. These provers can automatically prove equivalences between terms,
+which discharges the user of providing proofs for some proof obligations, as
+\code{adc\_lemma\_2}. Thus, these provers enable the user to focus on the
+interesting proofs that requires specific knowledge and creativity, instead of
+wasting time for proving routine lemmas that can be automated.
 
-The correct-by-construction method that we have followed has involved the design of a type-safe reflection mechanism where reflected terms are indexed over the concrete inputs, and from which we are able to pull out the proofs easily. The construction of the proof is done step by step, and it follows the construction of the normalised terms. Therefore, unlike Coq's and Agda's ring provers, we do not have the traditional duplication that happens when separating the computational content from the proof of correctness. Instead, in our approach, the construction of the proof is guided by the construction of the normalised terms, which, in addition of avoiding redundancy, simplifies the proof generation considerably. This development shows that if dependent types effectively bring some new problems, they are also very expressive tools for building correct-by-construction software where the development is \emph{driven by the types}. \\
+The correct-by-construction method that we have followed has involved the
+design of a type-safe reflection mechanism where reflected terms are indexed
+over the concrete inputs, and from which we are able to pull out the proofs
+easily. The construction of the proof is done step by step, and it follows the
+construction of the normalised terms. Therefore, unlike Coq's and Agda's ring
+provers, we do not have the traditional duplication that happens when
+separating the computational content from the proof of correctness. Instead, in
+our approach, the construction of the proof is guided by the construction of
+the normalised terms, which, in addition of avoiding redundancy, simplifies the
+proof generation considerably. This development shows that if dependent types
+effectively bring some new problems, they are also very expressive tools for
+building correct-by-construction software where the development is \emph{driven
+by the types}.
 
-This work can be extended to build new provers for less common algebraic structures and for more specific structures. For example, regular expressions form a ``pre semi-ring" with some extra axioms. We will refactor the semi-ring level with the creation of the intermediate structure of pre semi-ring, that will not necessary have the property that $0$ is an annihilator element for the product. Then, we could build a specific prover for regular expressions, that would use the normalisation function of the pre semi-ring level and that would only have to deal with the specific properties of regular expressions : the neutral element $\varnothing$ for the concatenation of languages is also a neutral element for the product of languages, the idempotence of the addition of languages, and the rules of simplifications for the new Kleene star operation.
+This work can be extended to build new provers for less common algebraic
+structures and for more specific structures. For example, regular expressions
+form a ``pre semi-ring" with some extra axioms. We will refactor the semi-ring
+level with the creation of the intermediate structure of pre semi-ring, that
+will not necessary have the property that $0$ is an annihilator element for the
+product. Then, we could build a specific prover for regular expressions, that
+would use the normalisation function of the pre semi-ring level and that would
+only have to deal with the specific properties of regular expressions : the
+neutral element $\varnothing$ for the concatenation of languages is also a
+neutral element for the product of languages, the idempotence of the addition
+of languages, and the rules of simplifications for the new Kleene star
+operation.
 
 

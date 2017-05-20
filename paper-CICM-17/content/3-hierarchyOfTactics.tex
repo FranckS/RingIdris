@@ -208,7 +208,6 @@ data ExprMa : Magma c $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Typ
        $\rightarrow$ (i:Fin n) $\rightarrow$ ExprMa p $\Gamma$ (index i $\Gamma$)
 \end{lstlisting}
 
-
 For an expression $e_x\ :\ \code{ExprMa}\ \Gamma\ x$, we say that $e_x$
 denotes the value $x$ in the context $\Gamma$.  When an expression
 is a variable \code{(VarMa\ \_\ $\Gamma$\ i)}, the denoted value is the
@@ -218,6 +217,9 @@ $e_y$ is an expression encoding the concrete value $y$, then the expression
 \code{PlusMa\ $e_x$\ $e_y$} denotes the concrete value $(x + y)$. Because the
 reflected terms embed their corresponding inputs, they are guaranteed to be
 sound representations.
+This is a \emph{local} approach to syntax representation~\cite{Farmer13}
+in that the reflected representation will \emph{only} represent terms in
+a magma.
 
 There are no additional operations in semi-groups or monoids, so the reflected
 datatypes have the same shape as that for magma.  However, the datatype for
@@ -459,8 +461,10 @@ variable and the encoding of a negation:
 
 \begin{lstlisting}
 data Variable : {c:Type} $\rightarrow$ {n:Nat} $\rightarrow$ (Vect n c) $\rightarrow$ c $\rightarrow$ Type where
-  RealVariable : ($\Gamma$:Vect n c) $\rightarrow$ (i:Fin n) $\rightarrow$ Variable $\Gamma$ (index i $\Gamma$)
-  EncodingNeg : ($\Gamma$:Vect n c) $\rightarrow$ (i:Fin n) $\rightarrow$ Variable $\Gamma$ (Neg (index i $\Gamma$))
+  RealVariable : ($\Gamma$:Vect n c) $\rightarrow$ 
+                 (i:Fin n) $\rightarrow$ Variable $\Gamma$ (index i $\Gamma$)
+  EncodingNeg : ($\Gamma$:Vect n c) $\rightarrow$ 
+                (i:Fin n) $\rightarrow$ Variable $\Gamma$ (Neg (index i $\Gamma$))
 \end{lstlisting}
 
 We only need to encode negations of variables, as we can simplify 
@@ -505,6 +509,18 @@ build the reflected terms for us automatically. This is not essential to our
 approach, but it simplifies the usage of the tactics by removing the need to
 write long encodings by hand.  To do so, we used Idris' reflection mechanism,
 which enables pattern matching on syntax, rather than on constructors. 
+While we omit the full details due to space constraints, reflecting values
+involves defining functions of the following form:
 
+\begin{lstlisting}
+%reflection reflectGroup : (p : Group c) $\rightarrow$ ($\Gamma$ : Vect n c) $\rightarrow$ 
+                           (x : c) $\rightarrow$ ($\Gamma'$ ** ExprG p ($\Gamma'$ ++ $\Gamma$) x)
+\end{lstlisting}
 
+The \texttt{\%reflection} annotation means that Idris treats this as a 
+compile time function on \emph{syntax}. Given a value of type
+\texttt{c}, in some context $\Gamma$, it constructs a reflected expression 
+in an extended context \texttt{$\Gamma'$ ++ $\Gamma$}. The context
+contains references to subexpressions 
+which are not themselves representable by \texttt{ExprG}.
 
