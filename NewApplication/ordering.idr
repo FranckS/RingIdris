@@ -118,10 +118,10 @@ lowerEq_antisym p (Or_introR x_equals_y) _ = x_equals_y
 -- FIX IDRIS : I can't simply state "x <~= y" because otherwise Idris introduces many instances instead of using the available 'p'
 lowerEq_trans : {c:Type} -> (p:PartialOrder c) -> {x:c} -> {y:c} -> {z:c} -> ((<~=) {p=p} x y) -> ((<~=) {p=p} y z) -> ((<~=) {p=p} x z)
 -- FIX IDRIS : I need to provide {c=c} because Idris can't find automatically the right instances. And I can't give them. But just giving {c=c} helps...
-lowerEq_trans p (Or_introL x_lower_y) (Or_introL y_lower_z) = Or_introL (lower_trans {c=c} x_lower_y y_lower_z)
-lowerEq_trans p (Or_introL x_lower_y)  (Or_introR y_equals_z) = Or_introL (lower_compat_equivalence_R {c=c} x_lower_y y_equals_z)
-lowerEq_trans p (Or_introR x_equals_y) (Or_introL y_lower_z) = ?MlowerEq_trans_1 -- Or_introL (lower_compat_equivalence_L {c=c} y_lower_z (eq_sym {c=c} x_equals_y))
-lowerEq_trans p (Or_introR x_equals_y) (Or_introR y_equals_z) = Or_introR (eq_trans {c=c} x_equals_y y_equals_z)
+lowerEq_trans {c=c} p (Or_introL x_lower_y) (Or_introL y_lower_z) = Or_introL (lower_trans {c=c} x_lower_y y_lower_z)
+lowerEq_trans {c=c} p (Or_introL x_lower_y)  (Or_introR y_equals_z) = Or_introL (lower_compat_equivalence_R {c=c} x_lower_y y_equals_z)
+lowerEq_trans {c=c} p (Or_introR x_equals_y) (Or_introL y_lower_z) = ?MlowerEq_trans_1 -- Or_introL (lower_compat_equivalence_L {c=c} y_lower_z (eq_sym {c=c} x_equals_y))
+lowerEq_trans {c=c} p (Or_introR x_equals_y) (Or_introR y_equals_z) = Or_introR (eq_trans {c=c} x_equals_y y_equals_z)
 
 
 ------------------------------------------------------

@@ -26,7 +26,7 @@ sortList : {A:Type} -> (Aord : PartialOrder A) -> List A -> List A
 sortList Aord [] = []
 sortList Aord (h::t) = insert Aord h (sortList Aord t)
 
--- Now, we could prove that sort is indeed a sorting function...
+-- Now, we could prove that sortList is indeed a sorting function...
 -- To do
 -- [...]
 
@@ -46,21 +46,22 @@ data Tree : (A:Type) -> List A -> Type where
 -- That should brings problems as the index being built is certainly not the same as the one claimed in the type
 -- -> we want to use one of our automatic prover for that
 
-insertTree : {A:Type} -> (Aord : PartialOrder A) -> (x:A) -> {lindex:List A} -> Tree A lindex -> Tree A (sortList Aord lindex++[x])
-insertTree {A=A} _ x EmptyTree ?= Node EmptyTree x EmptyTree
+
+
+
+insertTree : {A:Type} -> (Aord : PartialOrder A) -> (x:A) -> {lindex:List A} -> Tree A lindex -> Tree A (insert Aord x lindex)
+insertTree {A=A} _ x EmptyTree = Node EmptyTree x EmptyTree
 insertTree {A=A} Aord x (Node left elem right) with (lowerEqDec Aord x elem)
 	insertTree {A=A} Aord x (Node left elem right) | (Yes xIsSmallerOrEqual) ?= Node (insertTree Aord x left) elem right
 	insertTree {A=A} Aord x (Node left elem right) | (No xIsBigger) ?= Node left elem (insertTree Aord x right)
 
 	
-buildSortedTree : {A:Type} -> (Aord : PartialOrder A) -> (l:List A) -> Tree A (sortList Aord l)
-buildSortedTree {A=A} Aord [] = EmptyTree
-buildSortedTree {A=A} Aord (h::t) ?= aux_buildSortedTree (Node EmptyTree h EmptyTree) t where
-	aux_buildSortedTree : {A:Type} -> {Aord : PartialOrder A} -> {lindex:List A} -> (tree:Tree A lindex) -> (l:List A) -> Tree A (sortList Aord (l++lindex))
-	aux_buildSortedTree tree [] ?= tree
-	aux_buildSortedTree {A=A} {Aord=Aord} tree (head::tail) ?= aux_buildSortedTree (insertTree Aord head tree) tail 
-	
-	
-	
-	
-	
+
+aux_buildSortedTree : {A:Type} -> (Aord : PartialOrder A) -> {lindex:List A} -> (tree:Tree A (sortList Aord lindex)) -> (l:List A) -> Tree A (sortList Aord (l++lindex))
+aux_buildSortedTree Aord tree [] = tree
+aux_buildSortedTree Aord tree (head::tail) ?= aux_buildSortedTree Aord (insertTree Aord head tree) tail 
+
+
+-- buildSortedTree : {A:Type} -> (Aord : PartialOrder A) -> (l:List A) -> Tree A (sortList Aord l)
+-- buildSortedTree {A=A} Aord [] = EmptyTree
+-- buildSortedTree {A=A} Aord (h::t) ?= aux_buildSortedTree Aord (Node EmptyTree h EmptyTree) t
