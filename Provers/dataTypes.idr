@@ -100,7 +100,8 @@ interface dataTypes.Monoid c => dataTypes.Group c where
 
     Minus_simpl : (c1:c) -> (c2:c) -> (Minus c1 c2) ~= (Plus c1 (Neg c2)) --Minus should not be primitive and should be simplifiable
     -- The most important stuff for a group is the following :
-    Plus_inverse : (c1:c) -> hasSymmetric c (%implementation) c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
+    Plus_inverse : (c1:c) -> hasSymmetric c _ c1 (Neg c1) -- Every element 'x' has a symmetric which is (Neg x)
+							  -- The "_" was previsouly (%implementation)
 --%logging 0
 
 
@@ -141,36 +142,36 @@ interface dataTypes.Ring c => CommutativeRing c where
 ------------------------------
 -- Magma -> Set
 magma_to_set_class : (Magma c) -> (Set c)
-magma_to_set_class x = (%implementation)
+magma_to_set_class x = _ -- was previsouly (%implementation)
 
 -- SemiGroup -> Magma
 semiGroup_to_magma_class : (SemiGroup c) -> (Magma c)
-semiGroup_to_magma_class p = (%implementation)
+semiGroup_to_magma_class p = _ -- was previsouly (%implementation)
 
 -- Monoid -> SemiGroup
 monoid_to_semiGroup_class : (dataTypes.Monoid c) -> (SemiGroup c)
-monoid_to_semiGroup_class p = (%implementation)
+monoid_to_semiGroup_class p = _ -- was previsouly (%implementation)
 
 -- Group -> Monoid (needed for tools.idr, for unicity of symmetric)
 group_to_monoid_class : (dataTypes.Group c) -> (dataTypes.Monoid c)
-group_to_monoid_class p = (%implementation)
+group_to_monoid_class p = _ -- was previsouly (%implementation)
 
 -- CommutativeMonoid -> Monoid
 -- NEW
 commutativeMonoid_to_monoid_class : (CommutativeMonoid c) -> (dataTypes.Monoid c)
-commutativeMonoid_to_monoid_class p = (%implementation)
+commutativeMonoid_to_monoid_class p = _ -- was previsouly (%implementation)
 
 -- CommutativeGroup -> Group
 commutativeGroup_to_group_class : (CommutativeGroup c) -> (dataTypes.Group c)
-commutativeGroup_to_group_class p = (%implementation)
+commutativeGroup_to_group_class p = _ -- was previsouly (%implementation)
 
 -- Ring -> CommutativeGroup
 ring_to_commutativeGroup_class : (dataTypes.Ring c) -> (dataTypes.CommutativeGroup c)
-ring_to_commutativeGroup_class p = (%implementation)
+ring_to_commutativeGroup_class p = _ -- was previsouly (%implementation)
 
 -- CommutativeRing -> Ring
 cr_to_r_class : CommutativeRing c -> dataTypes.Ring c
-cr_to_r_class p = (%implementation) -- finds the implementation automatically from p
+cr_to_r_class p = _ -- was previsouly (%implementation)
 
 -- -----------------------------------------
 -- (getters) Equality as elements of set ---
@@ -190,14 +191,14 @@ magma_eq_as_elem_of_set x = set_eq_as_elem_of_set (magma_to_set_class x)
 
 -- Semi group
 semiGroup_to_set : (SemiGroup c) -> (Set c)
-semiGroup_to_set x = (%implementation)
+semiGroup_to_set x = _ -- was previsouly (%implementation)
 
 semiGroup_eq_as_elem_of_set : (SemiGroup c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 semiGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (semiGroup_to_set x)
 
 -- Monoid
 monoid_to_set : (dataTypes.Monoid c) -> (Set c)
-monoid_to_set x = (%implementation)
+monoid_to_set x = _ -- was previsouly (%implementation)
 
 monoid_eq_as_elem_of_set : (dataTypes.Monoid c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
@@ -205,7 +206,7 @@ monoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (monoid_to_set x)
 
 -- Commutative Monoid
 commutativeMonoid_to_set : (CommutativeMonoid c) -> (Set c)
-commutativeMonoid_to_set x = (%implementation)
+commutativeMonoid_to_set x = _ -- was previsouly (%implementation)
 
 commutativeMonoid_eq_as_elem_of_set : (CommutativeMonoid c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid_to_set x)
@@ -213,7 +214,7 @@ commutativeMonoid_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeMonoid
 
 -- Group
 group_to_set : (dataTypes.Group c) -> (Set c)
-group_to_set x = (%implementation)
+group_to_set x = _ -- was previsouly (%implementation)
 
 group_eq_as_elem_of_set : (dataTypes.Group c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
@@ -221,7 +222,7 @@ group_eq_as_elem_of_set x = set_eq_as_elem_of_set (group_to_set x)
 
 -- Commutative Group
 commutativeGroup_to_set : (CommutativeGroup c) -> (Set c)
-commutativeGroup_to_set x = (%implementation)
+commutativeGroup_to_set x = _ -- was previsouly (%implementation)
 
 commutativeGroup_eq_as_elem_of_set : (CommutativeGroup c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_to_set x)
@@ -229,7 +230,7 @@ commutativeGroup_eq_as_elem_of_set x = set_eq_as_elem_of_set (commutativeGroup_t
 
 -- Ring
 ring_to_set : (dataTypes.Ring c) -> (Set c)
-ring_to_set x = (%implementation)
+ring_to_set x = _ -- was previsouly (%implementation)
 
 ring_eq_as_elem_of_set : (dataTypes.Ring c) -> ((x:c) -> (y:c) -> Maybe(x~=y))
 ring_eq_as_elem_of_set x = set_eq_as_elem_of_set (ring_to_set x)
