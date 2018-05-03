@@ -1,11 +1,9 @@
 -- Edwin Brady, Franck Slama
 -- University of St Andrews
 
--- Implementation of a RING tactic, in Idris, for Idris.
--- To solve equalities over an abstract ring, we normalize both sides of the 
--- equality and check that their normal forms are equal (with Leibniz equality).
--- The normalization is done by using dependent types, which enable to write
--- the algorithm and the proof of correctness at the same time, and step by step
+-- Implementation of tactics that prove equivalences in algebraic structures (Rings, Groups, Monoids, etc), written in Idris, for Idris.
+-- To prove equalities over an abstract structure, we normalize both sides of the potential equality and check that these normal forms are syntactically the same.
+-- The normalization is implemented following a correct-by-construction approach, enabled by a type-safe reflection mechanism.
 
 -- File main.idr
 -- Implements the main
@@ -38,7 +36,7 @@ import Provers.reflection
 
 
 main : IO()
-main = putStrLn "coucou!"
+main = putStrLn "The collection of tactics for proving equivalences in algebraic structures seems to be ready to prove stuff!"
 
 
 {-
