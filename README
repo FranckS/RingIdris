@@ -10,7 +10,7 @@ Current version is Version 0.6 (05/06/2016)
 Summary :
 ---------
 
-This is the implementation of a collection of tactics for Idris, in Idris.
+This is the implementation of a collection of tactics for Idris, in Idris. These tactics automatically prove equivalences between terms in algebraic structures, with universally quantified variables.
 
 Note that this work is still in progress, so you should not (yet) use it now, as the final version might not be compatible with the current state that you see now.
 
