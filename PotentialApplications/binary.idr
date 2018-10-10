@@ -1,5 +1,5 @@
--- myBinary_new.idr
--- This one uses the adapted solver (commutative monoid, for Nat)
+-- binary.idr
+-- Uses the adapted prover (commutative monoid), on Nat
 
 module Main
 

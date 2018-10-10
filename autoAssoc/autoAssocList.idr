@@ -1,10 +1,10 @@
-module NewAutoAssoc
+module autoAssocList
 
 
 import Decidable.Equality
 import Data.Fin
 import Data.Vect
-import NewAutoAssoc_tools
+import autoAssoc_tools
 
 -- Expr is a reflection of a list, indexed over the concrete list,
 -- and over a set of list variables.

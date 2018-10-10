@@ -1,0 +1,9 @@
+package algebraicProvers
+
+modules = Provers.tools, Provers.mathsResults, Provers.dataTypes,
+          Provers.magma_reduce, Provers.semiGroup_reduce, Provers.monoid_reduce,
+          Provers.commutativeMonoid_reduce, Provers.group_reduce,
+          Provers.commutativeGroup_reduce, Provers.magma_test,
+          Provers.semiGroup_test, Provers.monoid_test,
+          Provers.commutativeMonoid_test, Provers.group_test,
+          Provers.commutativeGroup_test

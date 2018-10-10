@@ -1,4 +1,4 @@
-module NewAutoAssoc_tools
+module autoAssoc_tools
 
 import Decidable.Equality
 import Data.Fin

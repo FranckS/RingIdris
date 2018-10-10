@@ -1,9 +1,0 @@
-package ringsolver
-
-modules = Solver.tools, Solver.mathsResults, Solver.dataTypes,
-          Solver.magma_reduce, Solver.semiGroup_reduce, Solver.monoid_reduce,
-          Solver.commutativeMonoid_reduce, Solver.group_reduce,
-          Solver.commutativeGroup_reduce, Solver.magma_test,
-          Solver.semiGroup_test, Solver.monoid_test,
-          Solver.commutativeMonoid_test, Solver.group_test,
-          Solver.commutativeGroup_test

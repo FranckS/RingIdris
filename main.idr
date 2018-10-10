@@ -2,11 +2,11 @@
 -- University of St Andrews
 
 -- Implementation of tactics that prove equivalences in algebraic structures (Rings, Groups, Monoids, etc), written in Idris, for Idris.
--- To prove equalities over an abstract structure, we normalize both sides of the potential equality and check that these normal forms are syntactically the same.
--- The normalization is implemented following a correct-by-construction approach, enabled by a type-safe reflection mechanism.
+-- To prove equivalence over an abstract structure, we normalize both sides of the potential equality and check that these normal forms are syntactically the same.
+-- The normalization is implemented following a correct-by-construction approach, enabled by an original type-safe reflection mechanism.
 
 -- File main.idr
--- Implements the main
+-- Load all the tactics and associated tests files
 -------------------------------------------------------------------
 
 module Main
@@ -17,7 +17,7 @@ import Provers.dataTypes
 import Provers.magma_reduce
 import Provers.semiGroup_reduce
 import Provers.monoid_reduce
-import Provers.commutativeMonoid_reduce -- NEW
+import Provers.commutativeMonoid_reduce
 import Provers.group_reduce
 import Provers.commutativeGroup_reduce
 import Provers.ring_reduce
@@ -37,12 +37,6 @@ import Provers.reflection
 
 main : IO()
 main = putStrLn "The collection of tactics for proving equivalences in algebraic structures seems to be ready to prove stuff!"
-
-
-{-
-bla : (x:Nat) -> Maybe (x+0 = x)
-bla x = Just (rewrite (a_plus_zero x) in refl)
--}
 
 
 ---------- Proofs ----------
