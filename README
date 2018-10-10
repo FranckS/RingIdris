@@ -65,7 +65,7 @@ Note that because the automatic reflexion does not work, this file is terrible t
 VII/ About the technique :
 ---------------------------------------------------------------------
 
-1) Note that we are interested in the proof of correctness (which is precisely the proof of equality/equivalence that we want) and not (really) by the algorithms implemented (which are normalizations of terms, in different algebraic structures).
+1) Note that we are interested in the proof of correctness (which is precisely the proof of equality/equivalence that we want) and not by the normalised terms, which are just a vector for building the required proofs.
 
 2) We follow a "correct by construction" approach : rather than implementing the normalization of terms and afterwards proving that a normalized term and the original term denote the same value, we do it "bit by bit" : we construct this proof at the same time as we normalize the two terms.
 The result if that the proof of correctness (which is in what we are interested) is a lot easier to obtain : for each little step of rewriting, the proof is really trivial.
