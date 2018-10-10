@@ -1,17 +1,18 @@
 -- binary.idr
--- Uses the adapted prover (commutative monoid), on Nat
+-- Automatically solves proof obligations that naturally arise when manipulating binary numbers,
+-- by using the adapted prover (commutative monoid), on Nat
 
 module Main
 
 import Data.Fin
 import Data.Vect
 
-import Provers.dataTypes
-import Provers.commutativeMonoid_reduce -- For the appropriate reduction procedure
-import Provers.commutativeMonoid_test -- For the instance (CommutativeMonoid Nat)
-import Provers.monoid_test
-import Provers.semiGroup_test
-import Provers.magma_test
+import ../Provers.dataTypes
+import ../Provers.commutativeMonoid_reduce -- For the appropriate reduction procedure
+import ../Provers.commutativeMonoid_test -- For the instance (CommutativeMonoid Nat)
+import ../Provers.monoid_test
+import ../Provers.semiGroup_test
+import ../Provers.magma_test
 
 
 data Bit : Nat -> Type where

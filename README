@@ -52,9 +52,9 @@ VI/ A fairly big example
 A fairly big example can be found in the file binary.idr.
 Simply run : 
 
-idris ./Provers/binary.idr -p contrib
+idris ./PotentialApplications/binary.idr -p contrib
 
-That will compile the tactics and that will generate the proof required (in the term goal_aux).
+That will load the tactics and that will generate the proof required (in the term goal_aux).
 
 To see the proof generated, simply ask for the evaluation of :
 
